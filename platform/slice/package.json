@@ -1,0 +1,13 @@
+{
+  "name": "@mojibun/slice",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@mojibun/jobs": "workspace:*" },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "hono": "^4.9.0"
+  },
+  "peerDependencies": { "hono": "^4", "react": "^19" }
+}

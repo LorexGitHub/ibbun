@@ -1,0 +1,14 @@
+{
+  "name": "@mojibun/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {},
+  "scripts": { "dev": "node --watch src/main.ts", "start": "node src/main.ts" },
+  "dependencies": {
+    "@hono/node-server": "^1.19.0",
+    "@mojibun/slice": "workspace:*",
+    "hono": "^4.9.0"
+  },
+  "devDependencies": { "@types/node": "^24.0.0" }
+}

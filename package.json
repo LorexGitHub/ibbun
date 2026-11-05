@@ -1,0 +1,27 @@
+{
+  "name": "mojibun",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "gen": "node scripts/gen-slice-index.mjs",
+    "dev": "pnpm gen && pnpm -r --parallel --filter \"./apps/*\" dev",
+    "db:migrate": "pnpm --filter @mojibun/db migrate",
+    "test": "pnpm gen && vitest run",
+    "typecheck": "pnpm gen && tsc -p . && tsc -p apps/web"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0",
+    "@mojibun/jobs": "workspace:*",
+    "@mojibun/slice": "workspace:*",
+    "hono": "^4.9.0",
+    "zod": "^4.1.0",
+    "react": "^19.1.0",
+    "@types/react": "^19.1.0",
+    "@types/node": "^24.0.0"
+  }
+}
