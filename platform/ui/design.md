@@ -1,0 +1,53 @@
+# Design: mojibun
+
+The locked system. Every Hallmark run reads this first and pages share it. Change it on purpose; the file is the rule. The visual target is [`docs/design/mojibun-mock.html`](../../docs/design/mojibun-mock.html) ([ADR 0011](../../docs/adr/0011-hum-visual-design.md)): when a screen and the mock disagree, the mock wins.
+
+## System
+- Genre: playful
+- Shape of the first page: app screen
+- Theme: Hum (by request)
+- Axes: light/rounded-sans/chromatic-yellow · posture: full-palette
+
+## Tokens
+[`src/tokens.css`](src/tokens.css) is the source of truth, copied from the mock's `:root` (a test fails if they drift). The roles:
+```css
+:root {
+  --color-paper: oklch(97% 0.012 95);  --color-paper-2: oklch(94.5% 0.018 95);  --color-paper-3: oklch(91% 0.022 95);
+  --color-ink: oklch(20% 0.014 255);  --color-ink-2: oklch(29% 0.014 255);  --color-muted: oklch(47% 0.014 255);  --color-rule: oklch(87% 0.016 95);
+  --color-accent: oklch(87% 0.175 96);  --color-accent-ink: oklch(20% 0.014 255);  --color-focus: oklch(50% 0.17 250);
+  --font-display: "Chillax", "Zen Maru Gothic", ui-rounded, ui-sans-serif, sans-serif;  --font-body: var(--font-display);  --font-jp: "Zen Maru Gothic", …;
+  --radius-card: 24px;  --radius-pill: 999px;  --rule-hair: 1px;  --shadow-card: 0 1px 2px …, 0 12px 28px -14px …;
+}
+```
+The spacing and type scales, the easings, the durations, the grain and fibre textures and the three torn edges (`--tear-nav`, `--tear-band`, `--tear-sheet`) live in `tokens.css`.
+
+## Type
+- Chillax 500 and 600 (Fontshare) for all Latin text. Zen Maru Gothic 500 and 700 (Google Fonts) for Japanese: anything with `lang="ja"` or `.jp`. Chillax has no kana or kanji.
+- Furigana is `<ruby>` with `<rt>` at half size in `--color-ink-2`. Whether readings show is the furigana rule in `progress`; the kit only draws.
+
+## Accents
+- Pear (`--color-accent`): the primary action, one per screen. Blue (`--color-accent-2`): links and focus. Coral (`--color-accent-3`): the one loud press, such as Forgot. Mint: growth, a correct answer, Known.
+- A wrong answer uses `--color-error`, never coral. Never a gradient between two accents.
+
+## Controls
+- Primary: pear card stock · `--radius-stock` 16px · 54px, 64px big · a 5px `--color-accent-deep` edge that rises to 7px on hover and presses to 1px.
+- Secondary: cream card stock · same radius and height · a 5px `--color-edge`.
+- Inputs: 52px · `--radius-input` 14px · 1px `--color-muted` border · the blue focus ring. Answers in Japanese use `KanaInput`, which turns romaji into kana with wanakana.
+- Selected pill: ink fill, paper text.
+
+## Where Hum yields to app scope
+- Kept from Hum: the palette, the faces, the radii, grain and fibre, and 54px pressable card stock, because pressing is the job in a Review.
+- Torn edges: the nav sheet on every screen, and at most two bands or sheets per screen (the Today figures and progress band). No hills, soil or page curls.
+
+## Attribution
+- `Layout` renders the EDRDG footer on every screen: EDRDG's sample wording and a link to Credits ([licensing.md](../../docs/licensing.md#where-attribution-appears)).
+- `Attribution` renders a record's inline credits, as computed by `content-graph`. Slices show it on the answer and result side, in Browse and in detail views, and never on a prompt.
+
+## Motion
+- Character: brisk; `--ease-spring` on the primary button only, `--ease-snap` elsewhere, never `scale()`; under reduced motion everything ends at once.
+
+## Lint
+`pnpm --filter @mojibun/ui lint:hallmark` runs Hallmark's `sloplint` (Nutlope/hallmark @ `407fa68`, cloned next to the repo as `../hallmark`, or at `$HALLMARK`) over `src` with `--genre playful --scope app`. It must report 0 FAIL and 0 REFLEX.
+
+## Exports
+`src/tokens.css` in this package, loaded through `@mojibun/ui/styles.css`.
