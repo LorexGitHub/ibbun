@@ -47,8 +47,12 @@ A Sentence chosen to review one particular Study Item, with the part to blank ou
 _Avoid_: Question, prompt, card, example sentence
 
 **Reading Passage**:
-A longer Japanese text for practice. It is not a Study Item; reading it feeds the Mastery of the Words and Grammar Points it contains.
+A longer Japanese text for practice. It is not a Study Item. Reading it doesn't feed the scheduler: lookups are logged, and only marking a Word or Grammar Point as Known in it counts.
 _Avoid_: Article, story, text
+
+**Batch Text**:
+The short Reading Passage generated for one Learner after a Learn batch. It uses every Study Item in the batch, continues that Learner's story for the level, and is not a Study Item.
+_Avoid_: Lesson text, story, recap
 
 **JLPT Level**:
 The JLPT level (N5 to N1) a Study Item is judged to belong to. Every level is an estimate, because the JLPT publishes no official lists.

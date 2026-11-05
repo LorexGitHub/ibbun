@@ -41,7 +41,7 @@ Each core module owns its tables in its own Postgres schema. It exposes a typed 
 | Module | Owns | Interface gives |
 |---|---|---|
 | `content-graph` | Every Content Graph table: Study Items, Sentences, Examples, Reading Passages, links, source keys, overrides, Provenance, approval, retirement ([content-graph.md](content-graph.md)) | **`content-graph`**: reads of approved, non-retired content with overrides applied. **`content-graph/authoring`**: writes, approval and retirement, plus reads that include drafts, plus `applySnapshot()`, which owns the refresh rules ([import-pipeline.md](import-pipeline.md)) |
-| `progress` | The append-only Review log, the `Scheduler` adapter (ts-fsrs), and the Mastery and Known projections ([ADR 0001](adr/0001-fsrs-6-and-anki-style-mastery.md)) | `record(review)` for every Review `kind`, schedule and Mastery reads |
+| `progress` | The append-only Review log, the `Scheduler` adapter (ts-fsrs), and the Mastery and Known projections ([ADR 0001](adr/0001-fsrs-6-and-anki-style-mastery.md)) | `record(review)` for every Review `kind`, schedule and Mastery reads, Batch Text records ([batch-text.md](batch-text.md)), the furigana rule |
 | `learning-path` | The rules for the order Study Items are offered in, and for locking (#15) | Which New Study Items come next for this Learner, and what is locked |
 | `learner` | Accounts, sessions, roles, Learner preferences | Identity, role and preference reads and writes |
 
@@ -57,17 +57,17 @@ Each external service has an adapter package with an interface and a fake: `nlp`
 
 | Slice | Audience | Covers |
 |---|---|---|
-| `learn` | Learner | Choosing a batch (asks `learning-path`), the lesson, the quiz that must be answered fully correctly |
+| `learn` | Learner | Choosing a batch (asks `learning-path`), the lesson, the quiz that must be answered fully correctly, enqueuing and showing the Batch Text ([batch-text.md](batch-text.md)) |
 | `reviews` | Learner | Review session, Wrap-Up, Ghosts |
 | `cram` | Learner | Choosing items and practising without changing Mastery |
 | `placement` | Learner | The per-level tick-list that makes items Known |
 | `browse` | Learner | Kanji, Word and Grammar Point pages, search, level lists |
-| `reading` | Learner | Reading Passages |
+| `reading` | Learner | Reading Passages, the Learner's past Batch Texts as episodes per level |
 | `listening` | Learner | Dictation and comprehension practice |
 | `dashboard` | Learner | Due counts and Mastery by level |
 | `account` | Learner | Sign-up, login and settings screens (the data lives in `learner`) |
 | `import` | Admin | Scheduled fetch and parse of JMdict, KANJIDIC2, KanjiVG, Tatoeba and yomitan-jlpt-vocab into snapshots, one-time parse of the Tanos kanji lists ([jlpt-levels.md](jlpt-levels.md)), Import Run reports, derived-link rebuilds. One-time parse of hanabira and Tanos grammar, and Matcher Rule runs ([grammar-points.md](grammar-points.md)). Mapping, retirement and override rules are in core `applySnapshot()` |
-| `content-generation` | Admin | Sentences, Japanese Explanations, Listening Clips (TTS), Grammar Point drafts |
+| `content-generation` | Admin | Sentences, Japanese Explanations, Listening Clips (TTS), Grammar Point drafts, Batch Texts |
 | `content-approval` | Admin | Draft queues, the reviewer agent, supervisor spot-check sampling |
 | `credits` | Public | The attribution page (#19) |
 
@@ -86,7 +86,7 @@ CI fails the build when any of these is broken (package `exports` plus dependenc
 How slices interact:
 
 - **Through core, synchronously.** For example, Learn writes Reviews with `progress.record()`, and Reading feeds Mastery the same way. There is no event bus.
-- **Background work** goes through `jobs`. The slice that enqueues a job also owns its handler.
+- **Background work** goes through `jobs`. The slice that enqueues a job also owns its handler. The one exception: a job contract (name plus Zod payload) may live in core, so a Learner-facing slice can enqueue work an admin slice handles. `batch-text.generate` is the only one ([ADR 0008](adr/0008-batch-texts-generated-per-learner.md)).
 - **Screens that show more than one slice** are assembled by `apps/web` from widgets that each slice registers. Neither slice knows about the other.
 
 ## Data
