@@ -43,8 +43,12 @@ A token pattern stored on a Grammar Point that finds Sentences which may demonst
 _Avoid_: Regex, detector, tagger
 
 **Listening Clip**:
-Spoken audio of one Sentence, or of a short ordered run of Sentences (a dialogue), as a Study Item.
+Spoken audio of one Sentence, or of a short two-speaker dialogue of ordered Sentences, as a Study Item. Only a selection of Sentences become one; the rest just have Sentence Audio.
 _Avoid_: Audio, recording, dialogue
+
+**Sentence Audio**:
+The cached spoken audio of one approved Sentence, played after answering, in Learn and in Reading Passages. It is not a Study Item.
+_Avoid_: Clip, recording, TTS
 
 **Sentence**:
 A single Japanese sentence with its translation. It is not a Study Item; it is how Study Items get reviewed and practised.
@@ -73,6 +77,10 @@ _Avoid_: Article, story, text
 **Batch Text**:
 The short Reading Passage generated for one Learner after a Learn batch. It uses every Study Item in the batch, continues that Learner's story for the level, and is not a Study Item.
 _Avoid_: Lesson text, story, recap
+
+**Practice Text**:
+A Reading Passage or listening dialogue that a Learner generates for themselves at a Cleared Level. It is private to them, practice only, and not a Study Item.
+_Avoid_: Custom text, generated passage, exercise
 
 **JLPT Level**:
 The JLPT level (N5 to N1) a Study Item is judged to belong to. Every level is an estimate, because the JLPT publishes no official lists.
@@ -203,6 +211,14 @@ _Avoid_: Leech, extra review
 **Cram**:
 Practice on chosen Study Items that leaves Mastery and statistics untouched.
 _Avoid_: Practice mode, self-study
+
+**Cleared Level**:
+A JLPT Level whose every levelled Kanji is Known to the Learner. Once cleared, it stays cleared. It unlocks Practice Texts for that level.
+_Avoid_: Completed level, finished, passed level
+
+**Exam Mode**:
+A Learner setting that asks Listening the way the JLPT does: the audio plays once, with no slow speed, and the question is shown first. It never changes grading.
+_Avoid_: Test mode, hard mode, strict mode
 
 **Placement**:
 A check where a Learner marks the Study Items of a JLPT Level they already know, making them Known.
