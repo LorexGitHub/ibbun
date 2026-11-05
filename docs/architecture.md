@@ -10,7 +10,7 @@ One TypeScript monorepo (#2) with three thin entry points:
 
 - `apps/web`: the Vite + React SPA. Learner screens, plus admin screens under `/admin` behind a role check.
 - `apps/api`: the Hono HTTP API.
-- `apps/worker`: background jobs from a Postgres-backed queue (pg-boss): re-imports, derived-link rebuilds, generation, TTS, the reviewer agent.
+- `apps/worker`: background jobs from a Postgres-backed queue (pg-boss): re-imports, derived-link rebuilds, generation, TTS, the reviewer agent. Audio files go to object storage (a local volume in dev).
 
 Docker Compose also runs Postgres, the Sudachi sidecar and VOICEVOX (#11).
 
@@ -41,7 +41,7 @@ Each core module owns its tables in its own Postgres schema. It exposes a typed 
 | Module | Owns | Interface gives |
 |---|---|---|
 | `content-graph` | Every Content Graph table: Study Items, Sentences, Examples, Reading Passages, links, source keys, overrides, Provenance, approval, retirement ([content-graph.md](content-graph.md)) | **`content-graph`**: reads of approved, non-retired content with overrides applied. **`content-graph/authoring`**: writes, approval and retirement, plus reads that include drafts, plus `applySnapshot()`, which owns the refresh rules ([import-pipeline.md](import-pipeline.md)) |
-| `progress` | The append-only Review log, the `Scheduler` adapter (ts-fsrs), and the Mastery and Known projections ([ADR 0001](adr/0001-fsrs-6-and-anki-style-mastery.md)) | `record(review)` for every Review `kind`, schedule and Mastery reads, Batch Text records ([batch-text.md](batch-text.md)), the furigana rule |
+| `progress` | The append-only Review log, the `Scheduler` adapter (ts-fsrs), and the Mastery and Known projections ([ADR 0001](adr/0001-fsrs-6-and-anki-style-mastery.md)) | `record(review)` for every Review `kind`, schedule and Mastery reads, Batch Text and Practice Text records ([batch-text.md](batch-text.md), [listening.md](listening.md#practice-texts)), `isLevelCleared()`, the furigana rule |
 | `learning-path` | The rules for the order Study Items are offered in, and for locking (#15) | Which New Study Items come next for this Learner, and what is locked |
 | `learner` | Accounts, sessions, roles, Learner preferences | Identity, role and preference reads and writes |
 
@@ -62,12 +62,12 @@ Each external service has an adapter package with an interface and a fake: `nlp`
 | `cram` | Learner | Choosing items and practising without changing Mastery |
 | `placement` | Learner | The per-level tick-list that makes items Known |
 | `browse` | Learner | Kanji, Word and Grammar Point pages, search, level lists |
-| `reading` | Learner | Reading Passages, the Learner's past Batch Texts as episodes per level |
-| `listening` | Learner | Dictation and comprehension practice |
+| `reading` | Learner | Reading Passages, the Learner's past Batch Texts as episodes per level, Practice Text passages and their Generate screen ([listening.md](listening.md#practice-texts)) |
+| `listening` | Learner | Free Listening practice logged as `cram`, Practice Text dialogues and their Generate screen ([listening.md](listening.md)). Scheduled Listening Clip Reviews run in `reviews` |
 | `dashboard` | Learner | Due counts and Mastery by level |
 | `account` | Learner | Sign-up, login and settings screens (the data lives in `learner`) |
 | `import` | Admin | Scheduled fetch and parse of JMdict, KANJIDIC2, KanjiVG, Tatoeba and yomitan-jlpt-vocab into snapshots, one-time parse of the Tanos kanji lists ([jlpt-levels.md](jlpt-levels.md)), Import Run reports, derived-link rebuilds. One-time parse of hanabira and Tanos grammar, and Matcher Rule runs ([grammar-points.md](grammar-points.md)). Mapping, retirement and override rules are in core `applySnapshot()` |
-| `content-generation` | Admin | Generation Requests and Runs: Sentences, answer data, Japanese Explanations, Grammar Point drafts, proposals, Reading Passages, Batch Texts, Listening Clips (TTS) ([content-approval.md](content-approval.md)) |
+| `content-generation` | Admin | Generation Requests and Runs: Sentences, answer data, Japanese Explanations, Grammar Point drafts, proposals, Reading Passages, Batch Texts, Practice Texts, dialogues, single-Sentence clip selection, Sentence Audio and Listening Clips (TTS) ([content-approval.md](content-approval.md), [listening.md](listening.md)) |
 | `content-approval` | Admin | Automatic checks, the reviewer agent, Approval Decisions, the queue, supervisor spot-check sampling ([content-approval.md](content-approval.md), [ADR 0010](adr/0010-reviewer-agent-approves-supervisor-samples.md)) |
 | `credits` | Public | The attribution page (#19) |
 
@@ -86,7 +86,7 @@ CI fails the build when any of these is broken (package `exports` plus dependenc
 How slices interact:
 
 - **Through core, synchronously.** For example, Learn writes Reviews with `progress.record()`, and Reading feeds Mastery the same way. There is no event bus.
-- **Background work** goes through `jobs`. The slice that enqueues a job also owns its handler. The one exception: a job contract (name plus Zod payload) may live in core, so a Learner-facing slice can enqueue work an admin slice handles. There are three: `batch-text.generate` ([ADR 0008](adr/0008-batch-texts-generated-per-learner.md)), and `content.generate` and `content.review`, which let the two admin slices hand drafts back and forth ([content-approval.md](content-approval.md#wiring)).
+- **Background work** goes through `jobs`. The slice that enqueues a job also owns its handler. The one exception: a job contract (name plus Zod payload) may live in core, so a Learner-facing slice can enqueue work an admin slice handles. There are five: `batch-text.generate` ([ADR 0008](adr/0008-batch-texts-generated-per-learner.md)), `practice.generate` ([ADR 0013](adr/0013-practice-texts-after-a-cleared-level.md)), `listening.synthesise`, and `content.generate` and `content.review`, which let the two admin slices hand drafts back and forth ([content-approval.md](content-approval.md#wiring)).
 - **Screens that show more than one slice** are assembled by `apps/web` from widgets that each slice registers. Neither slice knows about the other.
 
 ## Data

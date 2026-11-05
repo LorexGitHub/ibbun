@@ -30,8 +30,9 @@ Every Generation Request gets **3 attempts** (config). Each failed check or revi
 | Japanese Explanation | a Word sense or Grammar Point | gaps left by ja Wiktionary, and every Grammar Point (#24) |
 | Grammar Point fields and Matcher Rule | a Grammar Point | missing or rejected fields after the seed ([grammar-points.md](grammar-points.md)) |
 | Proposal | hanabira↔Tanos merges, Wiktionary gloss → JMdict sense alignment | the Grammar Point seed and the Japanese Explanation seed |
-| Reading Passage | a set of target Words and Grammar Points, and a JLPT Level | Batch Texts ([batch-text.md](batch-text.md)) and any other passage request |
-| Listening Clip | a Sentence | Listening; made by VOICEVOX, not an LLM ([below](#listening-clips)) |
+| Reading Passage | a set of target Words and Grammar Points, and a JLPT Level | Batch Texts ([batch-text.md](batch-text.md)), Practice Texts ([listening.md](listening.md#practice-texts)) and any other passage request |
+| Listening dialogue | a levelled Grammar Point | one dialogue Listening Clip per levelled Grammar Point, with its 2 comprehension questions ([listening.md](listening.md#dialogues)) |
+| Audio | a Sentence, or a dialogue line | Sentence Audio and Listening Clips; made by VOICEVOX, not an LLM ([below](#listening-clips)) |
 
 Bulk Word level proposals are still deferred ([jlpt-levels.md](jlpt-levels.md)). When they come, they use this pipeline.
 
@@ -52,7 +53,8 @@ Triggers, all automatic unless noted:
 - a Grammar Point has fewer approved Examples than the target, after the Matcher Rule has run;
 - a required field (Japanese Explanation, Grammar Point field) is missing or rejected;
 - an Example has no answer data;
-- `batch-text.generate`;
+- `batch-text.generate` and `practice.generate`;
+- a levelled Grammar Point has no dialogue Listening Clip;
 - a spot-check retires an Example ([below](#supervisor-spot-checks));
 - an admin queues one by hand.
 
@@ -119,10 +121,11 @@ These reasons are operational and always go straight to the supervisor: `breaker
 
 - An **Example and its answer data** are generated (or, for a Tatoeba Example, completed) and reviewed as one unit, approved or rejected together. A later Learner flag that is accepted adds one accepted answer through its own Approval Decision.
 - A **Reading Passage and all its Sentences** are reviewed and approved atomically.
+- A **dialogue, its Sentences and both comprehension questions** are reviewed and approved atomically ([listening.md](listening.md#dialogues)).
 
 ## Listening Clips
 
-No LLM is involved. A clip is built from its Sentence's **approved** reading with a voice from the allow-list ([#11](https://github.com/LorexGitHub/mojibun/issues/11)). It is approved automatically when the kana string sent to VOICEVOX equals the approved reading, like a Derived record, with Provenance "derived by process X, version Y" plus engine, voice and speed. The reviewer agent can't judge pitch or audio, so the supervisor samples clips by listening.
+A dialogue's text and questions are generated and reviewed like any draft ([listening.md](listening.md#dialogues)). Single-Sentence clips are picked from approved Examples by a fixed rule, with no LLM. The **audio** for either never involves an LLM. Audio is built from its Sentence's **approved** reading with a voice from the allow-list ([#11](https://github.com/LorexGitHub/mojibun/issues/11)). It is approved automatically when the kana string sent to VOICEVOX equals the approved reading, like a Derived record, with Provenance "derived by process X, version Y" plus engine, voice and speed. The reviewer agent can't judge pitch or audio, so the supervisor samples clips by listening.
 
 ## Approval Decisions
 
@@ -153,8 +156,8 @@ All four numbers are config.
 | Where | Owns |
 |---|---|
 | core `content-graph/authoring` | `generation_request`, `generation_run` and `approval_decision` tables (additive); the automatic checks; the Content Approval queue entries |
-| core `content-graph` | job contracts `content.generate` and `content.review` (name plus Zod payload), next to `batch-text.generate` |
-| `content-generation` | handles `content.generate` and `batch-text.generate`: prompts, calls `llm`, writes drafts and Generation Runs, enqueues `content.review`, makes Listening Clips |
+| core `content-graph` | job contracts `content.generate`, `content.review` and `listening.synthesise` (name plus Zod payload), next to `batch-text.generate` and `practice.generate` |
+| `content-generation` | handles `content.generate`, `batch-text.generate`, `practice.generate` and `listening.synthesise`: prompts, calls `llm`, writes drafts and Generation Runs, enqueues `content.review`, picks single-Sentence clips, synthesises audio |
 | `content-approval` | handles `content.review`: Sudachi, automatic checks, reviewer agent, Approval Decisions; on reject, enqueues `content.generate` for the next attempt. Also the queue screens, spot-check sampling, error rates, pause and resume, the budget alert. Sampling state is private to the slice |
 
 Generation Requests live in core because triggers come from several places: `applySnapshot()` (Suspended items), the Grammar Point seed, `learn` (Batch Texts) and both admin slices. The two new job contracts extend the exception in [ADR 0008](adr/0008-batch-texts-generated-per-learner.md): the two admin slices hand work to each other without importing each other.
