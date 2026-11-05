@@ -19,10 +19,11 @@ const tokenOf = (headers: Headers) =>
 
 /** A SessionResolver for slice tests: sessions live in memory, keyed by a cookie. */
 export const createFakeSessionResolver = (): FakeSessionResolver => {
-  const sessions = new Map<string, LearnerSession>();
+  const sessions = new Map<string | undefined, LearnerSession>();
   return {
     async resolve(headers) {
-      return sessions.get(tokenOf(headers) ?? "") ?? null;
+      const session = sessions.get(tokenOf(headers));
+      return session === undefined ? null : session;
     },
     signIn(session) {
       const token = randomUUID();
@@ -30,7 +31,7 @@ export const createFakeSessionResolver = (): FakeSessionResolver => {
       return new Headers({ cookie: `${COOKIE}=${token}` });
     },
     signOut(headers) {
-      sessions.delete(tokenOf(headers) ?? "");
+      sessions.delete(tokenOf(headers));
     },
   };
 };

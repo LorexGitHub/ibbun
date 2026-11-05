@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import type { Role } from "@mojibun/auth";
 import type { Db, DbOrTx } from "@mojibun/db";
 import { LearnerId } from "@mojibun/shared";
-import * as t from "../db/schema.ts";
+import * as t from "../db/learner-tables.ts";
 import { consoleAuthLog, type AuthLog } from "./events.ts";
 import { changePreferences, DEFAULT_PREFERENCES, type Preferences } from "./preferences.ts";
 
@@ -112,8 +112,9 @@ export const addLearner = async (tx: DbOrTx, learner: NewLearner): Promise<Learn
     .values({
       id: randomUUID(),
       email: normalizeEmail(learner.email),
-      role: learner.role ?? "learner",
-      emailVerified: learner.emailVerified ?? false,
+      // Left undefined, these take the column defaults: a plain, unverified Learner.
+      role: learner.role,
+      emailVerified: learner.emailVerified,
     })
     .returning();
   const added = toLearner(row!);

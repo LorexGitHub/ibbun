@@ -3,7 +3,7 @@ import { useLearnerDb } from "./db.testing.ts";
 import { addLearner, createLearners } from "./learners.ts";
 import { verifyPassword } from "./password.ts";
 import { grantSupervisor, seedAccounts } from "./seed.ts";
-import * as t from "../db/schema.ts";
+import * as t from "../db/learner-tables.ts";
 import { eq } from "drizzle-orm";
 
 const pg = useLearnerDb();

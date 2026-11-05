@@ -1,9 +1,19 @@
+import { sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { useLearnerDb } from "./db.testing.ts";
 import { hitRateLimit } from "./rate-limit.ts";
 
 describe("hitRateLimit", () => {
   const pg = useLearnerDb();
+
+  // PGlite serves one connection, so a bigger pool makes concurrent queries wait; on
+  // Postgres the extra connections would miss the time zone.
+  it("runs concurrent queries promptly, all in a database clock that is not UTC", async () => {
+    const zones = await Promise.all(
+      [1, 2, 3].map(() => pg.db.execute<{ TimeZone: string }>(sql`SHOW TIME ZONE`).then((r) => r.rows[0]!.TimeZone)),
+    );
+    expect(zones).toEqual(["Asia/Tokyo", "Asia/Tokyo", "Asia/Tokyo"]);
+  }, 5_000);
 
   const rule = { windowSeconds: 60, max: 3 };
   const at = (seconds: number) => new Date(Date.UTC(2026, 10, 5, 12, 0, seconds));

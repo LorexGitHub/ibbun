@@ -1,6 +1,6 @@
 import { describe } from "vitest";
 import type { AuthEvent } from "./events.ts";
-import { createFakeLearners } from "./fake.ts";
+import { createFakeLearners } from "./fake-learners.ts";
 import { addLearner, createLearners } from "./learners.ts";
 import { learnersContract } from "./learners.contract.ts";
 import { useLearnerDb } from "./db.testing.ts";

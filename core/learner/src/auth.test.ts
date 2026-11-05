@@ -2,9 +2,9 @@ import { createHash, randomUUID } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createFakeMail, type FakeMail } from "@mojibun/mail";
-import * as t from "../db/schema.ts";
+import * as t from "../db/learner-tables.ts";
 import { createLearnerAuth, type LearnerAuth } from "./auth.ts";
-import { createLearnerClient, type LearnerClient } from "./client.ts";
+import { createLearnerClient, type LearnerClient } from "./learner-client.ts";
 import type { AuthEvent } from "./events.ts";
 import { useLearnerDb } from "./db.testing.ts";
 
@@ -242,6 +242,11 @@ describe("login", () => {
     expect(cookie).not.toMatch(/Domain=/i);
     expect(cookie).toMatch(/Max-Age=2592000/);
     expect(cookie.split(";")[0]!.split("=")[1]!.split(".")).not.toHaveLength(3);
+    const id = (await w.auth.learners.findByEmail(email))!.id;
+    const { rows } = await pg.db.execute<{ days: number }>(
+      sql`SELECT extract(epoch FROM expires_at - now()) / 86400 AS days FROM learner.sessions WHERE learner_id = ${id}`,
+    );
+    expect(Number(rows[0]!.days)).toBeCloseTo(30, 2);
   });
 
   it("refuses a state-changing request from another origin", async () => {

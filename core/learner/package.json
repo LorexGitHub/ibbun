@@ -5,12 +5,12 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./client": "./src/client.ts",
+    "./client": "./src/learner-client.ts",
     "./testing": "./src/testing.ts"
   },
   "scripts": {
-    "seed": "node src/cli.ts seed",
-    "grant-supervisor": "node src/cli.ts grant-supervisor"
+    "seed": "node src/learner-cli.ts seed",
+    "grant-supervisor": "node src/learner-cli.ts grant-supervisor"
   },
   "dependencies": {
     "@mojibun/auth": "workspace:*",

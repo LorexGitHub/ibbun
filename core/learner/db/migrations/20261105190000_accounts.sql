@@ -1,6 +1,6 @@
 -- Accounts, login methods, sessions, verification tokens, rate limits and
 -- preferences (docs/accounts.md). Better Auth reads and writes the first four
--- through the Drizzle schema in src/tables.ts; keep the two in step.
+-- through the Drizzle tables in db/learner-tables.ts; keep the two in step.
 
 CREATE TABLE learners (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

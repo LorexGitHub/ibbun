@@ -1,4 +1,4 @@
-import type { Mail } from "./contract.ts";
+import type { Mail } from "./mail.ts";
 import type { Message } from "./templates.ts";
 
 export interface FakeMail extends Mail {

@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import type { Mail } from "./contract.ts";
+import type { Mail } from "./mail.ts";
 import { render } from "./templates.ts";
 
 export type SmtpConfig = {

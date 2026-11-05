@@ -13,7 +13,7 @@ const learners = createLearners(db, consoleAuthLog);
 try {
   if (command === "seed") console.log((await seedAccounts(db, learners, process.env)).join("\n"));
   else if (command === "grant-supervisor" && email) await grantSupervisor(learners, email);
-  else throw new Error("usage: cli.ts seed | cli.ts grant-supervisor <email>");
+  else throw new Error("usage: learner-cli.ts seed | learner-cli.ts grant-supervisor <email>");
 } finally {
   await db.$client.end();
 }

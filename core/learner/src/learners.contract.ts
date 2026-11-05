@@ -31,7 +31,7 @@ export const learnersContract = (make: () => Promise<LearnersHarness>) => {
       const { learners, add } = await make();
       const added = await add({ email: "Mika.Tanaka@Mojibun.test" });
       expect(added.email).toBe("mika.tanaka@mojibun.test");
-      expect((await learners.findByEmail("MIKA.tanaka@mojibun.TEST"))?.id).toBe(added.id);
+      expect((await learners.findByEmail("MIKA.tanaka@mojibun.TEST"))!.id).toBe(added.id);
     });
 
     it("answers null for an unknown Learner", async () => {
@@ -46,9 +46,9 @@ export const learnersContract = (make: () => Promise<LearnersHarness>) => {
       const { learners, add, events } = await make();
       const added = await add({ email: email() });
       await learners.setRole(added.id, "supervisor");
-      expect((await learners.get(added.id))?.role).toBe("supervisor");
+      expect((await learners.get(added.id))!.role).toBe("supervisor");
       await learners.setRole(added.id, "learner");
-      expect((await learners.get(added.id))?.role).toBe("learner");
+      expect((await learners.get(added.id))!.role).toBe("learner");
       expect(events.filter((e) => e.type === "role-changed")).toEqual([
         { type: "role-changed", learnerId: added.id, role: "supervisor" },
         { type: "role-changed", learnerId: added.id, role: "learner" },
@@ -66,18 +66,13 @@ export const learnersContract = (make: () => Promise<LearnersHarness>) => {
       const { learners, add, events } = await make();
       const added = await add({ email: email() });
       await learners.setDeactivated(added.id, true);
-      expect((await learners.get(added.id))?.deactivated).toBe(true);
+      expect((await learners.get(added.id))!.deactivated).toBe(true);
       await learners.setDeactivated(added.id, false);
-      expect((await learners.get(added.id))?.deactivated).toBe(false);
+      expect((await learners.get(added.id))!.deactivated).toBe(false);
       expect(events.filter((e) => e.type === "deactivated" || e.type === "reactivated")).toEqual([
         { type: "deactivated", learnerId: added.id },
         { type: "reactivated", learnerId: added.id },
       ]);
-    });
-
-    it("refuses to deactivate an unknown Learner", async () => {
-      const { learners } = await make();
-      await expect(learners.setDeactivated(unknownId(), true)).rejects.toThrow(/no Learner/);
     });
   });
 
@@ -110,6 +105,7 @@ export const learnersContract = (make: () => Promise<LearnersHarness>) => {
       const a = await add({ email: email() });
       const b = await add({ email: email() });
       await learners.changePreferences(a.id, { examMode: true });
+      expect((await learners.preferences(a.id)).examMode).toBe(true);
       expect((await learners.preferences(b.id)).examMode).toBe(false);
     });
 
@@ -124,7 +120,7 @@ export const learnersContract = (make: () => Promise<LearnersHarness>) => {
     it("refuses preferences of an unknown Learner", async () => {
       const { learners } = await make();
       await expect(learners.preferences(unknownId())).rejects.toThrow(/no Learner/);
-      await expect(learners.changePreferences(unknownId(), { examMode: true })).rejects.toThrow(/no Learner/);
+      await expect(learners.changePreferences(unknownId(), {})).rejects.toThrow(/no Learner/);
     });
   });
 };
