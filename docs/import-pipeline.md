@@ -9,6 +9,7 @@ Decided in [#23](https://github.com/LorexGitHub/mojibun/issues/23). Terms follow
 | JMdict, KANJIDIC2 (+ KRADFILE) | jmdict-simplified release (published every Monday) | Monthly, first Monday of the month | EDRDG licence: web dictionary servers must update at least monthly |
 | Tatoeba sentences, translations, `jpn_indices` | `downloads.tatoeba.org/exports` (Saturday 06:30 UTC) | Weekly, after the export | Sentence corrections and author credits |
 | KanjiVG | GitHub release tag | Checked weekly, applied only on a new tag | Irregular releases |
+| yomitan-jlpt-vocab (Tanos Words → JMdict) | GitHub release | Checked weekly, applied only on a new release | Word Level Candidates ([jlpt-levels.md](jlpt-levels.md)) |
 
 Refreshes run as scheduled `worker` jobs (pg-boss) owned by the `import` slice. No human starts them.
 
@@ -19,6 +20,7 @@ A refresh applies on its own unless it would do any of the following. Then it st
 - Retire or change more than **0.5%** of a dataset's records.
 - Send more than **50** Approved Examples back to Draft.
 - Retire any Study Item that has a JLPT Level and no successor.
+- Change the current JLPT Level of more than **100** Study Items ([jlpt-levels.md](jlpt-levels.md#when-a-level-changes)).
 
 The thresholds are config values, not code.
 
@@ -40,7 +42,7 @@ A rerun of the same upstream version changes nothing (idempotent).
 
 ## Mapping upstream changes
 
-Every record is found through the `source_key` table: (dataset, upstream key) → mojibun ID. Upstream keys: JMdict `ent_seq`, the Kanji literal, the Tatoeba sentence id, the KanjiVG code point.
+Every record is found through the `source_key` table: (dataset, upstream key) → mojibun ID. Upstream keys: JMdict `ent_seq`, the Kanji literal, the Tatoeba sentence id, the KanjiVG code point. yomitan-jlpt-vocab rows point at JMdict `ent_seq`.
 
 ### New key
 
@@ -55,7 +57,7 @@ JMdict publishes no merge records: a merged or deleted entry just disappears. So
 3. If there is a successor:
    - The Retired Word's `browse` page redirects to it.
    - Its Approved Examples are copied to the successor as **Draft** Examples, queued with reason `superseded`.
-   - Its JLPT Level is copied to the successor as a **Draft** level assignment, unless the successor already has one.
+   - Its current JLPT Level is copied to the successor as a **Draft Editorial** Level Candidate ([jlpt-levels.md](jlpt-levels.md)).
    - Its overrides become Orphaned (below), with the successor suggested as the new target. Nothing moves on its own.
 
 **Learner progress does not follow the link.** The successor is a new Study Item and starts as New for every Learner. It appears in Learn like any other, with no notice. The Retired Word drops out of the Learner's due Reviews and counts; their past Reviews of it stay in their history. Nothing is shown to the Learner when this happens, with or without a successor.

@@ -12,7 +12,8 @@ Decided in [#12](https://github.com/LorexGitHub/mojibun/issues/12). Terms follow
 
 A hybrid layout:
 
-- One shared `study_item` table: id, type (`kanji` | `word` | `grammar_point` | `listening_clip`), JLPT Level reference, approval state, retired flag, Provenance.
+- One shared `study_item` table: id, type (`kanji` | `word` | `grammar_point` | `listening_clip`), approval state, retired flag, Provenance.
+- A `level_candidate` table: (Study Item, level, kind `editorial` | `list` | `derived`, approval state, retired flag, Provenance). The current JLPT Level is a derived view over it ([jlpt-levels.md](jlpt-levels.md)).
 - One detail table per Study Item type.
 - `sentence` and `reading_passage` are separate tables, outside `study_item`.
 - Typed link tables, one per link type.
@@ -60,13 +61,13 @@ A Study Item with no approved Example can't be reviewed. It is **Suspended**: no
 
 ## JLPT Level
 
-- Each Study Item has **one** current JLPT Level, or is **Unlevelled**. It is stored as an assignment with its own Provenance, so re-tagging never touches the item. #22 decides which source wins.
+- Each Study Item has **one** current JLPT Level, or is **Unlevelled**. It is computed from **Level Candidates**, each with its own Provenance, ranked Editorial > List > Derived, so re-tagging never touches the item. Sources and rules are in [jlpt-levels.md](jlpt-levels.md) (#22).
 - Only Study Items with a level are offered by default. Unlevelled ones (most JMdict Words, non-JLPT Grammar Points) are studied only when a Learner picks Unlevelled in the level filter.
-- Sentences, Reading Passages and Listening Clips have **computed** levels: the highest level among the Words and Grammar Points they link to. This also implements the #4 check that a Sentence's vocabulary is at or below its level.
+- Sentences, Reading Passages and Listening Clips have **computed** levels: the highest level among the Words and Grammar Points they link to, ignoring Unlevelled Words. Each Sentence also stores its unlevelled Word count. This also implements the #4 check that a Sentence's vocabulary is at or below its level.
 
 ## Provenance
 
-Provenance is on every node, link, level assignment and override. It holds:
+Provenance is on every node, link, Level Candidate and override. It holds:
 
 - the source: a dataset and version or import run, `derived` with process and version, or `generated` with model and run
 - the licence

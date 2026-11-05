@@ -42,7 +42,7 @@ Approved Examples are not required to approve a Grammar Point. Until one is appr
 
 ## JLPT Level
 
-Stored as a level assignment with its own Provenance ([content-graph.md](content-graph.md#jlpt-level)).
+The rule below picks the seeded **List** Level Candidate. Later corrections are Editorial candidates, which outrank it ([jlpt-levels.md](jlpt-levels.md)).
 
 | hanabira | Tanos | Level | Flagged for a reviewer |
 |---|---|---|---|

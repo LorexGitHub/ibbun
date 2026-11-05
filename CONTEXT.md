@@ -58,6 +58,10 @@ _Avoid_: Grade, difficulty
 The bucket for Study Items with no JLPT Level. A Learner only studies them by choosing Unlevelled the way they would choose a level.
 _Avoid_: N0, beyond N1, other
 
+**Level Candidate**:
+One source's opinion of a Study Item's JLPT Level, with its own Provenance: Editorial, List or Derived. The current JLPT Level is the Approved candidate that ranks highest, in that order.
+_Avoid_: Level assignment, level tag
+
 **Japanese Explanation**:
 A Japanese-only, full-kanji definition of a Word sense or Grammar Point, written the way a Japanese dictionary would explain it. It sits alongside the English meaning.
 _Avoid_: Nuance, definition, monolingual gloss
