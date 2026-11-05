@@ -4,7 +4,7 @@ Decided in [#31](https://github.com/LorexGitHub/mojibun/issues/31). Terms follow
 
 After each Learn batch, the Learner reads a short text that uses every Study Item in that batch, so they meet new Kanji, Words and Grammar Points in context and not in isolation. The aim is for Learners to read as much as possible and enjoy it.
 
-Batches are unique to each Learner, because order is shuffled per Learner (#15). So the text is generated for each Learner when they pick the batch.
+Batches are unique to each Learner, because order is shuffled per Learner ([learning-path.md](learning-path.md)). A batch can mix levels; its level here is the hardest level among its items, with Unlevelled counting as the hardest. So the text is generated for each Learner when they pick the batch.
 
 ## Approval
 

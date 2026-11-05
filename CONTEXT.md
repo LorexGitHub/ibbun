@@ -11,8 +11,16 @@ The stable set of facts about Japanese that mojibun teaches from: Study Items, S
 _Avoid_: Curriculum, database, corpus
 
 **Learning Path**:
-The swappable rules that decide in what order Study Items are offered to a Learner, and whether any are locked.
+The swappable rules that decide in what order Study Items are offered to a Learner, and whether any are locked. Each Learner's order is their own: a shuffle that respects dependencies.
 _Avoid_: Curriculum, deck order, syllabus
+
+**Track**:
+One Study Item type at one JLPT Level (or Unlevelled), such as N4 Grammar. Each Track is strictly ordered; a Learner chooses which Tracks are active.
+_Avoid_: Deck, lane, queue
+
+**Locked**:
+A New Study Item that Learn won't offer yet, because earlier items in its Track haven't been introduced. A Learner can still start it with Learn now.
+_Avoid_: Gated, hidden, unavailable
 
 **Study Item**:
 Anything a Learner reviews and gains Mastery of: a Kanji, Word, Grammar Point or Listening Clip.
