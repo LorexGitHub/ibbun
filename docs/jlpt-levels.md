@@ -59,7 +59,7 @@ Reading Passages work the same way. A Listening Clip takes the level of its Sent
 
 ## Independence from Kanji
 
-A Word's level does not depend on its Kanji's levels. An N5 Word may contain an N3 Kanji; furigana covers the gap. The Learning Path (#15) may still use Kanji levels as an ordering signal.
+A Word's level does not depend on its Kanji's levels. An N5 Word may contain an N3 Kanji; furigana covers the gap. The Learning Path makes a Word wait for its Kanji only when both are at the same level ([learning-path.md](learning-path.md#dependencies)).
 
 ## When a level changes
 
