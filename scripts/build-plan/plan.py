@@ -108,8 +108,13 @@ def body(i, numbers):
     spec = "\n".join(f"- [{s}]({DOCS_URL}{s})" for s in i["spec"])
     crit = "\n".join(f"- [ ] {c}" for c in i["criteria"])
     blockers = "\n".join(f"Blocked by {ref(b, numbers)}" for b in i["blocked_by"]) or "Blocked by nothing."
-    feature = (f"- [ ] `verify-mojibun/features/` file for this {'slice' if i['type'] != 'wave-0' else 'module'} "
-               "added or updated with `/maintain-verification-skill`")
+    if i["type"] == "wave-0":  # the gates and verify-mojibun are themselves Wave 0 issues
+        done = ("- [ ] Every CI gate that exists on `main` passes; work in ub-mode\n"
+                "- [ ] Once `verify-mojibun` exists, its feature map covers this module")
+    else:
+        done = (f"- [ ] All CI gates pass ([architecture.md]({DOCS_URL}architecture.md#done-for-a-slice-or-core-change)); work in ub-mode\n"
+                "- [ ] `verify-mojibun/features/` file for this slice added or updated with `/maintain-verification-skill`\n"
+                "- [ ] A separate verifier agent attached passing `verify-mojibun` evidence to the PR")
     return f"""Part of the build plan ([docs/build-plan.md]({DOCS_URL}build-plan.md), #40). Plan key: `{i['key']}`.
 
 ## Folder
@@ -125,9 +130,7 @@ The docs are authoritative; these criteria point into them.
 ## Acceptance criteria
 
 {crit}
-- [ ] All CI gates pass ([architecture.md]({DOCS_URL}architecture.md#done-for-a-slice-or-core-change)); work in ub-mode
-{feature}
-- [ ] A separate verifier agent attached passing `verify-mojibun` evidence to the PR
+{done}
 
 ## Blocked by
 

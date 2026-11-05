@@ -51,84 +51,84 @@ python3 scripts/build-plan/plan.py file    # create or update issues; idempotent
 
 | Issue | Type | Layer | Folder | Blocked by |
 |---|---|---|---|---|
-| `skeleton` Wave 0: monorepo, db, jobs, app shells and Compose | `wave-0` | 0 | `apps/*, platform/db, platform/jobs, root config` | none |
-| `gates` Wave 0: CI gates | `wave-0` | 1 | `.github/workflows, root config` | `skeleton` |
-| `cg-core` Wave 0: content-graph schema, reads, fake and contract tests | `wave-0` | 2 | `core/content-graph` | `skeleton`, `gates` |
-| `learner` Wave 0: learner accounts, sessions and roles; platform auth and mail | `wave-0` | 2 | `core/learner, platform/auth, platform/mail` | `skeleton`, `gates` |
-| `adapters` Wave 0: nlp, tts and llm adapters with fakes | `wave-0` | 2 | `platform/nlp, platform/tts, platform/llm` | `skeleton`, `gates` |
-| `ui` Wave 0: Hum UI kit from the mock | `wave-0` | 2 | `platform/ui` | `skeleton`, `gates` |
-| `cg-authoring` Wave 0: content-graph/authoring writes, Approval Decisions and Generation Requests | `wave-0` | 3 | `core/content-graph (authoring entry point)` | `cg-core` |
-| `cg-grade` Wave 0: the pure grade() function | `wave-0` | 3 | `core/content-graph (grade)` | `cg-core` |
-| `cg-checks` Wave 0: automatic content checks | `wave-0` | 3 | `core/content-graph (authoring/checks)` | `cg-core` |
-| `cg-attribution` Wave 0: licences and Attribution | `wave-0` | 3 | `core/content-graph (licensing)` | `cg-core` |
-| `cg-jobs` Wave 0: shared job contracts | `wave-0` | 3 | `core/content-graph (jobs)` | `cg-core` |
-| `progress-log` Wave 0: progress Review log, Scheduler, Mastery and Known | `wave-0` | 3 | `core/progress` | `cg-core` |
-| `verify` Wave 0: verify-mojibun skill | `wave-0` | 3 | `.agents/skills/verify-mojibun` | `skeleton`, `ui` |
-| `fixture` Wave 0: hand-made N5 fixture graph for dev and test | `wave-0` | 4 | `core/content-graph (fixtures)` | `cg-authoring` |
-| `cg-snapshot` Wave 0: applySnapshot() and the refresh rules | `wave-0` | 4 | `core/content-graph (authoring/snapshot)` | `cg-authoring` |
-| `cg-levels` Wave 0: Level Candidates, derived levels and computed levels | `wave-0` | 4 | `core/content-graph (levels)` | `cg-authoring` |
-| `progress-texts` Wave 0: Batch Text and Practice Text records, Cleared Level, furigana rule | `wave-0` | 4 | `core/progress (texts)` | `progress-log` |
-| `learning-path` Wave 0: learning-path strategy, Tracks and seed | `wave-0` | 4 | `core/learning-path` | `cg-core`, `progress-log` |
-| `account` Slice: account | `slice` | 4 | `slices/account` | `ui`, `verify`, `learner` |
-| `learn-base` Slice: learn (batch, lesson, quiz) | `slice` | 5 | `slices/learn` | `ui`, `verify`, `learner`, `learning-path`, `progress-log`, `cg-grade`, `fixture` |
-| `reviews-base` Slice: reviews (session) | `slice` | 5 | `slices/reviews` | `ui`, `verify`, `learner`, `progress-log`, `cg-grade`, `fixture` |
-| `dashboard` Slice: dashboard | `slice` | 5 | `slices/dashboard` | `ui`, `verify`, `learner`, `progress-log`, `fixture` |
-| `browse` Slice: browse | `slice` | 5 | `slices/browse` | `ui`, `verify`, `learner`, `cg-core`, `learning-path`, `fixture` |
+| #45 Wave 0: monorepo, db, jobs, app shells and Compose | `wave-0` | 0 | `apps/*, platform/db, platform/jobs, root config` | none |
+| #46 Wave 0: CI gates | `wave-0` | 1 | `.github/workflows, root config` | #45 |
+| #47 Wave 0: content-graph schema, reads, fake and contract tests | `wave-0` | 2 | `core/content-graph` | #45, #46 |
+| #48 Wave 0: learner accounts, sessions and roles; platform auth and mail | `wave-0` | 2 | `core/learner, platform/auth, platform/mail` | #45, #46 |
+| #49 Wave 0: nlp, tts and llm adapters with fakes | `wave-0` | 2 | `platform/nlp, platform/tts, platform/llm` | #45, #46 |
+| #50 Wave 0: Hum UI kit from the mock | `wave-0` | 2 | `platform/ui` | #45, #46 |
+| #51 Wave 0: content-graph/authoring writes, Approval Decisions and Generation Requests | `wave-0` | 3 | `core/content-graph (authoring entry point)` | #47 |
+| #52 Wave 0: the pure grade() function | `wave-0` | 3 | `core/content-graph (grade)` | #47 |
+| #53 Wave 0: automatic content checks | `wave-0` | 3 | `core/content-graph (authoring/checks)` | #47 |
+| #54 Wave 0: licences and Attribution | `wave-0` | 3 | `core/content-graph (licensing)` | #47 |
+| #55 Wave 0: shared job contracts | `wave-0` | 3 | `core/content-graph (jobs)` | #47 |
+| #56 Wave 0: progress Review log, Scheduler, Mastery and Known | `wave-0` | 3 | `core/progress` | #47 |
+| #57 Wave 0: verify-mojibun skill | `wave-0` | 3 | `.agents/skills/verify-mojibun` | #45, #50 |
+| #58 Wave 0: hand-made N5 fixture graph for dev and test | `wave-0` | 4 | `core/content-graph (fixtures)` | #51 |
+| #59 Wave 0: applySnapshot() and the refresh rules | `wave-0` | 4 | `core/content-graph (authoring/snapshot)` | #51 |
+| #60 Wave 0: Level Candidates, derived levels and computed levels | `wave-0` | 4 | `core/content-graph (levels)` | #51 |
+| #61 Wave 0: Batch Text and Practice Text records, Cleared Level, furigana rule | `wave-0` | 4 | `core/progress (texts)` | #56 |
+| #62 Wave 0: learning-path strategy, Tracks and seed | `wave-0` | 4 | `core/learning-path` | #47, #56 |
+| #63 Slice: account | `slice` | 4 | `slices/account` | #50, #57, #48 |
+| #70 Slice: learn (batch, lesson, quiz) | `slice` | 5 | `slices/learn` | #50, #57, #48, #62, #56, #52, #58 |
+| #71 Slice: reviews (session) | `slice` | 5 | `slices/reviews` | #50, #57, #48, #56, #52, #58 |
+| #72 Slice: dashboard | `slice` | 5 | `slices/dashboard` | #50, #57, #48, #56, #58 |
+| #73 Slice: browse | `slice` | 5 | `slices/browse` | #50, #57, #48, #47, #62, #58 |
 
 ### M2: real content (23 issues)
 
 | Issue | Type | Layer | Folder | Blocked by |
 |---|---|---|---|---|
-| `approval-base` Slice: content-approval (checks, reviewer agent, queue) | `slice` | 4 | `slices/content-approval` | `ui`, `verify`, `learner`, `cg-authoring`, `cg-checks`, `cg-jobs`, `adapters` |
-| `gen-base` Slice: content-generation (requests, runs, budget) and Example Sentences | `slice` | 4 | `slices/content-generation` | `ui`, `verify`, `learner`, `cg-authoring`, `cg-jobs`, `cg-attribution`, `adapters` |
-| `import-base` Seed: import framework and JMdict | `seed` | 5 | `slices/import` | `ui`, `verify`, `learner`, `cg-snapshot`, `cg-levels` |
-| `approval-sampling` Slice: content-approval spot-check sampling | `slice` | 5 | `slices/content-approval/sampling` | `approval-base` |
-| `gen-answer-data` Slice: content-generation kind: answer data | `slice` | 5 | `slices/content-generation/kinds/answer-data` | `gen-base` |
-| `gen-explanation` Slice: content-generation kind: Japanese Explanations | `slice` | 5 | `slices/content-generation/kinds/explanation` | `gen-base` |
-| `gen-grammar-fields` Slice: content-generation kind: Grammar Point fields and Matcher Rules | `slice` | 5 | `slices/content-generation/kinds/grammar-fields` | `gen-base` |
-| `gen-proposals` Slice: content-generation kind: merge and sense-alignment proposals | `slice` | 5 | `slices/content-generation/kinds/proposals` | `gen-base` |
-| `rubric-example` Slice: content-approval rubric: Examples and answer data | `slice` | 5 | `slices/content-approval/rubrics/example` | `approval-base` |
-| `rubric-explanation` Slice: content-approval rubric: Japanese Explanations | `slice` | 5 | `slices/content-approval/rubrics/explanation` | `approval-base` |
-| `rubric-grammar-fields` Slice: content-approval rubric: Grammar Point fields and Matcher Rules | `slice` | 5 | `slices/content-approval/rubrics/grammar-fields` | `approval-base` |
-| `rubric-proposals` Slice: content-approval rubric: merge and alignment proposals | `slice` | 5 | `slices/content-approval/rubrics/proposals` | `approval-base` |
-| `rubric-refresh` Slice: content-approval rubric: refresh flags | `slice` | 5 | `slices/content-approval/rubrics/refresh` | `approval-base` |
-| `import-kanjidic2` Seed: KANJIDIC2 and KRADFILE | `seed` | 6 | `slices/import/sources/kanjidic2` | `import-base` |
-| `import-kanjivg` Seed: KanjiVG | `seed` | 6 | `slices/import/sources/kanjivg` | `import-base` |
-| `import-tatoeba` Seed: Tatoeba Sentences | `seed` | 6 | `slices/import/sources/tatoeba` | `import-base`, `adapters` |
-| `import-yomitan` Seed: Word JLPT Levels from yomitan-jlpt-vocab | `seed` | 6 | `slices/import/sources/yomitan-jlpt-vocab` | `import-base` |
-| `import-tanos-kanji` Seed: Kanji JLPT Levels from Tanos | `seed` | 6 | `slices/import/sources/tanos-kanji` | `import-base` |
-| `import-derived-links` Seed: derived-link rebuilds | `seed` | 6 | `slices/import/sources/derived-links` | `import-base`, `adapters` |
-| `import-unidic` Seed: pitch accent from UniDic | `seed` | 6 | `slices/import/sources/unidic-pitch` | `import-base` |
-| `import-grammar` Seed: Grammar Points from hanabira and Tanos | `seed` | 6 | `slices/import/sources/grammar-seed` | `import-base`, `approval-base`, `gen-proposals` |
-| `import-wiktionary` Seed: Japanese Explanations from ja Wiktionary | `seed` | 6 | `slices/import/sources/ja-wiktionary` | `import-base`, `approval-base`, `gen-proposals` |
-| `import-matcher` Seed: Matcher Rule runs | `seed` | 7 | `slices/import/sources/matcher-runs` | `import-base`, `import-grammar` |
+| #64 Slice: content-approval (checks, reviewer agent, queue) | `slice` | 4 | `slices/content-approval` | #50, #57, #48, #51, #53, #55, #49 |
+| #65 Slice: content-generation (requests, runs, budget) and Example Sentences | `slice` | 4 | `slices/content-generation` | #50, #57, #48, #51, #55, #54, #49 |
+| #74 Seed: import framework and JMdict | `seed` | 5 | `slices/import` | #50, #57, #48, #59, #60 |
+| #75 Slice: content-approval spot-check sampling | `slice` | 5 | `slices/content-approval/sampling` | #64 |
+| #76 Slice: content-generation kind: answer data | `slice` | 5 | `slices/content-generation/kinds/answer-data` | #65 |
+| #77 Slice: content-generation kind: Japanese Explanations | `slice` | 5 | `slices/content-generation/kinds/explanation` | #65 |
+| #78 Slice: content-generation kind: Grammar Point fields and Matcher Rules | `slice` | 5 | `slices/content-generation/kinds/grammar-fields` | #65 |
+| #79 Slice: content-generation kind: merge and sense-alignment proposals | `slice` | 5 | `slices/content-generation/kinds/proposals` | #65 |
+| #85 Slice: content-approval rubric: Examples and answer data | `slice` | 5 | `slices/content-approval/rubrics/example` | #64 |
+| #86 Slice: content-approval rubric: Japanese Explanations | `slice` | 5 | `slices/content-approval/rubrics/explanation` | #64 |
+| #87 Slice: content-approval rubric: Grammar Point fields and Matcher Rules | `slice` | 5 | `slices/content-approval/rubrics/grammar-fields` | #64 |
+| #88 Slice: content-approval rubric: merge and alignment proposals | `slice` | 5 | `slices/content-approval/rubrics/proposals` | #64 |
+| #89 Slice: content-approval rubric: refresh flags | `slice` | 5 | `slices/content-approval/rubrics/refresh` | #64 |
+| #96 Seed: KANJIDIC2 and KRADFILE | `seed` | 6 | `slices/import/sources/kanjidic2` | #74 |
+| #97 Seed: KanjiVG | `seed` | 6 | `slices/import/sources/kanjivg` | #74 |
+| #98 Seed: Tatoeba Sentences | `seed` | 6 | `slices/import/sources/tatoeba` | #74, #49 |
+| #99 Seed: Word JLPT Levels from yomitan-jlpt-vocab | `seed` | 6 | `slices/import/sources/yomitan-jlpt-vocab` | #74 |
+| #100 Seed: Kanji JLPT Levels from Tanos | `seed` | 6 | `slices/import/sources/tanos-kanji` | #74 |
+| #101 Seed: derived-link rebuilds | `seed` | 6 | `slices/import/sources/derived-links` | #74, #49 |
+| #102 Seed: pitch accent from UniDic | `seed` | 6 | `slices/import/sources/unidic-pitch` | #74 |
+| #103 Seed: Grammar Points from hanabira and Tanos | `seed` | 6 | `slices/import/sources/grammar-seed` | #74, #64, #79 |
+| #104 Seed: Japanese Explanations from ja Wiktionary | `seed` | 6 | `slices/import/sources/ja-wiktionary` | #74, #64, #79 |
+| #112 Seed: Matcher Rule runs | `seed` | 7 | `slices/import/sources/matcher-runs` | #74, #103 |
 
 ### M3: everything else (22 issues)
 
 | Issue | Type | Layer | Folder | Blocked by |
 |---|---|---|---|---|
-| `listening-base` Slice: listening free practice | `slice` | 4 | `slices/listening` | `ui`, `verify`, `learner`, `progress-log`, `cg-grade` |
-| `cram` Slice: cram | `slice` | 4 | `slices/cram` | `ui`, `verify`, `learner`, `progress-log`, `cg-grade` |
-| `placement` Slice: placement | `slice` | 4 | `slices/placement` | `ui`, `verify`, `learner`, `progress-log`, `cg-core` |
-| `credits` Slice: credits | `slice` | 4 | `slices/credits` | `ui`, `verify`, `cg-attribution` |
-| `gen-reading-passage` Slice: content-generation kind: Reading Passages and Batch Texts | `slice` | 5 | `slices/content-generation/kinds/reading-passage` | `gen-base`, `progress-texts` |
-| `gen-practice-text` Slice: content-generation kind: Practice Texts | `slice` | 5 | `slices/content-generation/kinds/practice-text` | `gen-base`, `progress-texts` |
-| `gen-dialogue` Slice: content-generation kind: listening dialogues | `slice` | 5 | `slices/content-generation/kinds/dialogue` | `gen-base` |
-| `gen-clip-selection` Slice: content-generation kind: single-Sentence clip selection | `slice` | 5 | `slices/content-generation/kinds/clip-selection` | `gen-base` |
-| `gen-synthesise` Slice: content-generation kind: audio synthesis | `slice` | 5 | `slices/content-generation/kinds/synthesise` | `gen-base` |
-| `rubric-reading-passage` Slice: content-approval rubric: Reading Passages and Batch Texts | `slice` | 5 | `slices/content-approval/rubrics/reading-passage` | `approval-base` |
-| `rubric-practice-text` Slice: content-approval rubric: Practice Texts | `slice` | 5 | `slices/content-approval/rubrics/practice-text` | `approval-base` |
-| `rubric-dialogue` Slice: content-approval rubric: dialogues | `slice` | 5 | `slices/content-approval/rubrics/dialogue` | `approval-base` |
-| `rubric-flags` Slice: content-approval rubric: Learner answer flags | `slice` | 5 | `slices/content-approval/rubrics/flags` | `approval-base` |
-| `reading-base` Slice: reading (Reading Passages and Batch Text episodes) | `slice` | 5 | `slices/reading` | `ui`, `verify`, `learner`, `progress-texts` |
-| `listening-practice` Slice: listening Practice Text dialogues | `slice` | 5 | `slices/listening/practice` | `listening-base`, `progress-texts`, `cg-jobs` |
-| `learn-listening` Slice: learn Listening Clip lesson | `slice` | 6 | `slices/learn/listening` | `learn-base` |
-| `learn-batch-text` Slice: learn Batch Text hand-off | `slice` | 6 | `slices/learn/batch-text` | `learn-base`, `progress-texts`, `cg-jobs` |
-| `learn-now` Slice: learn now | `slice` | 6 | `slices/learn/learn-now` | `learn-base` |
-| `reviews-wrapup` Slice: reviews Wrap-Up and Ghosts | `slice` | 6 | `slices/reviews/wrap-up` | `reviews-base` |
-| `reviews-listening` Slice: reviews Listening Clips | `slice` | 6 | `slices/reviews/listening` | `reviews-base` |
-| `reviews-flags` Slice: reviews 'my answer was right' flags | `slice` | 6 | `slices/reviews/flags` | `reviews-base` |
-| `reading-practice` Slice: reading Practice Texts | `slice` | 6 | `slices/reading/practice` | `reading-base`, `cg-jobs` |
+| #66 Slice: listening free practice | `slice` | 4 | `slices/listening` | #50, #57, #48, #56, #52 |
+| #67 Slice: cram | `slice` | 4 | `slices/cram` | #50, #57, #48, #56, #52 |
+| #68 Slice: placement | `slice` | 4 | `slices/placement` | #50, #57, #48, #56, #47 |
+| #69 Slice: credits | `slice` | 4 | `slices/credits` | #50, #57, #54 |
+| #80 Slice: content-generation kind: Reading Passages and Batch Texts | `slice` | 5 | `slices/content-generation/kinds/reading-passage` | #65, #61 |
+| #81 Slice: content-generation kind: Practice Texts | `slice` | 5 | `slices/content-generation/kinds/practice-text` | #65, #61 |
+| #82 Slice: content-generation kind: listening dialogues | `slice` | 5 | `slices/content-generation/kinds/dialogue` | #65 |
+| #83 Slice: content-generation kind: single-Sentence clip selection | `slice` | 5 | `slices/content-generation/kinds/clip-selection` | #65 |
+| #84 Slice: content-generation kind: audio synthesis | `slice` | 5 | `slices/content-generation/kinds/synthesise` | #65 |
+| #90 Slice: content-approval rubric: Reading Passages and Batch Texts | `slice` | 5 | `slices/content-approval/rubrics/reading-passage` | #64 |
+| #91 Slice: content-approval rubric: Practice Texts | `slice` | 5 | `slices/content-approval/rubrics/practice-text` | #64 |
+| #92 Slice: content-approval rubric: dialogues | `slice` | 5 | `slices/content-approval/rubrics/dialogue` | #64 |
+| #93 Slice: content-approval rubric: Learner answer flags | `slice` | 5 | `slices/content-approval/rubrics/flags` | #64 |
+| #94 Slice: reading (Reading Passages and Batch Text episodes) | `slice` | 5 | `slices/reading` | #50, #57, #48, #61 |
+| #95 Slice: listening Practice Text dialogues | `slice` | 5 | `slices/listening/practice` | #66, #61, #55 |
+| #105 Slice: learn Listening Clip lesson | `slice` | 6 | `slices/learn/listening` | #70 |
+| #106 Slice: learn Batch Text hand-off | `slice` | 6 | `slices/learn/batch-text` | #70, #61, #55 |
+| #107 Slice: learn now | `slice` | 6 | `slices/learn/learn-now` | #70 |
+| #108 Slice: reviews Wrap-Up and Ghosts | `slice` | 6 | `slices/reviews/wrap-up` | #71 |
+| #109 Slice: reviews Listening Clips | `slice` | 6 | `slices/reviews/listening` | #71 |
+| #110 Slice: reviews 'my answer was right' flags | `slice` | 6 | `slices/reviews/flags` | #71 |
+| #111 Slice: reading Practice Texts | `slice` | 6 | `slices/reading/practice` | #94, #55 |
 
 68 issues in 8 layers. An issue's layer is one more than its deepest blocker's; everything in one layer can run in parallel once the layer before it is closed.
 
