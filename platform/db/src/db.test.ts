@@ -2,9 +2,9 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { sql } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { collectMigrations, createDb, migrate, parseMigrationFile, transaction, type Db } from "./index.ts";
-import { startTestPostgres } from "./testing.ts";
+import { startTestPostgres, type TestPostgres } from "./testing.ts";
 
 const writePackage = async (root: string, group: string, name: string, files: Record<string, string>) => {
   const dir = join(root, group, name);
@@ -46,6 +46,59 @@ describe("collectMigrations", () => {
   it("rejects a migration without a timestamp prefix", () => {
     expect(() => parseMigrationFile("/x/core/progress", "init.sql", "")).toThrow(/YYYYMMDDHHmmss/);
   });
+});
+
+const isolated = async (first: TestPostgres, second: TestPostgres) => {
+  const a = createDb(first.url, { max: 1 });
+  const b = createDb(second.url, { max: 1 });
+  try {
+    await a.$client.query("CREATE TABLE only_in_first (n int)");
+    const { rows } = await b.$client.query("SELECT to_regclass('only_in_first') AS t");
+    return rows[0].t === null;
+  } finally {
+    await a.$client.end();
+    await b.$client.end();
+  }
+};
+
+const reachable = async (url: string) => {
+  const db = createDb(url, { max: 1 });
+  try {
+    await db.$client.query("SELECT 1");
+    return true;
+  } catch {
+    return false;
+  } finally {
+    await db.$client.end();
+  }
+};
+
+describe("startTestPostgres", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("without TEST_DATABASE_URL, starts an in-process Postgres per caller, gone after stop", async () => {
+    vi.stubEnv("TEST_DATABASE_URL", "");
+    const first = await startTestPostgres();
+    const second = await startTestPostgres();
+    expect(await isolated(first, second)).toBe(true);
+    await first.stop();
+    await second.stop();
+    expect(await reachable(first.url)).toBe(false);
+  });
+
+  it.runIf(process.env.TEST_DATABASE_URL)(
+    "with TEST_DATABASE_URL, creates a fresh database per caller on that server, dropped after stop",
+    async () => {
+      const first = await startTestPostgres();
+      const second = await startTestPostgres();
+      expect(new URL(first.url).host).toBe(new URL(process.env.TEST_DATABASE_URL!).host);
+      expect(await isolated(first, second)).toBe(true);
+      await first.stop();
+      await second.stop();
+      expect(await reachable(first.url)).toBe(false);
+      expect(await reachable(process.env.TEST_DATABASE_URL!)).toBe(true);
+    },
+  );
 });
 
 describe("migrate and transaction, against Postgres", () => {

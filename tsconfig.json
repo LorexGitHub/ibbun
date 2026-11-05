@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.base.json",
-  "include": ["apps/api/src", "apps/worker/src", "core/*/src", "platform/*/src", "slices", "scripts"],
+  "include": ["apps/api/src", "apps/worker/src", "core/*/src", "platform/*/src", "slices", "scripts", "e2e", "playwright.config.ts"],
   "exclude": ["**/*.tsx", "scripts/fixtures/**/web.ts", "**/node_modules"]
 }
