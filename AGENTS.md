@@ -5,6 +5,7 @@ Many agents build mojibun in parallel. The supervisor does not review code; CI g
 - [`CONTEXT.md`](CONTEXT.md): the domain glossary. Use its terms in code, issues and PRs.
 - [`docs/architecture.md`](docs/architecture.md): slices, core modules and the dependency rules CI enforces.
 - [`docs/adr/`](docs/adr/): why things are the way they are.
+- [`docs/licensing.md`](docs/licensing.md): which licences content may have, and how Attribution is computed and shown. Read it before importing, generating or displaying content.
 
 ## Rules
 

@@ -69,7 +69,7 @@ Each external service has an adapter package with an interface and a fake: `nlp`
 | `import` | Admin | Scheduled fetch and parse of JMdict, KANJIDIC2, KanjiVG, Tatoeba and yomitan-jlpt-vocab into snapshots, one-time parse of the Tanos kanji lists ([jlpt-levels.md](jlpt-levels.md)), Import Run reports, derived-link rebuilds. One-time parse of hanabira and Tanos grammar, and Matcher Rule runs ([grammar-points.md](grammar-points.md)). Mapping, retirement and override rules are in core `applySnapshot()` |
 | `content-generation` | Admin | Generation Requests and Runs: Sentences, answer data, Japanese Explanations, Grammar Point drafts, proposals, Reading Passages, Batch Texts, Listening Clips (TTS) ([content-approval.md](content-approval.md)) |
 | `content-approval` | Admin | Automatic checks, the reviewer agent, Approval Decisions, the queue, supervisor spot-check sampling ([content-approval.md](content-approval.md), [ADR 0010](adr/0010-reviewer-agent-approves-supervisor-samples.md)) |
-| `credits` | Public | The attribution page (#19) |
+| `credits` | Public | The Credits page ([licensing.md](licensing.md), #19). The footer and inline Attribution are not a slice: `content-graph` returns each record's Attribution, and `platform/ui` renders it |
 
 A new feature is a new slice. Learner notes and Sentences, custom decks and mock JLPT tests are not in v1.
 

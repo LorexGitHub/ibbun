@@ -70,9 +70,10 @@ A Study Item with no approved Example can't be reviewed. It is **Suspended**: no
 Provenance is on every node, link, Level Candidate and override. It holds:
 
 - the source: a dataset and version or import run, `derived` with process and version, or `generated` with model, prompt-template version and Generation Run ([content-approval.md](content-approval.md#provenance-of-generated-content))
-- the licence
+- the licence, from a closed list ([licensing.md](licensing.md#approved-licences))
 - credit data: author (Tatoeba username, VOICEVOX voice) and source URL
+- the inputs: the records an override, Example, Listening Clip or generated record was made from, including any text placed in a generation prompt
 
 Approval is recorded separately, as append-only Approval Decisions; a record's approval state is its latest one ([content-approval.md](content-approval.md#approval-decisions)).
 
-Provenance is internal. #19 decides which credits are shown and where. The schema carries everything a credit might need, so #19 needs no migration.
+Provenance is internal. Learners see the **Attribution** computed from it. The licence and Attribution of a record are computed from its own source plus its inputs ([licensing.md](licensing.md), #19).
