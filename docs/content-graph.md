@@ -6,7 +6,7 @@ Decided in [#12](https://github.com/LorexGitHub/mojibun/issues/12). Terms follow
 
 - **Facts only, no order.** The graph holds stable facts about Japanese. Anything about sequence, unlocking or prerequisites belongs to the Learning Path (#3, #15), even when it looks like a fact.
 - **Shared and the same for everyone.** Learner-written content (own Sentences, notes) never lives in the graph. It lives in the Learner's data and points into the graph.
-- **Every record has** a mojibun-owned ID, Provenance, an approval state (`draft` → `approved` | `rejected`) and a retired flag. Learners see only approved, non-retired records. Nothing is hard-deleted ([ADR 0001](adr/0001-own-ids-and-override-layer.md)).
+- **Every record has** a mojibun-owned ID, Provenance, an approval state (`draft` → `approved` | `rejected`) and a retired flag. Learners see only approved, non-retired records. Nothing is hard-deleted ([ADR 0002](adr/0002-own-ids-and-override-layer.md)).
 
 ## Storage shape
 
