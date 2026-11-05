@@ -1,0 +1,29 @@
+# When an issue closes, mark each issue it was blocking as ready-for-agent
+# once all of that issue's blockers are closed (docs/build-plan.md).
+name: unblock
+on:
+  issues:
+    types: [closed]
+permissions:
+  issues: write
+jobs:
+  unblock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const blocking = await github.request(
+              'GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocking',
+              { owner, repo, issue_number: context.issue.number });
+            for (const dependent of blocking.data) {
+              if (dependent.state !== 'open') continue;
+              const blockers = await github.request(
+                'GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by',
+                { owner, repo, issue_number: dependent.number });
+              if (blockers.data.some(b => b.state === 'open')) continue;
+              await github.rest.issues.addLabels({ owner, repo, issue_number: dependent.number, labels: ['ready-for-agent'] });
+              await github.rest.issues.removeLabel({ owner, repo, issue_number: dependent.number, name: 'blocked' }).catch(() => {});
+              core.info(`#${dependent.number} is ready`);
+            }
