@@ -30,7 +30,7 @@ Only N5–N1 Grammar Points are seeded. mojibun is built for JLPT learners. Unle
 | Formation | yes | Structured slots (V-て + しまう), not free text. Matcher Rules are written against it |
 | Register | yes | `casual`, `neutral`, `polite` or `formal` |
 | English meaning | yes | Short, like a Word sense gloss |
-| Japanese Explanation | yes | Generated through Content Approval (#16). The reviewer sees any matching ja Wiktionary entry as reference |
+| Japanese Explanation | yes | Generated through Content Approval ([content-approval.md](content-approval.md)). The reviewer sees any matching ja Wiktionary entry as reference |
 | JLPT Level assignment | yes | See below |
 | Matcher Rule | yes, and it must pass | See below |
 | Notes | no | English usage notes. hanabira's long explanation starts here |

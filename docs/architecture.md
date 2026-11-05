@@ -67,8 +67,8 @@ Each external service has an adapter package with an interface and a fake: `nlp`
 | `dashboard` | Learner | Due counts and Mastery by level |
 | `account` | Learner | Sign-up, login and settings screens (the data lives in `learner`) |
 | `import` | Admin | Scheduled fetch and parse of JMdict, KANJIDIC2, KanjiVG, Tatoeba and yomitan-jlpt-vocab into snapshots, one-time parse of the Tanos kanji lists ([jlpt-levels.md](jlpt-levels.md)), Import Run reports, derived-link rebuilds. One-time parse of hanabira and Tanos grammar, and Matcher Rule runs ([grammar-points.md](grammar-points.md)). Mapping, retirement and override rules are in core `applySnapshot()` |
-| `content-generation` | Admin | Sentences, Japanese Explanations, Listening Clips (TTS), Grammar Point drafts, Batch Texts |
-| `content-approval` | Admin | Draft queues, the reviewer agent, supervisor spot-check sampling |
+| `content-generation` | Admin | Generation Requests and Runs: Sentences, answer data, Japanese Explanations, Grammar Point drafts, proposals, Reading Passages, Batch Texts, Listening Clips (TTS) ([content-approval.md](content-approval.md)) |
+| `content-approval` | Admin | Automatic checks, the reviewer agent, Approval Decisions, the queue, supervisor spot-check sampling ([content-approval.md](content-approval.md), [ADR 0009](adr/0009-reviewer-agent-approves-supervisor-samples.md)) |
 | `credits` | Public | The attribution page (#19) |
 
 A new feature is a new slice. Learner notes and Sentences, custom decks and mock JLPT tests are not in v1.
@@ -86,7 +86,7 @@ CI fails the build when any of these is broken (package `exports` plus dependenc
 How slices interact:
 
 - **Through core, synchronously.** For example, Learn writes Reviews with `progress.record()`, and Reading feeds Mastery the same way. There is no event bus.
-- **Background work** goes through `jobs`. The slice that enqueues a job also owns its handler. The one exception: a job contract (name plus Zod payload) may live in core, so a Learner-facing slice can enqueue work an admin slice handles. `batch-text.generate` is the only one ([ADR 0008](adr/0008-batch-texts-generated-per-learner.md)).
+- **Background work** goes through `jobs`. The slice that enqueues a job also owns its handler. The one exception: a job contract (name plus Zod payload) may live in core, so a Learner-facing slice can enqueue work an admin slice handles. There are three: `batch-text.generate` ([ADR 0008](adr/0008-batch-texts-generated-per-learner.md)), and `content.generate` and `content.review`, which let the two admin slices hand drafts back and forth ([content-approval.md](content-approval.md#wiring)).
 - **Screens that show more than one slice** are assembled by `apps/web` from widgets that each slice registers. Neither slice knows about the other.
 
 ## Data

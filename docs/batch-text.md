@@ -8,7 +8,7 @@ Batches are unique to each Learner, because order is shuffled per Learner (#15).
 
 ## Approval
 
-A Batch Text is approved the normal [#4](https://github.com/LorexGitHub/mojibun/issues/4) way, with no lighter tier. It arrives `draft`, must pass the automatic checks below, and then the reviewer agent must pass it. The supervisor spot-checks a sample. It reaches the Learner only once approved.
+A Batch Text is approved the normal [#4](https://github.com/LorexGitHub/mojibun/issues/4) way ([content-approval.md](content-approval.md)), with no lighter tier. It arrives `draft`, must pass the automatic checks below, and then the reviewer agent must pass it. The supervisor spot-checks a sample. It reaches the Learner only once approved.
 
 ## Storage
 

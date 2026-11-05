@@ -77,8 +77,20 @@ Where a piece of content came from (which dataset and version, or that it was ge
 _Avoid_: Source, origin, credit
 
 **Content Approval**:
-The decision that a piece of content is fit to show Learners. Content is a draft until approved; only approved content reaches Learners.
+The decision that a piece of content is fit to show Learners. Content is a draft until approved; only approved content reaches Learners. The reviewer agent decides after automatic checks; the supervisor sees escalations and samples.
 _Avoid_: Moderation, review (Review means something else)
+
+**Approval Decision**:
+One recorded Content Approval outcome for one record (approved, rejected, escalated or retired), with who decided and why. They are append-only; a record's approval state is its latest one.
+_Avoid_: Verdict, review result
+
+**Generation Request**:
+A standing need for generated content on one target, such as Examples for a Suspended Word. It allows 3 attempts and is done when a draft is approved.
+_Avoid_: Generation job, task, prompt
+
+**Generation Run**:
+One model call made for a Generation Request, recording the model, prompt version and inputs. Generated Provenance points at it.
+_Avoid_: Completion, call, generation
 
 **Retired**:
 Content withdrawn from Learners and the Learning Path but kept, so past Reviews still make sense. Content is retired, never deleted.
