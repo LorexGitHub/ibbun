@@ -224,6 +224,9 @@ importers:
       '@mojibun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
+      '@mojibun/ui':
+        specifier: workspace:*
+        version: link:../../platform/ui
       react:
         specifier: ^19.1.0
         version: 19.3.1
