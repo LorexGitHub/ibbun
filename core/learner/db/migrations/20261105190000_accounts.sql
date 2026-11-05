@@ -3,7 +3,7 @@
 -- through the Drizzle schema in src/tables.ts; keep the two in step.
 
 CREATE TABLE learners (
-  id uuid PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   -- Better Auth requires a name. mojibun does not ask for one.
   name text NOT NULL DEFAULT '',
   email text NOT NULL UNIQUE,
@@ -17,7 +17,7 @@ CREATE TABLE learners (
 
 -- Better Auth's "account" table: one row per login method (password now; OAuth and passkeys later).
 CREATE TABLE login_methods (
-  id uuid PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   learner_id uuid NOT NULL REFERENCES learners (id) ON DELETE CASCADE,
   account_id text NOT NULL,
   provider_id text NOT NULL,
@@ -36,7 +36,7 @@ CREATE INDEX login_methods_learner ON login_methods (learner_id);
 
 -- updated_at is when the session was last used, to the day (it is extended at most once a day).
 CREATE TABLE sessions (
-  id uuid PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   learner_id uuid NOT NULL REFERENCES learners (id) ON DELETE CASCADE,
   token text NOT NULL UNIQUE,
   expires_at timestamptz NOT NULL,
@@ -49,7 +49,7 @@ CREATE INDEX sessions_learner ON sessions (learner_id);
 
 -- Password reset tokens, stored hashed.
 CREATE TABLE verifications (
-  id uuid PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   identifier text NOT NULL,
   value text NOT NULL,
   expires_at timestamptz NOT NULL,

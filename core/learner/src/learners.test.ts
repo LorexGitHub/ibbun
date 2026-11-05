@@ -1,29 +1,17 @@
-import { afterAll, beforeAll, describe } from "vitest";
-import { createDb, migrate, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { describe } from "vitest";
 import type { AuthEvent } from "./events.ts";
 import { createFakeLearners } from "./fake.ts";
 import { addLearner, createLearners } from "./learners.ts";
 import { learnersContract } from "./learners.contract.ts";
-import { learnerMigrations } from "./migrations.testing.ts";
+import { useLearnerDb } from "./db.testing.ts";
 
 describe("Learners, real", () => {
-  let pg: TestPostgres;
-  let db: Db;
-  beforeAll(async () => {
-    pg = await startTestPostgres();
-    db = createDb(pg.url, { max: 1 });
-    await migrate(db.$client, await learnerMigrations());
-  });
-  afterAll(async () => {
-    await db.$client.end();
-    await pg.stop();
-  });
+  const pg = useLearnerDb();
 
   learnersContract(async () => {
     const events: AuthEvent[] = [];
     const log = (e: AuthEvent) => void events.push(e);
-    return { learners: createLearners(db, log), add: (l) => addLearner(db, l), events };
+    return { learners: createLearners(pg.db, log), add: (l) => addLearner(pg.db, l), events };
   });
 });
 

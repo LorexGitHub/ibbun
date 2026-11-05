@@ -7,7 +7,7 @@ const createdAt = () => at("created_at").notNull().defaultNow();
 const updatedAt = () => at("updated_at").notNull().defaultNow();
 
 export const learners = learner.table("learners", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull().default(""),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
@@ -19,7 +19,7 @@ export const learners = learner.table("learners", {
 });
 
 export const loginMethods = learner.table("login_methods", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   learnerId: uuid("learner_id")
     .notNull()
     .references(() => learners.id, { onDelete: "cascade" }),
@@ -39,7 +39,7 @@ export const loginMethods = learner.table("login_methods", {
 export const sessions = learner.table(
   "sessions",
   {
-    id: uuid("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     learnerId: uuid("learner_id")
       .notNull()
       .references(() => learners.id, { onDelete: "cascade" }),
@@ -54,7 +54,7 @@ export const sessions = learner.table(
 );
 
 export const verifications = learner.table("verifications", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: at("expires_at").notNull(),
