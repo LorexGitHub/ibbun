@@ -1,6 +1,6 @@
 # Content generation and Content Approval
 
-Decided in [#16](https://github.com/LorexGitHub/mojibun/issues/16). Terms follow [CONTEXT.md](../CONTEXT.md). Why the reviewer agent has the final say is in [ADR 0009](adr/0009-reviewer-agent-approves-supervisor-samples.md). The policy comes from [#4](https://github.com/LorexGitHub/mojibun/issues/4): generated content uses the same schema as dataset content, passes automatic checks, is approved by a reviewer agent, and the supervisor spot-checks a sample.
+Decided in [#16](https://github.com/LorexGitHub/mojibun/issues/16). Terms follow [CONTEXT.md](../CONTEXT.md). Why the reviewer agent has the final say is in [ADR 0010](adr/0010-reviewer-agent-approves-supervisor-samples.md). The policy comes from [#4](https://github.com/LorexGitHub/mojibun/issues/4): generated content uses the same schema as dataset content, passes automatic checks, is approved by a reviewer agent, and the supervisor spot-checks a sample.
 
 ## Pipeline
 
