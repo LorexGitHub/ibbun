@@ -118,6 +118,10 @@ _Avoid_: Paused, disabled, hidden
 A person with an account who studies in mojibun.
 _Avoid_: User, student
 
+**Supervisor**:
+The human who oversees mojibun: sees escalations, samples approved content and manages accounts. A Supervisor is also a Learner.
+_Avoid_: Admin, moderator
+
 **Review**:
 One attempt by a Learner to recall a Study Item, recorded permanently.
 _Avoid_: Quiz, card, test

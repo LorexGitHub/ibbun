@@ -12,7 +12,7 @@ One TypeScript monorepo (#2) with three thin entry points:
 - `apps/api`: the Hono HTTP API.
 - `apps/worker`: background jobs from a Postgres-backed queue (pg-boss): re-imports, derived-link rebuilds, generation, TTS, the reviewer agent.
 
-Docker Compose also runs Postgres, the Sudachi sidecar and VOICEVOX (#11).
+Docker Compose also runs Postgres, the Sudachi sidecar, VOICEVOX (#11) and Mailpit ([accounts.md](accounts.md#email)).
 
 The apps contain no features. They discover slices and mount what each slice registers (see [Registration](#registration)).
 
@@ -21,7 +21,7 @@ The apps contain no features. They discover slices and mount what each slice reg
 ```
 apps/            web, api, worker   ← shells only
 core/            content-graph, progress, learning-path, learner
-platform/        db, jobs, auth, ui, nlp, tts, llm
+platform/        db, jobs, auth, mail, ui, nlp, tts, llm
 slices/          learn, reviews, cram, ...
   <slice>/
     contract.ts  ← Zod request/response schemas, shared by web and server
@@ -43,13 +43,13 @@ Each core module owns its tables in its own Postgres schema. It exposes a typed 
 | `content-graph` | Every Content Graph table: Study Items, Sentences, Examples, Reading Passages, links, source keys, overrides, Provenance, approval, retirement ([content-graph.md](content-graph.md)) | **`content-graph`**: reads of approved, non-retired content with overrides applied. **`content-graph/authoring`**: writes, approval and retirement, plus reads that include drafts, plus `applySnapshot()`, which owns the refresh rules ([import-pipeline.md](import-pipeline.md)) |
 | `progress` | The append-only Review log, the `Scheduler` adapter (ts-fsrs), and the Mastery and Known projections ([ADR 0001](adr/0001-fsrs-6-and-anki-style-mastery.md)) | `record(review)` for every Review `kind`, schedule and Mastery reads, Batch Text records ([batch-text.md](batch-text.md)), the furigana rule |
 | `learning-path` | The rules for the order Study Items are offered in, and for locking (#15) | Which New Study Items come next for this Learner, and what is locked |
-| `learner` | Accounts, sessions, roles, Learner preferences | Identity, role and preference reads and writes |
+| `learner` | Accounts, sessions, roles, Learner preferences, behind Better Auth, which nothing else imports ([accounts.md](accounts.md)) | Identity, role and preference reads and writes, `authHandler`, `SessionResolver`, `learner/client` |
 
 Allowed dependencies between core modules: `learning-path` → `content-graph`, `progress`. `progress` → `content-graph` (IDs only). Nothing in core depends on `learning-path`. Core never depends on a slice.
 
 ## Platform packages
 
-Plumbing with no domain logic: `db` (client, migration runner, transactions), `jobs` (queue), `auth` (middleware), `ui` (Hallmark/Hum kit, `design.md`), and shared Zod primitives.
+Plumbing with no domain logic: `db` (client, migration runner, transactions), `jobs` (queue), `auth` (`requireLearner()` and `requireRole()` middleware against `learner`'s `SessionResolver`), `mail` (templates, with Mailpit locally), `ui` (Hallmark/Hum kit, `design.md`), and shared Zod primitives.
 
 Each external service has an adapter package with an interface and a fake: `nlp` (Sudachi), `tts` (VOICEVOX), `llm` (generation and the reviewer agent). Only admin slices may use them.
 
@@ -65,7 +65,7 @@ Each external service has an adapter package with an interface and a fake: `nlp`
 | `reading` | Learner | Reading Passages, the Learner's past Batch Texts as episodes per level |
 | `listening` | Learner | Dictation and comprehension practice |
 | `dashboard` | Learner | Due counts and Mastery by level |
-| `account` | Learner | Sign-up, login and settings screens (the data lives in `learner`) |
+| `account` | Learner | Sign-up, verify, login, reset, sessions, account deletion and settings screens (the data lives in `learner`; [accounts.md](accounts.md)) |
 | `import` | Admin | Scheduled fetch and parse of JMdict, KANJIDIC2, KanjiVG, Tatoeba and yomitan-jlpt-vocab into snapshots, one-time parse of the Tanos kanji lists ([jlpt-levels.md](jlpt-levels.md)), Import Run reports, derived-link rebuilds. One-time parse of hanabira and Tanos grammar, and Matcher Rule runs ([grammar-points.md](grammar-points.md)). Mapping, retirement and override rules are in core `applySnapshot()` |
 | `content-generation` | Admin | Generation Requests and Runs: Sentences, answer data, Japanese Explanations, Grammar Point drafts, proposals, Reading Passages, Batch Texts, Listening Clips (TTS) ([content-approval.md](content-approval.md)) |
 | `content-approval` | Admin | Automatic checks, the reviewer agent, Approval Decisions, the queue, supervisor spot-check sampling ([content-approval.md](content-approval.md), [ADR 0010](adr/0010-reviewer-agent-approves-supervisor-samples.md)) |

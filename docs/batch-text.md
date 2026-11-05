@@ -21,7 +21,7 @@ A Batch Text is not offered to other Learners.
 
 ## Flow
 
-1. `learn` picks a batch and enqueues `batch-text.generate` with the Learner ID, level and batch item IDs. The job name and its Zod payload schema live in core `content-graph` (see [Wiring](#wiring)).
+1. `learn` picks a batch. If the Learner already has **5** Batch Texts in the last 24 h (config, [accounts.md](accounts.md#llm-quotas)), the batch has no Batch Text and nothing is enqueued. Otherwise `learn` enqueues `batch-text.generate` with the Learner ID, level and batch item IDs. The job name and its Zod payload schema live in core `content-graph` (see [Wiring](#wiring)).
 2. `content-generation` handles the job. It picks the earlier items, target length and passage type, calls `llm`, and writes a `draft` Reading Passage through `content-graph/authoring` and the Batch Text record through `progress`.
 3. `content-approval` runs the automatic checks and then the reviewer agent.
 4. If a check fails, generation is retried with the failures fed back to the LLM, **3 attempts** in total (config). After the third failure, the batch has no Batch Text. The failure is logged to the Content Approval queue so the supervisor can see the failure rate.

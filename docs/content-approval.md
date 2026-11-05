@@ -64,7 +64,7 @@ Generator and reviewer are **different models**, both config values: the generat
 
 ### Budget
 
-A daily token budget (config) covers generator and reviewer calls together. When it is spent, generation and review pause and an alert with reason `budget exhausted` goes to the queue. A Batch Text that can't be made in time is read later from `reading`, as [batch-text.md](batch-text.md) already allows.
+A daily token budget (config) covers generator and reviewer calls together. It is split into two pools ([accounts.md](accounts.md#llm-quotas), [ADR 0012](adr/0012-open-sign-up-bounded-by-token-quotas.md)): Batch Texts, including their reviews, may use at most **50%**; all other generation and review keep the rest. When a pool is spent, the work it pays for pauses and an alert with reason `budget exhausted`, naming the pool, goes to the queue. A Batch Text that can't be made in time is read later from `reading`, as [batch-text.md](batch-text.md) already allows.
 
 ## Automatic checks
 
