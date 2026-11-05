@@ -3,3 +3,7 @@
 # mojibun
 
 Created in [T3 Code](https://t3.codes).
+
+## Design
+
+The app should end up looking like [docs/design/mojibun-mock.html](docs/design/mojibun-mock.html), a static mock in the Hum theme. See [ADR 0004](docs/adr/0004-hum-visual-design.md).
