@@ -72,6 +72,22 @@ _Avoid_: Moderation, review (Review means something else)
 Content withdrawn from Learners and the Learning Path but kept, so past Reviews still make sense. Content is retired, never deleted.
 _Avoid_: Deleted, archived, removed
 
+**Superseded**:
+Retired because an upstream dataset merged it into another record, its successor. The successor is a separate Study Item; a Learner's progress does not carry over to it.
+_Avoid_: Merged, replaced, redirected
+
+**Override**:
+Our own correction to imported content, kept apart from it so a refresh can replace the imported data and re-apply our corrections. An Override whose imported value has changed since is Stale; one whose target is gone is Orphaned.
+_Avoid_: Edit, patch, fix
+
+**Import Run**:
+One refresh of one dataset from one upstream version, with a report of everything it added, changed, retired and flagged.
+_Avoid_: Sync, import job, update
+
+**Suspended**:
+A Study Item with no approved Example, so it can't be reviewed or met in Learn until one is approved.
+_Avoid_: Paused, disabled, hidden
+
 ### Learning
 
 **Learner**:

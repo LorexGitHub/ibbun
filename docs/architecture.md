@@ -40,7 +40,7 @@ Each core module owns its tables in its own Postgres schema. It exposes a typed 
 
 | Module | Owns | Interface gives |
 |---|---|---|
-| `content-graph` | Every Content Graph table: Study Items, Sentences, Examples, Reading Passages, links, source keys, overrides, Provenance, approval, retirement ([content-graph.md](content-graph.md)) | **`content-graph`**: reads of approved, non-retired content with overrides applied. **`content-graph/authoring`**: writes, approval and retirement, plus reads that include drafts |
+| `content-graph` | Every Content Graph table: Study Items, Sentences, Examples, Reading Passages, links, source keys, overrides, Provenance, approval, retirement ([content-graph.md](content-graph.md)) | **`content-graph`**: reads of approved, non-retired content with overrides applied. **`content-graph/authoring`**: writes, approval and retirement, plus reads that include drafts, plus `applySnapshot()`, which owns the refresh rules ([import-pipeline.md](import-pipeline.md)) |
 | `progress` | The append-only Review log, the `Scheduler` adapter (ts-fsrs), and the Mastery and Known projections ([ADR 0001](adr/0001-fsrs-6-and-anki-style-mastery.md)) | `record(review)` for every Review `kind`, schedule and Mastery reads |
 | `learning-path` | The rules for the order Study Items are offered in, and for locking (#15) | Which New Study Items come next for this Learner, and what is locked |
 | `learner` | Accounts, sessions, roles, Learner preferences | Identity, role and preference reads and writes |
@@ -66,7 +66,7 @@ Each external service has an adapter package with an interface and a fake: `nlp`
 | `listening` | Learner | Dictation and comprehension practice |
 | `dashboard` | Learner | Due counts and Mastery by level |
 | `account` | Learner | Sign-up, login and settings screens (the data lives in `learner`) |
-| `import` | Admin | JMdict, KANJIDIC2, KanjiVG and Tatoeba import and refresh; derived-link rebuilds |
+| `import` | Admin | Scheduled fetch and parse of JMdict, KANJIDIC2, KanjiVG and Tatoeba into snapshots, Import Run reports, derived-link rebuilds. Mapping, retirement and override rules are in core `applySnapshot()` |
 | `content-generation` | Admin | Sentences, Japanese Explanations, Listening Clips (TTS), Grammar Point drafts |
 | `content-approval` | Admin | Draft queues, the reviewer agent, supervisor spot-check sampling |
 | `credits` | Public | The attribution page (#19) |
