@@ -69,7 +69,7 @@ Each external service has an adapter package with an interface and a fake: `nlp`
 | `import` | Admin | JMdict, KANJIDIC2, KanjiVG and Tatoeba import and refresh; derived-link rebuilds |
 | `content-generation` | Admin | Sentences, Japanese Explanations, Listening Clips (TTS), Grammar Point drafts |
 | `content-approval` | Admin | Draft queues, the reviewer agent, supervisor spot-check sampling |
-| `credits` | Public | The attribution page (#19) |
+| `credits` | Public | The Credits page ([licensing.md](licensing.md), #19). The footer and inline Attribution are not a slice: `content-graph` returns each record's Attribution, and `platform/ui` renders it |
 
 A new feature is a new slice. Learner notes and Sentences, custom decks and mock JLPT tests are not in v1.
 
