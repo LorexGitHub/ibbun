@@ -1,0 +1,28 @@
+{
+  "name": "@mojibun/learner",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./testing": "./src/testing.ts"
+  },
+  "scripts": {
+    "seed": "node src/seed-cli.ts",
+    "grant-supervisor": "node src/grant-supervisor-cli.ts"
+  },
+  "dependencies": {
+    "@mojibun/auth": "workspace:*",
+    "@mojibun/db": "workspace:*",
+    "@mojibun/mail": "workspace:*",
+    "@mojibun/shared": "workspace:*",
+    "@node-rs/argon2": "^2.0.2",
+    "better-auth": "1.5.6",
+    "drizzle-orm": "^0.44.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
+}
