@@ -48,14 +48,16 @@ type InputProps = InputHTMLAttributes<HTMLInputElement>;
 /** A text input in card stock. */
 export const Input = (props: InputProps) => <input {...props} className="input" />;
 
+type KanaInputProps = { ime: Ime; onChange: (event: ChangeEvent<HTMLInputElement>) => void } & Omit<InputProps, "type" | "onChange">;
+
 /**
  * A text input for answers in Japanese: typed romaji becomes kana before `onChange` sees it.
  * Text a Japanese IME is still composing is left to the IME.
  */
-export const KanaInput = ({ ime, onChange, ...rest }: { ime: Ime } & Omit<InputProps, "type">) => {
+export const KanaInput = ({ ime, onChange, ...rest }: KanaInputProps) => {
   const change = (event: ChangeEvent<HTMLInputElement>) => {
     if (!(event.nativeEvent as InputEvent).isComposing) toKanaBeforeCursor(event.target, ime);
-    onChange?.(event);
+    onChange(event);
   };
   return <input type="text" lang="ja" autoComplete="off" {...rest} className="input" onChange={change} />;
 };

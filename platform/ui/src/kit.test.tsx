@@ -76,7 +76,7 @@ describe("KanaInput and Input", () => {
   });
 
   it("turns romaji into katakana when bound to katakana", () => {
-    render(<KanaInput aria-label="Reading" ime="katakana" />);
+    render(<KanaInput aria-label="Reading" ime="katakana" onChange={() => {}} />);
     const input = screen.getByLabelText<HTMLInputElement>("Reading");
     type(input, "dan");
     expect(input.value).toBe("ダn");
@@ -85,7 +85,7 @@ describe("KanaInput and Input", () => {
   });
 
   it("converts only the text before the cursor", () => {
-    render(<KanaInput aria-label="Reading" ime="hiragana" defaultValue="" />);
+    render(<KanaInput aria-label="Reading" ime="hiragana" onChange={() => {}} />);
     const input = screen.getByLabelText<HTMLInputElement>("Reading");
     fireEvent.input(input, { target: { value: "kaとこ", selectionStart: 2, selectionEnd: 2 } });
     expect(input.value).toBe("かとこ");
@@ -93,7 +93,7 @@ describe("KanaInput and Input", () => {
   });
 
   it("keeps the Learner's selection when there is nothing to convert", () => {
-    render(<KanaInput aria-label="Reading" ime="hiragana" />);
+    render(<KanaInput aria-label="Reading" ime="hiragana" onChange={() => {}} />);
     const input = screen.getByLabelText<HTMLInputElement>("Reading");
     fireEvent.input(input, { target: { value: "おとこ", selectionStart: 0, selectionEnd: 3 } });
     expect(input.value).toBe("おとこ");
@@ -101,7 +101,7 @@ describe("KanaInput and Input", () => {
   });
 
   it("leaves text a Japanese IME is still composing to the IME", () => {
-    render(<KanaInput aria-label="Reading" ime="hiragana" />);
+    render(<KanaInput aria-label="Reading" ime="hiragana" onChange={() => {}} />);
     const input = screen.getByLabelText<HTMLInputElement>("Reading");
     fireEvent.input(input, { target: { value: "ka" }, isComposing: true });
     expect(input.value).toBe("ka");
