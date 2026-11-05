@@ -11,17 +11,25 @@
     "dev": "pnpm gen && pnpm -r --parallel --filter \"./apps/*\" dev",
     "db:migrate": "pnpm --filter @mojibun/db migrate",
     "test": "pnpm gen && vitest run",
-    "typecheck": "pnpm gen && tsc -p . && tsc -p apps/web"
+    "typecheck": "pnpm gen && tsc -p . && tsc -p apps/web",
+    "test:packages": "pnpm gen && node scripts/gates/vitest-per-package.ts",
+    "depcruise": "depcruise --config .dependency-cruiser.cjs $(ls -d apps core platform slices 2>/dev/null)",
+    "gate:dryer": "node scripts/gates/dryer.ts",
+    "gate:mutator": "node scripts/gates/mutator.ts",
+    "e2e": "pnpm gen && playwright test"
   },
   "devDependencies": {
-    "typescript": "^5.9.0",
-    "vitest": "^3.2.0",
     "@mojibun/jobs": "workspace:*",
     "@mojibun/slice": "workspace:*",
-    "hono": "^4.9.0",
-    "zod": "^4.1.0",
-    "react": "^19.1.0",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^24.0.0",
     "@types/react": "^19.1.0",
-    "@types/node": "^24.0.0"
+    "@vitest/coverage-v8": "3.2.7",
+    "dependency-cruiser": "^17.4.3",
+    "hono": "^4.9.0",
+    "react": "^19.1.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0",
+    "zod": "^4.1.0"
   }
 }
