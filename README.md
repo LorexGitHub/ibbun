@@ -18,7 +18,11 @@ It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLP
 
 ## What it will look like
 
-The target design is a static mock in the Hum theme: [docs/design/mojibun-mock.html](docs/design/mojibun-mock.html). The reasoning behind it is in [ADR 0011](docs/adr/0011-hum-visual-design.md).
+<p align="center">
+  <img src="assets/screenshot-today.jpg" alt="The mojibun Today screen: a greeting with 18 reviews waiting, Start reviews and Learn 6 new buttons, and a yellow note showing 18 due, 6 new and a 42-day streak">
+</p>
+
+This is the Today screen from the design mock, the screen you land on when you open the app. The full mock is at [docs/design/mojibun-mock.html](docs/design/mojibun-mock.html), and the reasoning behind the Hum design is in [ADR 0011](docs/adr/0011-hum-visual-design.md).
 
 ## Run it locally
 
