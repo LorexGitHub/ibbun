@@ -39,8 +39,20 @@ A single Japanese sentence with its translation. It is not a Study Item; it is h
 _Avoid_: Example, phrase
 
 **Example**:
-A Sentence chosen to review one particular Study Item, with the part to blank out marked. Most Sentences that merely use a Word are not Examples of it.
+A Sentence chosen to review one particular Study Item, with its target marked: the part to blank out, or for a Kanji, the Word to highlight. Every Study Item type, Kanji included, is reviewed through Examples. Most Sentences that merely use a Word are not Examples of it.
 _Avoid_: Question, prompt, card, example sentence
+
+**Accepted Answer**:
+An answer to an Example that passes: a written form plus its kana reading.
+_Avoid_: Correct answer, solution
+
+**Alternate**:
+An answer to an Example that is correct Japanese but not the target. It shows a nudge and is not graded, and the Learner tries again.
+_Avoid_: Synonym, also-correct answer
+
+**Known Wrong Answer**:
+A common mistake stored on an Example with an explanation. It is graded as a fail and the explanation is shown.
+_Avoid_: Blacklist, trap answer
 
 **Reading Passage**:
 A longer Japanese text for practice. It is not a Study Item; reading it feeds the Mastery of the Words and Grammar Points it contains.

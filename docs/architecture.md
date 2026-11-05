@@ -40,7 +40,7 @@ Each core module owns its tables in its own Postgres schema. It exposes a typed 
 
 | Module | Owns | Interface gives |
 |---|---|---|
-| `content-graph` | Every Content Graph table: Study Items, Sentences, Examples, Reading Passages, links, source keys, overrides, Provenance, approval, retirement ([content-graph.md](content-graph.md)) | **`content-graph`**: reads of approved, non-retired content with overrides applied. **`content-graph/authoring`**: writes, approval and retirement, plus reads that include drafts, plus `applySnapshot()`, which owns the refresh rules ([import-pipeline.md](import-pipeline.md)) |
+| `content-graph` | Every Content Graph table: Study Items, Sentences, Examples, Reading Passages, links, source keys, overrides, Provenance, approval, retirement ([content-graph.md](content-graph.md)) | **`content-graph`**: reads of approved, non-retired content with overrides applied. Also the pure `grade()` function every Learner-facing slice uses ([review-answer-model.md](review-answer-model.md)). **`content-graph/authoring`**: writes, approval and retirement, plus reads that include drafts, plus `applySnapshot()`, which owns the refresh rules ([import-pipeline.md](import-pipeline.md)) |
 | `progress` | The append-only Review log, the `Scheduler` adapter (ts-fsrs), and the Mastery and Known projections ([ADR 0001](adr/0001-fsrs-6-and-anki-style-mastery.md)) | `record(review)` for every Review `kind`, schedule and Mastery reads |
 | `learning-path` | The rules for the order Study Items are offered in, and for locking (#15) | Which New Study Items come next for this Learner, and what is locked |
 | `learner` | Accounts, sessions, roles, Learner preferences | Identity, role and preference reads and writes |

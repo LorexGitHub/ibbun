@@ -1,6 +1,6 @@
 # Content Graph schema
 
-Decided in [#12](https://github.com/LorexGitHub/mojibun/issues/12). Terms follow [CONTEXT.md](../CONTEXT.md). This document fixes the *shape* of the graph. Field-level detail for Grammar Points is in #20, answer data on Examples in #18, and import and refresh mechanics in [import-pipeline.md](import-pipeline.md) (#23).
+Decided in [#12](https://github.com/LorexGitHub/mojibun/issues/12). Terms follow [CONTEXT.md](../CONTEXT.md). This document fixes the *shape* of the graph. Field-level detail for Grammar Points is in #20, answer data on Examples in [review-answer-model.md](review-answer-model.md) (#18), and import and refresh mechanics in [import-pipeline.md](import-pipeline.md) (#23).
 
 ## Principles
 
@@ -52,9 +52,9 @@ There are no prerequisite or ordering links.
 
 ## Example
 
-An **Example** is its own record: a Sentence, the Study Item it reviews (any type), and the target span to blank out. It has its own approval state. Answer data (accepted answers, alternates, known wrong answers, hints) hangs off the Example and is designed in #18. Most Sentences that use a Word are *not* Examples of it.
+An **Example** is its own record: a Sentence, the Study Item it reviews (any type, Kanji included), and the target span: blanked for a Word or Grammar Point, highlighted for a Kanji (a Word in the Sentence that contains it, [ADR 0005](adr/0005-kanji-reviewed-in-context.md)), the whole Sentence for a Listening Clip. It has its own approval state. Answer data (Accepted Answers, Alternates, Known Wrong Answers, a hint, and for Listening Clips a comprehension question) hangs off the Example. See [review-answer-model.md](review-answer-model.md). Most Sentences that use a Word are *not* Examples of it.
 
-An Example can only be approved if its Sentence has an English translation **and** its target has a Japanese Explanation. This is needed because a Learner may turn off either one (#18).
+An Example can only be approved if its Sentence has an English translation **and**, for Words and Grammar Points, its target has a Japanese Explanation. For a Kanji, the target Word sense's Japanese Explanation is needed. Listening Clips have no Japanese Explanation, so they need the translation only. This is needed because a Learner may turn off either one ([review-answer-model.md](review-answer-model.md#approval-rule)).
 
 A Study Item with no approved Example can't be reviewed. It is **Suspended**: not due and not offered in Learn until an Example is approved ([import-pipeline.md](import-pipeline.md#suspended-study-items)).
 
