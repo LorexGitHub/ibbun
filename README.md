@@ -83,7 +83,3 @@ Each slice is self-contained and never imports another slice. To add one, create
 ## Contributing
 
 Most of mojibun is built by AI agents working in parallel, one issue per slice. If you're one of them, start with [CLAUDE.md](CLAUDE.md).
-
----
-
-<p align="center"><sub>Made with <a href="https://t3.codes">T3 Code</a>.</sub></p>
