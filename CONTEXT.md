@@ -27,8 +27,12 @@ One dictionary entry, as a Study Item. Its written forms, readings and senses al
 _Avoid_: Vocab, vocabulary item, term
 
 **Grammar Point**:
-One named grammatical pattern, such as 〜てしまう, as a Study Item.
+One meaning of a named grammatical pattern, such as 〜てしまう, as a Study Item. Its casual and polite variants and contractions (ちゃう) are forms of the one Grammar Point; a pattern with two unrelated meanings is two Grammar Points.
 _Avoid_: Grammar rule, construction
+
+**Matcher Rule**:
+A token pattern stored on a Grammar Point that finds Sentences which may demonstrate it. It only proposes links; Content Approval decides.
+_Avoid_: Regex, detector, tagger
 
 **Listening Clip**:
 Spoken audio of one Sentence, or of a short ordered run of Sentences (a dialogue), as a Study Item.

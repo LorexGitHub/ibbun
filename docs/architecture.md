@@ -66,7 +66,7 @@ Each external service has an adapter package with an interface and a fake: `nlp`
 | `listening` | Learner | Dictation and comprehension practice |
 | `dashboard` | Learner | Due counts and Mastery by level |
 | `account` | Learner | Sign-up, login and settings screens (the data lives in `learner`) |
-| `import` | Admin | Scheduled fetch and parse of JMdict, KANJIDIC2, KanjiVG and Tatoeba into snapshots, Import Run reports, derived-link rebuilds. Mapping, retirement and override rules are in core `applySnapshot()` |
+| `import` | Admin | Scheduled fetch and parse of JMdict, KANJIDIC2, KanjiVG and Tatoeba into snapshots, Import Run reports, derived-link rebuilds. One-time parse of hanabira and Tanos grammar, and Matcher Rule runs ([grammar-points.md](grammar-points.md)). Mapping, retirement and override rules are in core `applySnapshot()` |
 | `content-generation` | Admin | Sentences, Japanese Explanations, Listening Clips (TTS), Grammar Point drafts |
 | `content-approval` | Admin | Draft queues, the reviewer agent, supervisor spot-check sampling |
 | `credits` | Public | The attribution page (#19) |

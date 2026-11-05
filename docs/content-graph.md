@@ -1,6 +1,6 @@
 # Content Graph schema
 
-Decided in [#12](https://github.com/LorexGitHub/mojibun/issues/12). Terms follow [CONTEXT.md](../CONTEXT.md). This document fixes the *shape* of the graph. Field-level detail for Grammar Points is in #20, answer data on Examples in #18, and import and refresh mechanics in [import-pipeline.md](import-pipeline.md) (#23).
+Decided in [#12](https://github.com/LorexGitHub/mojibun/issues/12). Terms follow [CONTEXT.md](../CONTEXT.md). This document fixes the *shape* of the graph. Field-level detail for Grammar Points is in [grammar-points.md](grammar-points.md) (#20), answer data on Examples in #18, and import and refresh mechanics in [import-pipeline.md](import-pipeline.md) (#23).
 
 ## Principles
 
@@ -27,7 +27,7 @@ A hybrid layout:
 |---|---|---|---|
 | **Kanji** | yes | KANJIDIC2 (all ~13k) | readings, meanings, grade, frequency, KRADFILE components and KanjiVG strokes as plain data (no component nodes) |
 | **Word** | yes | JMdict (all ~219k entries) | one entry: written forms, readings, senses (English glosses plus a **Japanese Explanation** per sense), priority tags. **Pitch accent** per reading: the field exists but stays empty until a licensed source is approved (see the pitch accent ticket) |
-| **Grammar Point** | yes | hanabira draft, then Content Approval (#20) | English meaning, **Japanese Explanation**; other fields in #20 |
+| **Grammar Point** | yes | hanabira and Tanos, merged and seeded once, then Content Approval ([grammar-points.md](grammar-points.md)) | title, forms, formation, register, English meaning, **Japanese Explanation**, notes, Matcher Rule |
 | **Listening Clip** | yes | VOICEVOX TTS (#5, #11) | audio file reference, voice (for credit) |
 | **Sentence** | no | Tatoeba (arrives `draft`), generated | Japanese text, one English translation (more languages later), token list with readings from Sudachi (rebuilt when the text changes; reading fixes go in as overrides) |
 | **Reading Passage** | no | authored or generated | title, ordered Sentences |
@@ -40,10 +40,10 @@ Kanji and Listening Clips have no Japanese Explanation.
 |---|---|---|
 | Word **contains** Kanji | position in the written form | derived |
 | Sentence **uses** Word | form, reading, sense, character span | Tatoeba `jpn_indices`, or derived by Sudachi |
-| Sentence **demonstrates** Grammar Point | character span | generated (draft → approval) |
+| Sentence **demonstrates** Grammar Point | character span | hanabira examples, Matcher Rule proposals or generated (draft → approval, [grammar-points.md](grammar-points.md)) |
 | Listening Clip **voices** Sentence | order | derived |
 | Reading Passage **contains** Sentence | order | authored |
-| Grammar Point **relates to** Grammar Point | kind (see also, contrast) | authored or generated |
+| Grammar Point **relates to** Grammar Point | kind (see also, contrast), comparison text | authored or generated |
 | Retired Word **superseded by** Word | — | derived on refresh (#23) |
 
 There are no prerequisite or ordering links.
