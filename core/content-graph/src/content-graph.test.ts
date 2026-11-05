@@ -9,10 +9,10 @@ import { fixture } from "./tests/fixture.ts";
 const g = fixture();
 const id = (key: keyof typeof g.ids) => g.ids[key] as StudyItemId;
 
-const contract = (make: (graph: Graph) => Promise<ContentGraph>) => {
+const contract = (make: () => Promise<ContentGraph>) => {
   let cg: ContentGraph;
   beforeAll(async () => {
-    cg = await make(g.graph);
+    cg = await make();
   });
 
   describe("studyItem", () => {
@@ -23,7 +23,10 @@ const contract = (make: (graph: Graph) => Promise<ContentGraph>) => {
         id: id("taberu"),
         level: "N5",
         priorityTags: ["ichi1"],
-        forms: [{ id: g.ids.taberuForm, text: "食べる" }],
+        forms: [
+          { id: g.ids.taberuForm, text: "食べる" },
+          { id: g.ids.taberuSecondForm, text: "喰べる" },
+        ],
         readings: [{ id: g.ids.taberuReading, text: "たべる", pitchAccent: null }],
         senses: [
           {
@@ -95,7 +98,7 @@ const contract = (make: (graph: Graph) => Promise<ContentGraph>) => {
         title: "〜てしまう",
         meaning: "to do completely; to do by mistake",
         japaneseExplanation: "動作が完了したことや、残念な気持ちを表す。",
-        level: "N4",
+        level: "N3",
       });
       expect(page?.links).toEqual([
         {
@@ -134,6 +137,10 @@ const contract = (make: (graph: Graph) => Promise<ContentGraph>) => {
       expect((await cg.studyItem(id("taberu")))?.item.level).toBe("N5");
       expect((await cg.studyItem(id("nomu")))?.item.level).toBe("N4");
       expect((await cg.studyItem(id("chau")))?.item.level).toBeNull();
+    });
+
+    it("takes the newest of two Level Candidates of the same kind", async () => {
+      expect((await cg.studyItem(id("teshimau")))?.item.level).toBe("N3");
     });
   });
 
@@ -175,18 +182,26 @@ const contract = (make: (graph: Graph) => Promise<ContentGraph>) => {
 
     it("returns nothing for a blank query and honours the limit", async () => {
       expect(await labels("  ")).toEqual([]);
-      expect(await labels("to")).toHaveLength(3);
+      expect(await labels("to")).toEqual(["食べる", "飲む", "〜てしまう"]);
       expect(await labels("to", 1)).toHaveLength(1);
       expect(await labels("to", 0)).toEqual([]);
     });
   });
 };
 
-describe("fake content graph", () => {
-  contract(async (graph) => createFakeContentGraph(graph));
-});
+/** The same rows stored newest first, so no read can rely on the order rows come back in. */
+const reversed = (graph: Graph): Graph =>
+  Object.fromEntries(Object.entries(graph).map(([table, rows]) => [table, [...rows].reverse()])) as Graph;
 
-describe("content graph, against Postgres", () => {
+describe.each([
+  ["in ID order", g.graph],
+  ["newest first", reversed(g.graph)],
+])("rows stored %s", (_, graph) => {
+  describe("fake content graph", () => {
+    contract(async () => createFakeContentGraph(graph));
+  });
+
+  describe("content graph, against Postgres", () => {
   let pg: TestPostgres;
   let db: Db;
   beforeAll(async () => {
@@ -199,8 +214,9 @@ describe("content graph, against Postgres", () => {
     await pg.stop();
   });
 
-  contract(async (graph) => {
+  contract(async () => {
     await seedContentGraph(db, graph);
     return createContentGraph(db);
+  });
   });
 });

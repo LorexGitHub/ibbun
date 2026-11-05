@@ -98,7 +98,7 @@ type Lifecycle = { approval: Approval; retired: boolean };
 type Row<K extends keyof Graph> = Graph[K][number];
 
 const visible = (row: Lifecycle) => row.approval === "approved" && !row.retired;
-const byId = (a: { id: string }, b: { id: string }) => (a.id < b.id ? -1 : 1);
+const byId = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id, "en");
 const byPosition = (a: { position: number }, b: { position: number }) => a.position - b.position;
 const present = <T>(value: T | null | undefined): value is T => value != null;
 
@@ -125,10 +125,13 @@ const context = (graph: Graph): Ctx => {
 
 const current = <T extends object>(ctx: Ctx, row: T, recordId: string): T => ({ ...row, ...ctx.overrides.get(recordId) });
 
-const levelOf = (ctx: Ctx, id: string): JlptLevel | null =>
-  ctx.graph.levelCandidate
+/** Editorial over List over Derived; within a kind, the newest. */
+const levelOf = (ctx: Ctx, id: string): JlptLevel | null => {
+  const [best] = ctx.graph.levelCandidate
     .filter((c) => c.studyItemId === id && visible(c))
-    .sort((a, b) => LEVEL_PRECEDENCE[a.kind] - LEVEL_PRECEDENCE[b.kind] || byId(b, a))[0]?.level ?? null;
+    .sort((a, b) => LEVEL_PRECEDENCE[a.kind] - LEVEL_PRECEDENCE[b.kind] || byId(b, a));
+  return best ? best.level : null;
+};
 
 /** The newest visible Japanese Explanation that `matches`. */
 const explanation = (ctx: Ctx, matches: (e: Row<"japaneseExplanation">) => boolean) => {

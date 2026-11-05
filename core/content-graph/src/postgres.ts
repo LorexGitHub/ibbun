@@ -23,10 +23,9 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
     return reader(await loadItems(db, ids.map((r) => r.id))).levelList(level, type);
   },
 
-  async search(query, options) {
+  async search(query, { limit = DEFAULT_SEARCH_LIMIT } = {}) {
     const q = normaliseQuery(query);
     if (!q) return [];
-    const limit = options?.limit ?? DEFAULT_SEARCH_LIMIT;
     const like = q.replace(/[\\%_]/g, (c) => `\\${c}`);
     const { rows } = await db.execute<{ study_item_id: string }>(sql`
       SELECT study_item_id,

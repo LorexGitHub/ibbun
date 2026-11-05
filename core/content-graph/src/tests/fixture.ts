@@ -41,7 +41,11 @@ export const fixture = () => {
   level(shoku, "N4", "list");
 
   const taberu = word(["食べる"], "たべる", ["to eat", "to devour"]);
-  graph.wordForm.push({ id: next(), wordId: taberu.id, position: 1, text: "retired form", ...life("approved", true) });
+  const taberuSecondForm = next();
+  graph.wordForm.push(
+    { id: next(), wordId: taberu.id, position: 2, text: "retired form", ...life("approved", true) },
+    { id: taberuSecondForm, wordId: taberu.id, position: 1, text: "喰べる", ...life() },
+  );
   graph.wordSense.push({ id: next(), wordId: taberu.id, position: 1, partsOfSpeech: ["v1"], glosses: ["draft sense"], ...life("draft") });
   graph.japaneseExplanation.push(
     { id: next(), wordSenseId: taberu.senseId, grammarPointId: null, text: "古い説明。", ...life() },
@@ -118,6 +122,7 @@ export const fixture = () => {
   graph.override.push({ id: next(), recordId: teshimau, field: "meaning", value: "to do completely; to do by mistake", basedOn: "to do completely", state: "active", ...life() });
   const chau = grammar("〜ちゃう", "casual てしまう", null);
   level(teshimau, "N4", "list");
+  level(teshimau, "N3", "list");
   level(chau, "N4", "list", "draft");
   graph.grammarRelatesTo.push(
     { id: next(), fromId: teshimau, toId: chau, kind: "contrast", comparison: "ちゃう is the casual contraction.", ...life() },
@@ -142,7 +147,7 @@ export const fixture = () => {
     graph,
     tokens,
     ids: {
-      taberu: taberu.id, taberuForm: taberu.formId, taberuReading: taberu.readingId, taberuSense: taberu.senseId,
+      taberu: taberu.id, taberuForm: taberu.formId, taberuReading: taberu.readingId, taberuSense: taberu.senseId, taberuSecondForm,
       taberuExample, accepted, alternate, knownWrong, sentence,
       nomu: nomu.id, shoku, teshimau, chau, clip,
       draftWord: draftWord.id, rejectedWord: rejectedWord.id, retiredWord: retiredWord.id,
