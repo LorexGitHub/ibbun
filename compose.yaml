@@ -1,0 +1,31 @@
+# Local services. `docker compose up -d`, then `pnpm install && pnpm db:migrate && pnpm dev`.
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: mojibun
+      POSTGRES_PASSWORD: mojibun
+      POSTGRES_DB: mojibun
+    ports: ["5432:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mojibun"]
+      interval: 5s
+      retries: 10
+
+  sudachi:
+    build: docker/sudachi
+    ports: ["8000:8000"]
+
+  voicevox:
+    image: voicevox/voicevox_engine:cpu-0.24.1
+    ports: ["50021:50021"]
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # web inbox
+
+volumes:
+  postgres-data:

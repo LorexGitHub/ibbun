@@ -1,0 +1,14 @@
+{
+  "name": "@mojibun/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {},
+  "scripts": { "dev": "node --watch src/main.ts", "start": "node src/main.ts" },
+  "dependencies": {
+    "@mojibun/db": "workspace:*",
+    "@mojibun/jobs": "workspace:*",
+    "@mojibun/slice": "workspace:*"
+  },
+  "devDependencies": { "@types/node": "^24.0.0" }
+}

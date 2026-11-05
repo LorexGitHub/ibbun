@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+  - core/*
+  - platform/*
+  - slices/*
+allowBuilds:
+  esbuild: true
