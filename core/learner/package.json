@@ -9,8 +9,8 @@
     "./testing": "./src/testing.ts"
   },
   "scripts": {
-    "seed": "node src/seed-cli.ts",
-    "grant-supervisor": "node src/grant-supervisor-cli.ts"
+    "seed": "node src/cli.ts seed",
+    "grant-supervisor": "node src/cli.ts grant-supervisor"
   },
   "dependencies": {
     "@mojibun/auth": "workspace:*",
