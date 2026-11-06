@@ -38,7 +38,7 @@ The harness is Playwright (`@playwright/test`, already a dev dependency). Base U
    pnpm exec playwright test --project=anonymous                      # shell journeys in e2e/
    pnpm exec playwright test --project=learner slices/<slice>/tests   # once slices/account exists
    ```
-   Locally `reuseExistingServer` makes Playwright use the stack from `up`. Do not set `CI=1`; that makes Playwright start its own servers.
+   Locally `reuseExistingServer` makes Playwright use the stack from `up`. With `CI` set (GitHub Actions sets it), Playwright tries to start its own servers and fails on the busy ports: prefix with `env -u CI`.
 2. **Feature-map journeys.** Open `features/<slice>.md` and walk every bullet under `Driving it with Playwright`. Write the steps as a throwaway script at `target/verify/journeys/<slice>.ts` that uses `chromium` from `@playwright/test`, modelled on `scripts/shot.ts`, and run it with `node target/verify/journeys/<slice>.ts`. (The repo's Playwright config only matches `e2e/` and `slices/*/tests/`, so a spec file under `target/` would not run.)
 3. **Locators.** Use roles and accessible names (`getByRole("button", { name: "Log in" })`, `getByLabel("Email")`), never CSS position. The shell's nav is the `<nav>` landmark; each slice's nav entry is a link with the slice's label.
 4. **Mail.** Sign-up, verification and reset mails land in Mailpit: `curl -s http://localhost:8025/api/v1/messages` lists them, `GET /api/v1/message/<ID>` gives the body with the link to follow.
