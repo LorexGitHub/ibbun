@@ -50,6 +50,7 @@ const contract = (make: () => Promise<ContentGraph>) => {
             translationEn: "I eat bread.",
             tokens: g.tokens,
             audio: { key: "audio/s1.ogg", voice: "四国めたん" },
+            attribution: [],
           },
           target: { start: 3, end: 6 },
           targetSenseId: null,
@@ -58,6 +59,7 @@ const contract = (make: () => Promise<ContentGraph>) => {
           accepted: [{ id: g.ids.accepted, written: "食べる", reading: "たべる" }],
           alternates: [{ id: g.ids.alternate, written: "食う", message: "That works, but we want the neutral verb." }],
           knownWrong: [{ id: g.ids.knownWrong, written: "飲む", message: "飲む is to drink." }],
+          attribution: [],
         },
       ]);
     });

@@ -1,7 +1,8 @@
-import { and, eq, inArray, or, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import type { DbOrTx } from "@mojibun/db";
 import { emptyGraph, type Graph } from "./graph.ts";
+import { creditsOf, recordProvenance } from "./licensing.ts";
 import { DEFAULT_SEARCH_LIMIT, normaliseQuery, reader, type ContentGraph } from "./read.ts";
 import * as t from "./schema.ts";
 
@@ -11,7 +12,7 @@ import * as t from "./schema.ts";
  */
 export const createContentGraph = (db: DbOrTx): ContentGraph => ({
   async studyItem(id) {
-    return reader(await loadPage(db, id)).studyItem(id);
+    return (await readerOver(db, await loadPage(db, id))).studyItem(id);
   },
 
   async levelList(level, type) {
@@ -20,7 +21,7 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
       .from(t.studyItem)
       .innerJoin(t.levelCandidate, eq(t.levelCandidate.studyItemId, t.studyItem.id))
       .where(and(eq(t.studyItem.type, type), eq(t.levelCandidate.level, level), visible(t.studyItem), visible(t.levelCandidate)));
-    return reader(await loadItems(db, ids.map((r) => r.id))).levelList(level, type);
+    return (await readerOver(db, await loadItems(db, ids.map((r) => r.id)))).levelList(level, type);
   },
 
   async search(query, { limit = DEFAULT_SEARCH_LIMIT } = {}) {
@@ -35,7 +36,15 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
       GROUP BY study_item_id
       ORDER BY tier, study_item_id
       LIMIT ${limit}`);
-    return reader(await loadItems(db, rows.map((r) => r.study_item_id))).search(q, limit);
+    return (await readerOver(db, await loadItems(db, rows.map((r) => r.study_item_id)))).search(q, limit);
+  },
+
+  async credits() {
+    const [importRun, provenance] = await Promise.all([
+      db.select().from(t.importRun).where(isNotNull(t.importRun.appliedAt)),
+      db.select().from(t.provenance).where(eq(t.provenance.licence, "voicevox")),
+    ]);
+    return creditsOf({ importRun, provenance });
   },
 });
 
@@ -94,4 +103,36 @@ const withOverrides = async (db: DbOrTx, graph: Graph): Promise<Graph> => {
     ...graph.sentence,
   ].map((r) => r.id));
   return { ...graph, override: await db.select().from(t.override).where(inArray(t.override.recordId, recordIds)) };
+};
+
+const uuids = (ids: string[]) => sql`ARRAY[${sql.join(ids.map((id) => sql`${id}`), sql`, `)}]::uuid[]`;
+
+/**
+ * A reader over `graph` plus the Provenance its records owe Attribution to: their own, and their inputs', transitively,
+ * with the Import Runs that name their datasets.
+ */
+const readerOver = async (db: DbOrTx, graph: Graph) => {
+  const links = recordProvenance(graph);
+  const { rows } = await db.execute<{ id: string }>(sql`
+    WITH RECURSIVE closure(id) AS (
+      SELECT unnest(${uuids([...new Set(links.values())])})
+      UNION
+      SELECT rp.provenance_id
+      FROM closure c
+      JOIN content_graph.provenance p ON p.id = c.id
+      CROSS JOIN unnest(p.inputs) AS i(record_id)
+      JOIN content_graph.record_provenance rp ON rp.record_id = i.record_id
+    )
+    SELECT id FROM closure`);
+  const provenance = await db.select().from(t.provenance).where(inArray(t.provenance.id, rows.map((r) => r.id)));
+  const inputs = unique(provenance.flatMap((p) => p.inputs));
+  const importRunIds = unique(provenance.map((p) => (p.source.kind === "import" ? p.source.importRunId : null)));
+  const [inputLinks, importRun] = await Promise.all([
+    db.execute<{ record_id: string; provenance_id: string }>(
+      sql`SELECT record_id, provenance_id FROM content_graph.record_provenance WHERE record_id = ANY(${uuids(inputs)})`,
+    ),
+    db.select().from(t.importRun).where(inArray(t.importRun.id, importRunIds)),
+  ]);
+  for (const r of inputLinks.rows) links.set(r.record_id, r.provenance_id);
+  return reader({ ...graph, provenance, importRun }, links);
 };

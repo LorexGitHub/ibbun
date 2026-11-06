@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Decider, DecisionOutcome, GenerationStatus, QueueReason, Verdict } from "./schema.ts";
+import { parseLicence } from "../licensing.ts";
 import type { Row, Store, TableName, Where } from "./store.ts";
 
 /** Tables whose rows are Content Graph records: an `id`, an approval state and a retired flag. */
@@ -154,8 +155,14 @@ export const authoring = (s: Store, clock: Clock = systemClock): Authoring => {
 
   return {
     rows: (name, where) => s.rows(name, where),
-    insert: (name, rows) => s.insert(name, rows),
-    update: (name, where, patch) => s.update(name, where, patch),
+    insert: async (name, rows) => {
+      if (name === "provenance") for (const row of rows) parseLicence((row as Row<"provenance">).licence);
+      await s.insert(name, rows);
+    },
+    update: async (name, where, patch) => {
+      if (name === "provenance" && "licence" in patch) parseLicence(patch.licence);
+      await s.update(name, where, patch);
+    },
 
     decide: (decision) => s.atomically((tx) => decide(tx, clock, decision)),
     decisions,
