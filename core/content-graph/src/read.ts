@@ -1,5 +1,6 @@
 import type { JlptLevel, StudyItemId } from "@mojibun/shared";
 import type { Graph } from "./graph.ts";
+import { creditsOf, licensing, recordProvenance, type Attribution, type CreditsEntry } from "./licensing.ts";
 import type { Approval, ComprehensionQuestion, GrammarForm, Token } from "./schema.ts";
 
 export type BrowsableType = "kanji" | "word" | "grammar_point";
@@ -59,6 +60,7 @@ export type Sentence = {
   translationEn: string | null;
   tokens: Token[];
   audio: { key: string; voice: string | null } | null;
+  attribution: Attribution;
 };
 
 export type Example = {
@@ -71,6 +73,7 @@ export type Example = {
   accepted: { id: string; written: string; reading: string | null }[];
   alternates: { id: string; written: string; message: string | null }[];
   knownWrong: { id: string; written: string; message: string | null }[];
+  attribution: Attribution;
 };
 
 export type StudyItemLink =
@@ -79,8 +82,8 @@ export type StudyItemLink =
   | { kind: "relates_to"; relation: "see_also" | "contrast"; comparison: string | null; grammarPoint: StudyItemSummary }
   | { kind: "voices"; position: number; speaker: "男" | "女"; voice: string; audioKey: string | null; sentence: Sentence };
 
-/** What a Browse page shows: the Study Item, its Examples and its links. */
-export type StudyItemPage = { item: StudyItem; examples: Example[]; links: StudyItemLink[] };
+/** What a Browse page shows: the Study Item, its Examples and its links, and the Attribution the item's own records owe. */
+export type StudyItemPage = { item: StudyItem; examples: Example[]; links: StudyItemLink[]; attribution: Attribution };
 
 /** Reads of approved, non-retired Content Graph records with overrides applied. */
 export interface ContentGraph {
@@ -89,6 +92,8 @@ export interface ContentGraph {
   levelList(level: JlptLevel, type: BrowsableType): Promise<StudyItemSummary[]>;
   /** By written form, reading or meaning. Exact matches first, then prefix matches, then the rest. */
   search(query: string, options?: { limit?: number }): Promise<StudyItemSummary[]>;
+  /** The Credits page: every source with its licence, link and live version, then every VOICEVOX voice in use. */
+  credits(): Promise<CreditsEntry[]>;
 }
 
 export const DEFAULT_SEARCH_LIMIT = 50;
@@ -113,15 +118,28 @@ export const matchTier = (text: string, query: string): number | null => {
 };
 
 /** The rows a read works over, with the newest active override of each field folded in by `current`. */
-type Ctx = { graph: Graph; overrides: Map<string, Record<string, unknown>>; items: Map<string, Row<"studyItem">> };
+type Ctx = {
+  graph: Graph;
+  overrides: Map<string, Record<string, unknown>>;
+  overrideIds: Map<string, string[]>;
+  items: Map<string, Row<"studyItem">>;
+  licensing: ReturnType<typeof licensing>;
+};
 
-const context = (graph: Graph): Ctx => {
+const context = (graph: Graph, links: Map<string, string>): Ctx => {
   const overrides = new Map<string, Record<string, unknown>>();
+  const overrideIds = new Map<string, string[]>();
   for (const o of graph.override.filter((o) => visible(o) && o.state === "active").sort(byId)) {
     overrides.set(o.recordId, { ...overrides.get(o.recordId), [o.field]: o.value });
+    overrideIds.set(o.recordId, [...(overrideIds.get(o.recordId) ?? []), o.id]);
   }
-  return { graph, overrides, items: new Map(graph.studyItem.filter(visible).map((s) => [s.id, s])) };
+  const items = new Map(graph.studyItem.filter(visible).map((s) => [s.id, s]));
+  return { graph, overrides, overrideIds, items, licensing: licensing(graph, links) };
 };
+
+/** The Attribution of records as shown: each record plus the active overrides applied to it. */
+const attributionOf = (ctx: Ctx, recordIds: string[]): Attribution =>
+  ctx.licensing.attributionOf(recordIds.flatMap((id) => [id, ...(ctx.overrideIds.get(id) ?? [])]));
 
 const current = <T extends object>(ctx: Ctx, row: T, recordId: string): T => ({ ...row, ...ctx.overrides.get(recordId) });
 
@@ -134,8 +152,11 @@ const levelOf = (ctx: Ctx, id: string): JlptLevel | null => {
 };
 
 /** The newest visible Japanese Explanation that `matches`. */
+const explanationRow = (ctx: Ctx, matches: (e: Row<"japaneseExplanation">) => boolean) =>
+  ctx.graph.japaneseExplanation.filter((e) => visible(e) && matches(e)).sort(byId).at(-1);
+
 const explanation = (ctx: Ctx, matches: (e: Row<"japaneseExplanation">) => boolean) => {
-  const newest = ctx.graph.japaneseExplanation.filter((e) => visible(e) && matches(e)).sort(byId).at(-1);
+  const newest = explanationRow(ctx, matches);
   return newest ? current(ctx, newest, newest.id).text : null;
 };
 
@@ -207,7 +228,8 @@ const sentenceOf = (ctx: Ctx, id: string): Sentence | null => {
   const row = ctx.graph.sentence.find((s) => s.id === id && visible(s));
   if (!row) return null;
   const s = current(ctx, row, row.id);
-  return { id: s.id, text: s.text, translationEn: s.translationEn, tokens: s.tokens, audio: s.audioKey ? { key: s.audioKey, voice: s.audioVoice } : null };
+  const audio = s.audioKey ? { key: s.audioKey, voice: s.audioVoice } : null;
+  return { id: s.id, text: s.text, translationEn: s.translationEn, tokens: s.tokens, audio, attribution: attributionOf(ctx, [s.id]) };
 };
 
 const answersOf = (ctx: Ctx, exampleId: string, kind: Row<"exampleAnswer">["kind"]) =>
@@ -230,6 +252,7 @@ const exampleOf = (ctx: Ctx, row: Row<"example">): Example | null => {
       accepted: answersOf(ctx, e.id, "accepted").map(({ id, written, reading }) => ({ id, written, reading })),
       alternates: answersOf(ctx, e.id, "alternate").map(({ id, written, message }) => ({ id, written, message })),
       knownWrong: answersOf(ctx, e.id, "known_wrong").map(({ id, written, message }) => ({ id, written, message })),
+      attribution: attributionOf(ctx, [e.id, sentence.id]),
     }
   );
 };
@@ -276,6 +299,19 @@ const linksOf = (ctx: Ctx, item: StudyItem): StudyItemLink[] => {
   return byType(links, item);
 };
 
+/** The records a Study Item's page shows as the item itself: the item, its sub-entries and its Japanese Explanations. */
+const RECORDS: ByType<(ctx: Ctx) => string[]> = {
+  kanji: (k) => () => [k.id],
+  word: (w) => (ctx) => [
+    w.id,
+    ...w.forms.map((f) => f.id),
+    ...w.readings.map((r) => r.id),
+    ...w.senses.flatMap((s) => [s.id, explanationRow(ctx, (e) => e.wordSenseId === s.id)?.id].filter(present)),
+  ],
+  grammar_point: (g) => (ctx) => [g.id, explanationRow(ctx, (e) => e.grammarPointId === g.id)?.id].filter(present),
+  listening_clip: (c) => () => [c.id],
+};
+
 /** Must match the `search_text` view in the migration: the contract tests hold the two together. */
 const SEARCH_TEXTS: ByType<string[]> = {
   kanji: (k) => [k.literal, ...k.meanings, ...k.onReadings, ...k.kunReadings],
@@ -288,13 +324,13 @@ const bestTier = (item: StudyItem, query: string) =>
   Math.min(...byType(SEARCH_TEXTS, item).map((text) => matchTier(text, query) ?? Infinity));
 
 /** The pure reads over a set of rows. The fake runs it over its whole graph; Postgres over the rows a read loaded. */
-export const reader = (graph: Graph) => {
-  const ctx = context(graph);
+export const reader = (graph: Graph, links: Map<string, string> = recordProvenance(graph)) => {
+  const ctx = context(graph, links);
   const visibleItems = () => [...ctx.items.keys()].map((id) => itemOf(ctx, id)).filter(present);
   return {
     studyItem(id: string): StudyItemPage | null {
       const item = itemOf(ctx, id);
-      return item && { item, examples: examplesOf(ctx, id), links: linksOf(ctx, item) };
+      return item && { item, examples: examplesOf(ctx, id), links: linksOf(ctx, item), attribution: attributionOf(ctx, byType(RECORDS, item)(ctx)) };
     },
 
     levelList(level: JlptLevel, type: BrowsableType): StudyItemSummary[] {
@@ -315,6 +351,10 @@ export const reader = (graph: Graph) => {
         .slice(0, limit)
         .map((m) => summaryOf(m.item))
         .filter(present);
+    },
+
+    credits(): CreditsEntry[] {
+      return creditsOf(graph);
     },
   };
 };
