@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./authoring": "./src/authoring/index.ts",
     "./testing": "./src/testing.ts"
   },
   "dependencies": {

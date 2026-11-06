@@ -1,3 +1,4 @@
+import * as a from "./authoring/schema.ts";
 import * as t from "./schema.ts";
 
 /** Every table, in an order that inserts satisfy foreign keys in. */
@@ -27,6 +28,10 @@ export const tables = {
   sourceKey: t.sourceKey,
   override: t.override,
   levelCandidate: t.levelCandidate,
+  approvalDecision: a.approvalDecision,
+  generationRequest: a.generationRequest,
+  generationRun: a.generationRun,
+  queueEntry: a.queueEntry,
 };
 
 /** Content Graph rows, table by table: what the fake holds and what Postgres reads load. */

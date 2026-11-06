@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { collectMigrations, migrate, type Db } from "@mojibun/db";
 import { tables, type Graph } from "./graph.ts";
 
+export { createFakeAuthoring } from "./authoring/testing.ts";
 export { createFakeContentGraph } from "./fake.ts";
 export { emptyGraph, type Graph } from "./graph.ts";
 export * from "./schema.ts";
