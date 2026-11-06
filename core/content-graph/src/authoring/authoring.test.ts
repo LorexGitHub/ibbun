@@ -34,7 +34,7 @@ const world = (...examples: Approval[]) => {
     return id;
   });
   const importRun = randomUUID();
-  graph.importRun.push({ id: importRun, dataset: "jmdict", upstreamVersion: "1", checksum: "x", status: "applied", counts: {} });
+  graph.importRun.push({ id: importRun, dataset: "jmdict", upstreamVersion: "1", checksum: "x", status: "applied", counts: {}, appliedAt: null });
   return { graph, item, sentence, examples: exampleIds, importRun };
 };
 
