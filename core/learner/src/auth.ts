@@ -63,7 +63,7 @@ const accounts = ({ mail, config, log }: Deps) =>
       enabled: true,
       afterDelete: async (user, request) => {
         await mail.send({ to: user.email, template: "account-deleted", data: {} });
-        log({ type: "deleted", learnerId: id(user.id), ip: ipOf(request?.headers) });
+        log({ type: "deleted", learnerId: id(user.id), ip: ipOf({ request }) });
       },
     },
   },
@@ -71,7 +71,6 @@ const accounts = ({ mail, config, log }: Deps) =>
     enabled: true,
     disableSignUp: !config.signupOpen,
     requireEmailVerification: true,
-    autoSignIn: false,
     minPasswordLength: 12,
     maxPasswordLength: 128,
     password: { hash: hashPassword, verify: verifyPassword },
@@ -81,7 +80,7 @@ const accounts = ({ mail, config, log }: Deps) =>
     onExistingUserSignUp: ({ user }) =>
       mail.send({ to: user.email, template: "already-registered", data: { resetUrl: `${config.appUrl}/reset-password` } }),
     onPasswordReset: async ({ user }, request) =>
-      log({ type: "password-reset", learnerId: id(user.id), ip: ipOf(request?.headers) }),
+      log({ type: "password-reset", learnerId: id(user.id), ip: ipOf({ request }) }),
   },
   emailVerification: {
     sendOnSignUp: true,
@@ -95,7 +94,7 @@ const accounts = ({ mail, config, log }: Deps) =>
 /** Hooks on rows: log sign-ups and logins, tell the old address about a new one, keep deactivated Learners out. */
 const rowHooks = ({ mail, log, learners }: Deps): BetterAuthOptions["databaseHooks"] => ({
   user: {
-    create: { after: async (user, ctx) => log({ type: "signed-up", learnerId: id(user.id), ip: ipOf(ctx?.request?.headers) }) },
+    create: { after: async (user, ctx) => log({ type: "signed-up", learnerId: id(user.id), ip: ipOf(ctx) }) },
     update: {
       after: async (user, ctx) => {
         const old = oldEmailOfChange(ctx, user.email);
@@ -105,8 +104,8 @@ const rowHooks = ({ mail, log, learners }: Deps): BetterAuthOptions["databaseHoo
   },
   session: {
     create: {
-      before: async (session) => ((await learners.get(id(session.userId)))?.deactivated ? false : undefined),
-      after: async (session) => log({ type: "logged-in", learnerId: id(session.userId), ip: session.ipAddress ?? null }),
+      before: async (session) => ((await learners.get(id(session.userId)))!.deactivated ? false : undefined),
+      after: async (session) => log({ type: "logged-in", learnerId: id(session.userId), ip: session.ipAddress || null }),
     },
   },
 });

@@ -29,6 +29,7 @@ export const createFakeLearners = (log: AuthLog = () => undefined): FakeLearners
         createdAt: new Date(),
       };
       learners.set(learner.id, learner);
+      prefs.set(learner.id, DEFAULT_PREFERENCES);
       return { ...learner };
     },
     async get(id) {
@@ -49,11 +50,11 @@ export const createFakeLearners = (log: AuthLog = () => undefined): FakeLearners
     },
     async preferences(id) {
       mustGet(id);
-      return prefs.get(id) ?? DEFAULT_PREFERENCES;
+      return prefs.get(id)!;
     },
     async changePreferences(id, change) {
       mustGet(id);
-      const next = changePreferences(prefs.get(id) ?? DEFAULT_PREFERENCES, change);
+      const next = changePreferences(prefs.get(id)!, change);
       prefs.set(id, next);
       return next;
     },

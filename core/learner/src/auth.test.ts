@@ -108,6 +108,29 @@ describe("sign-up and verification", () => {
     expect(await whoAmI(w, b)).toEqual({ learnerId: learner!.id, role: "learner" });
   });
 
+  it("ignores a role or deactivation sent with the sign-up", async () => {
+    const w = world();
+    const b = browser(w.auth);
+    const email = newEmail();
+    const response = await b.fetch(`${APP}/api/auth/sign-up/email`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, password: GOOD, name: "", role: "supervisor", deactivated: true }),
+    });
+    expect(response.status).toBe(200);
+    expect(await w.auth.learners.findByEmail(email)).toMatchObject({ role: "learner", deactivated: false });
+  });
+
+  it("sends no new link when an unverified Learner tries to log in", async () => {
+    const w = world();
+    const b = browser(w.auth);
+    const email = newEmail();
+    await b.client.signUp(email, GOOD);
+    const mailed = w.mail.sent().length;
+    expect(await b.client.signIn(email, GOOD)).toEqual(WRONG_LOGIN);
+    expect(w.mail.sent()).toHaveLength(mailed);
+  });
+
   it("answers an existing address exactly like a new one, mails 'already registered' and creates nothing", async () => {
     const w = world();
     const email = newEmail();

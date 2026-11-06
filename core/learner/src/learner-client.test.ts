@@ -47,6 +47,15 @@ describe("learner/client", () => {
     });
   });
 
+  it("passes on the session's IP and browser, and marks none current once the session has ended", async () => {
+    const list = [{ token: "t1", ipAddress: "10.0.0.1", userAgent: "Firefox", createdAt: "c", updatedAt: "u" }];
+    const { client } = answering(Response.json(list), Response.json(null));
+    expect(await client.listSessions()).toEqual({
+      ok: true,
+      data: [{ id: "t1", ipAddress: "10.0.0.1", userAgent: "Firefox", createdAt: "c", lastUsedAt: "u", current: false }],
+    });
+  });
+
   it("marks no session current when the current session can't be read", async () => {
     const list = [{ token: "t1", createdAt: "c", updatedAt: "u" }];
     const { client } = answering(Response.json(list), Response.json({ message: "?" }, { status: 500 }));

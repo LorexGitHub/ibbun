@@ -37,7 +37,7 @@ const caller =
       credentials: "same-origin",
     });
     const json = await response.json().catch(() => null);
-    return response.ok ? { ok: true, data: json as T } : { ok: false, status: response.status, message: json?.message ?? response.statusText };
+    return response.ok ? { ok: true, data: json as T } : { ok: false, status: response.status, message: json?.message || response.statusText };
   };
 
 /** Drops the response body: the caller only needs to know it worked. */
@@ -51,8 +51,8 @@ const toCurrent = (raw: RawCurrent): CurrentLearner | null =>
 
 const toActive = (current: string | undefined) => (s: RawSession): ActiveSession => ({
   id: s.token,
-  ipAddress: s.ipAddress ?? null,
-  userAgent: s.userAgent ?? null,
+  ipAddress: s.ipAddress || null,
+  userAgent: s.userAgent || null,
   createdAt: s.createdAt,
   lastUsedAt: s.updatedAt,
   current: s.token === current,

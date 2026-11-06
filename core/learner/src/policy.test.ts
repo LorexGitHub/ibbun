@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AuthEvent } from "./events.ts";
-import { answerFailedLogin, ipOf, oldEmailOfChange } from "./policy.ts";
+import { answerFailedLogin, guardRequest, ipOf, oldEmailOfChange } from "./policy.ts";
 
 const jwt = (payload: object) => `h.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.s`;
 
@@ -15,6 +15,7 @@ describe("oldEmailOfChange", () => {
     ["any other endpoint", { path: "/update-user", query: { token: change } }, "new@x.test"],
     ["a request with no context", null, "new@x.test"],
     ["a link without a token", { path: "/verify-email", query: {} }, "new@x.test"],
+    ["a link without a query", { path: "/verify-email" }, "new@x.test"],
     ["a sign-up verification, which keeps the address", { path: "/verify-email", query: { token: jwt({ email: "a@x.test" }) } }, "a@x.test"],
     ["a token with no email claim", { path: "/verify-email", query: { token: jwt({}) } }, "a@x.test"],
   ])("names nothing for %s", (_, ctx, newEmail) => {
@@ -44,13 +45,32 @@ describe("answerFailedLogin", () => {
 });
 
 describe("ipOf", () => {
+  const over = (headers: Headers) => ({ request: { headers } });
+
   it("takes the client, the first address the proxy reports", () => {
-    expect(ipOf(new Headers({ "x-forwarded-for": " 203.0.113.9 , 10.0.0.1" }))).toBe("203.0.113.9");
+    expect(ipOf(over(new Headers({ "x-forwarded-for": " 203.0.113.9 , 10.0.0.1" })))).toBe("203.0.113.9");
   });
 
   it("answers null without the header", () => {
-    expect(ipOf(new Headers())).toBeNull();
+    expect(ipOf(over(new Headers()))).toBeNull();
+    expect(ipOf(over(new Headers({ "x-forwarded-for": "" })))).toBeNull();
+  });
+
+  it("answers null for a call that did not come in over HTTP", () => {
     expect(ipOf(undefined)).toBeNull();
-    expect(ipOf(new Headers({ "x-forwarded-for": "" }))).toBeNull();
+    expect(ipOf(null)).toBeNull();
+    expect(ipOf({})).toBeNull();
+  });
+});
+
+describe("guardRequest", () => {
+  // Without an IP or an email no limit applies, so the database is never reached.
+  const deps = { db: undefined as never, now: () => new Date() };
+
+  it.each([
+    ["no body", { path: "/delete-user" }],
+    ["no password", { path: "/delete-user", body: {} }],
+  ])("asks for the password to delete an account when the request has %s", async (_, ctx) => {
+    await expect(guardRequest(ctx, deps)).rejects.toMatchObject({ statusCode: 400 });
   });
 });

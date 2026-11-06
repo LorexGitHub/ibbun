@@ -17,9 +17,9 @@ const PER_IP: Record<string, RateLimitRule> = {
 };
 const PER_EMAIL: Record<string, RateLimitRule> = { [LOGIN]: PER_IP[LOGIN]! };
 
-/** The client IP the proxy in front of the api reports. */
-export const ipOf = (headers: Headers | undefined): string | null =>
-  headers?.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
+/** The client IP the proxy in front of the api reports, when the call came in over HTTP. */
+export const ipOf = (call: { request?: { headers: Headers } } | null | undefined): string | null =>
+  call?.request?.headers.get("x-forwarded-for")?.split(",")[0]!.trim() || null;
 
 /** What a guard sees of a request. */
 type Request = { path: string; body?: Record<string, unknown>; request?: { headers: Headers } };
@@ -34,8 +34,9 @@ const limit = async (db: DbOrTx, now: Date, key: string, rule: RateLimitRule | u
 };
 
 /** Counts the request against its limits. Throws 429 with Retry-After once one is used up. */
-const rateLimit = async ({ path, body, request }: Request, db: DbOrTx, now: Date) => {
-  const ip = ipOf(request?.headers);
+const rateLimit = async (call: Request, db: DbOrTx, now: Date) => {
+  const { path, body } = call;
+  const ip = ipOf(call);
   if (ip) await limit(db, now, `ip:${ip}:${path}`, PER_IP[path]);
   if (typeof body?.email === "string") await limit(db, now, `email:${normalizeEmail(body.email)}:${path}`, PER_EMAIL[path]);
 };
@@ -58,7 +59,7 @@ export const guardRequest = async (ctx: Request, { db, now }: { db: DbOrTx; now:
  */
 export const answerFailedLogin = (request: Request["request"] & { url: string }, response: Response, log: AuthLog) => {
   if (!new URL(request.url).pathname.endsWith(LOGIN) || response.ok || response.status === 429) return response;
-  log({ type: "login-failed", ip: ipOf(request.headers) });
+  log({ type: "login-failed", ip: ipOf({ request }) });
   return Response.json({ code: "LOGIN_FAILED", message: LOGIN_FAILED }, { status: 401 });
 };
 

@@ -23,5 +23,5 @@ export const hitRateLimit = async (
   const { count, window_start } = rows[0]!;
   if (count <= max) return null;
   const endsAt = new Date(window_start).getTime() + windowSeconds * 1000;
-  return { retryAfter: Math.max(1, Math.ceil((endsAt - now.getTime()) / 1000)) };
+  return { retryAfter: Math.ceil((endsAt - now.getTime()) / 1000) };
 };
