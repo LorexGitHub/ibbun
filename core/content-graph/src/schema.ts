@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, pgSchema, text, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import type { JlptLevel } from "@mojibun/shared";
 
 export const contentGraph = pgSchema("content_graph");
@@ -57,6 +57,8 @@ export const importRun = contentGraph.table("import_run", {
   checksum: text("checksum").notNull(),
   status: text("status").notNull(),
   counts: jsonb("counts").$type<Record<string, number>>().notNull(),
+  /** When the run went live; null until it applies. The newest per dataset is the live version Credits shows. */
+  appliedAt: timestamp("applied_at", { withTimezone: true }),
 });
 
 export const provenance = contentGraph.table("provenance", {
