@@ -1,0 +1,30 @@
+/* The Today screen, from docs/design/mojibun-mock.html. Tokens come from @mojibun/ui. */
+.hero { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--space-2xl); align-items: center; }
+.hero h1 { font-size: var(--text-display); }
+.hero .lead { font-size: var(--text-lead); color: var(--color-ink-2); margin: var(--space-lg) 0 var(--space-xl); max-width: 30ch; }
+.actions { display: flex; gap: 14px; flex-wrap: wrap; }
+.figs { display: grid; gap: 22px; padding: 16px 12px; }
+.fig { display: flex; align-items: baseline; gap: 12px; border-bottom: 1.5px dashed color-mix(in oklab, var(--color-ink) 22%, transparent); padding-bottom: 18px; }
+.fig:last-child { border: 0; padding: 0; }
+.fig strong { font-size: 76px; font-weight: 600; letter-spacing: var(--tracking-display); line-height: 1; }
+.fig span { font-size: var(--text-title); font-weight: 600; letter-spacing: -.02em; }
+.fig small { margin-left: auto; font-size: var(--text-sm); color: var(--color-ink-2); }
+
+.path { margin-top: 96px; }
+.path h2 { font-size: var(--text-section); margin-bottom: var(--space-md); }
+.path > p { color: var(--color-ink-2); font-size: var(--text-lead); margin-bottom: var(--space-2xl); }
+.levels { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; align-items: end; }
+.level { border-radius: 28px 28px var(--radius-stock) var(--radius-stock); background: var(--grain), var(--fibre), var(--color-hill-1); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: inset 0 0 0 1px var(--color-rule); }
+.level b { font-size: 34px; font-weight: 600; letter-spacing: var(--tracking-display); }
+.level small { color: var(--color-muted); font-size: var(--text-sm); }
+.level.done { background: var(--grain), var(--fibre), var(--color-hill-2); height: 230px; }
+.level.now { background: var(--grain), var(--fibre), var(--color-mint); height: 190px; box-shadow: 0 5px 0 var(--color-mint-deep); }
+.level.next { height: 140px; }
+.level.far { height: 110px; opacity: .8; }
+.level.farther { height: 90px; opacity: .65; }
+
+@media (max-width: 760px) {
+  .hero { grid-template-columns: 1fr; }
+  .levels { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .level { padding: 12px; }
+}
