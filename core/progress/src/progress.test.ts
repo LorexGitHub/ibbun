@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { transaction } from "@mojibun/db";
 import { LearnerId, StudyItemId } from "@mojibun/shared";
 import { useProgressDb } from "./tests/db.testing.ts";
-import { createFakeProgress } from "./fake.ts";
-import { createProgress } from "./postgres.ts";
+import { createFakeProgress } from "./fake-progress.ts";
+import { createProgress } from "./progress-postgres.ts";
 import { progressContract } from "./tests/progress.contract.ts";
 
 describe("Progress, real", () => {
