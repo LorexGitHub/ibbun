@@ -47,3 +47,4 @@ Each file has an H1, one paragraph of user-visible behaviour, then exactly these
 ## Core modules without screens
 
 - `core/progress` (Review log, Scheduler, Mastery, Known, Introduced): no Learner journey of its own. Its proof is the contract tests in `core/progress/src/tests/progress.contract.ts`, run against Postgres and the fake (`pnpm test:packages`). The `learn`, `reviews`, `placement` and `dashboard` journeys exercise it through their screens.
+- `core/progress` texts (Batch Text and Practice Text records, their rolling 24 h counts, `isLevelCleared`, the Mixed-furigana rule `showsFurigana`): no Learner journey of its own. Its proof is `core/progress/src/tests/texts.contract.ts` (Postgres and the fake) and `core/progress/src/rules.test.ts`. The `learn`, `reading` and `listening` journeys exercise it through their screens.
