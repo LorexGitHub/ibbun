@@ -28,7 +28,8 @@ export type Source =
   | { kind: "import"; importRunId: string }
   | { kind: "derived"; process: string; version: string }
   | { kind: "generated"; model: string; promptTemplateVersion: string; generationRunId: string }
-  | { kind: "authored"; by: string };
+  | { kind: "authored"; by: string }
+  | { kind: "fixture" };
 
 /** One Sudachi morpheme, stored on its Sentence so reads and grading never call NLP. */
 export type Token = {
