@@ -11,15 +11,11 @@ export type DashboardDeps = {
   now?: () => Date;
 };
 
-/**
- * The dashboard's routes, mounted by the api shell at `/api/dashboard`. `deps` is read per request,
- * so the real wiring can wait until the first request and a missing setting fails that request, not the API's start.
- */
-export const createDashboardApi = (deps: () => DashboardDeps) => {
-  const { requireLearner } = createAuthGuards({ resolve: (headers) => deps().sessions.resolve(headers) });
-  const today = new Hono<AuthEnv>().get("/today", requireLearner(), async (c) => {
-    const { progress, contentGraph, now = () => new Date() } = deps();
-    return c.json(await buildToday({ progress, contentGraph, learnerId: c.get("learner").learnerId, now: now() }));
-  });
+/** The dashboard's routes, mounted by the api shell at `/api/dashboard`. */
+export const createDashboardApi = ({ sessions, progress, contentGraph, now = () => new Date() }: DashboardDeps) => {
+  const { requireLearner } = createAuthGuards(sessions);
+  const today = new Hono<AuthEnv>().get("/today", requireLearner(), async (c) =>
+    c.json(await buildToday({ progress, contentGraph, learnerId: c.get("learner").learnerId, now: now() })),
+  );
   return new Hono().route("/", today);
 };

@@ -29,7 +29,6 @@ Preconditions:
 
 ## Gotchas
 
-- The API builds its Learner session reader on the first request from `AUTH_SECRET` and `APP_URL`. If either is unset the request fails with a 500 and the screen reads "Your day didn't load", while the rest of the API keeps working.
 - "New" and "Learn N new" are not shown: they need `learning-path`, which is not built.
 - The streak counts UTC days.
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.

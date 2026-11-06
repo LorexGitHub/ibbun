@@ -14,7 +14,7 @@ const setup = () => {
   const sessions = createFakeSessionResolver();
   const progress = createFakeProgress();
   const deps = { sessions, progress, contentGraph: createFakeContentGraph(graph), now: () => NOW };
-  const api = createDashboardApi(() => deps);
+  const api = createDashboardApi(deps);
   return { api, sessions, progress };
 };
 

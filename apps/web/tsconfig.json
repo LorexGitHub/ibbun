@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "types": ["node", "vite/client"] },
-  "include": ["src", "vite.config.ts", "../../scripts/fixtures/root/slices/*/web.ts"]
+  "include": ["src", "vite.config.ts", "../../scripts/fixtures/root/slices/*/web.ts", "../../slices/*/web", "../../slices/*/contract.ts"]
 }
