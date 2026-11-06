@@ -7,12 +7,15 @@
     ".": "./src/index.ts",
     "./grade": "./src/grade/index.ts",
     "./authoring": "./src/authoring/index.ts",
-    "./testing": "./src/testing.ts"
+    "./testing": "./src/testing.ts",
+    "./jobs": "./src/jobs/index.ts"
   },
   "dependencies": {
     "@mojibun/db": "workspace:*",
+    "@mojibun/jobs": "workspace:*",
     "@mojibun/shared": "workspace:*",
-    "drizzle-orm": "^0.44.0"
+    "drizzle-orm": "^0.44.0",
+    "zod": "^4.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0"

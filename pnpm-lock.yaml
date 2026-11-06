@@ -271,12 +271,18 @@ importers:
       '@mojibun/db':
         specifier: workspace:*
         version: link:../../platform/db
+      '@mojibun/jobs':
+        specifier: workspace:*
+        version: link:../../platform/jobs
       '@mojibun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
       drizzle-orm:
         specifier: ^0.44.0
         version: 0.44.7(@electric-sql/pglite@0.3.16)(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(kysely@0.28.19)(pg@8.23.1)
+      zod:
+        specifier: ^4.1.0
+        version: 4.6.7
     devDependencies:
       '@types/node':
         specifier: ^24.0.0
