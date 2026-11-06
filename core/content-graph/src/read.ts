@@ -1,5 +1,6 @@
 import type { JlptLevel, StudyItemId } from "@mojibun/shared";
 import type { Graph } from "./graph.ts";
+import { currentLevel } from "./levels/levels.ts";
 import { creditsOf, licensing, recordProvenance, type Attribution, type CreditsEntry } from "./licensing.ts";
 import type { Approval, ComprehensionQuestion, GrammarForm, Token } from "./schema.ts";
 
@@ -97,7 +98,6 @@ export interface ContentGraph {
 }
 
 export const DEFAULT_SEARCH_LIMIT = 50;
-const LEVEL_PRECEDENCE = { editorial: 0, list: 1, derived: 2 } as const;
 
 type Lifecycle = { approval: Approval; retired: boolean };
 type Row<K extends keyof Graph> = Graph[K][number];
@@ -143,13 +143,7 @@ const attributionOf = (ctx: Ctx, recordIds: string[]): Attribution =>
 
 const current = <T extends object>(ctx: Ctx, row: T, recordId: string): T => ({ ...row, ...ctx.overrides.get(recordId) });
 
-/** Editorial over List over Derived; within a kind, the newest. */
-const levelOf = (ctx: Ctx, id: string): JlptLevel | null => {
-  const [best] = ctx.graph.levelCandidate
-    .filter((c) => c.studyItemId === id && visible(c))
-    .sort((a, b) => LEVEL_PRECEDENCE[a.kind] - LEVEL_PRECEDENCE[b.kind] || byId(b, a));
-  return best ? best.level : null;
-};
+const levelOf = (ctx: Ctx, id: string): JlptLevel | null => currentLevel(ctx.graph.levelCandidate.filter((c) => c.studyItemId === id));
 
 /** The newest visible Japanese Explanation that `matches`. */
 const explanationRow = (ctx: Ctx, matches: (e: Row<"japaneseExplanation">) => boolean) =>

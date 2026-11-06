@@ -1,6 +1,9 @@
 import { resolve } from "node:path";
 import { collectMigrations, migrate, type Db } from "@mojibun/db";
+import type { Clock } from "./authoring/authoring.ts";
+import { memoryStore } from "./authoring/store.ts";
 import { tables, type Graph } from "./graph.ts";
+import { levels, type Levels } from "./levels/levels.ts";
 
 export { createFakeAuthoring } from "./authoring/testing.ts";
 export { createFakeContentGraph } from "./fake.ts";
@@ -20,3 +23,6 @@ export const seedContentGraph = async (db: Db, graph: Graph) => {
     if (rows.length) await db.insert(table).values(rows as never);
   }
 };
+
+/** The derived-level process over rows held in memory; it writes into `graph`. */
+export const createFakeLevels = (graph: Graph, clock?: Clock): Levels => levels(memoryStore(graph), clock);
