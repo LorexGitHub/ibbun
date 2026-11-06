@@ -29,6 +29,7 @@ Each file has an H1, one paragraph of user-visible behaviour, then exactly these
 ## Features
 
 - [App shell](./shell.md): layout, nav, home fallback, API health. Built.
+- [learning-path](./learning-path.md): core Learning Path, seed and active Tracks. Core only; journeys arrive with learn and browse.
 - [learn](./learn.md): Learn batches, lesson, quiz, Batch Text. Not built yet.
 - [reviews](./reviews.md): Review session, Wrap-Up, Ghosts. Not built yet.
 - [cram](./cram.md): practice without changing Mastery. Not built yet.
