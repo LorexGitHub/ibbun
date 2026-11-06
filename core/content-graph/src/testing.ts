@@ -4,6 +4,7 @@ import { tables, type Graph } from "./graph.ts";
 
 export { createFakeAuthoring } from "./authoring/testing.ts";
 export { createFakeContentGraph } from "./fake.ts";
+export { n5Fixture, type N5Fixture } from "./fixture/n5.ts";
 export { emptyGraph, type Graph } from "./graph.ts";
 export * from "./schema.ts";
 
