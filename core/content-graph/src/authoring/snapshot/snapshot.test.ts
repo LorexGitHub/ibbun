@@ -81,6 +81,7 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await h.a.rows("studyItem", { id }))[0]).toMatchObject({ type: "word", approval: "approved", retired: false });
       expect((await senses(id)).map((s) => s.glosses)).toEqual([["to eat"], ["to live on"]]);
       const [provenance] = await h.a.rows("provenance", { id: (await h.a.rows("wordForm", { wordId: id }))[0]!.provenanceId });
+      expect((await h.a.rows("importRun", { id: report.importRunId }))[0]!.appliedAt).toBeInstanceOf(Date);
       expect(provenance).toMatchObject({ licence: "edrdg", source: { kind: "import", importRunId: report.importRunId } });
 
       const again = await h.a.applySnapshot("jmdict", { upstreamVersion: String(version), checksum: "c" }, [taberu]);
@@ -244,7 +245,7 @@ const contract = (make: () => Promise<Harness>) => {
       const report = await apply("jmdict", [taberu], {});
       expect(report).toMatchObject({ status: "breaker tripped", tripped: ["changed share"], counts: { retired: 1 } });
       expect(await h.a.rows("studyItem", { retired: true })).toEqual([]);
-      expect((await h.a.rows("importRun", { id: report.importRunId }))[0]!.status).toBe("breaker tripped");
+      expect((await h.a.rows("importRun", { id: report.importRunId }))[0]).toMatchObject({ status: "breaker tripped", appliedAt: null });
       expect(await reasons(report.importRunId)).toEqual(["breaker tripped"]);
       expect((await apply("jmdict", [taberu], { release: true })).status).toBe("applied");
     });

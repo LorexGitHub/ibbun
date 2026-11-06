@@ -46,14 +46,14 @@ const applyRecords = async <D extends Dataset>(ctx: RunCtx, dataset: D, records:
 };
 
 const run = async <D extends Dataset>(tx: Store, clock: Clock, dataset: D, importRunId: string, info: Run, records: Records[D][], options: SnapshotOptions) => {
-  await tx.insert("importRun", [{ id: importRunId, dataset, ...info, status: "applying", counts: {} }]);
+  await tx.insert("importRun", [{ id: importRunId, dataset, ...info, status: "applying", counts: {}, appliedAt: null }]);
   const ctx = runContext(tx, clock, dataset, importRunId, options.senseThreshold ?? 0.5);
   const ids = new Map((await tx.rows("sourceKey", { dataset })).map((k) => [k.upstreamKey, k.recordId]));
   const total = ids.size;
   await applyRecords(ctx, dataset, records, ids);
   const reasons = options.release ? [] : tripped(ctx.counts, total, options.breaker ?? DEFAULT_BREAKER);
   if (reasons.length) throw new Tripped(ctx.counts, reasons);
-  await tx.update("importRun", { id: importRunId }, { status: "applied", counts: ctx.counts });
+  await tx.update("importRun", { id: importRunId }, { status: "applied", counts: ctx.counts, appliedAt: clock.now() });
   return ctx.counts;
 };
 
@@ -79,7 +79,7 @@ export const applySnapshot = async <D extends Dataset>(
   } catch (error) {
     if (!(error instanceof Tripped)) throw error;
     await s.atomically(async (tx) => {
-      await tx.insert("importRun", [{ id: importRunId, dataset, ...info, status: "breaker tripped", counts: error.counts }]);
+      await tx.insert("importRun", [{ id: importRunId, dataset, ...info, status: "breaker tripped", counts: error.counts, appliedAt: null }]);
       await rules(tx, clock).enqueue({ reason: "breaker tripped", importRunId, detail: { reasons: error.reasons, counts: error.counts } });
     });
     return { importRunId, status: "breaker tripped", counts: error.counts, tripped: error.reasons };
