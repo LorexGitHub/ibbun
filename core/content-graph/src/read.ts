@@ -92,7 +92,7 @@ export interface ContentGraph {
 }
 
 export const DEFAULT_SEARCH_LIMIT = 50;
-const LEVEL_PRECEDENCE = { editorial: 0, list: 1, derived: 2 } as const;
+export const LEVEL_PRECEDENCE = { editorial: 0, list: 1, derived: 2 } as const;
 
 type Lifecycle = { approval: Approval; retired: boolean };
 type Row<K extends keyof Graph> = Graph[K][number];

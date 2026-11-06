@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { Decider, DecisionOutcome, GenerationStatus, QueueReason, Verdict } from "./schema.ts";
 import type { Row, Store, TableName, Where } from "./store.ts";
+import { applySnapshot } from "./snapshot/apply.ts";
+import type { Dataset, Records, Run, SnapshotOptions, SnapshotReport } from "./snapshot/types.ts";
 
 /** Tables whose rows are Content Graph records: an `id`, an approval state and a retired flag. */
 export type RecordTable = {
@@ -56,6 +58,9 @@ export type Authoring = {
   /** Unresolved queue entries, oldest first. */
   queue(filter?: QueueFilter): Promise<QueueEntry[]>;
   resolve(entryId: string): Promise<void>;
+
+  /** Applies one dataset's normalised snapshot in one transaction under the refresh rules (import-pipeline.md). */
+  applySnapshot<D extends Dataset>(dataset: D, run: Run, records: Records[D][], options?: SnapshotOptions): Promise<SnapshotReport>;
 };
 
 export type Clock = { now: () => Date; newId: () => string };
@@ -70,8 +75,8 @@ const RECORD_PATCH: Record<DecisionOutcome, { approval?: "approved" | "rejected"
   retired: { retired: true },
 };
 
-/** The rules that run inside a caller's transaction. */
-const rules = (s: Store, clock: Clock) => {
+/** The rules that run inside a caller's transaction; `tag` lands on every queue entry they write. */
+export const rules = (s: Store, clock: Clock, tag: Partial<NewQueueEntry> = {}) => {
   const enqueue = async (entry: NewQueueEntry): Promise<QueueEntry> => {
     const row: QueueEntry = {
       id: clock.newId(),
@@ -80,6 +85,7 @@ const rules = (s: Store, clock: Clock) => {
       generationRunId: null,
       generationRequestId: null,
       detail: null,
+      ...tag,
       ...entry,
       resolved: false,
       at: clock.now(),
@@ -176,5 +182,7 @@ export const authoring = (s: Store, clock: Clock = systemClock): Authoring => {
     enqueue,
     queue: async (filter = {}) => byTime(await s.rows("queueEntry", { ...filter, resolved: false })),
     resolve: (id) => s.update("queueEntry", { id }, { resolved: true }),
+
+    applySnapshot: (dataset, run, records, options) => applySnapshot(s, clock, dataset, run, records, options),
   };
 };
