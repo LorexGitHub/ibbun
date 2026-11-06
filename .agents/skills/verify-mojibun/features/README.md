@@ -42,3 +42,7 @@ Each file has an H1, one paragraph of user-visible behaviour, then exactly these
 - [content-generation](./content-generation.md): admin Generation Requests and Runs. Not built yet.
 - [content-approval](./content-approval.md): admin checks, reviewer agent, queue. Not built yet.
 - [credits](./credits.md): the public Credits page. Not built yet.
+
+## Core modules without screens
+
+- `core/progress` (Review log, Scheduler, Mastery, Known, Introduced): no Learner journey of its own. Its proof is the contract tests in `core/progress/src/tests/progress.contract.ts`, run against Postgres and the fake (`pnpm test:packages`). The `learn`, `reviews`, `placement` and `dashboard` journeys exercise it through their screens.
