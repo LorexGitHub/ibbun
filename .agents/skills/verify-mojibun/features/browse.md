@@ -11,3 +11,5 @@ Not built yet. The `browse` slice ([architecture.md](../../../../docs/architectu
 Preconditions:
 
 ## Gotchas
+
+- Levels shown on a page are the current JLPT Level from core `content-graph/levels` (Editorial > List > Derived, else Unlevelled). To check a page's level against the store: `psql "$DATABASE_URL" -c "select level from content_graph.computed_level where record_id = '<study item id>'"`. Sentence, Reading Passage and Listening Clip levels sit in the same table, keyed by their own id.

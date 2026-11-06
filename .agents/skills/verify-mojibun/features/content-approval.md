@@ -11,3 +11,5 @@ Not built yet. The `content-approval` slice ([architecture.md](../../../../docs/
 Preconditions:
 
 ## Gotchas
+
+- `level disagreement` entries come from the derived-level process in core `content-graph/levels`, not from this slice: one per Study Item whose approved List candidate differs from its current level, with `detail` `{list, current}`. Resolving one does not re-queue it.
