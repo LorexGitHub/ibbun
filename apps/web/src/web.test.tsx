@@ -26,6 +26,17 @@ describe("web shell", () => {
     );
     expect(html).toContain("sample screen");
     expect(html).toContain('href="/sample"');
+    expect(html).toContain('class="pill pill--ink"');
+  });
+
+  it("frames every screen with the EDRDG footer", async () => {
+    const shell = await buildShell(discoverSlices(modules));
+    const html = renderToString(
+      <StaticRouter location="/nowhere">
+        <App shell={shell} />
+      </StaticRouter>,
+    );
+    expect(html).toContain("Electronic Dictionary Research and Development Group");
   });
 
   it("renders the widgets a slice registered for a slot", async () => {

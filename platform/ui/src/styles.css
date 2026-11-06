@@ -1,0 +1,9 @@
+/* Hallmark · shape: app screen · genre: playful · theme: Hum (by request)
+ * nav: a torn paper-2 sheet with the 文 mark, ink pill for the current entry, aside for level and account · footer: the EDRDG acknowledgement and a Credits link · signature: the study card with its pressable grade buttons · states: rest, hover, pressed, focus
+ * axes: light/rounded-sans/chromatic-yellow · posture: full-palette · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, the kit copies the mock on purpose (ADR 0011), so screens share the system rather than differ */
+/* Hallmark · dismissed F4 · .btn is the cream card-stock secondary from hum.md; only .btn--primary fills with pear, and a screen shows one */
+@import url("https://api.fontshare.com/v2/css?f[]=chillax@500,600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap");
+@import url("./tokens.css");
+@import url("./kit.css");

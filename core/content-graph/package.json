@@ -1,0 +1,18 @@
+{
+  "name": "@mojibun/content-graph",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts"
+  },
+  "dependencies": {
+    "@mojibun/db": "workspace:*",
+    "@mojibun/shared": "workspace:*",
+    "drizzle-orm": "^0.44.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
+}
