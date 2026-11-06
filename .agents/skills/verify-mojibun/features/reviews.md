@@ -36,5 +36,4 @@ Preconditions:
 ## Gotchas
 
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
-- The slice builds its own session resolver from `DATABASE_URL`, `AUTH_SECRET` and `APP_URL`; without them the API fails to start.
 - Listening Clips are skipped, so a Learner whose only due items are clips sees "No Reviews are due".

@@ -7,6 +7,9 @@
   "scripts": { "dev": "node --watch src/main.ts", "start": "node src/main.ts" },
   "dependencies": {
     "@hono/node-server": "^1.19.0",
+    "@mojibun/db": "workspace:*",
+    "@mojibun/learner": "workspace:*",
+    "@mojibun/mail": "workspace:*",
     "@mojibun/slice": "workspace:*",
     "hono": "^4.9.0"
   },
