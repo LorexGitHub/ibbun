@@ -13,3 +13,14 @@ export const reviews = progress.table("reviews", {
   at: timestamp("at", { withTimezone: true, mode: "date" }).notNull(),
   detail: jsonb("detail").notNull(),
 });
+
+export const texts = progress.table("texts", {
+  id: uuid("id").primaryKey(),
+  seq: bigint("seq", { mode: "number" }).generatedAlwaysAsIdentity(),
+  kind: text("kind").notNull(),
+  learnerId: uuid("learner_id").notNull(),
+  level: text("level").notNull(),
+  passageId: uuid("passage_id").notNull(),
+  at: timestamp("at", { withTimezone: true, mode: "date" }).notNull(),
+  detail: jsonb("detail").notNull(),
+});
