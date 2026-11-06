@@ -9,3 +9,4 @@ export * from "./schema.ts";
 
 /** The authoring interface over Postgres. Pass a transaction to join a slice's own. */
 export const createAuthoring = (db: DbOrTx, clock?: Clock): Authoring => authoring(postgresStore(db), clock);
+export * from "./checks/index.ts";
