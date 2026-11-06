@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import { LEVEL_PRECEDENCE } from "../../read.ts";
+import { currentLevel as levelOf } from "../../levels/levels.ts";
 import type { Licence } from "../../schema.ts";
 import { rules, type Clock } from "../authoring.ts";
 import type { QueueReason } from "../schema.ts";
@@ -89,13 +89,8 @@ const examples = ({ tx, counts, enqueue, r }: Base) => {
   };
 };
 
-/** The Study Item's current JLPT Level: its best Approved, non-retired Level Candidate. */
-const currentLevel = async (tx: Store, studyItemId: string) => {
-  const [best] = (await tx.rows("levelCandidate", { studyItemId, approval: "approved", retired: false })).sort(
-    (a, b) => LEVEL_PRECEDENCE[a.kind] - LEVEL_PRECEDENCE[b.kind] || b.id.localeCompare(a.id, "en"),
-  );
-  return best?.level ?? null;
-};
+/** The Study Item's current JLPT Level, from all its Level Candidates. */
+const currentLevel = async (tx: Store, studyItemId: string) => levelOf(await tx.rows("levelCandidate", { studyItemId }));
 
 /** Counts what retiring a levelled Study Item does to the current level, and whether that trips the breaker. */
 const countLevelLoss = async (b: Base, id: string, successor: string | null) => {

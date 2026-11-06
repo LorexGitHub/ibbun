@@ -38,7 +38,13 @@ Each file has an H1, one paragraph of user-visible behaviour, then exactly these
 - [listening](./listening.md): free Listening practice, dialogues. Not built yet.
 - [dashboard](./dashboard.md): due counts, Mastery by level. Not built yet.
 - [account](./account.md): sign-up, verify, login, reset, sessions, deletion. Not built yet.
+- [content-graph fixture](./content-graph-fixture.md): hand-made N5 dev/test graph and its loader. Built.
 - [import](./import.md): admin Import Runs and reports. Not built yet.
 - [content-generation](./content-generation.md): admin Generation Requests and Runs. Not built yet.
 - [content-approval](./content-approval.md): admin checks, reviewer agent, queue. Not built yet.
 - [credits](./credits.md): the public Credits page. Not built yet.
+
+## Core modules without screens
+
+- `core/progress` (Review log, Scheduler, Mastery, Known, Introduced): no Learner journey of its own. Its proof is the contract tests in `core/progress/src/tests/progress.contract.ts`, run against Postgres and the fake (`pnpm test:packages`). The `learn`, `reviews`, `placement` and `dashboard` journeys exercise it through their screens.
+- `core/progress` texts (Batch Text and Practice Text records, their rolling 24 h counts, `isLevelCleared`, the Mixed-furigana rule `showsFurigana`): no Learner journey of its own. Its proof is `core/progress/src/tests/texts.contract.ts` (Postgres and the fake) and `core/progress/src/rules.test.ts`. The `learn`, `reading` and `listening` journeys exercise it through their screens.

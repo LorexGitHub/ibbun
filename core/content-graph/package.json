@@ -7,8 +7,12 @@
     ".": "./src/index.ts",
     "./grade": "./src/grade/index.ts",
     "./authoring": "./src/authoring/index.ts",
+    "./levels": "./src/levels/index.ts",
     "./testing": "./src/testing.ts",
     "./jobs": "./src/jobs/index.ts"
+  },
+  "scripts": {
+    "seed:fixture": "node src/fixture/fixture-cli.ts"
   },
   "dependencies": {
     "@mojibun/db": "workspace:*",
