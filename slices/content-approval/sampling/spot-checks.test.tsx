@@ -1,6 +1,6 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { loadSpotChecks, queueReReview, resumeKind, sendVerdict, SpotChecksScreen, type KindReport, type SampleItem } from "./web.tsx";
+import { loadSpotChecks, queueReReview, resumeKind, sendVerdict, SpotChecksScreen, type KindReport, type SampleItem } from "./spot-checks.tsx";
 import { routes } from "../web.tsx";
 
 const kind = (over: Partial<KindReport> = {}): KindReport => ({ kind: "example", paused: false, calibrationLeft: 0, sampled: 10, errorRate: 0.1, ...over });

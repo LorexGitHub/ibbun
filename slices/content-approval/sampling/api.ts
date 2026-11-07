@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { Authoring } from "@mojibun/content-graph/authoring";
+import type { Authoring, Row } from "@mojibun/content-graph/authoring";
 import type { Rec } from "../src/drafts.ts";
 import type { Sampling } from "./sampler.ts";
 import { SAMPLE_KINDS, type Sample } from "./types.ts";
@@ -13,13 +13,16 @@ const ReReview = z
   .refine((f) => Object.keys(f).length > 0, "name a Generation Run, a rubric version or a model");
 const Status = z.enum(["pending", "confirmed", "rejected"]);
 
+type Preview = { text: string; translation?: string; audioKey?: string };
+
+const ofSentence = (s: Row<"sentence">): Preview => ({ text: s.text, translation: s.translationEn ?? undefined, audioKey: s.audioKey ?? undefined });
+
 /** What the supervisor reads or listens to for a record: its text, and the audio key when it has one. */
-const preview = async (authoring: Authoring, { table, id }: Rec): Promise<{ text: string; translation?: string; audioKey?: string }> => {
+const preview = async (authoring: Authoring, { table, id }: Rec): Promise<Preview> => {
   if (table === "japaneseExplanation") return { text: (await authoring.rows("japaneseExplanation", { id }))[0]?.text ?? "" };
-  const sentenceId = table === "example" ? (await authoring.rows("example", { id }))[0]?.sentenceId : id;
-  const [sentence] = sentenceId ? await authoring.rows("sentence", { id: sentenceId }) : [];
-  if (!sentence) return { text: `${table} ${id}` };
-  return { text: sentence.text, ...(sentence.translationEn && { translation: sentence.translationEn }), ...(sentence.audioKey && { audioKey: sentence.audioKey }) };
+  const [example] = table === "example" ? await authoring.rows("example", { id }) : [];
+  const [sentence] = await authoring.rows("sentence", { id: example?.sentenceId ?? id });
+  return sentence ? ofSentence(sentence) : { text: `${table} ${id}` };
 };
 
 const present = async (authoring: Authoring, s: Sample) => ({

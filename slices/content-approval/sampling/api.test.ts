@@ -88,6 +88,16 @@ describe("the spot-check API", () => {
     expect((await call("POST", `/spot-checks/${first!.id}/verdict`, supervisor, { verdict: "confirm" })).status).toBe(409);
   });
 
+  it("shows a Listening Clip by its Sentence and says so when a record is gone", async () => {
+    const { call, as, sampling, sentenceId } = await setup();
+    const clip = { table: "sentence" as const, id: sentenceId };
+    await sampling.admit({ kind: "example", model: "opus", rubricVersion: "v2", primary: clip, unit: [clip], requestId: randomUUID() });
+    const gone = { table: "sentence" as const, id: randomUUID() };
+    await sampling.admit({ kind: "example", model: "opus", rubricVersion: "v2", primary: gone, unit: [gone], requestId: randomUUID() });
+    const body = (await (await call("GET", "/spot-checks", as("supervisor"))).json()) as { samples: Record<string, unknown>[] };
+    expect(body.samples.slice(-2)).toMatchObject([{ text: "水を飲む。", audioKey: "audio/1.mp3" }, { text: `sentence ${gone.id}` }]);
+  });
+
   it("resumes a paused kind", async () => {
     const { call, as, sampling } = await setup();
     const supervisor = as("supervisor");

@@ -40,21 +40,30 @@ const KindRow = ({ report, window, onResume }: { report: KindReport; window: num
   </li>
 );
 
+const listenNote = (audioKey?: string) => `Listen to this clip${audioKey ? ` (audio ${audioKey})` : ""} before you decide.`;
+
+const reviewerNote = (sample: SampleItem) => (sample.model ? `${sample.model}, rubric ${sample.rubricVersion}. ` : "");
+
+const SampleBody = ({ sample }: { sample: SampleItem }) => (
+  <>
+    <Pill ink={sample.reason === "held"}>{sample.reason}</Pill> <small>{KIND_LABEL[sample.kind] ?? sample.kind}. {REASON_NOTE[sample.reason]}</small>
+    <p lang="ja">{sample.text}</p>
+    {sample.translation && <p>{sample.translation}</p>}
+    {sample.kind === "listening-clip" && <p>{listenNote(sample.audioKey)}</p>}
+    <p>
+      <small>
+        {reviewerNote(sample)}Record {sample.record.id}. {new Date(sample.at).toLocaleString()}
+      </small>
+    </p>
+  </>
+);
+
 const SampleCard = ({ sample, onVerdict }: { sample: SampleItem; onVerdict: (id: string, verdict: "confirm" | "reject", note: string) => void }) => {
   const [note, setNote] = useState("");
-  const clip = sample.kind === "listening-clip";
   return (
     <li>
       <Card>
-        <Pill ink={sample.reason === "held"}>{sample.reason}</Pill> <small>{KIND_LABEL[sample.kind] ?? sample.kind}. {REASON_NOTE[sample.reason]}</small>
-        <p lang="ja">{sample.text}</p>
-        {sample.translation && <p>{sample.translation}</p>}
-        {clip && <p>Listen to this clip{sample.audioKey ? ` (audio ${sample.audioKey})` : ""} before you decide.</p>}
-        <p>
-          <small>
-            {sample.model ? `${sample.model}, rubric ${sample.rubricVersion}. ` : ""}Record {sample.record.id}. {new Date(sample.at).toLocaleString()}
-          </small>
-        </p>
+        <SampleBody sample={sample} />
         <label>
           Note <input value={note} onChange={(e) => setNote(e.target.value)} />
         </label>{" "}
