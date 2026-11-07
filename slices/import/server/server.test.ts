@@ -11,7 +11,7 @@ import { createFakeJobs } from "@mojibun/jobs";
 import { LearnerId } from "@mojibun/shared";
 import { checkSlices } from "@mojibun/slice";
 import slice from "../register.ts";
-import { createImportServer } from "./index.ts";
+import { createImportServer } from "./import-server.ts";
 import type { Refresh } from "./jobs.ts";
 
 describe("the import slice, registered", () => {
