@@ -17,6 +17,10 @@ describe("parseCsv", () => {
   it("reads quoted fields with commas, doubled quotes and line breaks, and either line ending", () => {
     expect(parseCsv('a,"b,c","say ""hi"""\r\n"x\ny",,z\n')).toEqual([["a", "b,c", 'say "hi"'], ["x\ny", "", "z"]]);
   });
+  it("keeps a last row that is one field, or ends in an empty field, with no final newline", () => {
+    expect(parseCsv("a\nb")).toEqual([["a"], ["b"]]);
+    expect(parseCsv("x,")).toEqual([["x", ""]]);
+  });
   it("keeps a row of one field", () => {
     expect(parseCsv("a\nb\n")).toEqual([["a"], ["b"]]);
   });

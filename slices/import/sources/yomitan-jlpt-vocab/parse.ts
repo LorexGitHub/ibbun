@@ -25,7 +25,7 @@ export const parseLevels = (files: { name: string; text: string }[], report: (li
     if (seq === -1 || kana === -1 || kanji === -1) throw new Error(`${file.name} has no jmdict_seq, kana and kanji columns`);
     for (const row of rows) {
       const word = `${row[kanji] || row[kana]} (${level})`;
-      const entry = (row[seq] ?? "").trim();
+      const entry = (row[seq] || "").trim();
       if (entry === "") report(`${word} has no JMdict match: skipped`);
       else if (!ENT_SEQ.test(entry)) report(`${word} has several JMdict matches (${entry}): skipped`);
       else if (levels.has(entry) && levels.get(entry) !== level) report(`ent_seq ${entry} (${word}) is also listed at ${levels.get(entry)}: kept ${levels.get(entry)}`);
