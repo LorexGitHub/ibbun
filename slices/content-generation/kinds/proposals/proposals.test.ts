@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createFakeAuthoring, type Graph } from "@mojibun/content-graph/testing";
 import { ContentGenerate } from "@mojibun/content-graph/jobs";
 import { createFakeJobs } from "@mojibun/jobs";
+import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
 import { createFakeLlm, loadLlmConfig } from "@mojibun/llm";
 import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
@@ -37,7 +38,7 @@ const setup = (answer: (prompt: string) => unknown) => {
   const auth = createFakeAuthoring(w.graph, c);
   const jobs = createFakeJobs();
   const llm = createFakeLlm({ config: loadLlmConfig({}), answer: ({ prompt }) => answer(prompt) });
-  const generation = contentGeneration({ auth, llm, jobs, config: { dailyTokenBudget: 1_000_000, batchTextShare: 0.5 }, now: c.now });
+  const generation = contentGeneration({ auth, llm, jobs, progress: createFakeProgress(), texts: createFakeTexts(), config: { dailyTokenBudget: 1_000_000, batchTextShare: 0.5 }, now: c.now });
   const ready = jobs.work(generation.handlers);
   const run = async (targetId: string, kind: string) => {
     await ready;
