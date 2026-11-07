@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { liveGraph } from "./index.ts";
+import { liveGraph } from "./credits-server.ts";
 
 afterEach(() => vi.unstubAllEnvs());
 
