@@ -40,6 +40,26 @@ const escalate = async (a: Authoring, entry: QueueEntry, reason: string): Promis
   return { outcome: "escalated", reason };
 };
 
+/** The Example behind a flag, with what the reviewer is shown; or why a person must decide instead. */
+const contextOf = async (a: Authoring, entry: QueueEntry, input: string) => {
+  const [example] = entry.recordId ? await a.rows("example", { id: entry.recordId }) : [];
+  if (!example) return "the flagged facet has no Example to add an accepted answer to";
+  const answers = (await a.rows("exampleAnswer", { exampleId: example.id })).filter((x) => x.approval === "approved" && !x.retired);
+  const accepted = answers.filter((x) => x.kind === "accepted");
+  if (input === "" || accepted.some((x) => x.written === input || x.reading === input)) return "the input is empty or already accepted, so the grader's miss is not an answer to add";
+  const [sentence] = await a.rows("sentence", { id: example.sentenceId });
+  if (!sentence) throw new Error(`Example ${example.id} has no Sentence`);
+  const values = {
+    level: String(await levelOf(a, example.studyItemId)),
+    text: sentence.text,
+    translation: sentence.translationEn ?? "none",
+    span: sentence.text.slice(example.spanStart, example.spanEnd),
+    accepted: lines(accepted),
+    knownWrong: lines(answers.filter((x) => x.kind === "known_wrong")),
+  };
+  return { example, values };
+};
+
 /**
  * Reviews one `answer flag`. An approved flag adds one Accepted Answer to the Example through its own Approval Decision;
  * the past Review is never regraded. A rejected flag adds a rejected answer, so the decision is on record and nothing is graded differently.
@@ -47,37 +67,21 @@ const escalate = async (a: Authoring, entry: QueueEntry, reason: string): Promis
 export const reviewAnswerFlag = async (d: FlagDeps, entry: QueueEntry): Promise<Judgement> => {
   const a = d.authoring;
   const { facet, input: typed } = detailOf(entry);
-  const [example] = entry.recordId ? await a.rows("example", { id: entry.recordId }) : [];
-  if (!example) return escalate(a, entry, "the flagged facet has no Example to add an accepted answer to");
   const input = normalise(typed);
-  const answers = (await a.rows("exampleAnswer", { exampleId: example.id })).filter((x) => x.approval === "approved" && !x.retired);
-  const accepted = answers.filter((x) => x.kind === "accepted");
-  if (input === "" || accepted.some((x) => x.written === input || x.reading === input)) {
-    return escalate(a, entry, "the input is empty or already accepted, so the grader's miss is not an answer to add");
-  }
-  const [sentence] = await a.rows("sentence", { id: example.sentenceId });
-  if (!sentence) throw new Error(`Example ${example.id} has no Sentence`);
+  const context = await contextOf(a, entry, input);
+  if (typeof context === "string") return escalate(a, entry, context);
 
   const r = rubric();
   const result = await d.llm.review({
     system: `Judge the flag against every criterion. Rubric ${r.version}.`,
-    prompt: fill(r.template, {
-      facet,
-      level: String(await levelOf(a, example.studyItemId)),
-      text: sentence.text,
-      translation: sentence.translationEn ?? "none",
-      span: sentence.text.slice(example.spanStart, example.spanEnd),
-      input,
-      accepted: lines(accepted),
-      knownWrong: lines(answers.filter((x) => x.kind === "known_wrong")),
-    }),
+    prompt: fill(r.template, { ...context.values, facet, input }),
     output: ReviewerAnswer,
   });
   const judgement = judge(r.criteria, result.output, d.config.minConfidence);
   const verdicts = result.output.verdicts.map((v) => ({ criterion: v.criterion, pass: v.pass, note: v.note }));
   const decider: Decider = { kind: "reviewer", model: result.model, rubricVersion: r.version };
 
-  const answerId = await addAcceptedAnswer(a, example.id, input);
+  const answerId = await addAcceptedAnswer(a, context.example.id, input);
   const reason = "reason" in judgement ? judgement.reason : undefined;
   await a.decide({ recordTable: "exampleAnswer", recordId: answerId, outcome: judgement.outcome, decider, reason, verdicts });
   await a.resolve(entry.id);
