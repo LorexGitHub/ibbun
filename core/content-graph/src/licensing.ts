@@ -114,6 +114,7 @@ export const SOURCES: Source[] = [
   { dataset: "kanjivg", name: "KanjiVG (© Ulrich Apel)", licence: "cc-by-sa-3.0", url: "https://kanjivg.tagaini.net/" },
   { dataset: "tatoeba", name: "Tatoeba", licence: "cc-by-2.0-fr", url: "https://tatoeba.org/" },
   { dataset: "tanos", name: "Jonathan Waller's JLPT Resources (Tanos)", licence: "cc-by", url: "http://www.tanos.co.uk/jlpt/" },
+  { dataset: "yomitan-jlpt-vocab", name: "yomitan-jlpt-vocab (stephenmk)", licence: "cc-by-sa-4.0", url: "https://github.com/stephenmk/yomitan-jlpt-vocab" },
   { dataset: "hanabira", name: "hanabira", licence: "cc-by-4.0", url: "https://hanabira.org/" },
   { dataset: "unidic", name: "UniDic", licence: "bsd-3-clause", url: "https://clrd.ninjal.ac.jp/unidic/" },
   { dataset: "wiktionary-ja", name: "Wiktionary (ja)", licence: "cc-by-sa-4.0", url: "https://ja.wiktionary.org/" },

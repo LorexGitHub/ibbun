@@ -21,6 +21,11 @@ export const createPgBossJobs = async (
       await ensureQueue(contract.name);
       await boss.send(contract.name, data);
     },
+    async schedule<S extends z.ZodType>(contract: JobContract<S>, cron: string, payload: z.input<S>) {
+      const data = contract.payload.parse(payload) as object;
+      await ensureQueue(contract.name);
+      await boss.schedule(contract.name, cron, data, { tz: "UTC" });
+    },
     async work(handlers) {
       for (const { contract, handle } of handlers) {
         await ensureQueue(contract.name);

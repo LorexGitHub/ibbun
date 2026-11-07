@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createFakeAuthoring, type Graph } from "@mojibun/content-graph/testing";
 import { ContentGenerate, ContentReview } from "@mojibun/content-graph/jobs";
 import { createFakeJobs } from "@mojibun/jobs";
+import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
 import { createFakeLlm, loadLlmConfig } from "@mojibun/llm";
 import { contentGeneration } from "./generate.ts";
 import { world } from "./world.ts";
@@ -21,7 +22,9 @@ const setup = ({ answer = (): unknown => good, dailyTokenBudget = 1_000_000 }: {
   const auth = createFakeAuthoring(w.graph, c);
   const jobs = createFakeJobs();
   const llm = createFakeLlm({ config: loadLlmConfig({}), answer: ({ prompt }) => answer(prompt) });
-  const generation = contentGeneration({ auth, llm, jobs, config: { dailyTokenBudget, batchTextShare: 0.5 }, now: c.now });
+  const progress = createFakeProgress();
+  const texts = createFakeTexts();
+  const generation = contentGeneration({ auth, llm, jobs, progress, texts, config: { dailyTokenBudget, batchTextShare: 0.5 }, now: c.now });
   const ready = jobs.work(generation.handlers);
   const request = (targetId: string, kind = "examples") => auth.requestGeneration({ targetId, kind, reason: "suspended" });
   const run = async (targetId: string, feedback?: string) => {
@@ -31,7 +34,7 @@ const setup = ({ answer = (): unknown => good, dailyTokenBudget = 1_000_000 }: {
     await jobs.drain();
     return r;
   };
-  return { ...w, auth, jobs, llm, generation, request, run, ready };
+  return { ...w, auth, jobs, llm, progress, texts, generation, request, run, ready };
 };
 
 describe("content.generate for Example Sentences", () => {
@@ -200,7 +203,7 @@ describe("the daily token budget", () => {
     await t.jobs.drain();
     expect(await t.generation.resumePaused()).toBe(0);
 
-    const raised = contentGeneration({ auth: t.auth, llm: t.llm, jobs: t.jobs, config: { dailyTokenBudget: 1_000_000, batchTextShare: 0.5 } });
+    const raised = contentGeneration({ auth: t.auth, llm: t.llm, jobs: t.jobs, progress: t.progress, texts: t.texts, config: { dailyTokenBudget: 1_000_000, batchTextShare: 0.5 } });
     await t.jobs.work(raised.handlers);
     expect(await raised.resumePaused()).toBe(1);
     await t.jobs.drain();

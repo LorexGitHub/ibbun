@@ -1,9 +1,12 @@
-import { ContentGenerate, ContentReview } from "@mojibun/content-graph/jobs";
+import { BatchTextGenerate, ContentGenerate, ContentReview } from "@mojibun/content-graph/jobs";
 import type { Authoring, GenerationRequest } from "@mojibun/content-graph/authoring";
 import { handler, type JobHandler, type Jobs } from "@mojibun/jobs";
 import { LlmError, type Llm } from "@mojibun/llm";
+import type { Progress, Texts } from "@mojibun/progress";
 import { KINDS } from "../kinds/index.ts";
 import type { Plan } from "../kinds/kind.ts";
+import { reasonOf, type BatchContext } from "../kinds/reading-passage/context.ts";
+import { passageIdOf } from "../kinds/reading-passage/index.ts";
 import { alertExhausted, isSpent, poolOf } from "./budget.ts";
 import type { GenerationConfig } from "./config.ts";
 
@@ -12,6 +15,9 @@ export type GenerationDeps = {
   llm: Llm;
   /** Where `content.review` and the next attempt are enqueued. */
   jobs: Jobs;
+  /** The Learner's Reviews and Batch Texts, for kinds written for one Learner. */
+  progress: Progress;
+  texts: Texts;
   config: GenerationConfig;
   now?: () => Date;
 };
@@ -38,7 +44,7 @@ const call = async ({ auth, llm }: GenerationDeps, request: GenerationRequest, p
 };
 
 const generate = async (deps: GenerationDeps, requestId: string, feedback: string | undefined) => {
-  const { auth, jobs, config, now = () => new Date() } = deps;
+  const { auth, jobs, config, progress, texts, now = () => new Date() } = deps;
   const [request] = await auth.rows("generationRequest", { id: requestId });
   if (!request || request.status !== "open") return;
 
@@ -46,7 +52,7 @@ const generate = async (deps: GenerationDeps, requestId: string, feedback: strin
   if (await isSpent(auth, config, pool, now())) return alertExhausted(auth, pool);
 
   const kind = KINDS.find((k) => k.name === request.kind);
-  const plan = await kind?.plan(auth, request, feedback);
+  const plan = await kind?.plan(auth, request, feedback, { progress, texts, now });
   if (!kind || !plan) return retry(deps, requestId, `no ${request.kind} can be generated for ${request.targetId}`);
 
   const result = await call(deps, request, plan);
@@ -57,18 +63,32 @@ const generate = async (deps: GenerationDeps, requestId: string, feedback: strin
   await jobs.enqueue(ContentReview, { requestId, runId: result.run.id });
 };
 
+/** Opens the Generation Request for a Batch Text and starts its first attempt. Does nothing if the batch already has one. */
+const requestBatchText = async ({ auth, jobs, texts }: GenerationDeps, context: BatchContext) => {
+  const targetId = passageIdOf(context);
+  if ((await texts.batchTexts(context.learnerId)).some((t) => t.passageId === targetId)) return;
+  const request = await auth.requestGeneration({ targetId, kind: "batch-text", reason: reasonOf(context) });
+  await jobs.enqueue(ContentGenerate, { requestId: request.id });
+};
+
 export type ContentGeneration = {
   handlers: JobHandler[];
   /** One attempt at a request, as the `content.generate` handler runs it. */
   generate(payload: { requestId: string; feedback?: string }): Promise<void>;
+  /** Opens the Generation Request for a picked batch, as the `batch-text.generate` handler does. */
+  requestBatchText(context: BatchContext): Promise<void>;
   /** Re-enqueues every open request whose pool has budget again. Returns how many. */
   resumePaused(): Promise<number>;
 };
 
 /** Handles `content.generate` (content-approval.md#wiring). */
 export const contentGeneration = (deps: GenerationDeps): ContentGeneration => ({
-  handlers: [handler(ContentGenerate, ({ requestId, feedback }) => generate(deps, requestId, feedback))],
+  handlers: [
+    handler(ContentGenerate, ({ requestId, feedback }) => generate(deps, requestId, feedback)),
+    handler(BatchTextGenerate, (context) => requestBatchText(deps, context)),
+  ],
   generate: ({ requestId, feedback }) => generate(deps, requestId, feedback),
+  requestBatchText: (context) => requestBatchText(deps, context),
   async resumePaused() {
     const { auth, jobs, config, now = () => new Date() } = deps;
     const open = await auth.rows("generationRequest", { status: "open" });
