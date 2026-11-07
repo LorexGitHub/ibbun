@@ -1,4 +1,4 @@
-import { BatchTextGenerate, ContentGenerate } from "@mojibun/content-graph/jobs";
+import { BatchTextGenerate, ContentGenerate, PracticeGenerate } from "@mojibun/content-graph/jobs";
 import { createAuthoring } from "@mojibun/content-graph/authoring";
 import { createDb } from "@mojibun/db";
 import { createPgBossJobs, handler } from "@mojibun/jobs";
@@ -32,4 +32,5 @@ const connected = () =>
 export const jobs = [
   handler(ContentGenerate, async (payload) => (await connected()).generate(payload)),
   handler(BatchTextGenerate, async (payload) => (await connected()).requestBatchText(payload)),
+  handler(PracticeGenerate, async (payload) => (await connected()).requestPracticeText(payload)),
 ];

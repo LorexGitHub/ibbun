@@ -185,14 +185,14 @@ describe("the daily token budget", () => {
     expect(await t.auth.queue({ reason: "budget exhausted" })).toEqual([]);
   });
 
-  it("pauses the Batch Text pool when it is spent, naming it", async () => {
+  it("pauses the Learner-triggered pool when it is spent, naming it", async () => {
     const t = setup({ dailyTokenBudget: 100_000 });
     const batch = await t.request(t.wordId, "batch-text");
     await t.auth.recordGenerationRun({ requestId: batch.id, model: "m", promptTemplateVersion: "v", inputs: [], tokens: 50_000, cost: 1 });
     await t.ready;
     await t.jobs.enqueue(ContentGenerate, { requestId: batch.id });
     await t.jobs.drain();
-    expect(await t.auth.queue({ reason: "budget exhausted" })).toMatchObject([{ detail: { pool: "batch-text" } }]);
+    expect(await t.auth.queue({ reason: "budget exhausted" })).toMatchObject([{ detail: { pool: "learner" } }]);
   });
 
   it("resumes paused requests when their pool has budget again", async () => {

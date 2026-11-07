@@ -193,13 +193,13 @@ describe("batch-text.generate", () => {
     expect(await t.texts.batchTexts(learnerId)).toHaveLength(1);
   });
 
-  it("checks the Batch Text pool before the call and pauses when it is spent", async () => {
+  it("checks the Learner-triggered pool before the call and pauses when it is spent", async () => {
     const t = setup({ dailyTokenBudget: 100_000 });
     const spent = await t.auth.requestGeneration({ targetId: randomUUID(), kind: "batch-text", reason: "earlier" });
     await t.auth.recordGenerationRun({ requestId: spent.id, model: "m", promptTemplateVersion: "v", inputs: [], tokens: 50_000, cost: 1 });
     await t.pick([t.wordId]);
     expect(t.prompts).toEqual([]);
-    expect(await t.auth.queue({ reason: "budget exhausted" })).toMatchObject([{ detail: { pool: "batch-text" } }]);
+    expect(await t.auth.queue({ reason: "budget exhausted" })).toMatchObject([{ detail: { pool: "learner" } }]);
     expect(await t.texts.batchTexts(learnerId)).toEqual([]);
     expect(t.jobs.pending()).toEqual([]);
   });

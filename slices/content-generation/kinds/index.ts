@@ -3,8 +3,9 @@ import { exampleSentence } from "./example-sentence/index.ts";
 import { explanation } from "./explanation/index.ts";
 import { grammarFields } from "./grammar-fields/index.ts";
 import type { Kind } from "./kind.ts";
+import { practiceText } from "./practice-text/index.ts";
 import { mergeProposal, senseAlignment } from "./proposals/index.ts";
 import { readingPassage } from "./reading-passage/index.ts";
 
 /** Every generated kind. A kind added later is one line here and a folder next to this file. */
-export const KINDS: readonly Kind[] = [exampleSentence, answerData, readingPassage, mergeProposal, senseAlignment, explanation, grammarFields];
+export const KINDS: readonly Kind[] = [exampleSentence, answerData, readingPassage, mergeProposal, senseAlignment, explanation, grammarFields, practiceText];

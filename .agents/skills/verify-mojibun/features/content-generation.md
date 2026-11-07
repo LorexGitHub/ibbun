@@ -1,6 +1,6 @@
 # content-generation
 
-Admin slice with no screens yet. It is the `content.generate` and `batch-text.generate` job handlers in `apps/worker`; the journeys below drive it through the queue and read the result from Postgres.
+Admin slice with no screens yet. It is the `content.generate`, `batch-text.generate` and `practice.generate` job handlers in `apps/worker`; the journeys below drive it through the queue and read the result from Postgres.
 
 ## Sub-features
 
@@ -12,10 +12,11 @@ Admin slice with no screens yet. It is the `content.generate` and `batch-text.ge
 - **Batch Texts** (`kinds/reading-passage/`): `batch-text.generate` opens a Generation Request (`kind = batch-text`, target = a passage id derived from Learner and batch, `reason` carries the batch) and enqueues `content.generate`. The attempt writes a Draft Reading Passage (prose, Sentences linked in order) and the Learner's Batch Text record in `progress.texts`. The prompt carries the earlier items (weakest first), a target length that grows with the level's progress, the rotated passage type, and the cast and episode summary of the last episode at that level.
 - **Merge proposals** (`kinds/proposals/merge.ts`, kind `merge_proposal`): target is a hanabira Grammar Point (`source_key.dataset = 'hanabira'`); candidates are the Grammar Points keyed `tanos`. Writes a `merge proposal` queue entry, no record.
 - **Sense-alignment proposals** (`kinds/proposals/alignment.ts`, kind `sense_alignment`): target is an approved Word; its draft Japanese Explanations keyed `wiktionary-ja` are aligned to its JMdict senses. Writes one `sense alignment` queue entry per gloss.
+- **Practice Texts** (`kinds/practice-text/`, request `kind = 'practice-text'`): `practice.generate` `{ learnerId, practiceTextId }` looks up the Practice Text record `reading` or `listening` already wrote in `progress.texts` (its choices: level, form, passage type, length, topic) and opens a request whose target is the record's `passageId`. The attempt writes a Draft Reading Passage: `form = prose` for a passage, or `form = dialogue` with `passage_contains_sentence.speaker` (男/女) on every line and 2 `comprehension_questions`. The prompt gives the Learner's weakest Known items of the level (weakest first, about one per 50 characters or one per dialogue line) and asks for at least half. No record for the id, or a request already open for the passage: nothing happens.
 - **Grammar Point fields and Matcher Rule** (`kinds/grammar-fields/`, request `kind = 'grammar-fields'`): updates the draft point's `grammar_point` row in place (title, forms, formation, register, meaning, `matcher_rule`; `notes` is left alone) and adds `generated` Provenance. The point stays `draft`. A rule that misses any of the point's own tokenised example Sentences is refused as an invalid answer, so the attempt is spent and the model sees why.
 - **Generation Runs**: one per LLM call (model, template version, inputs, tokens, cost), including calls that gave no usable answer.
 - **Attempts**: 3 per Generation Request, then `generation failed` in the queue.
-- **Daily token budget**: Batch Texts at most 50%, the rest for everything else; a spent pool pauses its work and queues `budget exhausted` naming the pool.
+- **Daily token budget**: the Learner-triggered pool (Batch Texts and Practice Texts) at most 50%, the rest for everything else; a spent pool pauses its work and queues `budget exhausted` naming the pool (`learner` or `general`).
 
 ## How to get to it (user POV)
 
@@ -36,12 +37,16 @@ Nothing to drive in a browser yet. Journey (API and database only):
 7. Explanations: insert a request with `kind = 'explanation'` for an approved `word_sense` id (or a Grammar Point study item id) and enqueue `content.generate`. Expect a draft `japanese_explanation` row (`word_sense_id` or `grammar_point_id` set) with `generated` Provenance. A sense that already has a non-rejected explanation uses its 3 attempts and lands in the queue as `generation failed`. For a Grammar Point with a `wiktionary-ja` explanation, the draft's Provenance `inputs` contain that explanation's id and the Generation Run `inputs` contain its text.
 5. Grammar fields: for a `draft` Grammar Point with an empty `meaning`, insert a request with `kind = 'grammar-fields'` and enqueue `content.generate`. Expect the `grammar_point` row filled, `matcher_rule` a `{ "pattern": [...] }` object, the study item still `draft`, the request `in review`. With example Sentences that have tokens, the stored rule matches each of them.
 
+8. Practice Text: insert a `progress.texts` row (`kind = practice`, level N5, form `passage` or `dialogue`, a fresh `passage_id`, passage type, length), then enqueue `practice.generate` with `{ learnerId, practiceTextId: <its id>, level: "N5", kind }`. Expect a `practice-text` request `in review` with `target_id` = that `passage_id`, a draft `reading_passage` of the right `form` (dialogue: `speaker` on every line, 2 questions) and a `content.review` job. Give the Learner Known N5 items first and the Generation Run `inputs` list them, weakest first. Enqueue it again: nothing changes.
+
 Preconditions: Postgres from Compose with migrations applied; an approved Word with a form and a level.
 
 ## Gotchas
 
 - A retry of a Batch Text rewrites the same passage id: the rejected attempt's links are retired. The Batch Text record is written once, with the first attempt, so its cast and summary come from that attempt.
-- Earlier items are ordered by Mastery, then soonest due; `progress` does not expose stability.
+- Earlier items, and a Practice Text's weakest Known items, are ordered by Mastery, then soonest due; `progress` does not expose stability.
+- `practice.generate` does not write the Practice Text record: the enqueuing slice records it first (that is what counts toward the 5-per-24 h limit) and passes its id.
+- Practice Texts have no reviewer rubric yet (#91); `content.review` throws for them until it exists.
 - A paused request is not retried by the queue. `resumePaused()` re-enqueues open requests whose pool has budget again; nothing calls it on a schedule yet.
 - Grammar fields have no reviewer rubric yet (`content-approval` has none for `grammar-fields`); `content.review` will throw for these requests until that slice adds one.
 - Drafts have no tokens until `content-approval` runs Sudachi, and the generator's whole-Sentence reading is not stored, so reading check 2 compares only the target's reading (kept as the accepted answer).
