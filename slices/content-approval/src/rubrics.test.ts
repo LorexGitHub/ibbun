@@ -8,7 +8,7 @@ import { fill, rubricFor } from "./rubrics.ts";
 describe("rubrics", () => {
   it("are versioned prompt templates under rubrics/<kind>/ with their criteria listed", () => {
     expect(rubricFor("example")).toMatchObject({ version: "example/v1", criteria: ["natural", "translation", "target-sense", "reading", "blank", "answer-data"] });
-    expect(rubricFor("japanese-explanation")).toMatchObject({ version: "japanese-explanation/v1", criteria: ["accurate", "natural", "level", "distinct"] });
+    expect(rubricFor("explanation")).toMatchObject({ version: "explanation/v1", criteria: ["accurate", "natural", "level", "distinct", "reference"] });
   });
 
   it("uses the newest version by number, not by name", () => {

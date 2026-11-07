@@ -128,6 +128,8 @@ const kanjiFacts = async (a: Authoring, text: string): Promise<Map<string, Kanji
 
 type ExplanationTarget = { headwords: string[]; meaning: string; itemId: string };
 
+const WIKTIONARY = "wiktionary-ja";
+
 const grammarExplanationTarget = async (a: Authoring, id: string): Promise<ExplanationTarget> => {
   const [point] = await a.rows("grammarPoint", { studyItemId: id });
   if (!point) throw new Error(`no Grammar Point ${id}`);
@@ -149,10 +151,24 @@ const explanationTarget = (a: Authoring, { explanation }: ExplanationDraft): Pro
   throw new Error(`Japanese Explanation ${explanation.id} explains nothing`);
 };
 
-export type ExplanationCheck = { failures: Failure[]; level: Level; headwords: string[]; meaning: string };
+/** The ja Wiktionary entries for the target, kept for the reviewer to compare the draft with. */
+const wiktionaryReferences = async (a: Authoring, { explanation }: ExplanationDraft): Promise<string[]> => {
+  const mine = explanation.grammarPointId ? { grammarPointId: explanation.grammarPointId } : { wordSenseId: explanation.wordSenseId! };
+  const found: string[] = [];
+  for (const e of await a.rows("japaneseExplanation", mine)) {
+    if (e.id === explanation.id || e.approval === "rejected" || e.retired) continue;
+    const [provenance] = await a.rows("provenance", { id: e.provenanceId });
+    if (provenance?.source.kind !== "import") continue;
+    const [run] = await a.rows("importRun", { id: provenance.source.importRunId });
+    if (run?.dataset === WIKTIONARY) found.push(e.text);
+  }
+  return found;
+};
+
+export type ExplanationCheck = { failures: Failure[]; level: Level; headwords: string[]; meaning: string; references: string[] };
 
 export const checkExplanation = async (a: Authoring, draft: ExplanationDraft): Promise<ExplanationCheck> => {
   const target = await explanationTarget(a, draft);
   const failures = checkJapaneseExplanation(draft.explanation.text, target.headwords, await kanjiFacts(a, draft.explanation.text));
-  return { failures, level: await levelOf(a, target.itemId), headwords: target.headwords, meaning: target.meaning };
+  return { failures, level: await levelOf(a, target.itemId), headwords: target.headwords, meaning: target.meaning, references: await wiktionaryReferences(a, draft) };
 };
