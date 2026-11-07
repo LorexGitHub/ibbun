@@ -86,7 +86,7 @@ const world = () => {
   const passage = (sentences: string[]) => {
     const id = randomUUID();
     graph.readingPassage.push({ id, title: "話", form: "prose", comprehensionQuestions: [], ...life() });
-    sentences.forEach((sentenceId, position) => graph.passageContainsSentence.push({ id: randomUUID(), passageId: id, sentenceId, position, ...life() }));
+    sentences.forEach((sentenceId, position) => graph.passageContainsSentence.push({ id: randomUUID(), passageId: id, sentenceId, position, speaker: null, ...life() }));
     return id;
   };
   const clip = (sentences: string[]) => {

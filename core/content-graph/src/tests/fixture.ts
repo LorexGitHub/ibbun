@@ -148,7 +148,7 @@ export const fixture = () => {
 
   const passage = next();
   graph.readingPassage.push({ id: passage, title: "朝ごはん", form: "prose", comprehensionQuestions: [], ...life() });
-  graph.passageContainsSentence.push({ id: next(), passageId: passage, sentenceId: sentence, position: 0, ...life() });
+  graph.passageContainsSentence.push({ id: next(), passageId: passage, sentenceId: sentence, position: 0, speaker: null, ...life() });
   graph.sentenceDemonstratesGrammar.push({ id: next(), sentenceId: sentence, grammarPointId: teshimau, spanStart: 0, spanEnd: 1, ...life("draft") });
   graph.wordSupersededBy.push({ id: next(), retiredWordId: retiredWord.id, wordId: taberu.id, ...life() });
   graph.sourceKey.push({ dataset: "jmdict", upstreamKey: "1358280", recordId: taberu.id });

@@ -66,6 +66,20 @@ const contract = (make: () => Promise<Harness>) => {
       await a.insert("sentence", [{ ...provenance!, id, text: "水を飲む。", approval: "draft" }]);
       expect((await a.rows("sentence", { id }))[0]?.text).toBe("水を飲む。");
     });
+
+    it("keeps the speaker of each dialogue line, and none on prose", async () => {
+      const { a, sentence } = await given();
+      const { provenanceId } = (await a.rows("sentence", { id: sentence }))[0]!;
+      const life = { approval: "draft", retired: false, provenanceId } as const;
+      const passageId = randomUUID();
+      await a.insert("readingPassage", [{ id: passageId, title: "会話", form: "dialogue", comprehensionQuestions: [], ...life }]);
+      await a.insert("passageContainsSentence", [
+        { id: randomUUID(), passageId, sentenceId: sentence, position: 0, speaker: "男", ...life },
+        { id: randomUUID(), passageId, sentenceId: sentence, position: 1, speaker: null, ...life },
+      ]);
+      const lines = (await a.rows("passageContainsSentence", { passageId })).sort((x, y) => x.position - y.position);
+      expect(lines.map((l) => l.speaker)).toEqual(["男", null]);
+    });
   });
 
   describe("Approval Decisions", () => {
