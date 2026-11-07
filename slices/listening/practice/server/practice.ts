@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
+import type { z } from "zod";
 import type { AuthEnv, createAuthGuards } from "@mojibun/auth";
 import { grade, normalise, type ComprehensionQuestion, type ContentGraph } from "@mojibun/content-graph";
 import { PracticeGenerate } from "@mojibun/content-graph/jobs";
@@ -9,7 +10,7 @@ import { isLevelCleared, type PracticeText, type Progress, type Texts } from "@m
 import { JLPT_LEVELS, LearnerId, StudyItemId, type JlptLevel } from "@mojibun/shared";
 import { AnswerRequest, type AnswerResponse, type ClipView } from "../../contract.ts";
 import { audioUrl, shuffled } from "../../server/clip.ts";
-import { GenerateRequest, type LibraryEntry, type Options } from "../contract.ts";
+import { GenerateRequest, type LibraryEntry, type Options } from "../practice-contract.ts";
 
 export type PracticeDeps = {
   contentGraph: ContentGraph;
@@ -24,6 +25,8 @@ export type PracticeDeps = {
   /** Practice Texts per Learner in a rolling 24 h (accounts.md, config). */
   practiceLimit: number;
 };
+
+type AnswerBody = z.output<typeof AnswerRequest>;
 
 type Dialogue = { passageId: StudyItemId; lines: { speaker: "男" | "女" | null; text: string; translation: string | null; audio: string }[]; questions: ComprehensionQuestion[] };
 
@@ -51,6 +54,24 @@ export const createPracticeApi = ({ contentGraph, progress, learners, texts, job
     const [items, known] = await Promise.all([contentGraph.pathItems(), progress.known(learnerId)]);
     const kanjiOf = (level: JlptLevel) => items.filter((i) => i.type === "kanji" && i.level === level && !i.suspended).map((i) => i.id);
     return JLPT_LEVELS.filter((level) => isLevelCleared(kanjiOf(level), known));
+  };
+
+  /** A graded answer, logged as `cram`; the Study Item is the passage and the Example is `<passageId>:<question>`. */
+  const logAnswer = async (learnerId: LearnerId, passageId: StudyItemId, answer: AnswerBody, outcome: "pass" | "fail") => {
+    const { examMode } = await learners.preferences(learnerId);
+    await progress.record({
+      learnerId,
+      studyItemId: passageId,
+      kind: "cram",
+      passed: outcome === "pass",
+      at: now().toISOString(),
+      exampleId: `${passageId}:${answer.exampleId}`,
+      facets: [{ facet: "comprehension", rawInput: answer.input, normalisedInput: normalise(answer.input), outcome }],
+      attempts: answer.attempts.map((attempt) => ({ facet: "comprehension", input: attempt })),
+      revealed: answer.revealed,
+      timeToAnswerMs: answer.timeToAnswerMs,
+      listening: { replays: examMode ? 0 : answer.replays, slow: !examMode && answer.slow, examMode },
+    });
   };
 
   const learnerOf = (c: { get: (key: "learner") => { learnerId: string } }) => LearnerId.parse(c.get("learner").learnerId);
@@ -122,20 +143,7 @@ export const createPracticeApi = ({ contentGraph, progress, learners, texts, job
       const outcome = revealed ? "fail" : graded.outcome;
       if (outcome === "retry") return c.json({ outcome } satisfies AnswerResponse);
 
-      const { examMode } = await learners.preferences(learnerId);
-      await progress.record({
-        learnerId,
-        studyItemId: dialogue.passageId,
-        kind: "cram",
-        passed: outcome === "pass",
-        at: now().toISOString(),
-        exampleId: `${dialogue.passageId}:${body.data.exampleId}`,
-        facets: [{ facet: "comprehension", rawInput: input, normalisedInput: normalise(input), outcome }],
-        attempts: body.data.attempts.map((attempt) => ({ facet: "comprehension", input: attempt })),
-        revealed,
-        timeToAnswerMs: body.data.timeToAnswerMs,
-        listening: { replays: examMode ? 0 : body.data.replays, slow: !examMode && body.data.slow, examMode },
-      });
+      await logAnswer(learnerId, dialogue.passageId, body.data, outcome);
       const response: AnswerResponse = {
         outcome,
         transcript: dialogue.lines.map(({ speaker, text, translation, audio }) => ({ speaker, text, translation, audio })),

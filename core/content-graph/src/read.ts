@@ -421,6 +421,35 @@ const successorOf = (ctx: Ctx, id: string): StudyItemId | null => {
   return (link?.wordId as StudyItemId | undefined) ?? null;
 };
 
+/** A visible Reading Passage with its Sentences in order, each with the Words linked to it. */
+const passageOf = (ctx: Ctx, id: string): ReadingPassage | null => {
+  const row = ctx.graph.readingPassage.find((p) => p.id === id && visible(p));
+  if (!row) return null;
+  const passage = current(ctx, row, id);
+  const sentences = ctx.graph.passageContainsSentence
+    .filter((l) => l.passageId === id && visible(l))
+    .sort(byPosition)
+    .flatMap((l) => {
+      const sentence = sentenceOf(ctx, l.sentenceId);
+      return sentence ? [{ ...sentence, speaker: l.speaker }] : [];
+    })
+    .map((sentence) => ({
+      ...sentence,
+      words: ctx.graph.sentenceUsesWord
+        .filter((u) => u.sentenceId === sentence.id && visible(u) && ctx.items.has(u.wordId))
+        .map((u) => ({ wordId: u.wordId as StudyItemId, start: u.spanStart, end: u.spanEnd }))
+        .sort((a, b) => a.start - b.start),
+    }));
+  return {
+    id,
+    title: passage.title,
+    form: passage.form,
+    questions: passage.comprehensionQuestions,
+    sentences,
+    attribution: attributionOf(ctx, [id, ...sentences.map((s) => s.id)]),
+  };
+};
+
 /** The pure reads over a set of rows. The fake runs it over its whole graph; Postgres over the rows a read loaded. */
 export const reader = (graph: Graph, links: Map<string, string> = recordProvenance(graph)) => {
   const ctx = context(graph, links);
@@ -433,33 +462,7 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
 
     successorOf: (id: string) => successorOf(ctx, id),
 
-    readingPassage(id: string): ReadingPassage | null {
-      const row = ctx.graph.readingPassage.find((p) => p.id === id && visible(p));
-      if (!row) return null;
-      const passage = current(ctx, row, id);
-      const sentences = ctx.graph.passageContainsSentence
-        .filter((l) => l.passageId === id && visible(l))
-        .sort(byPosition)
-        .flatMap((l) => {
-          const sentence = sentenceOf(ctx, l.sentenceId);
-          return sentence ? [{ ...sentence, speaker: l.speaker }] : [];
-        })
-        .map((sentence) => ({
-          ...sentence,
-          words: ctx.graph.sentenceUsesWord
-            .filter((u) => u.sentenceId === sentence.id && visible(u) && ctx.items.has(u.wordId))
-            .map((u) => ({ wordId: u.wordId as StudyItemId, start: u.spanStart, end: u.spanEnd }))
-            .sort((a, b) => a.start - b.start),
-        }));
-      return {
-        id,
-        title: passage.title,
-        form: passage.form,
-        questions: passage.comprehensionQuestions,
-        sentences,
-        attribution: attributionOf(ctx, [id, ...sentences.map((s) => s.id)]),
-      };
-    },
+    readingPassage: (id: string) => passageOf(ctx, id),
 
     levelList(level: JlptLevel, type: BrowsableType): StudyItemSummary[] {
       return visibleItems()

@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ClipView } from "../../contract.ts";
-import type { LibraryEntry, Options } from "../contract.ts";
+import type { LibraryEntry, Options } from "../practice-contract.ts";
 import { PracticeTexts, WAIT_MS } from "../web/PracticeTexts.tsx";
 
 class FakeAudio {

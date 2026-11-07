@@ -3,8 +3,8 @@ import { Button, Card } from "@mojibun/ui";
 import type { JlptLevel } from "@mojibun/shared";
 import type { ClipView } from "../../contract.ts";
 import { ClipCard } from "../../web/ClipCard.tsx";
-import { LENGTHS, TOPICS, taskTypes, type LibraryEntry, type Options } from "../contract.ts";
-import { answerPractice, generate, loadLibrary, loadOptions, loadPractice } from "./api.ts";
+import { LENGTHS, TOPICS, taskTypes, type LibraryEntry, type Options } from "../practice-contract.ts";
+import { answerPractice, generate, loadLibrary, loadOptions, loadPractice } from "./practice-api.ts";
 
 /** How long the Learner waits for a new dialogue before it goes to the library (listening.md#what-a-practice-text-is). */
 export const WAIT_MS = 20_000;
@@ -74,6 +74,19 @@ const Library = ({ entries, onOpen }: { entries: LibraryEntry[]; onOpen: (id: st
   </ul>
 );
 
+/** What the Learner can do now: unlock a level, wait, come back tomorrow, or generate. */
+const Offer = ({ options, making, onStart }: { options: Options; making: boolean; onStart: Parameters<typeof GenerateForm>[0]["onStart"] }) => {
+  if (options.cleared.length === 0) return <p>Know every Kanji of a level to unlock dialogues at that level.</p>;
+  if (making) return <p role="status">Making your dialogue…</p>;
+  if (options.remaining === 0) return <p>You have used today's practice dialogues. Try again tomorrow.</p>;
+  return (
+    <>
+      <p>{options.remaining} left today.</p>
+      <GenerateForm options={options} onStart={onStart} />
+    </>
+  );
+};
+
 type Screen = { at: "menu"; message?: string } | { at: "making" } | { at: "playing"; id: string; view: ClipView };
 
 /** Practice Text dialogues for the Learner's Cleared Levels (listening.md#practice-texts). */
@@ -117,18 +130,7 @@ export const PracticeTexts = () => {
   return (
     <Card>
       <h2>Practice dialogues</h2>
-      {options.cleared.length === 0 ? (
-        <p>Know every Kanji of a level to unlock dialogues at that level.</p>
-      ) : screen.at === "making" ? (
-        <p role="status">Making your dialogue…</p>
-      ) : options.remaining === 0 ? (
-        <p>You have used today's practice dialogues. Try again tomorrow.</p>
-      ) : (
-        <>
-          <p>{options.remaining} left today.</p>
-          <GenerateForm options={options} onStart={start} />
-        </>
-      )}
+      <Offer options={options} making={screen.at === "making"} onStart={start} />
       {screen.at === "menu" && screen.message && <p role="status">{screen.message}</p>}
       {library.length > 0 && <Library entries={library} onOpen={open} />}
     </Card>

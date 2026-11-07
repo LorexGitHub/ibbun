@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AnswerResponse, ClipView, type AnswerRequest } from "../../contract.ts";
-import { LibraryEntry, Options, type GenerateRequest } from "../contract.ts";
+import { LibraryEntry, Options, type GenerateRequest } from "../practice-contract.ts";
 
 const BASE = "/api/listening/practice";
 
