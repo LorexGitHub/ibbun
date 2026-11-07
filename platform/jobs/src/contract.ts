@@ -19,6 +19,8 @@ export const handler = <S extends z.ZodType>(
 export interface Jobs {
   /** Queues a job. Rejects when the payload does not match the contract. */
   enqueue<S extends z.ZodType>(contract: JobContract<S>, payload: z.input<S>): Promise<void>;
+  /** Runs `contract` with `payload` on a cron schedule (UTC). Calling it again for the same job name replaces the schedule. */
+  schedule<S extends z.ZodType>(contract: JobContract<S>, cron: string, payload: z.input<S>): Promise<void>;
   /** Starts running these handlers. A job that throws is failed, and retried by the real queue. */
   work(handlers: JobHandler[]): Promise<void>;
   stop(): Promise<void>;

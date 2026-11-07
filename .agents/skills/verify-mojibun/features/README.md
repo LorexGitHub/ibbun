@@ -39,7 +39,7 @@ Each file has an H1, one paragraph of user-visible behaviour, then exactly these
 - [dashboard](./dashboard.md): due counts, Mastery by level. Not built yet.
 - [account](./account.md): sign-up, verify, login, reset, sessions, deletion. Not built yet.
 - [content-graph fixture](./content-graph-fixture.md): hand-made N5 dev/test graph and its loader. Built.
-- [import](./import.md): admin Import Runs and reports. Not built yet.
+- [import](./import.md): admin Import Runs and reports, scheduled JMdict refresh, staleness alarm. Built.
 - [content-generation](./content-generation.md): admin Generation Requests and Runs. Not built yet.
 - [content-approval](./content-approval.md): admin checks, reviewer agent, queue. Not built yet.
 - [credits](./credits.md): the public Credits page. Not built yet.

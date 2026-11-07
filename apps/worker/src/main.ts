@@ -13,7 +13,7 @@ await migrate(db.$client, await collectMigrations(await workspacePackageDirs(roo
 await db.$client.end();
 
 const jobs = await createPgBossJobs(url);
-const names = await startWorker(jobs, slices);
+const names = await startWorker(jobs, slices, { databaseUrl: url });
 console.log(`worker running ${names.length} job type(s)`);
 
 const stop = async () => {
