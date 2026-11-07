@@ -490,6 +490,34 @@ importers:
         specifier: ^19.1.0
         version: 19.3.1(react@19.3.1)
 
+  slices/content-generation:
+    dependencies:
+      '@mojibun/content-graph':
+        specifier: workspace:*
+        version: link:../../core/content-graph
+      '@mojibun/db':
+        specifier: workspace:*
+        version: link:../../platform/db
+      '@mojibun/jobs':
+        specifier: workspace:*
+        version: link:../../platform/jobs
+      '@mojibun/llm':
+        specifier: workspace:*
+        version: link:../../platform/llm
+      '@mojibun/shared':
+        specifier: workspace:*
+        version: link:../../platform/shared
+      '@mojibun/slice':
+        specifier: workspace:*
+        version: link:../../platform/slice
+      zod:
+        specifier: ^4.1.0
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.19.2
+
 packages:
 
   '@ampproject/remapping@2.3.0':
