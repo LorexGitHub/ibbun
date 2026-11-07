@@ -23,7 +23,7 @@ const REASON_NOTE: Record<string, string> = {
   "re-review": "queued by you for re-review",
 };
 
-const KIND_LABEL: Record<string, string> = { example: "Examples", "japanese-explanation": "Japanese Explanations", "listening-clip": "Listening Clips" };
+const KIND_LABEL: Record<string, string> = { example: "Examples", "japanese-explanation": "Japanese Explanations", "grammar-fields": "Grammar Point fields", "listening-clip": "Listening Clips" };
 
 const percent = (rate: number) => `${Math.round(rate * 100)}%`;
 

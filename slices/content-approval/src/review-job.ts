@@ -5,6 +5,7 @@ import type { Nlp } from "@mojibun/nlp";
 import { checkExample, checkExplanation, type ExampleCheck, type ExplanationCheck } from "./checks.ts";
 import type { ApprovalConfig } from "./config.ts";
 import { draftsOfRun, type Draft } from "./drafts.ts";
+import { checkGrammarFields, type GrammarFieldsCheck } from "../rubrics/grammar-fields/index.ts";
 import { retry } from "./retry.ts";
 import type { Sampling } from "../sampling/sampler.ts";
 import { review, type Judgement, type Review } from "./reviewer.ts";
@@ -22,8 +23,10 @@ const decideUnit = async (a: Authoring, draft: Draft, outcome: DecisionOutcome, 
   for (const { table, id } of records) await a.decide({ recordTable: table, recordId: id, outcome, decider, reason, verdicts });
 };
 
-const automatic = (a: Authoring, d: ReviewDeps, draft: Draft): Promise<ExampleCheck | ExplanationCheck> =>
-  draft.kind === "example" ? checkExample(a, d.nlp, d.config, draft) : checkExplanation(a, draft);
+const automatic = (a: Authoring, d: ReviewDeps, draft: Draft): Promise<ExampleCheck | ExplanationCheck | GrammarFieldsCheck> => {
+  if (draft.kind === "example") return checkExample(a, d.nlp, d.config, draft);
+  return draft.kind === "grammar-fields" ? checkGrammarFields(a, draft) : checkExplanation(a, draft);
+};
 
 /** Lets spot-check sampling draw the reviewer's approval; a paused kind is held back instead of approved. */
 const approve = async (d: ReviewDeps, draft: Draft, requestId: string, decider: Extract<Decider, { kind: "reviewer" }>, verdicts: Review["verdicts"]): Promise<Result> => {
