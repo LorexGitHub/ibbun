@@ -561,6 +561,64 @@ importers:
         specifier: ^20.0.0
         version: 20.14.6
 
+  slices/content-approval:
+    dependencies:
+      '@mojibun/auth':
+        specifier: workspace:*
+        version: link:../../platform/auth
+      '@mojibun/content-graph':
+        specifier: workspace:*
+        version: link:../../core/content-graph
+      '@mojibun/db':
+        specifier: workspace:*
+        version: link:../../platform/db
+      '@mojibun/jobs':
+        specifier: workspace:*
+        version: link:../../platform/jobs
+      '@mojibun/learner':
+        specifier: workspace:*
+        version: link:../../core/learner
+      '@mojibun/llm':
+        specifier: workspace:*
+        version: link:../../platform/llm
+      '@mojibun/mail':
+        specifier: workspace:*
+        version: link:../../platform/mail
+      '@mojibun/nlp':
+        specifier: workspace:*
+        version: link:../../platform/nlp
+      '@mojibun/shared':
+        specifier: workspace:*
+        version: link:../../platform/shared
+      '@mojibun/slice':
+        specifier: workspace:*
+        version: link:../../platform/slice
+      '@mojibun/ui':
+        specifier: workspace:*
+        version: link:../../platform/ui
+      hono:
+        specifier: ^4.9.0
+        version: 4.13.16
+      react:
+        specifier: ^19.1.0
+        version: 19.3.1
+      zod:
+        specifier: ^4.1.0
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.19.2
+      '@types/react':
+        specifier: ^19.1.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.1.0
+        version: 19.3.0(@types/react@19.3.0)
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.3.1(react@19.3.1)
+
   slices/content-generation:
     dependencies:
       '@mojibun/content-graph':
@@ -634,6 +692,40 @@ importers:
       happy-dom:
         specifier: ^20.0.0
         version: 20.14.6
+
+  slices/credits:
+    dependencies:
+      '@mojibun/content-graph':
+        specifier: workspace:*
+        version: link:../../core/content-graph
+      '@mojibun/db':
+        specifier: workspace:*
+        version: link:../../platform/db
+      '@mojibun/slice':
+        specifier: workspace:*
+        version: link:../../platform/slice
+      '@mojibun/ui':
+        specifier: workspace:*
+        version: link:../../platform/ui
+      hono:
+        specifier: ^4.9.0
+        version: 4.13.16
+      react:
+        specifier: ^19.1.0
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.3.1(react@19.3.1)
+      zod:
+        specifier: ^4.1.0
+        version: 4.6.7
+    devDependencies:
+      '@types/react':
+        specifier: ^19.1.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.1.0
+        version: 19.3.0(@types/react@19.3.0)
 
   slices/dashboard:
     dependencies:
