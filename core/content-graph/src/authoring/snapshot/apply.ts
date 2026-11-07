@@ -1,7 +1,7 @@
 import type { Clock } from "../authoring.ts";
 import { rules } from "../authoring.ts";
 import type { Store } from "../store.ts";
-import { kanjidic, kanjivg, tatoeba } from "./datasets.ts";
+import { kanjidic, kanjivg, tatoeba, yomitan } from "./datasets.ts";
 import { jmdict } from "./jmdict.ts";
 import { tripped } from "./match.ts";
 import { runContext, type RunCtx } from "./run.ts";
@@ -14,21 +14,23 @@ type Rules<R> = {
   retire: (ctx: RunCtx, id: string, surviving: R[], idOf: (key: string) => string) => Promise<void>;
 };
 
-const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, kanjivg, tatoeba };
+const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, kanjivg, tatoeba, yomitan };
 
 /** Thrown inside the transaction so a tripped run rolls back everything it wrote. */
 class Tripped extends Error {
   readonly counts: Counts;
   readonly reasons: string[];
-  constructor(counts: Counts, reasons: string[]) {
+  readonly notes: string[];
+  constructor(counts: Counts, reasons: string[], notes: string[]) {
     super("breaker tripped");
     this.counts = counts;
     this.reasons = reasons;
+    this.notes = notes;
   }
 }
 
 const isLive = async (ctx: RunCtx, dataset: Dataset, id: string) => {
-  const [row] = dataset === "tatoeba" ? await ctx.tx.rows("sentence", { id }) : await ctx.tx.rows("studyItem", { id });
+  const [row] = await (dataset === "tatoeba" ? ctx.tx.rows("sentence", { id }) : dataset === "yomitan" ? ctx.tx.rows("levelCandidate", { id }) : ctx.tx.rows("studyItem", { id }));
   return row !== undefined && !row.retired;
 };
 
@@ -56,9 +58,9 @@ const run = async <D extends Dataset>(tx: Store, clock: Clock, dataset: D, impor
   const total = ids.size;
   await applyRecords(ctx, dataset, records, ids);
   const reasons = options.release ? [] : tripped(ctx.counts, total, options.breaker ?? DEFAULT_BREAKER);
-  if (reasons.length) throw new Tripped(ctx.counts, reasons);
+  if (reasons.length) throw new Tripped(ctx.counts, reasons, ctx.notes);
   await tx.update("importRun", { id: importRunId }, { status: "applied", counts: ctx.counts, appliedAt: clock.now() });
-  return ctx.counts;
+  return { counts: ctx.counts, notes: ctx.notes };
 };
 
 /**
@@ -78,14 +80,14 @@ export const applySnapshot = async <D extends Dataset>(
   if (done) return { importRunId: done.id, status: "unchanged", counts: done.counts as Counts, tripped: [] };
   const importRunId = clock.newId();
   try {
-    const counts = await s.atomically((tx) => run(tx, clock, dataset, importRunId, info, records, options));
-    return { importRunId, status: "applied", counts, tripped: [] };
+    const { counts, notes } = await s.atomically((tx) => run(tx, clock, dataset, importRunId, info, records, options));
+    return { importRunId, status: "applied", counts, tripped: [], notes };
   } catch (error) {
     if (!(error instanceof Tripped)) throw error;
     await s.atomically(async (tx) => {
       await tx.insert("importRun", [{ id: importRunId, dataset, ...info, status: "breaker tripped", counts: error.counts, appliedAt: null }]);
       await rules(tx, clock).enqueue({ reason: "breaker tripped", importRunId, detail: { reasons: error.reasons, counts: error.counts } });
     });
-    return { importRunId, status: "breaker tripped", counts: error.counts, tripped: error.reasons };
+    return { importRunId, status: "breaker tripped", counts: error.counts, tripped: error.reasons, notes: error.notes };
   }
 };
