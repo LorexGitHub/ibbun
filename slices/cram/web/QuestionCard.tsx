@@ -29,8 +29,34 @@ const Feedback = ({ question, verdict, onNext }: { question: Question; verdict: 
   </div>
 );
 
-/** One Example, its facets, and the feedback after the Learner answers. */
-export const QuestionCard = ({ question, client, onNext }: { question: Question; client: CramClient; onNext: (passed: boolean) => void }) => {
+const Prompt = ({ question, hintOpen }: { question: Question; hintOpen: boolean }) => {
+  const { before, target, after, mode } = question.sentence;
+  return (
+    <>
+      <p lang="ja" className="jp" style={{ fontSize: "1.5rem" }}>
+        {before}
+        {mode === "highlight" ? <mark>{target}</mark> : <span aria-label="blank">＿＿＿</span>}
+        {after}
+      </p>
+      {question.translationEn && <p className="muted">{question.translationEn}</p>}
+      {hintOpen && question.hint && <p>Hint: {question.hint}</p>}
+    </>
+  );
+};
+
+type Actions = { check: () => void; reveal: () => void; openHint?: () => void };
+
+const Controls = ({ check, reveal, openHint }: Actions) => (
+  <p>
+    <Button variant="primary" onClick={check}>
+      Check
+    </Button>{" "}
+    {openHint && <Button onClick={openHint}>Hint</Button>} <Button onClick={reveal}>Show answer</Button>
+  </p>
+);
+
+/** The Learner's typing, tries and hints for one question, and how they are sent. */
+const useAnswering = (question: Question, client: CramClient) => {
   const [inputs, setInputs] = useState<Inputs>({});
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [hintOpen, setHintOpen] = useState(false);
@@ -38,7 +64,6 @@ export const QuestionCard = ({ question, client, onNext }: { question: Question;
   const [verdict, setVerdict] = useState<Graded | null>(null);
   const [error, setError] = useState<string | null>(null);
   const startedAt = useRef(Date.now());
-
   const typed = question.facets.map(({ facet }) => ({ facet, input: inputs[facet] ?? "" }));
 
   const send = async (revealed: boolean) => {
@@ -64,39 +89,33 @@ export const QuestionCard = ({ question, client, onNext }: { question: Question;
     setAttempts((tries) => [...tries, ...typed]);
   };
 
-  const { before, target, after, mode } = question.sentence;
+  return {
+    inputs,
+    hintOpen,
+    nudge,
+    verdict,
+    error,
+    type: (facet: FacetName, value: string) => setInputs((now) => ({ ...now, [facet]: value })),
+    actions: { check, reveal: () => send(true), openHint: question.hint && !hintOpen ? () => setHintOpen(true) : undefined },
+  };
+};
+
+/** One Example, its facets, and the feedback after the Learner answers. */
+export const QuestionCard = ({ question, client, onNext }: { question: Question; client: CramClient; onNext: (passed: boolean) => void }) => {
+  const a = useAnswering(question, client);
   return (
     <Card>
-      <p lang="ja" className="jp" style={{ fontSize: "1.5rem" }}>
-        {before}
-        {mode === "highlight" ? <mark>{target}</mark> : <span aria-label="blank">＿＿＿</span>}
-        {after}
-      </p>
-      {question.translationEn && <p className="muted">{question.translationEn}</p>}
-      {hintOpen && question.hint && <p>Hint: {question.hint}</p>}
+      <Prompt question={question} hintOpen={a.hintOpen} />
       {question.facets.map(({ facet, label }) => (
-        <FacetInput
-          key={facet}
-          facet={facet}
-          label={label}
-          value={inputs[facet] ?? ""}
-          disabled={verdict !== null}
-          onChange={(value) => setInputs((now) => ({ ...now, [facet]: value }))}
-        />
+        <FacetInput key={facet} facet={facet} label={label} value={a.inputs[facet] ?? ""} disabled={a.verdict !== null} onChange={(value) => a.type(facet, value)} />
       ))}
-      {error && <p role="alert">{error}</p>}
-      {verdict ? (
-        <Feedback question={question} verdict={verdict} onNext={() => onNext(verdict.passed)} />
+      {a.error && <p role="alert">{a.error}</p>}
+      {a.verdict ? (
+        <Feedback question={question} verdict={a.verdict} onNext={() => onNext(a.verdict!.passed)} />
       ) : (
         <>
-          {nudge && <p role="status">{nudge}</p>}
-          <p>
-            <Button variant="primary" onClick={check}>
-              Check
-            </Button>{" "}
-            {question.hint && !hintOpen && <Button onClick={() => setHintOpen(true)}>Hint</Button>}{" "}
-            <Button onClick={() => send(true)}>Show answer</Button>
-          </p>
+          {a.nudge && <p role="status">{a.nudge}</p>}
+          <Controls {...a.actions} />
         </>
       )}
     </Card>

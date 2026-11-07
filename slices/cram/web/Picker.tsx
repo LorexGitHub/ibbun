@@ -14,6 +14,43 @@ const TYPES: { value: CramType | ""; label: string }[] = [
 
 const describe = (item: StudyItemSummary) => [item.label, item.reading, item.meaning].filter(Boolean).join(" · ");
 
+type FilterProps = {
+  level: JlptLevel;
+  type: CramType | "";
+  search: string;
+  setLevel: (level: JlptLevel) => void;
+  setType: (type: CramType | "") => void;
+  setSearch: (search: string) => void;
+  onFind: (event: FormEvent) => void;
+};
+
+const Filters = ({ level, type, search, setLevel, setType, setSearch, onFind }: FilterProps) => (
+  <form onSubmit={onFind} style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+    <label>
+      Level{" "}
+      <select className="input" value={level} onChange={(e) => setLevel(e.target.value as JlptLevel)}>
+        {JLPT_LEVELS.map((l) => (
+          <option key={l}>{l}</option>
+        ))}
+      </select>
+    </label>
+    <label>
+      Type{" "}
+      <select className="input" value={type} onChange={(e) => setType(e.target.value as CramType | "")}>
+        {TYPES.map((t) => (
+          <option key={t.value} value={t.value}>
+            {t.label}
+          </option>
+        ))}
+      </select>
+    </label>
+    <label>
+      Search <Input type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
+    </label>
+    <Button type="submit">Find</Button>
+  </form>
+);
+
 /** Choose Study Items by level, type or search. Locked ones are listed: Cram practises anything. */
 export const Picker = ({ client, onStart }: { client: CramClient; onStart: (items: StudyItemSummary[]) => void }) => {
   const [level, setLevel] = useState<JlptLevel>("N5");
@@ -49,30 +86,7 @@ export const Picker = ({ client, onStart }: { client: CramClient; onStart: (item
       <p className="muted">
         Pick anything to practise, including what you have not unlocked. Cram never changes your Mastery or statistics.
       </p>
-      <form onSubmit={find} style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-        <label>
-          Level{" "}
-          <select className="input" value={level} onChange={(e) => setLevel(e.target.value as JlptLevel)}>
-            {JLPT_LEVELS.map((l) => (
-              <option key={l}>{l}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Type{" "}
-          <select className="input" value={type} onChange={(e) => setType(e.target.value as CramType | "")}>
-            {TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Search <Input type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
-        </label>
-        <Button type="submit">Find</Button>
-      </form>
+      <Filters level={level} type={type} search={search} setLevel={setLevel} setType={setType} setSearch={setSearch} onFind={find} />
       {error && <p role="alert">{error}</p>}
       <p>
         <Button onClick={chooseShown} disabled={!shown.length}>
