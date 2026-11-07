@@ -91,6 +91,8 @@ export interface ContentGraph {
   studyItem(id: StudyItemId): Promise<StudyItemPage | null>;
   /** Visible Study Items of one type whose current JLPT Level is `level`. */
   levelList(level: JlptLevel, type: BrowsableType): Promise<StudyItemSummary[]>;
+  /** Visible Listening Clips whose current JLPT Level is `level`, in ID order. */
+  listeningClips(level: JlptLevel): Promise<StudyItemId[]>;
   /** By written form, reading or meaning. Exact matches first, then prefix matches, then the rest. */
   search(query: string, options?: { limit?: number }): Promise<StudyItemSummary[]>;
   /** The Credits page: every source with its licence, link and live version, then every VOICEVOX voice in use. */
@@ -333,6 +335,13 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
         .sort(byId)
         .map(summaryOf)
         .filter(present);
+    },
+
+    listeningClips(level: JlptLevel): StudyItemId[] {
+      return visibleItems()
+        .filter((item) => item.type === "listening_clip" && item.level === level)
+        .sort(byId)
+        .map((item) => item.id);
     },
 
     search(query: string, limit = DEFAULT_SEARCH_LIMIT): StudyItemSummary[] {

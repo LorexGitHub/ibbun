@@ -1,6 +1,7 @@
 import { and, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import type { DbOrTx } from "@mojibun/db";
+import type { JlptLevel } from "@mojibun/shared";
 import { emptyGraph, type Graph } from "./graph.ts";
 import { creditsOf, recordProvenance } from "./licensing.ts";
 import { DEFAULT_SEARCH_LIMIT, normaliseQuery, reader, type ContentGraph } from "./read.ts";
@@ -16,12 +17,11 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
   },
 
   async levelList(level, type) {
-    const ids = await db
-      .selectDistinct({ id: t.studyItem.id })
-      .from(t.studyItem)
-      .innerJoin(t.levelCandidate, eq(t.levelCandidate.studyItemId, t.studyItem.id))
-      .where(and(eq(t.studyItem.type, type), eq(t.levelCandidate.level, level), visible(t.studyItem), visible(t.levelCandidate)));
-    return (await readerOver(db, await loadItems(db, ids.map((r) => r.id)))).levelList(level, type);
+    return (await readerOver(db, await loadItems(db, await candidateIds(db, level, type)))).levelList(level, type);
+  },
+
+  async listeningClips(level) {
+    return (await readerOver(db, await loadItems(db, await candidateIds(db, level, "listening_clip")))).listeningClips(level);
   },
 
   async search(query, { limit = DEFAULT_SEARCH_LIMIT } = {}) {
@@ -47,6 +47,16 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
     return creditsOf({ importRun, provenance });
   },
 });
+
+/** The visible Study Items of `type` with a visible Level Candidate at `level`; the reader then settles the current level. */
+const candidateIds = async (db: DbOrTx, level: JlptLevel, type: t.StudyItemType) =>
+  (
+    await db
+      .selectDistinct({ id: t.studyItem.id })
+      .from(t.studyItem)
+      .innerJoin(t.levelCandidate, eq(t.levelCandidate.studyItemId, t.studyItem.id))
+      .where(and(eq(t.studyItem.type, type), eq(t.levelCandidate.level, level), visible(t.studyItem), visible(t.levelCandidate)))
+  ).map((r) => r.id);
 
 const visible = (table: { approval: PgColumn; retired: PgColumn }) =>
   and(eq(table.approval, "approved"), eq(table.retired, false));
