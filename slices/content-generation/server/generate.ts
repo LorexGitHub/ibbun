@@ -59,6 +59,8 @@ const generate = async (deps: GenerationDeps, requestId: string, feedback: strin
 
 export type ContentGeneration = {
   handlers: JobHandler[];
+  /** One attempt at a request, as the `content.generate` handler runs it. */
+  generate(payload: { requestId: string; feedback?: string }): Promise<void>;
   /** Re-enqueues every open request whose pool has budget again. Returns how many. */
   resumePaused(): Promise<number>;
 };
@@ -66,6 +68,7 @@ export type ContentGeneration = {
 /** Handles `content.generate` (content-approval.md#wiring). */
 export const contentGeneration = (deps: GenerationDeps): ContentGeneration => ({
   handlers: [handler(ContentGenerate, ({ requestId, feedback }) => generate(deps, requestId, feedback))],
+  generate: ({ requestId, feedback }) => generate(deps, requestId, feedback),
   async resumePaused() {
     const { auth, jobs, config, now = () => new Date() } = deps;
     const open = await auth.rows("generationRequest", { status: "open" });
