@@ -119,3 +119,67 @@ describe("ItemView", () => {
     expect(grammar).toContain("verb stem + ます");
   });
 });
+
+describe("ItemView details", () => {
+  const kanji = (over: Partial<Extract<ItemPage["detail"], { type: "kanji" }>> = {}): ItemPage["detail"] => ({
+    type: "kanji", literal: "日", meanings: ["day", "sun"], onReadings: ["ニチ", "ジツ"], kunReadings: ["ひ"], grade: 1, strokeCount: 4, components: ["一", "口"], ...over,
+  });
+
+  it("lists every Kanji field: meanings, both readings, strokes, grade and components", () => {
+    const html = item({ detail: kanji() });
+    expect(html).toContain("day, sun");
+    expect(html).toContain("ニチ、ジツ");
+    expect(html).toContain("ひ");
+    expect(html).toContain("<dd>4</dd>");
+    expect(html).toContain("<dd>1</dd>");
+    expect(html).toContain("一 口");
+  });
+
+  it("leaves out an unknown grade and empty components, and dashes a missing reading", () => {
+    const html = item({ detail: kanji({ grade: null, components: [], kunReadings: [] }) });
+    expect(html).not.toContain("School grade");
+    expect(html).not.toContain("Components");
+    expect(html).toContain('<dd lang="ja">—</dd>');
+  });
+
+  it("heads a Word by its first written form, or its reading when it has none", () => {
+    const word = (forms: string[]): ItemPage["detail"] => ({ type: "word", forms, readings: [{ text: "ああ", pitchAccent: null }], senses: [] });
+    expect(item({ detail: word(["日本", "二本"]) })).toContain(">日本</h1>");
+    expect(item({ detail: word([]) })).toContain(">ああ</h1>");
+  });
+
+  it("shows a Word's parts of speech, glosses and Japanese Explanation, and every reading", () => {
+    const html = item({
+      detail: {
+        type: "word", forms: ["日本"],
+        readings: [{ text: "にほん", pitchAccent: [2, 3] }, { text: "にっぽん", pitchAccent: null }],
+        senses: [{ partsOfSpeech: ["n", "adj-no"], glosses: ["Japan", "nippon"], japaneseExplanation: "アジアの国。" }],
+      },
+    });
+    expect(html).toContain("n, adj-no");
+    expect(html).toContain("Japan; nippon");
+    expect(html).toContain("アジアの国。");
+    expect(html).toContain("にほん [2, 3]、にっぽん");
+  });
+
+  it("shows a Grammar Point's forms, register, Japanese Explanation and notes", () => {
+    const html = item({
+      detail: {
+        type: "grammar_point", title: "〜ます", forms: [{ text: "ます", register: "polite" }, { text: "る", register: "casual" }],
+        formation: ["stem", "ます"], register: "polite", meaning: "polite ending", japaneseExplanation: "ていねいな言い方。", notes: "Use with strangers.",
+      },
+    });
+    expect(html).toContain("ます (polite)、る (casual)");
+    expect(html).toContain("stem; ます");
+    expect(html).toContain("<dd>polite</dd>");
+    expect(html).toContain("ていねいな言い方。");
+    expect(html).toContain("Use with strangers.");
+  });
+
+  it("shows a link's note, a page's own credit, and no Examples card when there are none", () => {
+    const html = item({ examples: [], credits: [{ text: "Wiktionary", href: "https://ja.wiktionary.org" }], related: [{ heading: "Related grammar", items: [{ summary: summary({ type: "grammar_point" }), note: "casual form" }] }] });
+    expect(html).toContain("casual form");
+    expect(html).toContain('href="https://ja.wiktionary.org"');
+    expect(html).not.toContain("Examples");
+  });
+});
