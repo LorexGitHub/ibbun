@@ -9,6 +9,8 @@ export type {
   Kanji,
   ListeningClip,
   PathItem,
+  ReadingPassage,
+  SentenceWord,
   Sentence,
   StudyItem,
   StudyItemLink,

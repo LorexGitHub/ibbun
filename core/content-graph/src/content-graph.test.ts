@@ -25,6 +25,20 @@ const contract = (make: () => Promise<ContentGraph>) => {
     });
   });
 
+  describe("readingPassage", () => {
+    it("returns the approved Sentences in order, each with the Words it uses", async () => {
+      const passage = await cg.readingPassage(g.ids.passage);
+      expect(passage).toMatchObject({ id: g.ids.passage, title: "朝ごはん", form: "prose" });
+      expect(passage?.sentences.map((s) => s.id)).toEqual([g.ids.sentence]);
+      expect(passage?.sentences[0]?.words).toEqual([{ wordId: id("taberu"), start: 3, end: 6 }]);
+      expect(passage?.attribution).toBeDefined();
+    });
+
+    it.each(["draftPassage", "missing"] as const)("returns nothing for %s", async (key) => {
+      expect(await cg.readingPassage(g.ids[key])).toBeNull();
+    });
+  });
+
   describe("studyItem", () => {
     it("returns a Word with its visible forms, readings and senses in order, overrides applied", async () => {
       const page = await cg.studyItem(id("taberu"));

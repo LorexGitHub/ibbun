@@ -86,6 +86,18 @@ export type StudyItemLink =
 /** What a Browse page shows: the Study Item, its Examples and its links, and the Attribution the item's own records owe. */
 export type StudyItemPage = { item: StudyItem; examples: Example[]; links: StudyItemLink[]; attribution: Attribution };
 
+/** A Word a Sentence uses, and where: `start` and `end` index into the Sentence text. */
+export type SentenceWord = { wordId: StudyItemId; start: number; end: number };
+
+/** A Reading Passage as read: its visible Sentences in order, each with the Words linked to it. */
+export type ReadingPassage = {
+  id: string;
+  title: string;
+  form: "prose" | "dialogue";
+  sentences: (Sentence & { words: SentenceWord[] })[];
+  attribution: Attribution;
+};
+
 /**
  * What the Learning Path orders and locks by (docs/learning-path.md): one visible Study Item's level, sort facts and
  * fact-link dependencies. Levels are not compared here; `learning-path` keeps only same-level dependencies.
@@ -110,6 +122,8 @@ export type PathItem = {
 /** Reads of approved, non-retired Content Graph records with overrides applied. */
 export interface ContentGraph {
   studyItem(id: StudyItemId): Promise<StudyItemPage | null>;
+  /** One approved, non-retired Reading Passage with its approved Sentences in order, or null. */
+  readingPassage(id: string): Promise<ReadingPassage | null>;
   /** The visible Word that supersedes a Retired Word (docs/import-pipeline.md#key-gone-deletion-or-merge), or null. */
   successorOf(id: StudyItemId): Promise<StudyItemId | null>;
   /** Visible Study Items of one type whose current JLPT Level is `level`. */
@@ -415,6 +429,31 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
     },
 
     successorOf: (id: string) => successorOf(ctx, id),
+
+    readingPassage(id: string): ReadingPassage | null {
+      const row = ctx.graph.readingPassage.find((p) => p.id === id && visible(p));
+      if (!row) return null;
+      const passage = current(ctx, row, id);
+      const sentences = ctx.graph.passageContainsSentence
+        .filter((l) => l.passageId === id && visible(l))
+        .sort(byPosition)
+        .map((l) => sentenceOf(ctx, l.sentenceId))
+        .filter(present)
+        .map((sentence) => ({
+          ...sentence,
+          words: ctx.graph.sentenceUsesWord
+            .filter((u) => u.sentenceId === sentence.id && visible(u) && ctx.items.has(u.wordId))
+            .map((u) => ({ wordId: u.wordId as StudyItemId, start: u.spanStart, end: u.spanEnd }))
+            .sort((a, b) => a.start - b.start),
+        }));
+      return {
+        id,
+        title: passage.title,
+        form: passage.form,
+        sentences,
+        attribution: attributionOf(ctx, [id, ...sentences.map((s) => s.id)]),
+      };
+    },
 
     levelList(level: JlptLevel, type: BrowsableType): StudyItemSummary[] {
       return visibleItems()
