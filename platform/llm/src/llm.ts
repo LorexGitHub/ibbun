@@ -33,12 +33,14 @@ export interface Llm {
 /** A call that produced no usable answer. It still used tokens, so the budget must count them. */
 export class LlmError extends Error {
   override readonly name = "LlmError";
-  constructor(
-    message: string,
-    readonly model: string,
-    readonly usage: TokenUsage,
-    readonly costUsd: number,
-  ) {
+  readonly model: string;
+  readonly usage: TokenUsage;
+  readonly costUsd: number;
+  // Written out rather than as parameter properties: Node's type stripping, which runs the API and worker, rejects those.
+  constructor(message: string, model: string, usage: TokenUsage, costUsd: number) {
     super(message);
+    this.model = model;
+    this.usage = usage;
+    this.costUsd = costUsd;
   }
 }
