@@ -143,7 +143,7 @@ describe("runGrammarSeed", () => {
   it("asks for a merge proposal for each hanabira point and for none of the Tanos points", async () => {
     const w = world();
     const queued: unknown[] = [];
-    w.deps.jobs = { enqueue: async (contract, payload) => void (contract === ContentGenerate && queued.push(payload)) };
+    w.deps.jobs = { enqueue: async (contract, payload) => void (contract.name === ContentGenerate.name && queued.push(payload)) };
     await runGrammarSeed(w.deps);
     const requests = w.graph.generationRequest;
     expect(requests.map((r) => r.kind)).toEqual(["merge_proposal", "merge_proposal"]);

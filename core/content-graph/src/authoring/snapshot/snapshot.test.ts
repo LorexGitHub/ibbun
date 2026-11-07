@@ -91,6 +91,41 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await apply("jmdict", [taberu, nomu])).counts).toMatchObject({ added: 0, changed: 0 });
     });
 
+    describe("Sentence uses Word links", () => {
+      const link = (over: Partial<NonNullable<SentenceRecord["links"]>[number]> = {}) => ({
+        entry: null, form: "食べる", reading: null, sense: null, start: 3, end: 6, ...over,
+      });
+      const withLinks = (links: NonNullable<SentenceRecord["links"]>, text = "パンを食べる。") => ({ ...sentence("10", text), links });
+      const linksOf = async () => h.a.rows("sentenceUsesWord", { sentenceId: await idOf("tatoeba", "10") });
+
+      it("links by JMdict entry, picking the numbered sense and the form it was written in", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        await apply("tatoeba", [withLinks([link({ entry: "1", sense: 2 })])]);
+        const [row] = await linksOf();
+        expect(row).toMatchObject({ wordId: await idOf("jmdict", "1"), spanStart: 3, spanEnd: 6, approval: "draft" });
+        expect(row!.senseId).toBe((await senses(await idOf("jmdict", "1")))[1]!.id);
+        expect(row!.formId).not.toBeNull();
+      });
+
+      it("falls back to the form when there is no entry, and leaves an unknown form unlinked", async () => {
+        await apply("jmdict", [taberu]);
+        await apply("tatoeba", [withLinks([link(), link({ form: "走る", start: 0, end: 1 })])]);
+        expect(await linksOf()).toHaveLength(1);
+      });
+
+      it("replaces the links when they change and keeps them when they do not", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        await apply("tatoeba", [withLinks([link()])]);
+        const [first] = await linksOf();
+        await apply("tatoeba", [withLinks([link()])]);
+        expect((await linksOf())[0]!.id).toBe(first!.id);
+        await apply("tatoeba", [withLinks([link({ form: "飲む", start: 0, end: 2 })])]);
+        const rows = await linksOf();
+        expect(rows).toHaveLength(1);
+        expect(rows[0]!.wordId).toBe(await idOf("jmdict", "2"));
+      });
+    });
+
     it("adds Tatoeba Sentences as Draft, credited to their author", async () => {
       await apply("tatoeba", [sentence("10", "パンを食べる。")]);
       const [row] = await h.a.rows("sentence", { id: await idOf("tatoeba", "10") });
@@ -106,6 +141,32 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await h.a.rows("kanji", { studyItemId: id }))[0]).toMatchObject({ literal: "食", meanings: ["eat", "food"] });
       expect((await apply("kanjidic", [])).counts.retired).toBe(1);
       expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(true);
+    });
+    it("leaves KanjiVG strokes alone when KANJIDIC2 refreshes, and does not count the Kanji as changed", async () => {
+      const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      await apply("kanjidic", [kanji]);
+      await apply("kanjivg", [{ key: "098df", strokes: ["M1,2"] }]);
+      expect((await apply("kanjidic", [kanji])).counts).toMatchObject({ changed: 0 });
+      expect((await apply("kanjidic", [{ ...kanji, meanings: ["eat", "food"] }])).counts).toMatchObject({ changed: 1 });
+      expect((await h.a.rows("kanji", { studyItemId: await idOf("kanjidic", "食") }))[0]).toMatchObject({ meanings: ["eat", "food"], strokes: ["M1,2"] });
+    });
+
+    it("sets KanjiVG strokes on the KANJIDIC2 Kanji of the same code point, and skips code points KANJIDIC2 lacks", async () => {
+      const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      await apply("kanjidic", [kanji]);
+      const id = await idOf("kanjidic", "食");
+      const stray = { key: "04e80", strokes: ["M1,1"] };
+      const report = await apply("kanjivg", [{ key: "098df", strokes: ["M1,2", "M3,4"] }, stray]);
+      expect(report.counts).toMatchObject({ added: 1, changed: 0 });
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual(["M1,2", "M3,4"]);
+      expect(await idOf("kanjivg", "098df")).toBe(id);
+
+      expect((await apply("kanjivg", [{ key: "098df", strokes: ["M1,2", "M5,6"] }])).counts).toMatchObject({ added: 0, changed: 1, retired: 0 });
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual(["M1,2", "M5,6"]);
+
+      expect((await apply("kanjivg", [])).counts.retired).toBe(1);
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual([]);
+      expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(false);
     });
   });
 
