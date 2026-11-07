@@ -13,6 +13,7 @@ import { consoleAuthLog, type AuthLog } from "./events.ts";
 import { createLearners, type Learners } from "./learners.ts";
 import { hashPassword, verifyPassword } from "./password.ts";
 import { answerFailedLogin, guardRequest, ipOf, oldEmailOfChange } from "./policy.ts";
+import { handlePreferences, PREFERENCES_PATH } from "./preferences-endpoint.ts";
 
 export type LearnerAuthOptions = {
   db: Db;
@@ -136,14 +137,19 @@ export const createLearnerAuth = ({ db, mail, config, log = consoleAuthLog, now 
     },
   });
 
-  return {
-    authHandler: async (request) => answerFailedLogin(request, await auth.handler(request), log),
-    sessions: {
-      async resolve(headers) {
-        const found = await auth.api.getSession({ headers });
-        return found ? { learnerId: id(found.user.id), role: Role.parse(found.user.role) } : null;
-      },
+  const sessions: SessionResolver = {
+    async resolve(headers) {
+      const found = await auth.api.getSession({ headers });
+      return found ? { learnerId: id(found.user.id), role: Role.parse(found.user.role) } : null;
     },
+  };
+
+  return {
+    authHandler: async (request) =>
+      new URL(request.url).pathname === PREFERENCES_PATH
+        ? handlePreferences(request, { sessions, learners, appUrl: config.appUrl })
+        : answerFailedLogin(request, await auth.handler(request), log),
+    sessions,
     learners,
   };
 };

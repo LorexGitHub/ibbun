@@ -37,7 +37,7 @@ Each file has an H1, one paragraph of user-visible behaviour, then exactly these
 - [reading](./reading.md): Reading Passages, Batch Text episodes, Practice Texts. Not built yet.
 - [listening](./listening.md): free Listening practice, dialogues. Not built yet.
 - [dashboard](./dashboard.md): due counts, Mastery by level. Not built yet.
-- [account](./account.md): sign-up, verify, login, reset, sessions, deletion. Not built yet.
+- [account](./account.md): sign-up, verify, login, reset, sessions, deletion, preferences. Built.
 - [content-graph fixture](./content-graph-fixture.md): hand-made N5 dev/test graph and its loader. Built.
 - [import](./import.md): admin Import Runs and reports. Not built yet.
 - [content-generation](./content-generation.md): admin Generation Requests and Runs. Not built yet.
