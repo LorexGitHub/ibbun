@@ -1,10 +1,13 @@
-/** Midnight UTC of the newest first Monday that is not after `now`. */
+/** Midnight UTC of the first Monday of a month (`month` 0 to 11; -1 is December of the year before). */
+const firstMondayOf = (year: number, month: number): Date => {
+  const first = new Date(Date.UTC(year, month, 1));
+  return new Date(Date.UTC(year, month, 1 + ((8 - first.getUTCDay()) % 7)));
+};
+
+/** Midnight UTC of the newest first Monday that is not after `now`: this month's, or else last month's. */
 export const latestFirstMonday = (now: Date): Date => {
-  for (let back = 0; ; back++) {
-    const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - back, 1));
-    const first = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1 + ((8 - month.getUTCDay()) % 7)));
-    if (first <= now) return first;
-  }
+  const thisMonth = firstMondayOf(now.getUTCFullYear(), now.getUTCMonth());
+  return thisMonth <= now ? thisMonth : firstMondayOf(now.getUTCFullYear(), now.getUTCMonth() - 1);
 };
 
 /**
