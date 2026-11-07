@@ -1,7 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { CreditEntry } from "../contract.ts";
-import { CreditsView } from "./credits-page.tsx";
+import { CreditsState, CreditsView, loadCredits } from "./credits-page.tsx";
 
 const jmdict: CreditEntry = { name: "JMdict", licenceName: "EDRDG Licence (CC BY-SA 4.0)", url: "https://www.edrdg.org/jmdict", version: "2026-11-02", appliedAt: "2026-11-02T00:00:00.000Z" };
 const voice: CreditEntry = { name: "VOICEVOX:四国めたん", licenceName: "VOICEVOX voice terms", url: "https://voicevox.hiroshiba.jp/", version: null, appliedAt: null };
@@ -28,5 +28,25 @@ describe("Credits page", () => {
   it("carries the UniDic BSD notice", () => {
     expect(html).toContain("National Institute for Japanese Language and Linguistics");
     expect(html).toContain("Neither the name of the copyright holder");
+  });
+});
+
+const reply = (body: unknown, status = 200) => (async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
+
+describe("loading the Credits page", () => {
+  it("shows a loading line, then the credits, or an alert when they failed", () => {
+    expect(renderToString(<CreditsState credits={null} />)).toContain("Loading credits");
+    expect(renderToString(<CreditsState credits="failed" />)).toContain("could not be loaded");
+    expect(renderToString(<CreditsState credits={[jmdict]} />)).toContain("JMdict");
+  });
+
+  it("parses a good response", async () => {
+    expect(await loadCredits(reply({ credits: [jmdict] }))).toEqual([jmdict]);
+  });
+
+  it("fails on an error status, a malformed body and a network error", async () => {
+    expect(await loadCredits(reply({}, 500))).toBe("failed");
+    expect(await loadCredits(reply({ credits: [{ name: 1 }] }))).toBe("failed");
+    expect(await loadCredits((async () => Promise.reject(new Error("offline"))) as typeof fetch)).toBe("failed");
   });
 });

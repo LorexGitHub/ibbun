@@ -45,16 +45,27 @@ export const CreditsView = ({ credits }: { credits: readonly CreditEntry[] }) =>
   </article>
 );
 
-/** The public Credits page: fetches `/api/credits` and shows it. */
-export const CreditsPage = () => {
-  const [credits, setCredits] = useState<CreditEntry[] | "failed" | null>(null);
-  useEffect(() => {
-    fetch("/api/credits")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((body) => setCredits(CreditsResponse.parse(body).credits))
-      .catch(() => setCredits("failed"));
-  }, []);
+export type Loaded = CreditEntry[] | "failed" | null;
+
+/** What the page shows for each stage of loading. */
+export const CreditsState = ({ credits }: { credits: Loaded }) => {
   if (credits === null) return <p>Loading credits…</p>;
   if (credits === "failed") return <p role="alert">The credits could not be loaded. Try again in a moment.</p>;
   return <CreditsView credits={credits} />;
+};
+
+export const loadCredits = async (get: typeof fetch = fetch): Promise<CreditEntry[] | "failed"> => {
+  try {
+    const res = await get("/api/credits");
+    return res.ok ? CreditsResponse.parse(await res.json()).credits : "failed";
+  } catch {
+    return "failed";
+  }
+};
+
+/** The public Credits page: fetches `/api/credits` and shows it. */
+export const CreditsPage = () => {
+  const [credits, setCredits] = useState<Loaded>(null);
+  useEffect(() => void loadCredits().then(setCredits), []);
+  return <CreditsState credits={credits} />;
 };
