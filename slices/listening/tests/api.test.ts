@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createAuthGuards, createFakeSessionResolver } from "@mojibun/auth";
 import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@mojibun/content-graph/testing";
 import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeProgress } from "@mojibun/progress/testing";
+import { createFakeJobs } from "@mojibun/jobs";
+import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
 import { createListeningApi } from "../server/api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}`;
@@ -58,6 +59,9 @@ const setup = async () => {
     contentGraph: createFakeContentGraph(buildGraph()),
     progress,
     learners,
+    texts: createFakeTexts(),
+    jobs: createFakeJobs(),
+    practiceLimit: 5,
     guards: createAuthGuards(sessions),
     now: () => new Date("2026-03-01T10:00:00Z"),
     random: () => 0,

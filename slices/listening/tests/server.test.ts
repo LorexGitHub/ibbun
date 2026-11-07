@@ -26,7 +26,7 @@ describe("productionDeps", () => {
   it("wires every core dependency without connecting until a request needs the database", () => {
     const env = { DATABASE_URL: "postgres://nobody@127.0.0.1:1/none", AUTH_SECRET: "x".repeat(32), APP_URL: "http://localhost:5173" };
     const deps = productionDeps(env);
-    expect(Object.keys(deps).sort()).toEqual(["contentGraph", "guards", "learners", "now", "progress", "random"]);
+    expect(Object.keys(deps).sort()).toEqual(["contentGraph", "guards", "jobs", "learners", "now", "practiceLimit", "progress", "random", "texts"]);
     expect(deps.now()).toBeInstanceOf(Date);
     expect(deps.random()).toBeLessThan(1);
   });

@@ -955,6 +955,9 @@ importers:
       '@mojibun/db':
         specifier: workspace:*
         version: link:../../platform/db
+      '@mojibun/jobs':
+        specifier: workspace:*
+        version: link:../../platform/jobs
       '@mojibun/learner':
         specifier: workspace:*
         version: link:../../core/learner
