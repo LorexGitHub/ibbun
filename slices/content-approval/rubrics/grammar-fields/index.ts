@@ -14,24 +14,27 @@ export type GrammarFieldsDraft = {
 
 export type GrammarFieldsCheck = { failures: Failure[]; level: Level };
 
-/** The Grammar Point a Generation Run wrote fields for, while it is still undecided. Rejected fields are redrafted into the same point. */
-export const grammarFieldsDrafts = async (a: Authoring, runId: string): Promise<GrammarFieldsDraft[]> => {
+/** The Grammar Point a Generation Run wrote fields for, unless it is gone or already decided. Rejected fields are redrafted into the same point. */
+const undecidedPoint = async (a: Authoring, runId: string) => {
   const [run] = await a.rows("generationRun", { id: runId });
-  const [request] = run ? await a.rows("generationRequest", { id: run.requestId }) : [];
-  const [item] = request ? await a.rows("studyItem", { id: request.targetId, type: "grammar_point", retired: false }) : [];
-  const [point] = item && item.approval !== "approved" ? await a.rows("grammarPoint", { studyItemId: item.id }) : [];
-  if (!item || !point) return [];
-  const proposed = await a.rows("sentenceDemonstratesGrammar", { grammarPointId: item.id, approval: "draft" });
-  const links = await Promise.all(
-    proposed.map(async (link) => {
-      const [sentence] = await a.rows("sentence", { id: link.sentenceId });
-      if (!sentence) throw new Error(`link ${link.id} has no Sentence`);
-      return { sentence, link };
-    }),
-  );
-  const primary: Rec = { table: "studyItem", id: item.id };
+  const [request] = await a.rows("generationRequest", { id: run!.requestId });
+  const [item] = await a.rows("studyItem", { id: request!.targetId, type: "grammar_point", retired: false });
+  const [point] = item ? await a.rows("grammarPoint", { studyItemId: item.id }) : [];
+  return item && item.approval !== "approved" ? { item, point: point! } : undefined;
+};
+
+const proposedLinks = async (a: Authoring, grammarPointId: string): Promise<GrammarFieldsDraft["links"]> => {
+  const proposed = await a.rows("sentenceDemonstratesGrammar", { grammarPointId, approval: "draft" });
+  return Promise.all(proposed.map(async (link) => ({ link, sentence: (await a.rows("sentence", { id: link.sentenceId }))[0]! })));
+};
+
+export const grammarFieldsDrafts = async (a: Authoring, runId: string): Promise<GrammarFieldsDraft[]> => {
+  const found = await undecidedPoint(a, runId);
+  if (!found) return [];
+  const links = await proposedLinks(a, found.item.id);
+  const primary: Rec = { table: "studyItem", id: found.item.id };
   const records: Rec[] = [...links.map(({ link }) => ({ table: "sentenceDemonstratesGrammar" as const, id: link.id })), primary];
-  return [{ kind: "grammar-fields", primary, records, point, links }];
+  return [{ kind: "grammar-fields", primary, records, point: found.point, links }];
 };
 
 const missingFields = (point: Row<"grammarPoint">): Failure[] =>
@@ -52,16 +55,21 @@ export const checkGrammarFields = async (a: Authoring, { point }: GrammarFieldsD
   return { failures, level: currentLevel(await a.rows("levelCandidate", { studyItemId: point.studyItemId })) };
 };
 
+const orNone = (text: string | null | undefined): string => text || "none";
+
+const linkLine = ({ sentence, link }: GrammarFieldsDraft["links"][number]): string =>
+  `- ${sentence.text} (${orNone(sentence.translationEn)}) 「${sentence.text.slice(link.spanStart, link.spanEnd)}」`;
+
 /** The values the rubric template needs. */
 export const grammarFieldsValues = ({ point, links }: GrammarFieldsDraft, check: GrammarFieldsCheck): Record<string, string> => ({
   target: point.title,
-  level: check.level === null ? "Unlevelled" : check.level,
+  level: check.level ?? "Unlevelled",
   title: point.title,
-  forms: point.forms.map((f) => `${f.text} (${f.register})`).join("、") || "none",
-  formation: point.formation.join(" + ") || "none",
+  forms: orNone(point.forms.map((f) => `${f.text} (${f.register})`).join("、")),
+  formation: orNone(point.formation.join(" + ")),
   register: point.register,
   meaning: point.meaning,
-  notes: point.notes || "none",
+  notes: orNone(point.notes),
   matcherRule: JSON.stringify(point.matcherRule),
-  links: links.map(({ sentence, link }) => `- ${sentence.text} (${sentence.translationEn ?? "no translation"}) 「${sentence.text.slice(link.spanStart, link.spanEnd)}」`).join("\n") || "none",
+  links: orNone(links.map(linkLine).join("\n")),
 });

@@ -8,6 +8,7 @@ import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@mojibun/llm";
 import { createFakeNlp } from "@mojibun/nlp";
 import { createFakeProgress } from "@mojibun/progress/testing";
 import { DEFAULT_CONFIG } from "../../src/config.ts";
+import { grammarFieldsDrafts, grammarFieldsValues } from "./index.ts";
 import { rubricFor } from "../../src/rubrics.ts";
 import { reviewRun } from "../../src/review-job.ts";
 import { DEFAULT_SAMPLING } from "../../sampling/config.ts";
@@ -132,5 +133,37 @@ describe("reviewing Grammar Point fields", () => {
     itemRow(w).approval = "rejected";
     await review(w);
     expect(itemRow(w).approval).toBe("approved");
+  });
+});
+
+describe("grammarFieldsDrafts", () => {
+  it("finds nothing once the point is approved, or when the target is not a Grammar Point", async () => {
+    const approved = await world();
+    itemRow(approved).approval = "approved";
+    expect(await grammarFieldsDrafts(approved.a, approved.run.id)).toEqual([]);
+    const word = await world();
+    itemRow(word).type = "word";
+    expect(await grammarFieldsDrafts(word.a, word.run.id)).toEqual([]);
+  });
+
+  it("lists the proposed links before the Study Item, which is last", async () => {
+    const w = await world();
+    const [draft] = await grammarFieldsDrafts(w.a, w.run.id);
+    expect(draft!.records).toEqual([{ table: "sentenceDemonstratesGrammar", id: w.link }, { table: "studyItem", id: w.item }]);
+  });
+});
+
+describe("what the reviewer is told when a field is empty", () => {
+  it("says none for missing notes, links, forms and translation, and Unlevelled for no level", async () => {
+    const w = await world({ forms: [], formation: [], notes: "Said when regretting." });
+    w.graph.levelCandidate.length = 0;
+    w.graph.sentence[0]!.translationEn = null;
+    const [draft] = await grammarFieldsDrafts(w.a, w.run.id);
+    const values = grammarFieldsValues(draft!, { failures: [], level: null });
+    expect(values).toMatchObject({ level: "Unlevelled", forms: "none", formation: "none", notes: "Said when regretting." });
+    expect(values.links).toBe("- 食べてしまった。 (none) 「食べてしまっ」");
+    w.graph.sentenceDemonstratesGrammar.length = 0;
+    const [bare] = await grammarFieldsDrafts(w.a, w.run.id);
+    expect(grammarFieldsValues({ ...bare!, point: { ...bare!.point, notes: null } }, { failures: [], level: "N4" })).toMatchObject({ links: "none", notes: "none", level: "N4" });
   });
 });
