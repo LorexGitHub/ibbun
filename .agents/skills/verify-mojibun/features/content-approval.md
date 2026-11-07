@@ -9,12 +9,14 @@ The supervisor opens the Content Approval queue under `/admin/content-approval` 
 - `content.review` job: Sudachi tokens stored on the Sentence, automatic checks, reviewer verdicts, Approval Decisions, retry through `content.generate` (3 attempts, then `generation failed`).
 - Rubrics: `slices/content-approval/rubrics/<kind>/v<N>.md`, newest version wins.
 - Japanese Explanation rubric (`rubrics/explanation`, criteria accurate, natural, level, distinct, reference): the reviewer prompt lists the target's ja Wiktionary explanation(s) (an approved, live explanation of the same target whose Provenance is an import from `wiktionary-ja`) under "ja Wiktionary reference", or `none`. The decision's rubric version reads `explanation/v1`.
+- Proposals rubric (`rubrics/proposals/v1.md`): criteria `one-meaning`, `variant-only`, `sense-fit`, `best-candidate`, `no-match`, `reason` for merge and sense-alignment proposals. It judges meaning, not form (ように "so that" vs "like"). Check with `pnpm exec vitest run slices/content-approval/rubrics/proposals`; it is not yet wired into `content.review`, which has no proposal draft type.
+- Example rubric is `example/v2` (answer data spelled out: accepted answer matches the span, alternates carry nudges, known-wrong answers carry explanations). The first 20 reviewer approvals after the bump are all sampled (`calibration`); a review decision records `rubricVersion: example/v2`.
 - Spot-checks screen: one card per kind (Examples, Japanese Explanations, Listening Clips) with error rate over the last 50 sampled, "auto-approval paused" and Resume; sample cards with Looks right / Reject and a note; re-review form (Generation Run, Rubric version or Model).
 - `GET /api/content-approval/sampling/spot-checks` (`?status=pending|confirmed|rejected`), `POST .../spot-checks/:id/verdict` `{verdict: confirm|reject, note?}`, `POST .../kinds/:kind/resume`, `POST .../re-reviews` `{generationRunId?|rubricVersion?|model?}`, supervisor only.
 - Sampling: every reviewer approval is drawn in `content.review`: all of the first 20 after a model or rubric version change (`calibration`), else 5% (`random`). Listening Clip audio approvals (derived decisions whose process starts `listening`) are drawn the same way when the spot-checks list is loaded. State is in `content_approval.sample` and `content_approval.kind_state`.
 - A rejected sample takes its unit down: Retired if any Learner has a Review of the Example (or its Study Item), else Rejected; a Retired Example opens a Generation Request `example retired`.
 - Pause: more than 10% rejected among the last 50 settled `calibration`/`random` samples of a kind pauses it. While paused the reviewer's approvals stay `draft` and show as `held` samples; Approve makes them live, Reject sends the feedback back to the generator. Resume starts a fresh window.
-- Not built here: the budget alert, rubrics for kinds other than Example and Japanese Explanation.
+- Not built here: the budget alert, reviewer wiring for rubrics other than Example and Japanese Explanation.
 
 ## How to get to it (user POV)
 
