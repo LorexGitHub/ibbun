@@ -4,7 +4,7 @@ import { createDb } from "@mojibun/db";
 import { createLearnerAuth, learnerConfigFromEnv } from "@mojibun/learner";
 import type { Mail } from "@mojibun/mail";
 import { createProgress, createTexts } from "@mojibun/progress";
-import type { ReadingDeps } from "./api.ts";
+import type { ReadingDeps } from "./reading-api.ts";
 
 /** Resolving a session never sends mail. */
 const noMail: Mail = {

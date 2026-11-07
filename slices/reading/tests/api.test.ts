@@ -4,7 +4,7 @@ import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@moj
 import { createFakeLearners } from "@mojibun/learner/testing";
 import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
 import { StudyItemId } from "@mojibun/shared";
-import { createReadingApi } from "../server/api.ts";
+import { createReadingApi } from "../server/reading-api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}`;
 const PASSAGE = ID(100);
