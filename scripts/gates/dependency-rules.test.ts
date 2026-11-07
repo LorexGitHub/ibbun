@@ -97,7 +97,7 @@ const linkDeps = async (root: string, dir: string, deps: string[]) => {
     const from = join(root, dir, "node_modules", dep);
     await mkdir(dirname(from), { recursive: true });
     const target = dep === "better-auth" ? join(root, BETTER_AUTH) : join(root, workspaceDir(dep));
-    await symlink(target, from, "dir");
+    await symlink(target, from, "junction");
   }
 };
 

@@ -1,5 +1,6 @@
-# The merge gates from docs/architecture.md#done-for-a-slice-or-core-change.
-# A PR merges only when every job here passes.
+# The fast merge gates from docs/architecture.md#done-for-a-slice-or-core-change.
+# crapper, dryer and mutator run on the author's machine (`pnpm ship`), not here:
+# the mutator step alone took over an hour per run.
 name: ci
 on:
   pull_request:
@@ -13,10 +14,6 @@ concurrency:
 
 env:
   NODE_VERSION: "24"
-  # unclebob's tools, cloned next to the repo as ub-mode expects (mutator needs ../crapper).
-  CRAPPER_SHA: 6fd92c4c9bcc56efb64a2f8743d5a2993bcfd42d
-  DRYER_SHA: 66ff6d21a42c04afcad89c78a80066176d1294b0
-  MUTATOR_SHA: a5a0cb803b66e0cdb8bf471b3b08af701d424a41
 
 jobs:
   rules:
@@ -51,51 +48,6 @@ jobs:
         with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:packages
-
-  ub-gates:
-    name: crapper, dryer, mutator
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17
-        env: { POSTGRES_USER: mojibun, POSTGRES_PASSWORD: mojibun, POSTGRES_DB: mojibun }
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U mojibun" --health-interval 5s --health-retries 10
-    env:
-      TEST_DATABASE_URL: postgres://mojibun:mojibun@localhost:5432/mojibun
-    steps:
-      - uses: actions/checkout@v5
-        with: { fetch-depth: 0 }
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v5
-        with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
-      - uses: actions/setup-python@v6
-        with: { python-version: "3.13" }
-      - name: Clone crapper, dryer and mutator next to the repo
-        run: |
-          for tool in crapper:$CRAPPER_SHA dryer:$DRYER_SHA mutator:$MUTATOR_SHA; do
-            name=${tool%%:*}; sha=${tool#*:}
-            git init -q "../$name"
-            git -C "../$name" fetch -q --depth 1 "https://github.com/unclebob/$name" "$sha"
-            git -C "../$name" checkout -q FETCH_HEAD
-          done
-      - run: pnpm install --frozen-lockfile
-      - name: Coverage per package (LCOV for crapper and mutator)
-        run: pnpm test:packages --coverage
-      - name: Show this change to --changed
-        # crapper and mutator read --changed from `git status`. A soft reset to
-        # the base leaves every file the PR adds or edits staged.
-        run: |
-          base=${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
-          git reset -q --soft "$(git merge-base "$base" HEAD)"
-          git status --short
-      - name: crapper --changed (fails at CRAP 10 or above)
-        run: ../crapper/crapper --changed --use-existing-coverage --threshold 9.99
-      - name: dryer (fails at 0.8 inside a package, reports across packages)
-        run: pnpm gate:dryer
-      - name: mutator --changed (fails on a surviving mutant or uncovered code)
-        run: pnpm gate:mutator --changed --use-existing-coverage --test-command "$PWD/node_modules/.bin/vitest run --passWithNoTests"
 
   e2e:
     name: playwright

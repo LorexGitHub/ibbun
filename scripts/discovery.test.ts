@@ -14,7 +14,7 @@ const fixture = resolve(import.meta.dirname, "fixtures/root");
 const listFiles = async (dir: string): Promise<string[]> =>
   (await readdir(dir, { recursive: true, withFileTypes: true }))
     .filter((e) => e.isFile())
-    .map((e) => relative(dir, join(e.parentPath, e.name)))
+    .map((e) => relative(dir, join(e.parentPath, e.name)).replaceAll("\\", "/"))
     .sort();
 
 describe("slice discovery", () => {
