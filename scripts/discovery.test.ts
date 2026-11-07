@@ -2,11 +2,13 @@ import { cp, mkdir, mkdtemp, readdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import type { ServerContext } from "@mojibun/slice";
 import { createFakeJobs } from "@mojibun/jobs";
 import { createApp } from "../apps/api/src/app.ts";
 import { startWorker } from "../apps/worker/src/worker.ts";
 import { generate } from "./gen-slice-index.mjs";
 
+const ctx = { db: {}, sessions: { resolve: async () => null } } as unknown as ServerContext;
 const fixture = resolve(import.meta.dirname, "fixtures/root");
 
 const listFiles = async (dir: string): Promise<string[]> =>
@@ -38,7 +40,7 @@ describe("slice discovery", () => {
   it("api mounts the sample slice's routes under /api/<name>", async () => {
     await generate(fixture);
     const { slices } = await import(join(fixture, "apps/api/src/slices.generated.ts"));
-    const app = await createApp(slices);
+    const app = await createApp(slices, ctx);
     expect(await (await app.request("/api/sample/ping")).json()).toEqual({ pong: true });
     expect(await (await app.request("/api/health")).json()).toEqual({ ok: true });
   });
@@ -48,7 +50,7 @@ describe("slice discovery", () => {
     const { slices } = await import(join(fixture, "apps/worker/src/slices.generated.ts"));
     const { Ping, pinged } = await import("./fixtures/root/slices/sample/server/index.ts");
     const jobs = createFakeJobs();
-    expect(await startWorker(jobs, slices)).toEqual(["sample.ping"]);
+    expect(await startWorker(jobs, slices, ctx)).toEqual(["sample.ping"]);
     await jobs.enqueue(Ping, { who: "Aki" });
     await jobs.drain();
     expect(pinged).toEqual(["Aki"]);

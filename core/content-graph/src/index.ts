@@ -8,6 +8,7 @@ export type {
   GrammarPoint,
   Kanji,
   ListeningClip,
+  PathItem,
   Sentence,
   StudyItem,
   StudyItemLink,

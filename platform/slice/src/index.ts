@@ -1,11 +1,16 @@
 import type { Hono } from "hono";
 import type { ComponentType } from "react";
+import type { SessionResolver } from "@mojibun/auth";
+import type { Db } from "@mojibun/db";
 import type { JobHandler } from "@mojibun/jobs";
 
 export type NavEntry = { label: string; path: string };
 export type WebRoute = { path: string; component: ComponentType };
 /** A piece of UI a slice offers to a screen that another slice (or the shell) owns, such as the dashboard. */
 export type Widget = { slot: string; component: ComponentType };
+
+/** What the api and worker shells hand every slice's server part: the database and who is asking. */
+export type ServerContext = { db: Db; sessions: SessionResolver };
 
 export type ServerPart = {
   /** Mounted by apps/api at `/api/<slice name>`. */
@@ -22,7 +27,7 @@ export type WebPart = { routes?: WebRoute[]; widgets?: Widget[] };
 export type Slice = {
   name: string;
   nav?: NavEntry;
-  server?: () => Promise<ServerPart>;
+  server?: (ctx: ServerContext) => Promise<ServerPart>;
   web?: () => Promise<WebPart>;
 };
 
@@ -43,5 +48,8 @@ export const checkSlices = (slices: Slice[]): Slice[] => {
   return [...slices].sort((a, b) => a.name.localeCompare(b.name));
 };
 
-export const loadServerParts = async (slices: Slice[]): Promise<{ slice: Slice; part: ServerPart }[]> =>
-  Promise.all(slices.map(async (slice) => ({ slice, part: (await slice.server?.()) ?? {} })));
+export const loadServerParts = async (
+  slices: Slice[],
+  ctx: ServerContext,
+): Promise<{ slice: Slice; part: ServerPart }[]> =>
+  Promise.all(slices.map(async (slice) => ({ slice, part: (await slice.server?.(ctx)) ?? {} })));
