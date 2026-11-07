@@ -52,13 +52,21 @@ test("settings shows the Learner, their session and their preferences", async ({
   await expect(page.getByText("learner@mojibun.test")).toBeVisible();
   await expect(page.getByText("(this device)")).toBeVisible();
 
+  // The boxes are saved at once and redraw from the server's answer, so click and then expect (no check()/uncheck()).
   const english = page.getByLabel("Show the English translation");
+  const japanese = page.getByLabel("Show the Japanese Explanation");
+  await expect(english).toBeVisible();
+  if (await japanese.isChecked()) {
+    await japanese.click(); // start from English only, whatever an earlier run left
+    await expect(japanese).not.toBeChecked();
+  }
   await expect(english).toBeDisabled(); // the only explanation on: it can't be turned off
-  await page.getByLabel("Show the Japanese Explanation").check();
-  await expect(page.getByText("Saved.")).toBeVisible();
+  await japanese.click();
+  await expect(japanese).toBeChecked();
   await expect(english).toBeEnabled();
   await page.reload();
-  await expect(page.getByLabel("Show the Japanese Explanation")).toBeChecked();
-  await page.getByLabel("Show the Japanese Explanation").uncheck();
-  await expect(page.getByLabel("Show the English translation")).toBeDisabled();
+  await expect(japanese).toBeChecked();
+  await japanese.click();
+  await expect(japanese).not.toBeChecked();
+  await expect(english).toBeDisabled();
 });
