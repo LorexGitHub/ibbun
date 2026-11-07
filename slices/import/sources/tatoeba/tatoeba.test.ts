@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createFakeNlp, type Token } from "@mojibun/nlp";
 import { buildSentences, decodeExports, tatoebaSource, type Exports } from "./index.ts";
-import { chooseTranslation, parseDetailed, parseIndexLine, parseNativeSpeakers } from "./parse.ts";
+import { chooseTranslation, parseDetailed, parseIndexLine, parseIndices, parseNativeSpeakers } from "./parse.ts";
 import { mapLimited, sudachiLinks, toStoredTokens } from "./tokens.ts";
 
 const token = (surface: string, lemma: string, pos: string[], reading = surface): Token => ({ surface, lemma, reading, partOfSpeech: pos, conjugation: null });
@@ -49,6 +49,23 @@ describe("parseIndexLine", () => {
     expect(parseIndexLine("為る(する){した} 走る", "それをした")).toEqual([
       { entry: null, form: "為る", reading: "する", sense: null, start: 3, end: 5 },
     ]);
+  });
+});
+
+describe("parseIndices", () => {
+  it("keeps a line per translation of each Japanese Sentence and skips short rows", () => {
+    const found = parseIndices("11\t1\ta b\n12\t1\tc\n13\t2\td\nbroken\n14\t3");
+    expect([...found]).toEqual([
+      ["1", [{ english: "11", line: "a b" }, { english: "12", line: "c" }]],
+      ["2", [{ english: "13", line: "d" }]],
+    ]);
+  });
+});
+
+describe("toStoredTokens", () => {
+  it("places each token where it appears and keeps its conjugation form", () => {
+    const [t] = toStoredTokens("食べた", [{ surface: "食べ", lemma: "食べる", reading: "タベ", partOfSpeech: ["動詞"], conjugation: { type: "下一段", form: "連用形" } }]);
+    expect(t).toEqual({ surface: "食べ", lemma: "食べる", reading: "タベ", partOfSpeech: ["動詞"], conjugationForm: "連用形", start: 0, end: 2 });
   });
 });
 

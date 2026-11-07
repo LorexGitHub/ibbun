@@ -75,9 +75,8 @@ export const parseIndexLine = (line: string, text: string): SentenceLink[] => {
  */
 export const parseIndices = (csv: string): Map<string, { english: string; line: string }[]> => {
   const byJapanese = new Map<string, { english: string; line: string }[]>();
-  for (const [english, japanese, line] of rows(csv)) {
-    if (!english || !japanese || !line) continue;
-    byJapanese.set(japanese, [...(byJapanese.get(japanese) ?? []), { english, line }]);
+  for (const [english, japanese, line] of rows(csv).filter((r) => r.length >= 3)) {
+    byJapanese.set(japanese!, [...(byJapanese.get(japanese!) ?? []), { english: english!, line: line! }]);
   }
   return byJapanese;
 };

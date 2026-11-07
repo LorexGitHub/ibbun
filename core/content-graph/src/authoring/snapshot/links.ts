@@ -55,14 +55,20 @@ const wordOf = (index: Index, link: SentenceLink): string | null => {
 
 type Resolved = Pick<Row<"sentenceUsesWord">, "wordId" | "formId" | "readingId" | "senseId" | "spanStart" | "spanEnd">;
 
+/** The id of the row with `text`, if the list has one. */
+const withText = (rows: { id: string; text: string }[] | undefined, text: string | null) => rows?.find((r) => r.text === text)?.id ?? null;
+
+/** The id of the sense a 1-based sense number names. */
+const senseAt = (rows: { id: string }[] | undefined, number: number | null) => (number === null ? null : (rows?.[number - 1]?.id ?? null));
+
 const resolve = (index: Index, link: SentenceLink): Resolved | null => {
   const wordId = wordOf(index, link);
   if (wordId === null) return null;
   return {
     wordId,
-    formId: index.forms.get(wordId)?.find((f) => f.text === link.form)?.id ?? null,
-    readingId: index.readings.get(wordId)?.find((r) => r.text === link.reading)?.id ?? null,
-    senseId: (link.sense === null ? undefined : index.senses.get(wordId)?.[link.sense - 1])?.id ?? null,
+    formId: withText(index.forms.get(wordId), link.form),
+    readingId: withText(index.readings.get(wordId), link.reading),
+    senseId: senseAt(index.senses.get(wordId), link.sense),
     spanStart: link.start,
     spanEnd: link.end,
   };

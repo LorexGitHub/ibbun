@@ -41,6 +41,21 @@ export const decodeExports = (files: RawFile[]): Exports =>
     }),
   ) as Exports;
 
+type Posts = ReturnType<typeof parseDetailed>;
+
+/** English ids per Japanese id, for links whose both ends are in the exports. */
+const translationsOf = (pairs: [string, string][], japanese: Posts, english: Posts): Map<string, string[]> => {
+  const translations = new Map<string, string[]>();
+  for (const [jpn, eng] of pairs.filter(([j, e]) => japanese.has(j) && english.has(e))) translations.set(jpn, [...(translations.get(jpn) ?? []), eng]);
+  return translations;
+};
+
+/** `jpn_indices` links where it covers the Sentence (the line of the chosen translation, else the first), else Sudachi's. */
+const linksOf = (covering: { english: string; line: string }[] | undefined, translation: string, text: string, tokens: SentenceRecord["tokens"]) => {
+  const line = (covering?.find((c) => c.english === translation) ?? covering?.[0])?.line;
+  return line ? parseIndexLine(line, text) : sudachiLinks(tokens);
+};
+
 /**
  * Japanese Sentences with an English translation, the translation the fixed rule chose, Sudachi tokens, and
  * Sentence-uses-Word links: `jpn_indices` where it covers the Sentence, else Sudachi's (import-pipeline.md#derived-links).
@@ -52,23 +67,17 @@ export const buildSentences = async (exports: Exports, nlp: Nlp): Promise<Senten
   const cc0 = parseIds(exports.cc0);
   const indices = parseIndices(exports.indices);
 
-  const translations = new Map<string, string[]>();
-  for (const [jpn, eng] of parseLinks(exports.links)) {
-    if (japanese.has(jpn) && english.has(eng)) translations.set(jpn, [...(translations.get(jpn) ?? []), eng]);
-  }
-
+  const translations = translationsOf(parseLinks(exports.links), japanese, english);
   const chosen = [...translations].map(([key, ids]) => [key, chooseTranslation(ids, (id) => english.get(id)!.author, natives)] as const);
   return mapLimited(chosen, TOKENIZE_CONCURRENCY, async ([key, translation]): Promise<SentenceRecord> => {
     const { text: sentence, author } = japanese.get(key)!;
     const tokens = await tokenize(nlp, sentence);
-    const covering = indices.get(key);
-    const line = (covering?.find((c) => c.english === translation) ?? covering?.[0])?.line;
     return {
       key,
       text: sentence,
       translationEn: english.get(translation)!.text,
       tokens,
-      links: line ? parseIndexLine(line, sentence) : sudachiLinks(tokens),
+      links: linksOf(indices.get(key), translation, sentence, tokens),
       author,
       licence: cc0.has(key) ? "cc0" : "cc-by-2.0-fr",
     };
