@@ -15,6 +15,16 @@ const contract = (make: () => Promise<ContentGraph>) => {
     cg = await make();
   });
 
+  describe("successorOf", () => {
+    it("names the visible Word that supersedes a Retired Word", async () => {
+      expect(await cg.successorOf(id("retiredWord"))).toBe(id("taberu"));
+    });
+
+    it.each(["taberu", "draftWord", "missing"] as const)("names no successor for %s", async (key) => {
+      expect(await cg.successorOf(id(key))).toBeNull();
+    });
+  });
+
   describe("studyItem", () => {
     it("returns a Word with its visible forms, readings and senses in order, overrides applied", async () => {
       const page = await cg.studyItem(id("taberu"));

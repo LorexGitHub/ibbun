@@ -110,6 +110,8 @@ export type PathItem = {
 /** Reads of approved, non-retired Content Graph records with overrides applied. */
 export interface ContentGraph {
   studyItem(id: StudyItemId): Promise<StudyItemPage | null>;
+  /** The visible Word that supersedes a Retired Word (docs/import-pipeline.md#key-gone-deletion-or-merge), or null. */
+  successorOf(id: StudyItemId): Promise<StudyItemId | null>;
   /** Visible Study Items of one type whose current JLPT Level is `level`. */
   levelList(level: JlptLevel, type: BrowsableType): Promise<StudyItemSummary[]>;
   /** Visible Listening Clips whose current JLPT Level is `level`, in ID order. */
@@ -404,6 +406,11 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
     studyItem(id: string): StudyItemPage | null {
       const item = itemOf(ctx, id);
       return item && { item, examples: examplesOf(ctx, id), links: linksOf(ctx, item), attribution: attributionOf(ctx, byType(RECORDS, item)(ctx)) };
+    },
+
+    successorOf(id: string): StudyItemId | null {
+      const link = graph.wordSupersededBy.filter((l) => l.retiredWordId === id && visible(l) && ctx.items.has(l.wordId)).sort(byId)[0];
+      return (link?.wordId as StudyItemId | undefined) ?? null;
     },
 
     levelList(level: JlptLevel, type: BrowsableType): StudyItemSummary[] {

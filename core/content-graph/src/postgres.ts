@@ -1,7 +1,7 @@
 import { and, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import type { DbOrTx } from "@mojibun/db";
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel, StudyItemId } from "@mojibun/shared";
 import { emptyGraph, type Graph } from "./graph.ts";
 import { creditsOf, recordProvenance } from "./licensing.ts";
 import { DEFAULT_SEARCH_LIMIT, normaliseQuery, reader, type ContentGraph } from "./read.ts";
@@ -14,6 +14,17 @@ import * as t from "./schema.ts";
 export const createContentGraph = (db: DbOrTx): ContentGraph => ({
   async studyItem(id) {
     return (await readerOver(db, await loadPage(db, id))).studyItem(id);
+  },
+
+  async successorOf(id) {
+    const [link] = await db
+      .select({ id: t.wordSupersededBy.wordId })
+      .from(t.wordSupersededBy)
+      .innerJoin(t.studyItem, eq(t.studyItem.id, t.wordSupersededBy.wordId))
+      .where(and(eq(t.wordSupersededBy.retiredWordId, id), visible(t.wordSupersededBy), visible(t.studyItem)))
+      .orderBy(t.wordSupersededBy.id)
+      .limit(1);
+    return (link?.id as StudyItemId | undefined) ?? null;
   },
 
   async levelList(level, type) {
