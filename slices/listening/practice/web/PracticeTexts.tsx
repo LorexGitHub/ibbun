@@ -24,7 +24,7 @@ const readyWithin = async (id: string): Promise<ClipView | null> => {
 };
 
 /** The fixed choices only: a level, a 聴解 task type, a length and a topic. Nothing typed reaches the LLM. */
-const GenerateForm = ({ options, onStart }: { options: Options; onStart: (choice: Parameters<typeof generate>[0]) => void }) => {
+const GenerateForm = ({ options, onStart }: { options: Options; onStart: (choice: GenerateChoice) => void }) => {
   const [level, setLevel] = useState<JlptLevel>(options.cleared[0]!);
   const [passageType, setPassageType] = useState("any");
   const [length, setLength] = useState<(typeof LENGTHS)[number]>("short");
@@ -89,6 +89,19 @@ const Offer = ({ options, making, onStart }: { options: Options; making: boolean
 
 type Screen = { at: "menu"; message?: string } | { at: "making" } | { at: "playing"; id: string; view: ClipView };
 
+type GenerateChoice = Parameters<typeof generate>[0];
+
+/** Generates a dialogue and waits for it; the Learner ends up playing it, or reading why not. */
+const generateAndWait = async (choice: GenerateChoice): Promise<Screen> => {
+  try {
+    const id = await generate(choice);
+    const view = await readyWithin(id);
+    return view ? { at: "playing", id, view } : { at: "menu", message: "Your dialogue is still being made. It will appear in your library when it is ready." };
+  } catch (error) {
+    return { at: "menu", message: error instanceof Error ? error.message : "Something went wrong." };
+  }
+};
+
 /** Practice Text dialogues for the Learner's Cleared Levels (listening.md#practice-texts). */
 export const PracticeTexts = () => {
   const [options, setOptions] = useState<Options | null>(null);
@@ -104,15 +117,9 @@ export const PracticeTexts = () => {
     setScreen(view ? { at: "playing", id, view } : { at: "menu", message: "That dialogue is still being made." });
   };
 
-  const start = async (choice: Parameters<typeof generate>[0]) => {
+  const start = async (choice: GenerateChoice) => {
     setScreen({ at: "making" });
-    try {
-      const id = await generate(choice);
-      const view = await readyWithin(id);
-      setScreen(view ? { at: "playing", id, view } : { at: "menu", message: "Your dialogue is still being made. It will appear in your library when it is ready." });
-    } catch (error) {
-      setScreen({ at: "menu", message: error instanceof Error ? error.message : "Something went wrong." });
-    }
+    setScreen(await generateAndWait(choice));
     await refresh();
   };
 
