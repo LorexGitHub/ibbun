@@ -8,7 +8,7 @@ import { definePlan, type Kind, type Services } from "../kind.ts";
 import { factsOf, subjects, writePassageDraft, type PassageDraft } from "../passage/draft.ts";
 import { reasonCodec } from "../passage/reason.ts";
 import { earlierItems, levelsByItem } from "../reading-passage/earlier.ts";
-import { TASK_TYPES } from "./config.ts";
+import { taskTypes } from "../dialogue/config.ts";
 import { dialogueShape, passageShape, type Shape } from "./plan-numbers.ts";
 
 export const TEMPLATE_VERSION = "practice-text/1";
@@ -60,7 +60,7 @@ const FORMS: Record<PracticeText["form"], Form> = {
     ask: (t, { size, type }) => [
       `Write a dialogue of about ${size} lines between 男 and 女, at JLPT level ${t.level} or easier, for a ${type} task.`,
       "Use natural spoken register and a clear speaker turn on every line.",
-      `Add two comprehension questions of two different task types out of ${TASK_TYPES[t.level].join(", ")}.`,
+      `Add two comprehension questions of two different task types out of ${taskTypes(t.level).join(", ")}.`,
       "Each question is in Japanese with four choices, one correct, and can only be answered from the dialogue.",
     ],
     output: Dialogue,
