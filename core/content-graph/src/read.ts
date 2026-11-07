@@ -398,6 +398,12 @@ const pathItemOf = (ctx: Ctx, row: Row<"studyItem">): PathItem => ({
   ...PATH_FACTS[row.type](ctx, row.id),
 });
 
+/** The visible Word a Retired Word is superseded by; the first link by ID if there are several. */
+const successorOf = (ctx: Ctx, id: string): StudyItemId | null => {
+  const link = ctx.graph.wordSupersededBy.filter((l) => l.retiredWordId === id && visible(l) && ctx.items.has(l.wordId)).sort(byId)[0];
+  return (link?.wordId as StudyItemId | undefined) ?? null;
+};
+
 /** The pure reads over a set of rows. The fake runs it over its whole graph; Postgres over the rows a read loaded. */
 export const reader = (graph: Graph, links: Map<string, string> = recordProvenance(graph)) => {
   const ctx = context(graph, links);
@@ -408,10 +414,7 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
       return item && { item, examples: examplesOf(ctx, id), links: linksOf(ctx, item), attribution: attributionOf(ctx, byType(RECORDS, item)(ctx)) };
     },
 
-    successorOf(id: string): StudyItemId | null {
-      const link = graph.wordSupersededBy.filter((l) => l.retiredWordId === id && visible(l) && ctx.items.has(l.wordId)).sort(byId)[0];
-      return (link?.wordId as StudyItemId | undefined) ?? null;
-    },
+    successorOf: (id: string) => successorOf(ctx, id),
 
     levelList(level: JlptLevel, type: BrowsableType): StudyItemSummary[] {
       return visibleItems()
