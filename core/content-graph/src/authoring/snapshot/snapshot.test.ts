@@ -142,6 +142,32 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await apply("kanjidic", [])).counts.retired).toBe(1);
       expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(true);
     });
+    it("leaves KanjiVG strokes alone when KANJIDIC2 refreshes, and does not count the Kanji as changed", async () => {
+      const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      await apply("kanjidic", [kanji]);
+      await apply("kanjivg", [{ key: "098df", strokes: ["M1,2"] }]);
+      expect((await apply("kanjidic", [kanji])).counts).toMatchObject({ changed: 0 });
+      expect((await apply("kanjidic", [{ ...kanji, meanings: ["eat", "food"] }])).counts).toMatchObject({ changed: 1 });
+      expect((await h.a.rows("kanji", { studyItemId: await idOf("kanjidic", "食") }))[0]).toMatchObject({ meanings: ["eat", "food"], strokes: ["M1,2"] });
+    });
+
+    it("sets KanjiVG strokes on the KANJIDIC2 Kanji of the same code point, and skips code points KANJIDIC2 lacks", async () => {
+      const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      await apply("kanjidic", [kanji]);
+      const id = await idOf("kanjidic", "食");
+      const stray = { key: "04e80", strokes: ["M1,1"] };
+      const report = await apply("kanjivg", [{ key: "098df", strokes: ["M1,2", "M3,4"] }, stray]);
+      expect(report.counts).toMatchObject({ added: 1, changed: 0 });
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual(["M1,2", "M3,4"]);
+      expect(await idOf("kanjivg", "098df")).toBe(id);
+
+      expect((await apply("kanjivg", [{ key: "098df", strokes: ["M1,2", "M5,6"] }])).counts).toMatchObject({ added: 0, changed: 1, retired: 0 });
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual(["M1,2", "M5,6"]);
+
+      expect((await apply("kanjivg", [])).counts.retired).toBe(1);
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual([]);
+      expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(false);
+    });
   });
 
   describe("changed keys", () => {

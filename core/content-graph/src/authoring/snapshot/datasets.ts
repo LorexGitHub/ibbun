@@ -2,22 +2,23 @@ import type { Row } from "../store.ts";
 import { replaceLinks } from "./links.ts";
 import { moveSpan } from "./match.ts";
 import { same, type RunCtx } from "./run.ts";
-import type { KanjiRecord, SentenceRecord, WordLevelRecord } from "./types.ts";
+import type { KanjiRecord, KanjiStrokesRecord, SentenceRecord, WordLevelRecord } from "./types.ts";
 
-const kanjiFields = ({ key, ...fields }: KanjiRecord) => ({ literal: key, ...fields });
+/** What KANJIDIC2 owns on a Kanji. `strokes` belong to KanjiVG: KANJIDIC2 starts them empty and never rewrites them. */
+const kanjiFields = ({ key, strokes: _, ...fields }: KanjiRecord) => ({ literal: key, ...fields });
 
 export const kanjidic = {
   add: async (ctx: RunCtx, record: KanjiRecord) => {
     const id = ctx.clock.newId();
     await ctx.tx.insert("studyItem", [{ id, type: "kanji", approval: "approved", retired: false, provenanceId: await ctx.provenance("edrdg") }]);
-    await ctx.tx.insert("kanji", [{ studyItemId: id, ...kanjiFields(record), knownWrongMeanings: [] }]);
+    await ctx.tx.insert("kanji", [{ studyItemId: id, ...kanjiFields(record), strokes: [], knownWrongMeanings: [] }]);
     await ctx.sourceKey(record.key, id);
     return id;
   },
 
   change: async (ctx: RunCtx, id: string, record: KanjiRecord) => {
     const [item] = await ctx.tx.rows("studyItem", { id });
-    const [{ studyItemId: _, knownWrongMeanings: __, ...old }] = (await ctx.tx.rows("kanji", { studyItemId: id })) as [Row<"kanji">];
+    const [{ studyItemId: _, knownWrongMeanings: __, strokes: ___, ...old }] = (await ctx.tx.rows("kanji", { studyItemId: id })) as [Row<"kanji">];
     const next = kanjiFields(record);
     if (!item!.retired && same(old, next)) return false;
     await ctx.tx.update("studyItem", { id }, { retired: false, provenanceId: await ctx.provenance("edrdg") });
@@ -27,6 +28,38 @@ export const kanjidic = {
   },
 
   retire: (ctx: RunCtx, id: string) => ctx.retireItem(id, null),
+};
+
+const literalOf = (codePoint: string) => String.fromCodePoint(Number.parseInt(codePoint, 16));
+
+const kanjiOf = async (ctx: RunCtx, id: string) => ((await ctx.tx.rows("kanji", { studyItemId: id })) as [Row<"kanji">])[0];
+
+/**
+ * KanjiVG adds stroke data to Kanji KANJIDIC2 already made; it never creates one. A code point KANJIDIC2 lacks is skipped
+ * (`add` returns null) and picked up by a later run once the Kanji exists. A character that leaves KanjiVG loses its
+ * strokes; the Kanji itself stays, because KANJIDIC2 owns it.
+ */
+export const kanjivg = {
+  add: async (ctx: RunCtx, record: KanjiStrokesRecord) => {
+    const [kanji] = await ctx.tx.rows("kanji", { literal: literalOf(record.key) });
+    if (!kanji) return null;
+    await ctx.tx.update("kanji", { studyItemId: kanji.studyItemId }, { strokes: record.strokes });
+    await ctx.sourceKey(record.key, kanji.studyItemId);
+    return kanji.studyItemId;
+  },
+
+  change: async (ctx: RunCtx, id: string, record: KanjiStrokesRecord) => {
+    const old = await kanjiOf(ctx, id);
+    if (same(old.strokes, record.strokes)) return false;
+    await ctx.tx.update("kanji", { studyItemId: id }, { strokes: record.strokes });
+    await ctx.checkOverrides(id, { strokes: record.strokes });
+    return true;
+  },
+
+  retire: async (ctx: RunCtx, id: string) => {
+    ctx.counts.retired++;
+    await ctx.tx.update("kanji", { studyItemId: id }, { strokes: [] });
+  },
 };
 
 const credit = (ctx: RunCtx, record: SentenceRecord) =>

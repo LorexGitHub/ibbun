@@ -1,20 +1,20 @@
 import type { Clock } from "../authoring.ts";
 import { rules } from "../authoring.ts";
 import type { Store } from "../store.ts";
-import { kanjidic, tatoeba, yomitan } from "./datasets.ts";
+import { kanjidic, kanjivg, tatoeba, yomitan } from "./datasets.ts";
 import { jmdict } from "./jmdict.ts";
 import { tripped } from "./match.ts";
 import { runContext, type RunCtx } from "./run.ts";
 import { DEFAULT_BREAKER, type Counts, type Dataset, type Records, type Run, type SnapshotOptions, type SnapshotReport } from "./types.ts";
 
 type Rules<R> = {
-  /** Null when the record has nothing to attach to yet: it is skipped, and offered again on the next run. */
+  /** Null skips the record: nothing is written and its key stays unknown, so a later run tries it again. */
   add: (ctx: RunCtx, record: R) => Promise<string | null>;
   change: (ctx: RunCtx, id: string, record: R) => Promise<boolean>;
   retire: (ctx: RunCtx, id: string, surviving: R[], idOf: (key: string) => string) => Promise<void>;
 };
 
-const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, tatoeba, yomitan };
+const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, kanjivg, tatoeba, yomitan };
 
 /** Thrown inside the transaction so a tripped run rolls back everything it wrote. */
 class Tripped extends Error {

@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-const LATEST = "https://api.github.com/repos/scriptin/jmdict-simplified/releases/latest";
-
 const Release = z.object({
   tag_name: z.string().min(1),
   assets: z.array(z.object({ name: z.string(), browser_download_url: z.url() })),
@@ -16,8 +14,11 @@ export const get = async (fetchImpl: Fetch, url: string, accept: string) => {
   return response;
 };
 
-/** A jmdict-simplified release: the latest one, or the one with this tag. JMdict and KANJIDIC2 both come from it. */
-export const release = async (fetchImpl: Fetch, tag?: string): Promise<Release> => {
-  const url = tag ? LATEST.replace("latest", `tags/${encodeURIComponent(tag)}`) : LATEST;
+/** A GitHub release of `repo` (`owner/name`): the latest one, or the one with this tag. */
+export const githubRelease = async (fetchImpl: Fetch, repo: string, tag?: string): Promise<Release> => {
+  const url = `https://api.github.com/repos/${repo}/releases/${tag ? `tags/${encodeURIComponent(tag)}` : "latest"}`;
   return Release.parse(await (await get(fetchImpl, url, "application/vnd.github+json")).json());
 };
+
+/** A jmdict-simplified release. JMdict and KANJIDIC2 both come from it. */
+export const release = (fetchImpl: Fetch, tag?: string): Promise<Release> => githubRelease(fetchImpl, "scriptin/jmdict-simplified", tag);

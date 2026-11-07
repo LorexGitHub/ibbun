@@ -5,6 +5,7 @@ import { createSudachiNlp } from "@mojibun/nlp";
 import { jmdictSource } from "../sources/jmdict/index.ts";
 import { kanjidicSource } from "../sources/kanjidic2/index.ts";
 import { tatoebaSource } from "../sources/tatoeba/index.ts";
+import { kanjivgSource } from "../sources/kanjivg/index.ts";
 import { yomitanSource } from "../sources/yomitan-jlpt-vocab/index.ts";
 import { runImport, type ImportDeps } from "./run.ts";
 import { monthlyRefreshDue } from "./schedule.ts";
@@ -26,6 +27,8 @@ export const refreshes = (env: { SUDACHI_URL?: string } = process.env): Refresh[
   { source: jmdictSource() as Source, cron: "0 12 * * *", monthly: true },
   // KANJIDIC2 and KRADFILE: the same licence and release as JMdict, so the same schedule.
   { source: kanjidicSource() as Source, cron: "0 12 * * *", monthly: true },
+  // KanjiVG: checked weekly. A run on a tag already applied downloads and changes nothing, so only a new release tag applies.
+  { source: kanjivgSource() as Source, cron: "0 12 * * 1", monthly: false },
   // Tatoeba: exported Saturdays 06:30 UTC. Saturday and Sunday noon, so a failed Saturday run is tried once more; an applied version is a no-op.
   { source: tatoebaSource(createSudachiNlp({ url: env.SUDACHI_URL ?? "http://localhost:8000" })) as Source, cron: "0 12 * * 6,0", monthly: false },
   // yomitan-jlpt-vocab: checked every Monday, applied only when upstream has a new release (a rerun of a live version is a no-op).
