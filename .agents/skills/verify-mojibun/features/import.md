@@ -40,5 +40,5 @@ Preconditions: baseline from the README, plus `verify.sh` must also start `pnpm 
 - jmdict-simplified publishes only a `common` flag, so Word `priorityTags` is `["common"]` or `[]`. Pitch accent is `null` until the UniDic seed.
 - The Content Approval queue screen is another slice. Until it ships, the link from the report goes to a route the shell answers with its home fallback.
 - Not run end to end against the Compose stack by the author: no supervisor login exists until the account slice ships. The unit and Postgres tests cover the run, the schedule logic, the API roles and the screen.
-- KanjiVG is a ~3.6 MB `.xml.gz` release asset; the first run needs internet. Not run end to end against the Compose stack by the author: The parser was checked against the real r20260714 file (6703 characters).
+- KanjiVG is a ~3.6 MB `.xml.gz` release asset; the first run needs internet. Not run end to end against the Compose stack by the author. The parser was checked against the real r20260714 file (6703 characters).
 - KANJIDIC2 never rewrites `strokes` (it creates Kanji with none); only the `kanjivg` rule does. A KANJIDIC2 refresh keeps KanjiVG strokes and does not count the Kanji as changed.
