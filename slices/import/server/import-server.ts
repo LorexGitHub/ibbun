@@ -10,12 +10,13 @@ import { postgresSnapshots } from "./snapshots.ts";
 const DEFAULT_RAW_DIR = "./data/import-raw";
 
 /** Wires the slice to Postgres, the raw-file volume and the session check the report API needs. */
-export const createImportServer = ({ db, sessions }: ServerContext, options: { rawDir?: string; refreshes?: Refresh[] } = {}): ServerPart => {
+export const createImportServer = ({ db, sessions }: ServerContext, options: { rawDir: string; refreshes: Refresh[] }): ServerPart => {
   const authoring = createAuthoring(db);
   const snapshots = postgresSnapshots(db);
-  const raw = directoryRawFiles(options.rawDir ?? process.env.IMPORT_RAW_DIR ?? DEFAULT_RAW_DIR);
-  const jobs = importJobs({ authoring, snapshots, raw }, options.refreshes ?? refreshes());
+  const raw = directoryRawFiles(options.rawDir);
+  const jobs = importJobs({ authoring, snapshots, raw }, options.refreshes);
   return { jobs, api: new Hono().route("/", importApi({ authoring, snapshots, sessions })) };
 };
 
-export default async (context: ServerContext): Promise<ServerPart> => createImportServer(context);
+export default async (context: ServerContext): Promise<ServerPart> =>
+  createImportServer(context, { rawDir: process.env.IMPORT_RAW_DIR ?? DEFAULT_RAW_DIR, refreshes: refreshes() });
