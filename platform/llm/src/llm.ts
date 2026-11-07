@@ -36,7 +36,7 @@ export class LlmError extends Error {
   readonly model: string;
   readonly usage: TokenUsage;
   readonly costUsd: number;
-  // Written out rather than as parameter properties: Node's type stripping, which runs the API and worker, rejects those.
+  // No parameter properties: Node runs this file with type stripping only.
   constructor(message: string, model: string, usage: TokenUsage, costUsd: number) {
     super(message);
     this.model = model;
