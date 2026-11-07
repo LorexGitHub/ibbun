@@ -1,13 +1,53 @@
 # account
 
-Not built yet. The `account` slice ([architecture.md](../../../../docs/architecture.md#slices)) has no journeys to verify. Its author fills this file with `/maintain-verification-skill` in the slice PR.
+A visitor signs up with an email and password, verifies the address through a mailed link, logs in and out, and resets a forgotten password. A Learner changes their email or password, sees and ends their sessions, sets their preferences (furigana, English and Japanese explanations, never both off) and deletes their account. Sign-up, login and reset never say whether an address has an account ([accounts.md](../../../../docs/accounts.md)).
 
 ## Sub-features
 
+- `account-signup` `/signup` always answers "Check your email"; a new address gets a verify mail, an existing one gets "already registered"; the link works once and logs nobody in.
+- `account-login` `/login` gives one failure message, "email or password is wrong", for an unknown address, a wrong password and an unverified account.
+- `account-reset` `/forgot-password` always answers "If that address has an account, we sent a link"; `/reset-password?token=…` sets a new password and ends every session.
+- `account-settings` `/settings`: change email (mail to the new address first), change password (other sessions end), list and end sessions, log out, log out everywhere.
+- `account-preferences` the preference controls on `/settings`, saved at once; the last explanation toggle cannot be turned off.
+- `account-delete` "Delete my account" with the password hard-deletes the Learner.
+- `account-rate-limit` login is limited to 5 tries per 15 min per email and IP; sign-up, reset and resend to 3 per hour per IP; the blocked call is `429` with `Retry-After`.
+- `account-roles` the `learner` and `supervisor` seed accounts; `/admin` needs `supervisor`.
+
 ## How to get to it (user POV)
+
+- Open `http://localhost:5173/signup`, `/login`, `/forgot-password` or `/settings`. The nav has a Settings link.
+- Verification and reset links arrive in Mailpit at `http://localhost:8025`.
+- Without a session, `/settings` sends the visitor to `/login`.
 
 ## Driving it with Playwright
 
 Preconditions:
 
+- `verify.sh up` ran on the branch; it seeds `learner@mojibun.test` (password `learner-password`) and `supervisor@mojibun.test` (`supervisor-password`).
+- Use a fresh browser context per journey unless the step says otherwise. Use a fresh address such as `v1@mojibun.test` per sign-up.
+- Limit steps (`account-rate-limit`) use addresses and a client IP of their own; do them last, because they burn the 3-per-hour budget of that IP.
+
+- **Sign up and verify.** Open `/signup`, fill Email and Password (12+ characters), press "Sign up". Expect a status "Check your email". Follow the link from `curl -s "http://localhost:8025/api/v1/search?query=to:v1@mojibun.test"` then `GET /api/v1/message/<ID>`. Expect the URL `/login?verified=1` and "Email verified". Log in; expect to leave `/login`. Read-only view: `docker compose -p mojibun-verify exec postgres psql -U mojibun -c "select email, email_verified from learner.learners where email='v1@mojibun.test'"` shows verified.
+- **Unverified cannot log in.** Sign up `v2@mojibun.test`, do not open the link, log in. Expect the alert "email or password is wrong".
+- **Enumeration-safe sign-up.** Sign up `learner@mojibun.test` again. Expect the same status text as for a new address; Mailpit shows an "already registered" mail to it and no new row appears in `learner.learners`.
+- **Enumeration-safe login.** Log in as `nobody@mojibun.test`, then as `learner@mojibun.test` with a wrong password. Both show exactly "email or password is wrong".
+- **Link works once.** Open the verify link of `v1` a second time; expect an error, not a session.
+- **Password reset.** Open `/forgot-password`, enter `learner@mojibun.test`, then `nobody@mojibun.test`. Both show "If that address has an account, we sent a link."; Mailpit has one reset mail, for the first. Open its link, choose a new password, expect `/login?reset=1`; log in with the new password. Open the link again; expect "invalid token". Run `verify.sh shot /login account/reset-login`.
+- **Settings.** Log in as `learner@mojibun.test`, open `/settings`. Expect the email, a session marked "(this device)" and the preference controls. `verify.sh shot /settings account/settings`.
+- **Preferences and the toggle rule.** On `/settings` the English translation box is checked and disabled while Japanese is off. Check "Show the Japanese Explanation": "Saved." appears and English becomes enabled. Reload: Japanese is still checked (read-only view: `select explanations from learner.preferences`). Uncheck English: Japanese becomes disabled. No click can leave both off.
+- **Sessions.** Log in from two contexts as the same Learner. In one, `/settings` lists two sessions; "End session" on the other; reload the other context and expect `/login`.
+- **Log out everywhere.** With two contexts logged in, press "Log out everywhere" in one. Expect `/login` there and, after reload, in the other.
+- **Change password ends other sessions.** With two contexts logged in, change the password in one; the other is logged out on reload, the first stays.
+- **Change email.** Enter a new address and press "Change email". Expect the status; Mailpit has a verify mail to the new address; the old address still logs in until the link is opened; after it, only the new address logs in and the old address got an "email changed" mail.
+- **Rate limiting.** Post six wrong logins for one address in a row (`curl -s -o /dev/null -w '%{http_code}\n' -H 'content-type: application/json' -H 'origin: http://localhost:5173' -d '{"email":"rl@mojibun.test","password":"x"}' http://localhost:5173/api/auth/sign-in/email`). Expect five `401`, then `429` with a `Retry-After` header (`curl -i`). Request sign-up four times from one client; the fourth is `429`.
+- **Deletion.** Sign up and verify `v3@mojibun.test`, log in, open `/settings`, enter the password under "Password to confirm", press "Delete my account". Expect `/signup`, a mail "Your mojibun account was deleted", and the address can no longer log in. Read-only view: `select count(*) from learner.learners where email='v3@mojibun.test'` is 0, and the same for `learner.sessions` and `learner.login_methods` by Learner ID noted before deleting. A wrong password keeps the account and shows an alert.
+- **Roles.** `curl -s -b <cookie jar> http://localhost:5173/api/auth/get-session` after logging in as each seed account: the `user.role` is `learner` and `supervisor`. The `/admin` screens belong to the admin slices; until one mounts `requireRole('supervisor')` there is no `/admin` route to hit, so report the `/admin` step as skipped with that reason, never as passed. Once one exists, expect the Learner to get `403` and the Supervisor `200`.
+- **Harness spec.** `env -u CI pnpm exec playwright test --project=learner slices/account/tests` passes.
+
 ## Gotchas
+
+- The session cookie is `Secure`; Chromium accepts it on `http://localhost`, curl needs `-c`/`-b` jars and does not drop it.
+- Every state-changing call needs `Origin: http://localhost:5173`, or Better Auth answers 403.
+- Rate-limit counters live in Postgres and survive restarts. `verify.sh down -v` clears them; otherwise use new addresses.
+- The "log out everywhere" and password-change steps end the stored Playwright session of `learner@mojibun.test`; do them with a Learner made for the step, not the seed account the `setup` project logged in.
+- Verification mail links point at `APP_URL` (`http://localhost:5173`).

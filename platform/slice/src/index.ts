@@ -1,7 +1,8 @@
 import type { Hono } from "hono";
 import type { ComponentType } from "react";
-import type { JobContract, JobHandler } from "@mojibun/jobs";
 import type { SessionResolver } from "@mojibun/auth";
+import type { Db } from "@mojibun/db";
+import type { JobContract, JobHandler } from "@mojibun/jobs";
 import type { z } from "zod";
 
 export type NavEntry = { label: string; path: string };
@@ -12,13 +13,8 @@ export type Widget = { slot: string; component: ComponentType };
 /** A job a slice wants started on a cron schedule (UTC), with no human involved. */
 export type Schedule<S extends z.ZodType = z.ZodType> = { contract: JobContract<S>; cron: string; payload: z.input<S> };
 
-/** What the shell hands a slice when it loads its server part. */
-export type ServerContext = {
-  /** Postgres connection string; absent in tests of the shell itself. */
-  databaseUrl?: string;
-  /** Finds the caller's session. Without it a slice must not mount routes that need a role. */
-  sessions?: SessionResolver;
-};
+/** What the api and worker shells hand every slice's server part: the database and who is asking. */
+export type ServerContext = { db: Db; sessions: SessionResolver };
 
 export type ServerPart = {
   /** Mounted by apps/api at `/api/<slice name>`. */
@@ -37,7 +33,7 @@ export type WebPart = { routes?: WebRoute[]; widgets?: Widget[] };
 export type Slice = {
   name: string;
   nav?: NavEntry;
-  server?: (context: ServerContext) => Promise<ServerPart>;
+  server?: (ctx: ServerContext) => Promise<ServerPart>;
   web?: () => Promise<WebPart>;
 };
 
@@ -58,5 +54,8 @@ export const checkSlices = (slices: Slice[]): Slice[] => {
   return [...slices].sort((a, b) => a.name.localeCompare(b.name));
 };
 
-export const loadServerParts = async (slices: Slice[], context: ServerContext = {}): Promise<{ slice: Slice; part: ServerPart }[]> =>
-  Promise.all(slices.map(async (slice) => ({ slice, part: (await slice.server?.(context)) ?? {} })));
+export const loadServerParts = async (
+  slices: Slice[],
+  ctx: ServerContext,
+): Promise<{ slice: Slice; part: ServerPart }[]> =>
+  Promise.all(slices.map(async (slice) => ({ slice, part: (await slice.server?.(ctx)) ?? {} })));

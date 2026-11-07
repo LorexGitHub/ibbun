@@ -155,6 +155,13 @@ const contract = (make: () => Promise<ContentGraph>) => {
     });
   });
 
+  describe("listeningClips", () => {
+    it("lists the visible Listening Clips whose current level is that level", async () => {
+      expect(await cg.listeningClips("N5")).toEqual([id("clipAtN5")]);
+      expect(await cg.listeningClips("N1")).toEqual([]);
+    });
+  });
+
   describe("search", () => {
     const labels = async (q: string, limit?: number) => (await cg.search(q, limit === undefined ? undefined : { limit })).map((s) => s.label);
 

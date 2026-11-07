@@ -36,10 +36,8 @@ describe("the import slice, registered", () => {
     expect(slice.nav).toEqual({ label: "Import", path: "/admin/import" });
   });
 
-  it("offers nothing to run without a database, and no API without a session resolver", async () => {
-    expect(await slice.server!({})).toEqual({});
-    const part = createImportServer({ databaseUrl: pg.url }, { db, rawDir: dir, refreshes: [] });
-    expect(part.api).toBeUndefined();
+  it("always runs the staleness check, and refreshes nothing when no source is given", () => {
+    const part = createImportServer({ db, sessions: createFakeSessionResolver() }, { rawDir: dir, refreshes: [] });
     expect(part.jobs?.map((j) => j.contract.name)).toEqual(["import.staleness"]);
   });
 
@@ -55,7 +53,7 @@ describe("the import slice, registered", () => {
       },
     };
     const sessions = createFakeSessionResolver();
-    const part = createImportServer({ databaseUrl: pg.url, sessions }, { db, rawDir: dir, refreshes: [refresh] });
+    const part = createImportServer({ db, sessions }, { rawDir: dir, refreshes: [refresh] });
     const jobs = createFakeJobs();
     await jobs.work(part.jobs!);
     for (const s of part.schedules!) await jobs.schedule(s.contract, s.cron, s.payload);
