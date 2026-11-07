@@ -151,16 +151,19 @@ const explanationTarget = (a: Authoring, { explanation }: ExplanationDraft): Pro
   throw new Error(`Japanese Explanation ${explanation.id} explains nothing`);
 };
 
+const fromWiktionary = async (a: Authoring, provenanceId: string): Promise<boolean> => {
+  const [provenance] = await a.rows("provenance", { id: provenanceId });
+  if (provenance?.source.kind !== "import") return false;
+  const [run] = await a.rows("importRun", { id: provenance.source.importRunId });
+  return run?.dataset === WIKTIONARY;
+};
+
 /** The ja Wiktionary entries for the target, kept for the reviewer to compare the draft with. */
 const wiktionaryReferences = async (a: Authoring, { explanation }: ExplanationDraft): Promise<string[]> => {
   const mine = explanation.grammarPointId ? { grammarPointId: explanation.grammarPointId } : { wordSenseId: explanation.wordSenseId! };
   const found: string[] = [];
   for (const e of await a.rows("japaneseExplanation", mine)) {
-    if (e.id === explanation.id || e.approval === "rejected" || e.retired) continue;
-    const [provenance] = await a.rows("provenance", { id: e.provenanceId });
-    if (provenance?.source.kind !== "import") continue;
-    const [run] = await a.rows("importRun", { id: provenance.source.importRunId });
-    if (run?.dataset === WIKTIONARY) found.push(e.text);
+    if (e.id !== explanation.id && e.approval !== "rejected" && !e.retired && (await fromWiktionary(a, e.provenanceId))) found.push(e.text);
   }
   return found;
 };
