@@ -1,36 +1,39 @@
-import type { Example } from "@mojibun/content-graph";
+import type { Example, GrammarPoint, Kanji, Word } from "@mojibun/content-graph";
 import type { Lesson } from "../contract.ts";
 import type { TaughtPage } from "./prompt.ts";
 
+type Facts = Pick<Lesson, "title" | "reading" | "meanings" | "details">;
+
 const detail = (label: string, values: string[]) => (values.length ? [{ label, value: values.join(" / ") }] : []);
 
-/** What a lesson says about a Study Item, as a title, a reading, meanings and labelled details. */
-const factsOf = ({ item }: TaughtPage): Pick<Lesson, "title" | "reading" | "meanings" | "details"> => {
-  switch (item.type) {
-    case "kanji":
-      return {
-        title: item.literal,
-        reading: null,
-        meanings: item.meanings,
-        details: [...detail("On'yomi", item.onReadings), ...detail("Kun'yomi", item.kunReadings), { label: "Strokes", value: String(item.strokeCount) }],
-      };
-    case "word":
-      return {
-        title: item.forms[0]?.text ?? item.readings[0]?.text ?? "",
-        reading: item.readings[0]?.text ?? null,
-        meanings: item.senses.map((s) => s.glosses.join("; ")),
-        details: detail("Part of speech", item.senses[0]?.partsOfSpeech ?? []),
-      };
-    case "grammar_point":
-      return {
-        title: item.title,
-        reading: null,
-        meanings: [item.meaning],
-        details: [...detail("Formation", item.formation), { label: "Register", value: item.register }, ...(item.notes ? [{ label: "Notes", value: item.notes }] : [])],
-      };
-  }
+const kanjiFacts = (kanji: Kanji): Facts => ({
+  title: kanji.literal,
+  reading: null,
+  meanings: kanji.meanings,
+  details: [...detail("On'yomi", kanji.onReadings), ...detail("Kun'yomi", kanji.kunReadings), { label: "Strokes", value: String(kanji.strokeCount) }],
+});
+
+/** A Word with no written form in kanji is taught by its reading. */
+const wordFacts = (word: Word): Facts => ({
+  title: word.forms[0]?.text ?? word.readings[0]!.text,
+  reading: word.readings[0]!.text,
+  meanings: word.senses.map((s) => s.glosses.join("; ")),
+  details: detail("Part of speech", word.senses[0]!.partsOfSpeech),
+});
+
+const grammarFacts = (point: GrammarPoint): Facts => ({
+  title: point.title,
+  reading: null,
+  meanings: [point.meaning],
+  details: [...detail("Formation", point.formation), { label: "Register", value: point.register }, ...(point.notes ? [{ label: "Notes", value: point.notes }] : [])],
+});
+
+const factsOf = ({ item }: TaughtPage): Facts => {
+  if (item.type === "kanji") return kanjiFacts(item);
+  return item.type === "word" ? wordFacts(item) : grammarFacts(item);
 };
 
+/** What a lesson says about a Study Item, with the Example that shows it. */
 export const lessonOf = (page: TaughtPage, example: Example, japaneseExplanation: string | null): Lesson => ({
   studyItemId: page.item.id,
   type: page.item.type,

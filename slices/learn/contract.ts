@@ -86,6 +86,8 @@ export const QuizAnswer = z.object({
   timeToAnswerMs: z.number().int().nonnegative().optional(),
 });
 export type QuizAnswer = z.input<typeof QuizAnswer>;
+/** A quiz answer after parsing: every facet has its `attempts`. */
+export type CheckedAnswer = z.output<typeof QuizAnswer>;
 
 export const CompleteRequest = z.object({ answers: z.array(QuizAnswer).min(1) });
 export type CompleteRequest = z.input<typeof CompleteRequest>;

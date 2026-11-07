@@ -52,15 +52,13 @@ const Feedback = ({ prompt, marked }: { prompt: QuizPrompt; marked: Marked[] }) 
   );
 };
 
-/** One quiz question. A miss is shown with its answer; the quiz asks it again later. */
-export const QuestionCard = (props: { prompt: QuizPrompt; preferences: Preferences; onDone: (given: Given[], timeToAnswerMs: number) => void }) => {
-  const { prompt, preferences, onDone } = props;
+/** The state of one question: what is typed, what was tried before, and how it was marked. */
+const useQuestion = (prompt: QuizPrompt, preferences: Preferences, onDone: (given: Given[], timeToAnswerMs: number) => void) => {
   const started = useRef(Date.now());
   const attempts = useRef<Partial<Record<Facet, string[]>>>({});
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Notes>({});
   const [marked, setMarked] = useState<Marked[] | null>(null);
-  const shown = shownByDefault(preferences.explanations);
 
   /** Not an answer, or an alternate's nudge: the try is kept in attempts[], never graded, and the field is cleared. */
   const refuse = (refused: ReturnType<typeof notAnswers>) => {
@@ -69,10 +67,7 @@ export const QuestionCard = (props: { prompt: QuizPrompt; preferences: Preferenc
     setInputs((now) => ({ ...now, ...Object.fromEntries(refused.map((r) => [r.facet, ""])) }));
   };
 
-  const check = (event: FormEvent) => {
-    event.preventDefault();
-    const refused = notAnswers(prompt.facets, inputs, preferences.convertRomaji);
-    if (refused.length > 0) return refuse(refused);
+  const mark = () => {
     setNotes({});
     setMarked(
       prompt.facets.map((facet) => {
@@ -83,16 +78,34 @@ export const QuestionCard = (props: { prompt: QuizPrompt; preferences: Preferenc
     );
   };
 
-  const next = () =>
-    onDone(
-      marked!.map((m) => ({ facet: m.facet.facet, input: m.input, passed: m.passed, attempts: attempts.current[m.facet.facet] ?? [] })),
-      Date.now() - started.current,
-    );
+  return {
+    inputs,
+    notes,
+    marked,
+    type: (facet: Facet, value: string) => setInputs((now) => ({ ...now, [facet]: value })),
+    check: (event: FormEvent) => {
+      event.preventDefault();
+      const refused = notAnswers(prompt.facets, inputs, preferences.convertRomaji);
+      if (refused.length > 0) refuse(refused);
+      else mark();
+    },
+    next: () =>
+      onDone(
+        marked!.map((m) => ({ facet: m.facet.facet, input: m.input, passed: m.passed, attempts: attempts.current[m.facet.facet] ?? [] })),
+        Date.now() - started.current,
+      ),
+  };
+};
 
+/** One quiz question. A miss is shown with its answer; the quiz asks it again later. */
+export const QuestionCard = (props: { prompt: QuizPrompt; preferences: Preferences; onDone: (given: Given[], timeToAnswerMs: number) => void }) => {
+  const { prompt, preferences, onDone } = props;
+  const q = useQuestion(prompt, preferences, onDone);
+  const shown = shownByDefault(preferences.explanations);
   return (
     <Card>
-      <form onSubmit={check}>
-        <Sentence prompt={prompt} answered={marked !== null} />
+      <form onSubmit={q.check}>
+        <Sentence prompt={prompt} answered={q.marked !== null} />
         {shown.translation && prompt.translationEn && <p lang="en">{prompt.translationEn}</p>}
         {shown.explanation && prompt.japaneseExplanation && (
           <p lang="ja" className="jp">
@@ -103,24 +116,24 @@ export const QuestionCard = (props: { prompt: QuizPrompt; preferences: Preferenc
           <div key={facet.facet}>
             <FacetInput
               facet={facet}
-              value={inputs[facet.facet] ?? ""}
+              value={q.inputs[facet.facet] ?? ""}
               convertRomaji={preferences.convertRomaji}
-              disabled={marked !== null}
-              onChange={(value) => setInputs((now) => ({ ...now, [facet.facet]: value }))}
+              disabled={q.marked !== null}
+              onChange={(value) => q.type(facet.facet, value)}
             />
-            {notes[facet.facet] && <p role="alert">{notes[facet.facet]}</p>}
+            {q.notes[facet.facet] && <p role="alert">{q.notes[facet.facet]}</p>}
           </div>
         ))}
-        {marked === null && (
+        {q.marked === null && (
           <Button variant="primary" type="submit">
             Check
           </Button>
         )}
       </form>
-      {marked && (
+      {q.marked && (
         <>
-          <Feedback prompt={prompt} marked={marked} />
-          <Button variant="primary" onClick={next}>
+          <Feedback prompt={prompt} marked={q.marked} />
+          <Button variant="primary" onClick={q.next}>
             Next
           </Button>
         </>
