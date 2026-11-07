@@ -6,15 +6,14 @@ import type { Snapshots } from "./snapshots.ts";
 
 const RUNS_SHOWN = 50;
 
-/** Held runs first, then the live ones, newest first. */
-const newestFirst = <T extends { appliedAt: Date | null }>(runs: T[]) =>
-  [...runs].sort((a, b) => (b.appliedAt?.getTime() ?? Infinity) - (a.appliedAt?.getTime() ?? Infinity));
+/** Sort key for "held first, then newest": a run not yet applied sorts before every date. */
+const recency = (run: { appliedAt: Date | null }) => (run.appliedAt ? run.appliedAt.getTime() : Number.MAX_SAFE_INTEGER);
 
 /** The Import Run report: supervisors only. */
 export const importApi = (deps: { authoring: Pick<Authoring, "rows">; snapshots: Pick<Snapshots, "diffs">; sessions: SessionResolver }) => {
   const { requireRole } = createAuthGuards(deps.sessions);
   return new Hono<AuthEnv>().get("/runs", requireRole("supervisor"), async (c) => {
-    const runs = newestFirst(await deps.authoring.rows("importRun")).slice(0, RUNS_SHOWN);
+    const runs = (await deps.authoring.rows("importRun")).sort((a, b) => recency(b) - recency(a)).slice(0, RUNS_SHOWN);
     const diffs = await deps.snapshots.diffs(runs.map((r) => r.id));
     const body: RunsResponse = {
       runs: runs.map((r) => ({

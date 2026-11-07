@@ -15,7 +15,7 @@ describe("startWorker", () => {
     await startWorker(jobs, [
       {
         name: "clock",
-        server: async () => ({ jobs: [handler(Tick, async ({ n }) => void seen.push(n))], schedules: [{ contract: Tick, cron: "0 6 * * 1", payload: { n: 7 } }] }),
+        server: async () => ({ jobs: [handler(Tick, async ({ n }) => void seen.push(n), { cron: "0 6 * * 1", payload: { n: 7 } })] }),
       },
     ], ctx);
     expect(jobs.schedules()).toEqual(new Map([["test.tick", "0 6 * * 1"]]));

@@ -4,7 +4,7 @@ import { createFakeSessionResolver } from "@mojibun/auth";
 import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
 import { LearnerId } from "@mojibun/shared";
 import { RunsResponse } from "../contract.ts";
-import { importApi } from "./api.ts";
+import { importApi } from "./report-api.ts";
 import { memorySnapshots } from "./snapshots.ts";
 
 const setup = async () => {

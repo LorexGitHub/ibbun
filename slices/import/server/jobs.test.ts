@@ -22,9 +22,9 @@ const world = (now: string) => {
   const list: Refresh[] = [{ source: source as Source, cron: "0 12 * * *", monthly: true }];
   const jobs = createFakeJobs();
   const ready = async () => {
-    const { jobs: handlers, schedules } = importJobs(deps, list, () => new Date(now));
+    const handlers = importJobs(deps, list, () => new Date(now));
     await jobs.work(handlers);
-    for (const s of schedules) await jobs.schedule(s.contract, s.cron, s.payload);
+    for (const { contract, schedule } of handlers) await jobs.schedule(contract, schedule!.cron, schedule!.payload);
   };
   return { graph, deps, downloads, jobs, ready };
 };

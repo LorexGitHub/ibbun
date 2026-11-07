@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { defineJob, handler, type JobHandler } from "@mojibun/jobs";
 import type { Dataset } from "@mojibun/content-graph/authoring";
-import type { Schedule } from "@mojibun/slice";
 import { jmdictSource } from "../sources/jmdict/index.ts";
 import { runImport, type ImportDeps } from "./run.ts";
 import { monthlyRefreshDue } from "./schedule.ts";
@@ -25,21 +24,20 @@ export const refreshes = (): Refresh[] => [
 
 const DAILY_STALENESS_CHECK = "0 7 * * *";
 
-/** The job handlers and the schedules that start them, with no human in the loop. */
-export const importJobs = (deps: ImportDeps, list: Refresh[], now: () => Date = () => new Date()): { jobs: JobHandler[]; schedules: Schedule[] } => {
-  const refresh = ({ source, monthly }: Refresh) =>
-    handler(refreshJob(source.dataset), async ({ scheduled, release }) => {
-      if (scheduled && monthly) {
-        const live = await liveRun(deps.authoring, source.dataset);
-        if (!monthlyRefreshDue(now(), live?.appliedAt ?? null)) return;
-      }
-      await runImport(deps, source, { release });
-    });
-  return {
-    jobs: [...list.map(refresh), handler(StalenessCheck, async () => void (await checkStaleness(deps.authoring, now())))],
-    schedules: [
-      ...list.map(({ source, cron }) => ({ contract: refreshJob(source.dataset), cron, payload: { scheduled: true } })),
-      { contract: StalenessCheck, cron: DAILY_STALENESS_CHECK, payload: {} },
-    ],
-  };
+/** The job handlers, each carrying the schedule that starts it with no human in the loop. */
+export const importJobs = (deps: ImportDeps, list: Refresh[], now: () => Date = () => new Date()): JobHandler[] => {
+  const refresh = ({ source, cron, monthly }: Refresh) =>
+    handler(
+      refreshJob(source.dataset),
+      async ({ scheduled, release }) => {
+        if (scheduled && monthly) {
+          const live = await liveRun(deps.authoring, source.dataset);
+          if (!monthlyRefreshDue(now(), live?.appliedAt ?? null)) return;
+        }
+        await runImport(deps, source, { release });
+      },
+      { cron, payload: { scheduled: true } },
+    );
+  const staleness = handler(StalenessCheck, async () => void (await checkStaleness(deps.authoring, now())), { cron: DAILY_STALENESS_CHECK, payload: {} });
+  return [...list.map(refresh), staleness];
 };

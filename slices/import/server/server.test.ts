@@ -56,7 +56,7 @@ describe("the import slice, registered", () => {
     const part = createImportServer({ db, sessions }, { rawDir: dir, refreshes: [refresh] });
     const jobs = createFakeJobs();
     await jobs.work(part.jobs!);
-    for (const s of part.schedules!) await jobs.schedule(s.contract, s.cron, s.payload);
+    for (const { contract, schedule } of part.jobs!) await jobs.schedule(contract, schedule!.cron, schedule!.payload);
 
     await jobs.fire("import.jmdict");
     await jobs.drain();
