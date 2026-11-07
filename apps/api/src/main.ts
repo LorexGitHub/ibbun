@@ -14,7 +14,7 @@ const env = process.env.NODE_ENV === "production" ? process.env : { ...devAuth, 
 
 const db = createDb(url);
 const mail = createSmtpMail({ url: process.env.SMTP_URL ?? "smtp://localhost:1025", from: "mojibun <noreply@mojibun.test>" });
-const { sessions } = createLearnerAuth({ db, mail, config: learnerConfigFromEnv(env) });
+const { sessions, authHandler } = createLearnerAuth({ db, mail, config: learnerConfigFromEnv(env) });
 
 const port = Number(process.env.API_PORT ?? 3000);
-serve({ fetch: (await createApp(slices, { db, sessions })).fetch, port }, () => console.log(`api listening on :${port}`));
+serve({ fetch: (await createApp(slices, { db, sessions }, { authHandler })).fetch, port }, () => console.log(`api listening on :${port}`));

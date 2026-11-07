@@ -1,0 +1,11 @@
+.account-screen { display: grid; gap: var(--space-lg); max-width: 640px; margin-inline: auto; }
+.account-card { display: grid; gap: var(--space-xl); padding: var(--space-xl); }
+.account-form { display: grid; gap: var(--space-md); }
+.account-form .btn { justify-self: start; }
+.field { display: grid; gap: var(--space-xs); font-weight: 600; }
+.notice { margin: 0; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-input); background: var(--color-paper-2); }
+.notice--error { color: var(--color-error); }
+.account-links { display: flex; flex-wrap: wrap; gap: var(--space-md); }
+.choice { display: flex; align-items: center; gap: var(--space-sm); }
+.session-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm); }
+.session-list { display: grid; gap: var(--space-sm); padding: 0; margin: 0; list-style: none; }

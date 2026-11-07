@@ -19,7 +19,6 @@ const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, tatoeba
 class Tripped extends Error {
   readonly counts: Counts;
   readonly reasons: string[];
-  // Written out rather than as parameter properties: Node's type stripping, which runs the API and worker, rejects those.
   constructor(counts: Counts, reasons: string[]) {
     super("breaker tripped");
     this.counts = counts;
