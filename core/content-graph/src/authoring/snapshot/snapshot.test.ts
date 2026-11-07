@@ -239,6 +239,66 @@ const contract = (make: () => Promise<Harness>) => {
     });
   });
 
+  describe("Word Level Candidates from yomitan-jlpt-vocab", () => {
+    const listed = (key: string, level: Records["yomitan"]["level"]) => ({ key, level });
+    const candidates = async (key: string) => h.a.rows("levelCandidate", { studyItemId: await idOf("jmdict", key) });
+
+    it("lists a List candidate on each JMdict Word by ent_seq, credited to Waller and stephenmk, and a rerun changes nothing", async () => {
+      await apply("jmdict", [taberu, nomu]);
+      const report = await apply("yomitan", [listed("1", "N5")]);
+      expect(report).toMatchObject({ status: "applied", counts: { added: 1, levelsChanged: 1 }, notes: [] });
+      const [candidate] = await candidates("1");
+      expect(candidate).toMatchObject({ level: "N5", kind: "list", approval: "approved", retired: false });
+      expect((await h.a.rows("provenance", { id: candidate!.provenanceId }))[0]).toMatchObject({
+        licence: "cc-by-sa-4.0",
+        source: { kind: "import", importRunId: report.importRunId },
+        author: "Jonathan Waller, via stephenmk",
+        sourceUrl: "https://github.com/stephenmk/yomitan-jlpt-vocab",
+      });
+      expect(await candidates("2")).toEqual([]);
+      expect((await apply("yomitan", [listed("1", "N5")])).counts).toMatchObject({ added: 0, changed: 0, levelsChanged: 0 });
+      expect(await candidates("1")).toHaveLength(1);
+    });
+
+    it("skips an ent_seq with no JMdict Word, names it in the report, and lists it once the Word arrives", async () => {
+      await apply("jmdict", [taberu]);
+      const report = await apply("yomitan", [listed("1", "N5"), listed("99", "N3")]);
+      expect(report).toMatchObject({ counts: { added: 1 }, notes: ["ent_seq 99 is not in JMdict: skipped"] });
+      await apply("jmdict", [taberu, word("99", ["猫"], ["ねこ"], [[["n"], ["cat"]]])]);
+      const again = await apply("yomitan", [listed("1", "N5"), listed("99", "N3")]);
+      expect(again).toMatchObject({ counts: { added: 1 }, notes: [] });
+      expect((await candidates("99"))[0]).toMatchObject({ level: "N3", kind: "list" });
+    });
+
+    it("changes the level in place, and retires the candidate when the list drops the Word", async () => {
+      await apply("jmdict", [taberu]);
+      await apply("yomitan", [listed("1", "N4")]);
+      const [before] = await candidates("1");
+      expect((await apply("yomitan", [listed("1", "N5")])).counts).toMatchObject({ changed: 1, levelsChanged: 1 });
+      expect((await candidates("1"))[0]).toMatchObject({ id: before!.id, level: "N5", retired: false });
+      expect((await apply("yomitan", [])).counts).toMatchObject({ retired: 1, levelsChanged: 1, retiredLevelledWithoutSuccessor: 0 });
+      expect((await candidates("1"))[0]).toMatchObject({ retired: true });
+      expect((await h.a.rows("studyItem", { id: await idOf("jmdict", "1") }))[0]!.retired).toBe(false);
+    });
+
+    it("never changes the current level while an Editorial candidate wins", async () => {
+      await apply("jmdict", [taberu]);
+      const id = await idOf("jmdict", "1");
+      const { life } = await exampleOn(id);
+      await h.a.insert("levelCandidate", [{ id: randomUUID(), studyItemId: id, level: "N2", kind: "editorial", ...life }]);
+      expect((await apply("yomitan", [listed("1", "N5")])).counts).toMatchObject({ added: 1, levelsChanged: 0 });
+      expect((await candidates("1")).find((c) => c.kind === "editorial")).toMatchObject({ level: "N2", retired: false });
+    });
+
+    it("trips the breaker when a run would change the current level of too many Words", async () => {
+      await apply("jmdict", [taberu, nomu]);
+      const strict = { maxChangedShare: 1, maxExamplesRedrafted: 0, maxLevelChanges: 1 };
+      const report = await apply("yomitan", [listed("1", "N5"), listed("2", "N5")], { breaker: strict });
+      expect(report).toMatchObject({ status: "breaker tripped", tripped: ["level changes"] });
+      expect(await candidates("1")).toEqual([]);
+    });
+  });
+
   describe("the circuit breaker", () => {
     it("applies nothing when a run would change too much, and queues it", async () => {
       await apply("jmdict", [taberu, nomu]);

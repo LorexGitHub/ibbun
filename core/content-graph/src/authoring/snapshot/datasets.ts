@@ -1,7 +1,7 @@
 import type { Row } from "../store.ts";
 import { moveSpan } from "./match.ts";
 import { same, type RunCtx } from "./run.ts";
-import type { KanjiRecord, SentenceRecord } from "./types.ts";
+import type { KanjiRecord, SentenceRecord, WordLevelRecord } from "./types.ts";
 
 const kanjiFields = ({ key, ...fields }: KanjiRecord) => ({ literal: key, ...fields });
 
@@ -75,5 +75,52 @@ export const tatoeba = {
       await ctx.touch(e.studyItemId);
       await ctx.tx.update("example", { id: e.id }, { retired: true });
     }
+  },
+};
+
+const YOMITAN_URL = "https://github.com/stephenmk/yomitan-jlpt-vocab";
+
+/** Runs `write`, and counts the Study Item as level-changed when its current level differs afterwards. */
+const settleLevel = async (ctx: RunCtx, studyItemId: string, write: () => Promise<unknown>) => {
+  const before = await ctx.currentLevel(studyItemId);
+  await write();
+  if (before !== (await ctx.currentLevel(studyItemId))) ctx.counts.levelsChanged++;
+};
+
+/**
+ * yomitan-jlpt-vocab: each record is one List Level Candidate on the JMdict Word with that `ent_seq`. The source key
+ * points at the candidate, so a refresh rewrites only this source's candidates and never an Editorial one.
+ */
+export const yomitan = {
+  add: async (ctx: RunCtx, record: WordLevelRecord) => {
+    const [jmdictKey] = await ctx.tx.rows("sourceKey", { dataset: "jmdict", upstreamKey: record.key });
+    const [word] = jmdictKey ? await ctx.tx.rows("studyItem", { id: jmdictKey.recordId }) : [];
+    if (!word || word.retired) {
+      ctx.notes.push(`ent_seq ${record.key} is not in JMdict: skipped`);
+      return null;
+    }
+    const id = ctx.clock.newId();
+    const provenanceId = await ctx.provenance("cc-by-sa-4.0", "Jonathan Waller, via stephenmk", YOMITAN_URL);
+    await settleLevel(ctx, word.id, () =>
+      ctx.tx.insert("levelCandidate", [{ id, studyItemId: word.id, level: record.level, kind: "list", approval: "approved", retired: false, provenanceId }]),
+    );
+    await ctx.sourceKey(record.key, id);
+    return id;
+  },
+
+  change: async (ctx: RunCtx, id: string, record: WordLevelRecord) => {
+    const [old] = (await ctx.tx.rows("levelCandidate", { id })) as [Row<"levelCandidate">];
+    if (!old.retired && old.level === record.level) return false;
+    await settleLevel(ctx, old.studyItemId, async () =>
+      ctx.tx.update("levelCandidate", { id }, { level: record.level, retired: false, provenanceId: await ctx.provenance("cc-by-sa-4.0", "Jonathan Waller, via stephenmk", YOMITAN_URL) }),
+    );
+    return true;
+  },
+
+  /** The list dropped the Word: its List candidate is Retired, and the Word keeps whatever level its other candidates give. */
+  retire: async (ctx: RunCtx, id: string) => {
+    const [old] = (await ctx.tx.rows("levelCandidate", { id })) as [Row<"levelCandidate">];
+    ctx.counts.retired++;
+    await settleLevel(ctx, old.studyItemId, () => ctx.tx.update("levelCandidate", { id }, { retired: true }));
   },
 };

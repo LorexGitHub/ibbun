@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { get, type Fetch } from "../../server/http.ts";
 import type { RawFile, Source } from "../../server/source.ts";
 import { parseJmdict } from "./parse.ts";
 import { untgz } from "./tgz.ts";
@@ -11,14 +12,6 @@ const Release = z.object({
   tag_name: z.string().min(1),
   assets: z.array(z.object({ name: z.string(), browser_download_url: z.url() })),
 });
-
-type Fetch = typeof fetch;
-
-const get = async (fetchImpl: Fetch, url: string, accept: string) => {
-  const response = await fetchImpl(url, { headers: { accept, "user-agent": "mojibun-import" } });
-  if (!response.ok) throw new Error(`${url} answered ${response.status}`);
-  return response;
-};
 
 /** JMdict from the jmdict-simplified releases (import-pipeline.md#schedule). The upstream version is the release tag. */
 export const jmdictSource = (fetchImpl: Fetch = fetch): Source<"jmdict"> => {

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineJob, handler, type JobHandler } from "@mojibun/jobs";
 import type { Dataset } from "@mojibun/content-graph/authoring";
 import { jmdictSource } from "../sources/jmdict/index.ts";
+import { yomitanSource } from "../sources/yomitan-jlpt-vocab/index.ts";
 import { runImport, type ImportDeps } from "./run.ts";
 import { monthlyRefreshDue } from "./schedule.ts";
 import type { Source } from "./source.ts";
@@ -20,6 +21,8 @@ export type Refresh = { source: Source; cron: string; monthly: boolean };
 export const refreshes = (): Refresh[] => [
   // JMdict: the EDRDG licence wants a refresh at least monthly, so the first Monday, retried daily until it lands.
   { source: jmdictSource() as Source, cron: "0 12 * * *", monthly: true },
+  // yomitan-jlpt-vocab: checked every Monday, applied only when upstream has a new release (a rerun of a live version is a no-op).
+  { source: yomitanSource() as Source, cron: "0 8 * * 1", monthly: false },
 ];
 
 const DAILY_STALENESS_CHECK = "0 7 * * *";
@@ -34,7 +37,8 @@ export const importJobs = (deps: ImportDeps, list: Refresh[], now: () => Date = 
           const live = await liveRun(deps.authoring, source.dataset);
           if (!monthlyRefreshDue(now(), live?.appliedAt ?? null)) return;
         }
-        await runImport(deps, source, { release });
+        const { report } = await runImport(deps, source, { release });
+        for (const note of report.notes ?? []) console.info(`import.${source.dataset}: ${note}`);
       },
       { cron, payload: { scheduled: true } },
     );
