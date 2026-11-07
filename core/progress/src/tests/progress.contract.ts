@@ -138,6 +138,18 @@ export const progressContract = (make: () => Promise<Progress>) => {
     });
   });
 
+  describe("met", () => {
+    it("is true for an Example or Study Item any Learner has a Review of, and false otherwise", async () => {
+      const progress = await make();
+      const [seen, other] = [item(), item()];
+      await progress.record({ ...rev(learner(), seen, "srs", true, day(0)), exampleId: "ex-1" });
+      expect(await progress.met({ exampleId: "ex-1" })).toBe(true);
+      expect(await progress.met({ exampleId: "ex-2" })).toBe(false);
+      expect(await progress.met({ studyItemId: seen })).toBe(true);
+      expect(await progress.met({ studyItemId: other })).toBe(false);
+    });
+  });
+
   it("rebuilds identical state when its log is replayed into a fresh Progress", async () => {
     const { progress, l } = await setup(["learn", true, 0], ["srs", true, 0], ["srs", false, 3], ["srs", true, 4]);
     await progress.record(rev(l, item(), "manual", true, day(1)));

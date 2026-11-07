@@ -41,17 +41,18 @@ const provenanceOfRun = async (a: Authoring, runId: string): Promise<string[]> =
 const inEachProvenance = async <T>(ids: string[], read: (provenanceId: string) => Promise<T[]>): Promise<T[]> =>
   (await Promise.all(ids.map(read))).flat();
 
-const exampleDraft = async (a: Authoring, example: Row<"example">): Promise<ExampleDraft> => {
+/** The unit an Example is decided with; `answers` picks which of its answer data belong to it (the drafts, or a live unit's approved ones). */
+export const exampleDraft = async (a: Authoring, example: Row<"example">, answers: "draft" | "approved" = "draft"): Promise<ExampleDraft> => {
   const [sentence] = await a.rows("sentence", { id: example.sentenceId });
   if (!sentence) throw new Error(`Example ${example.id} has no Sentence`);
-  const answers = (await a.rows("exampleAnswer", { exampleId: example.id })).filter((x) => x.approval === "draft");
+  const unitAnswers = (await a.rows("exampleAnswer", { exampleId: example.id })).filter((x) => x.approval === answers);
   const links = [
     ...(await a.rows("sentenceUsesWord", { sentenceId: sentence.id })).map((l) => rec("sentenceUsesWord", l.id)),
     ...(await a.rows("sentenceDemonstratesGrammar", { sentenceId: sentence.id })).map((l) => rec("sentenceDemonstratesGrammar", l.id)),
   ];
   const primary = rec("example", example.id);
-  const records = [rec("sentence", sentence.id), ...answers.map((x) => rec("exampleAnswer", x.id)), ...links, primary];
-  return { kind: "example", primary, records, example, sentence, answers };
+  const records = [rec("sentence", sentence.id), ...unitAnswers.map((x) => rec("exampleAnswer", x.id)), ...links, primary];
+  return { kind: "example", primary, records, example, sentence, answers: unitAnswers };
 };
 
 /** The drafts a Generation Run wrote for a request of this kind, still awaiting a decision. */

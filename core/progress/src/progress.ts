@@ -18,13 +18,19 @@ export type Progress = {
   known(learnerId: LearnerId, tx?: DbOrTx): Promise<StudyItemId[]>;
   /** For `learning-path`: items that passed Learn, Placement or "I know this". */
   introduced(learnerId: LearnerId, tx?: DbOrTx): Promise<StudyItemId[]>;
+  /** Whether any Learner has a Review of this Example or Study Item (docs/content-approval.md#when-a-spot-check-rejects-live-content). */
+  met(target: MetTarget, tx?: DbOrTx): Promise<boolean>;
 };
+
+export type MetTarget = { exampleId: string } | { studyItemId: StudyItemId };
 
 /** Where a Progress keeps its log. The real one is Postgres; the fake is an array. */
 export type ReviewStore = {
   append(review: Review, tx?: DbOrTx): Promise<void>;
   /** Oldest first, in the order they were recorded when two share a time. */
   read(learnerId: LearnerId, studyItemId?: StudyItemId, tx?: DbOrTx): Promise<Review[]>;
+  /** Whether any Learner's log has a Review of this Example or Study Item. */
+  exists(target: MetTarget, tx?: DbOrTx): Promise<boolean>;
 };
 
 const groupByItem = (reviews: Review[]) => {
@@ -56,5 +62,6 @@ export const createProgressOver = (store: ReviewStore, newId: () => string): Pro
     },
     known: async (learnerId, tx) => ids((await items(learnerId, tx)).filter((p) => p.known)),
     introduced: async (learnerId, tx) => ids(await items(learnerId, tx)),
+    met: (target, tx) => store.exists(target, tx),
   };
 };
