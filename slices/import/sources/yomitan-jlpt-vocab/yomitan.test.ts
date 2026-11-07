@@ -17,6 +17,9 @@ describe("parseCsv", () => {
   it("reads quoted fields with commas, doubled quotes and line breaks, and either line ending", () => {
     expect(parseCsv('a,"b,c","say ""hi"""\r\n"x\ny",,z\n')).toEqual([["a", "b,c", 'say "hi"'], ["x\ny", "", "z"]]);
   });
+  it("keeps a row of one field", () => {
+    expect(parseCsv("a\nb\n")).toEqual([["a"], ["b"]]);
+  });
   it("keeps a last row with no final newline and drops blank lines", () => {
     expect(parseCsv("a,b\n\nc,d")).toEqual([["a", "b"], ["c", "d"]]);
   });
@@ -49,7 +52,18 @@ describe("parseLevels", () => {
 
   it("fails the whole run on a missing file or a missing column", () => {
     expect(() => parseLevels(lists({}).slice(1), () => {})).toThrow(/no n1\.csv/);
-    expect(() => parseLevels([...lists({}).slice(0, 4), { name: "n5.csv", text: "a,b\n1,2\n" }], () => {})).toThrow(/n5\.csv has no jmdict_seq/);
+    const broken = (text: string) => () => parseLevels([...lists({}).slice(0, 4), { name: "n5.csv", text }], () => {});
+    expect(broken("a,b\n1,2\n")).toThrow(/n5\.csv has no jmdict_seq/);
+    expect(broken("jmdict_seq,kanji\n1,x\n")).toThrow(/n5\.csv has no/);
+    expect(broken("jmdict_seq,kana\n1,x\n")).toThrow(/n5\.csv has no/);
+    expect(broken("kana,kanji\nx,y\n")).toThrow(/n5\.csv has no/);
+    expect(broken("")).toThrow(/n5\.csv has no/);
+  });
+
+  it("treats a row too short to hold a jmdict_seq as having no match", () => {
+    const lines: string[] = [];
+    expect(parseLevels([...lists({}).slice(0, 4), { name: "n5.csv", text: "kana,kanji,jmdict_seq\nあ,亜\n" }], (l) => lines.push(l))).toEqual([]);
+    expect(lines).toEqual(["亜 (N5) has no JMdict match: skipped"]);
   });
 });
 

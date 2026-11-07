@@ -19,8 +19,8 @@ export const parseLevels = (files: { name: string; text: string }[], report: (li
   for (const level of LEVELS) {
     const file = files.find((f) => f.name === fileOf(level));
     if (!file) throw new Error(`the raw files hold no ${fileOf(level)}`);
-    const [header, ...rows] = parseCsv(file.text);
-    const column = (name: string) => header?.indexOf(name) ?? -1;
+    const [header = [], ...rows] = parseCsv(file.text);
+    const column = (name: string) => header.indexOf(name);
     const [seq, kana, kanji] = [column("jmdict_seq"), column("kana"), column("kanji")] as [number, number, number];
     if (seq === -1 || kana === -1 || kanji === -1) throw new Error(`${file.name} has no jmdict_seq, kana and kanji columns`);
     for (const row of rows) {
