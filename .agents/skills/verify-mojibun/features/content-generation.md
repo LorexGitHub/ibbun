@@ -6,6 +6,8 @@ Admin slice with no screens yet. It is the `content.generate` and `batch-text.ge
 
 - **Example Sentences** for a Word, a levelled Kanji or a Grammar Point (`kinds/example-sentence/`): Draft Sentence, Example and accepted answer with `generated` Provenance.
 - **Batch Texts** (`kinds/reading-passage/`): `batch-text.generate` opens a Generation Request (`kind = batch-text`, target = a passage id derived from Learner and batch, `reason` carries the batch) and enqueues `content.generate`. The attempt writes a Draft Reading Passage (prose, Sentences linked in order) and the Learner's Batch Text record in `progress.texts`. The prompt carries the earlier items (weakest first), a target length that grows with the level's progress, the rotated passage type, and the cast and episode summary of the last episode at that level.
+- **Merge proposals** (`kinds/proposals/merge.ts`, kind `merge_proposal`): target is a hanabira Grammar Point (`source_key.dataset = 'hanabira'`); candidates are the Grammar Points keyed `tanos`. Writes a `merge proposal` queue entry, no record.
+- **Sense-alignment proposals** (`kinds/proposals/alignment.ts`, kind `sense_alignment`): target is an approved Word; its draft Japanese Explanations keyed `wiktionary-ja` are aligned to its JMdict senses. Writes one `sense alignment` queue entry per gloss.
 - **Generation Runs**: one per LLM call (model, template version, inputs, tokens, cost), including calls that gave no usable answer.
 - **Attempts**: 3 per Generation Request, then `generation failed` in the queue.
 - **Daily token budget**: Batch Texts at most 50%, the rest for everything else; a spent pool pauses its work and queues `budget exhausted` naming the pool.
@@ -24,6 +26,7 @@ Nothing to drive in a browser yet. Journey (API and database only):
 4. Budget: set `DAILY_TOKEN_BUDGET=100`, repeat. The second request stays `open` with 0 attempts and one unresolved `queue_entry` with reason `budget exhausted` and `detail.pool = 'general'`.
 
 5. Batch Text: enqueue `batch-text.generate` with `{ learnerId, level: "N5", itemIds: [<approved Word id>] }`. Expect: a `batch-text` request `in review` with one Generation Run; a draft `reading_passage` (id = the request's `target_id`) with draft `sentence` rows linked by `passage_contains_sentence`; one `progress.texts` row (`kind = batch`, `episode = 1`, `detail` holding the cast and summary); a `content.review` job. Enqueue it again: nothing changes. Enqueue a second batch: `episode = 2`, and the prompt (Generation Run `inputs`) has the first episode's summary.
+6. Proposals: open a `merge_proposal` request for a draft hanabira Grammar Point (with at least one `tanos` Grammar Point), or a `sense_alignment` request for a Word with draft `wiktionary-ja` explanations. Expect unresolved `queue_entry` rows with reason `merge proposal` / `sense alignment`, `generation_run_id` set, `detail` holding the proposed match and a reason, and the request `in review`. `content.review` fails until the proposals rubric (#88) exists.
 
 Preconditions: Postgres from Compose with migrations applied; an approved Word with a form and a level.
 
