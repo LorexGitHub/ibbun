@@ -22,6 +22,12 @@ export type KanjiRecord = {
   strokes: string[];
 };
 
+/**
+ * KanjiVG stroke data for one character, keyed by its code point as KanjiVG writes it (five lowercase hex digits, `098df`).
+ * `strokes` are the SVG path `d` strings in stroke order. They land on the KANJIDIC2 Kanji of the same character.
+ */
+export type KanjiStrokesRecord = { key: string; strokes: string[] };
+
 /** One Tatoeba Sentence, keyed by sentence id, with the translation the fixed rule chose and its rebuilt tokens. */
 export type SentenceRecord = {
   key: string;
@@ -32,7 +38,7 @@ export type SentenceRecord = {
   licence: Extract<Licence, "cc-by-2.0-fr" | "cc0">;
 };
 
-export type Records = { jmdict: WordRecord; kanjidic: KanjiRecord; tatoeba: SentenceRecord };
+export type Records = { jmdict: WordRecord; kanjidic: KanjiRecord; kanjivg: KanjiStrokesRecord; tatoeba: SentenceRecord };
 export type Dataset = keyof Records;
 
 export type Run = { upstreamVersion: string; checksum: string };

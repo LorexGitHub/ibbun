@@ -6,10 +6,11 @@ The supervisor sees every Import Run at `/admin/import`: dataset, upstream versi
 
 - **Import Run** (`slices/import/server/run.ts`): stage (fetch and parse), diff against the latest snapshot, apply through `content-graph/authoring.applySnapshot()`, report. A rerun of an applied or breaker-held version changes nothing and downloads nothing.
 - **Snapshot and raw files**: the latest normalised snapshot per dataset in Postgres (`import.snapshot`, `import.snapshot_record`); the raw files of the last 3 runs per dataset under `IMPORT_RAW_DIR` (default `./data/import-raw`). A held run is released by replaying from those files.
-- **Scheduled jobs**: `import.jmdict` (daily 12:00 UTC, runs only when the monthly refresh is due) and `import.staleness` (daily 07:00 UTC), started by `apps/worker`.
+- **Scheduled jobs**: `import.jmdict` (daily 12:00 UTC, runs only when the monthly refresh is due), `import.kanjivg` (Mondays 12:00 UTC; downloads and applies only when the latest GitHub release tag of KanjiVG/kanjivg is new) and `import.staleness` (daily 07:00 UTC), started by `apps/worker`.
 - **Report screen** (`GET /api/import/runs`, supervisor only; screen at `/admin/import`).
-- **Sources** live in `slices/import/sources/<source>/`. Built: JMdict. KANJIDIC2, KanjiVG, Tatoeba and the rest are separate Seed issues.
-- **Apply rules** (core, built): `applySnapshot` for `jmdict`, `kanjidic` and `tatoeba`. Its proof is `npx vitest run core/content-graph/src/authoring/snapshot`.
+- **Sources** live in `slices/import/sources/<source>/`. Built: JMdict, KanjiVG. KANJIDIC2, Tatoeba and the rest are separate Seed issues.
+- **KanjiVG strokes** (`slices/import/sources/kanjivg`, rule `kanjivg` in core): one record per character keyed by code point (`098df`), its SVG stroke paths in order, written to `content_graph.kanji.strokes` of the KANJIDIC2 Kanji with that literal. Code points KANJIDIC2 lacks are skipped; a character that leaves KanjiVG loses its strokes, not its Kanji.
+- **Apply rules** (core, built): `applySnapshot` for `jmdict`, `kanjidic`, `kanjivg` and `tatoeba`. Its proof is `npx vitest run core/content-graph/src/authoring/snapshot`.
 
 ## How to get to it (user POV)
 
@@ -28,6 +29,8 @@ Preconditions: baseline from the README, plus `verify.sh` must also start `pnpm 
 - **Staleness alarm**: `psql "$DATABASE_URL" -c "update content_graph.import_run set applied_at = now() - interval '40 days' where dataset='jmdict'"`, fire `import.staleness`. Expect one unresolved `content_graph.queue_entry` with reason `staleness alarm` and `detail.dataset = 'jmdict'`.
 - **Second view of the stored value** for every journey: `psql "$DATABASE_URL" -c "select dataset, upstream_version, status, counts from content_graph.import_run order by applied_at desc nulls first"`.
 
+- **KanjiVG applies only on a new tag**: fire `import.kanjivg` twice (`psql "$DATABASE_URL" -c "select * from jobs.job where name='import.kanjivg'"`). Expect one `content_graph.import_run` row with dataset `kanjivg` and upstream version `r<date>`, and no second download. Needs KANJIDIC2 applied first or every record is skipped (`added` = 0). Second view: `psql "$DATABASE_URL" -c "select literal, cardinality(strokes) from content_graph.kanji where literal='食'"`. Expect 9.
+
 ## Gotchas
 
 - The `import` Postgres schema holds the slice's private tables. `import` is not a reserved word, but quote it in ad-hoc SQL if a client complains.
@@ -35,3 +38,5 @@ Preconditions: baseline from the README, plus `verify.sh` must also start `pnpm 
 - jmdict-simplified publishes only a `common` flag, so Word `priorityTags` is `["common"]` or `[]`. Pitch accent is `null` until the UniDic seed.
 - The Content Approval queue screen is another slice. Until it ships, the link from the report goes to a route the shell answers with its home fallback.
 - Not run end to end against the Compose stack by the author: no supervisor login exists until the account slice ships. The unit and Postgres tests cover the run, the schedule logic, the API roles and the screen.
+- KanjiVG is a ~3.6 MB `.xml.gz` release asset; the first run needs internet. Not run end to end against the Compose stack by the author: KANJIDIC2 (#96) is not merged yet, so no Kanji exist to receive strokes. The parser was checked against the real r20260714 file (6703 characters).
+- Overlap with #96: its `kanjidic` rule rewrites the whole `kanji` row, so it must leave `strokes` alone or a monthly KANJIDIC2 refresh will wipe KanjiVG's strokes.
