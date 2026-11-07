@@ -109,25 +109,25 @@ Each slice exports one `register` object from `register.ts`: its API routes, job
 
 ## Done for a slice or core change
 
-Agents work in [ub-mode](../.agents/skills/ub-mode/SKILL.md), which includes TDD. A PR merges only when all of these pass:
+Agents work in [ub-mode](../.agents/skills/ub-mode/SKILL.md), which includes TDD. Work lands on main only when all of these pass. `pnpm ship` runs the Local ones before it pushes; the rest run in GitHub Actions:
 
 | Gate | Where it runs |
 |---|---|
-| Vitest tests of behaviour, against core fakes or a real Postgres | CI |
-| Core contract tests, run against both the real module and its fake | CI |
-| `crapper --changed`: every function under CRAP 10 | CI |
-| `dryer`, run per package: no duplication within a package at 0.8 or above | CI |
-| `mutator` on changed files: no surviving mutants, no uncovered code | CI |
-| dependency-cruiser [rules](#dependency-rules) | CI |
+| Vitest tests of behaviour, against core fakes or a real Postgres | Local and CI |
+| Core contract tests, run against both the real module and its fake | Local and CI |
+| `crapper --changed`: every function under CRAP 10 | Local |
+| `dryer`, run per package: no duplication within a package at 0.8 or above | Local |
+| `mutator` on changed files: no surviving mutants, no uncovered code | Local |
+| dependency-cruiser [rules](#dependency-rules) | Local and CI |
 | One Playwright spec per Learner-facing slice | CI |
-| `verify-mojibun` journeys for every slice the PR touches | Verifier agent, on the PR |
+| `verify-mojibun` journeys for every slice the change touches | Verifier agent, on the branch before it ships |
 
 There is no coverage percentage; CRAP and mutation testing are stricter.
 
 ### Verification flow (pstack)
 
 1. **Wave 0:** `/create-verification-skill` (from [pstack-claude](https://github.com/michael-denyer/pstack-claude)) generates `.agents/skills/verify-mojibun/`: launch and teardown of the Compose stack, a doctor check, a browser-driving recipe and a feature map.
-2. **Before opening a PR:** the author adds or updates its slice's file in `verify-mojibun/features/` with `/maintain-verification-skill`.
+2. **Before shipping:** the author adds or updates its slice's file in `verify-mojibun/features/` with `/maintain-verification-skill`.
 3. **After the PR opens:** a separate verifier agent, never the author, runs `verify-mojibun` on the PR branch and attaches the evidence. The PR merges only when that evidence passes.
 
 The supervisor doesn't review code; they spot-check samples.
