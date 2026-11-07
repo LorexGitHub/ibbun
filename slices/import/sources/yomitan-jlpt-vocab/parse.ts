@@ -8,6 +8,24 @@ export const fileOf = (level: JlptLevel) => `${level.toLowerCase()}.csv`;
 
 const ENT_SEQ = /^\d+$/;
 
+type Entry = { entry: string; word: string };
+
+/** The rows of one list that name exactly one JMdict entry. The others go to `report`, one line each. */
+const entries = (file: { name: string; text: string }, level: JlptLevel, report: (line: string) => void): Entry[] => {
+  const [header = [], ...rows] = parseCsv(file.text);
+  const column = (name: string) => header.indexOf(name);
+  const [seq, kana, kanji] = [column("jmdict_seq"), column("kana"), column("kanji")] as [number, number, number];
+  if (seq === -1 || kana === -1 || kanji === -1) throw new Error(`${file.name} has no jmdict_seq, kana and kanji columns`);
+  return rows.flatMap((row) => {
+    const word = `${row[kanji] || row[kana]} (${level})`;
+    const entry = (row[seq] || "").trim();
+    if (entry === "") report(`${word} has no JMdict match: skipped`);
+    else if (!ENT_SEQ.test(entry)) report(`${word} has several JMdict matches (${entry}): skipped`);
+    else return [{ entry, word }];
+    return [];
+  });
+};
+
 /**
  * Parses yomitan-jlpt-vocab's `original_data/n5.csv` … `n1.csv` into one List level per JMdict `ent_seq`
  * (jlpt-levels.md#collisions-and-misses-in-the-tanos-lists). A Word on two lists keeps the easiest level. A row
@@ -19,17 +37,10 @@ export const parseLevels = (files: { name: string; text: string }[], report: (li
   for (const level of LEVELS) {
     const file = files.find((f) => f.name === fileOf(level));
     if (!file) throw new Error(`the raw files hold no ${fileOf(level)}`);
-    const [header = [], ...rows] = parseCsv(file.text);
-    const column = (name: string) => header.indexOf(name);
-    const [seq, kana, kanji] = [column("jmdict_seq"), column("kana"), column("kanji")] as [number, number, number];
-    if (seq === -1 || kana === -1 || kanji === -1) throw new Error(`${file.name} has no jmdict_seq, kana and kanji columns`);
-    for (const row of rows) {
-      const word = `${row[kanji] || row[kana]} (${level})`;
-      const entry = (row[seq] || "").trim();
-      if (entry === "") report(`${word} has no JMdict match: skipped`);
-      else if (!ENT_SEQ.test(entry)) report(`${word} has several JMdict matches (${entry}): skipped`);
-      else if (levels.has(entry) && levels.get(entry) !== level) report(`ent_seq ${entry} (${word}) is also listed at ${levels.get(entry)}: kept ${levels.get(entry)}`);
-      else if (!levels.has(entry)) levels.set(entry, level);
+    for (const { entry, word } of entries(file, level, report)) {
+      const kept = levels.get(entry);
+      if (kept === undefined) levels.set(entry, level);
+      else if (kept !== level) report(`ent_seq ${entry} (${word}) is also listed at ${kept}: kept ${kept}`);
     }
   }
   return [...levels].map(([key, level]) => ({ key, level }));

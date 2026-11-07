@@ -21,6 +21,9 @@ describe("parseCsv", () => {
     expect(parseCsv("a\nb")).toEqual([["a"], ["b"]]);
     expect(parseCsv("x,")).toEqual([["x", ""]]);
   });
+  it("keeps the text of a quote left open at the end of the file", () => {
+    expect(parseCsv('a,"b')).toEqual([["a", "b"]]);
+  });
   it("keeps a row of one field", () => {
     expect(parseCsv("a\nb\n")).toEqual([["a"], ["b"]]);
   });
