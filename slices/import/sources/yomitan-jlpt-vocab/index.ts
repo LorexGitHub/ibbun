@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { get, type Fetch } from "../../server/http.ts";
+import { get, type Fetch } from "../release.ts";
 import type { RawFile, Source } from "../../server/source.ts";
 import { LEVELS, fileOf, parseLevels } from "./parse.ts";
 

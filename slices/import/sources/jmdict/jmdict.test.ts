@@ -2,7 +2,7 @@ import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { jmdictSource } from "./index.ts";
 import { parseJmdict } from "./parse.ts";
-import { untgz } from "./tgz.ts";
+import { untgz } from "../tgz.ts";
 
 const kanjiEntry = {
   id: "1358280",
