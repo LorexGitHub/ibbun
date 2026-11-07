@@ -86,7 +86,7 @@ describe("import jobs", () => {
     expect(await w.deps.authoring.queue({ reason: "staleness alarm" })).toHaveLength(1);
   });
 
-  it("refreshes JMdict from the jmdict-simplified source by default", () => {
-    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true], ["tatoeba", false]]);
+  it("refreshes JMdict, KANJIDIC2 and Tatoeba by default", () => {
+    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true], ["kanjidic", true], ["tatoeba", false]]);
   });
 });

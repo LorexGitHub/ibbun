@@ -3,6 +3,7 @@ import { defineJob, handler, type JobHandler } from "@mojibun/jobs";
 import type { Dataset } from "@mojibun/content-graph/authoring";
 import { createSudachiNlp } from "@mojibun/nlp";
 import { jmdictSource } from "../sources/jmdict/index.ts";
+import { kanjidicSource } from "../sources/kanjidic2/index.ts";
 import { tatoebaSource } from "../sources/tatoeba/index.ts";
 import { runImport, type ImportDeps } from "./run.ts";
 import { monthlyRefreshDue } from "./schedule.ts";
@@ -22,6 +23,8 @@ export type Refresh = { source: Source; cron: string; monthly: boolean };
 export const refreshes = (env: { SUDACHI_URL?: string } = process.env): Refresh[] => [
   // JMdict: the EDRDG licence wants a refresh at least monthly, so the first Monday, retried daily until it lands.
   { source: jmdictSource() as Source, cron: "0 12 * * *", monthly: true },
+  // KANJIDIC2 and KRADFILE: the same licence and release as JMdict, so the same schedule.
+  { source: kanjidicSource() as Source, cron: "0 12 * * *", monthly: true },
   // Tatoeba: exported Saturdays 06:30 UTC. Saturday and Sunday noon, so a failed Saturday run is tried once more; an applied version is a no-op.
   { source: tatoebaSource(createSudachiNlp({ url: env.SUDACHI_URL ?? "http://localhost:8000" })) as Source, cron: "0 12 * * 6,0", monthly: false },
 ];
