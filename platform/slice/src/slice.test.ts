@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { checkSlices, defineSlice, loadServerParts } from "./index.ts";
+import { checkSlices, defineSlice, loadServerParts, type ServerContext } from "./index.ts";
+
+const ctx = {} as ServerContext;
 
 describe("slices", () => {
   it("sorts slices by name", () => {
@@ -19,7 +21,7 @@ describe("slices", () => {
     const parts = await loadServerParts([
       { name: "a", server: async () => ({ jobs: [] }) },
       { name: "b" },
-    ]);
+    ], ctx);
     expect(parts.map((p) => p.part)).toEqual([{ jobs: [] }, {}]);
   });
 });

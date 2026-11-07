@@ -1,6 +1,10 @@
 // learner/client: the thin typed client the SPA uses for every account action.
 // It speaks HTTP to `authHandler`, so slices never import Better Auth.
 
+import type { Preferences, PreferencesChange } from "./preferences.ts";
+
+export type { Preferences, PreferencesChange } from "./preferences.ts";
+
 export type Result<T> = { ok: true; data: T } | { ok: false; status: number; message: string };
 
 export type CurrentLearner = { learnerId: string; email: string; role: "learner" | "supervisor" };
@@ -25,13 +29,16 @@ export type LearnerClientOptions = {
 
 type RawSession = { token: string; ipAddress?: string | null; userAgent?: string | null; createdAt: string; updatedAt: string };
 type RawCurrent = { session: { token: string }; user: { id: string; email: string; role: CurrentLearner["role"] } } | null;
-type Call = <T>(path: string, body?: object) => Promise<Result<T>>;
+type Call = <T>(path: string, body?: object, method?: "PUT") => Promise<Result<T>>;
+
+/** The SPA page a verification link lands on once the address is verified. */
+const VERIFIED_PAGE = "/login?verified=1";
 
 const caller =
   (baseUrl: string, send: typeof fetch): Call =>
-  async <T>(path: string, body?: object) => {
+  async <T>(path: string, body?: object, method = body ? "POST" : "GET") => {
     const response = await send(`${baseUrl}${path}`, {
-      method: body ? "POST" : "GET",
+      method,
       headers: { "content-type": "application/json" },
       body: body && JSON.stringify(body),
       credentials: "same-origin",
@@ -73,7 +80,8 @@ export const createLearnerClient = ({ baseUrl = "/api/auth", fetch: send = globa
   const call = caller(baseUrl, send);
   return {
     /** Always answers ok for a valid request, whether or not the address has an account. */
-    signUp: (email: string, password: string) => done(call("/sign-up/email", { email, password, name: "" })),
+    signUp: (email: string, password: string) =>
+      done(call("/sign-up/email", { email, password, name: "", callbackURL: VERIFIED_PAGE })),
     resendVerification: (email: string) => done(call("/send-verification-email", { email })),
     signIn: (email: string, password: string) => done(call("/sign-in/email", { email, password })),
     signOut: () => done(call("/sign-out", {})),
@@ -86,10 +94,13 @@ export const createLearnerClient = ({ baseUrl = "/api/auth", fetch: send = globa
     changePassword: (currentPassword: string, newPassword: string) =>
       done(call("/change-password", { currentPassword, newPassword })),
     /** Mails a verification link to the new address. The old one stays in use until then. */
-    changeEmail: (newEmail: string) => done(call("/change-email", { newEmail })),
+    changeEmail: (newEmail: string) => done(call("/change-email", { newEmail, callbackURL: VERIFIED_PAGE })),
     deleteAccount: (password: string) => done(call("/delete-user", { password })),
     endSession: (id: string) => done(call("/revoke-session", { token: id })),
     session: () => session(call),
+    preferences: () => call<Preferences>("/preferences"),
+    /** Changes some preferences and returns all of them. */
+    changePreferences: (change: PreferencesChange) => call<Preferences>("/preferences", change, "PUT"),
     listSessions: () => listSessions(call),
   };
 };

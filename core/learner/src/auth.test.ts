@@ -499,3 +499,43 @@ describe("the client", () => {
     expect(await b.client.session()).toEqual({ ok: true, data: null });
   });
 });
+
+describe("preferences over the client", () => {
+  it("reads defaults, changes some, and keeps them", async () => {
+    const w = world();
+    const b = await verifiedLearner(w);
+    expect(await b.client.preferences()).toMatchObject({ ok: true, data: { explanations: "english", furigana: "mixed" } });
+    const changed = await b.client.changePreferences({ explanations: "both", examMode: true });
+    expect(changed).toMatchObject({ ok: true, data: { explanations: "both", examMode: true, furigana: "mixed" } });
+    expect(await b.client.preferences()).toEqual(changed);
+  });
+
+  it("refuses an invalid change, an unknown key and a change from another origin, and changes nothing", async () => {
+    const w = world();
+    const b = await verifiedLearner(w);
+    expect(await b.client.changePreferences({ batchSize: 99 })).toMatchObject({ ok: false, status: 400 });
+    expect(await b.client.changePreferences({ explanations: "neither" } as never)).toMatchObject({ ok: false, status: 400 });
+    expect(await b.client.changePreferences({ bogus: 1 } as never)).toMatchObject({ ok: false, status: 400 });
+    const cookie = [...b.cookies].map(([k, v]) => `${k}=${v}`).join("; ");
+    const foreign = await w.auth.authHandler(
+      new Request(`${APP}/api/auth/preferences`, {
+        method: "PUT",
+        headers: { origin: "http://evil.test", cookie, "content-type": "application/json" },
+        body: JSON.stringify({ examMode: true }),
+      }),
+    );
+    expect(foreign.status).toBe(403);
+    const bad = await b.fetch(`${APP}/api/auth/preferences`, { method: "PUT", body: "not json" });
+    expect(bad.status).toBe(400);
+    expect(await b.client.preferences()).toMatchObject({ data: { examMode: false, batchSize: 5 } });
+  });
+
+  it("needs a session, and answers only GET and PUT", async () => {
+    const w = world();
+    const anonymous = browser(w.auth);
+    expect(await anonymous.client.preferences()).toMatchObject({ ok: false, status: 401 });
+    expect(await anonymous.client.changePreferences({ examMode: true })).toMatchObject({ ok: false, status: 401 });
+    const b = await verifiedLearner(w);
+    expect((await b.fetch(`${APP}/api/auth/preferences`, { method: "DELETE" })).status).toBe(405);
+  });
+});

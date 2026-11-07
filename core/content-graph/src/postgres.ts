@@ -1,6 +1,7 @@
 import { and, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import type { DbOrTx } from "@mojibun/db";
+import type { JlptLevel } from "@mojibun/shared";
 import { emptyGraph, type Graph } from "./graph.ts";
 import { creditsOf, recordProvenance } from "./licensing.ts";
 import { DEFAULT_SEARCH_LIMIT, normaliseQuery, reader, type ContentGraph } from "./read.ts";
@@ -16,12 +17,11 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
   },
 
   async levelList(level, type) {
-    const ids = await db
-      .selectDistinct({ id: t.studyItem.id })
-      .from(t.studyItem)
-      .innerJoin(t.levelCandidate, eq(t.levelCandidate.studyItemId, t.studyItem.id))
-      .where(and(eq(t.studyItem.type, type), eq(t.levelCandidate.level, level), visible(t.studyItem), visible(t.levelCandidate)));
-    return (await readerOver(db, await loadItems(db, ids.map((r) => r.id)))).levelList(level, type);
+    return (await readerOver(db, await loadItems(db, await candidateIds(db, level, type)))).levelList(level, type);
+  },
+
+  async listeningClips(level) {
+    return (await readerOver(db, await loadItems(db, await candidateIds(db, level, "listening_clip")))).listeningClips(level);
   },
 
   async search(query, { limit = DEFAULT_SEARCH_LIMIT } = {}) {
@@ -46,7 +46,41 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
     ]);
     return creditsOf({ importRun, provenance });
   },
+
+  async pathItems() {
+    return reader(await loadPath(db), new Map()).pathItems();
+  },
 });
+
+/** The visible Study Items of `type` with a visible Level Candidate at `level`; the reader then settles the current level. */
+const candidateIds = async (db: DbOrTx, level: JlptLevel, type: t.StudyItemType) =>
+  (
+    await db
+      .selectDistinct({ id: t.studyItem.id })
+      .from(t.studyItem)
+      .innerJoin(t.levelCandidate, eq(t.levelCandidate.studyItemId, t.studyItem.id))
+      .where(and(eq(t.studyItem.type, type), eq(t.levelCandidate.level, level), visible(t.studyItem), visible(t.levelCandidate)))
+  ).map((r) => r.id);
+
+/** Every visible row the Learning Path reads: items, levels, first forms, Examples, Sentences and fact links. */
+const loadPath = async (db: DbOrTx): Promise<Graph> => {
+  const [studyItem, levelCandidate, wordForm, example, sentence, wordContainsKanji, sentenceUsesWord, sentenceDemonstratesGrammar, clipVoicesSentence, kanji, word] =
+    await Promise.all([
+      db.select().from(t.studyItem).where(visible(t.studyItem)),
+      db.select().from(t.levelCandidate).where(visible(t.levelCandidate)),
+      db.select().from(t.wordForm).where(visible(t.wordForm)),
+      db.select().from(t.example).where(visible(t.example)),
+      db.select().from(t.sentence).where(visible(t.sentence)),
+      db.select().from(t.wordContainsKanji).where(visible(t.wordContainsKanji)),
+      db.select().from(t.sentenceUsesWord).where(visible(t.sentenceUsesWord)),
+      db.select().from(t.sentenceDemonstratesGrammar).where(visible(t.sentenceDemonstratesGrammar)),
+      db.select().from(t.clipVoicesSentence).where(visible(t.clipVoicesSentence)),
+      db.select().from(t.kanji),
+      db.select().from(t.word),
+    ]);
+  const graph = { ...emptyGraph(), studyItem, levelCandidate, wordForm, example, sentence, wordContainsKanji, sentenceUsesWord, sentenceDemonstratesGrammar, clipVoicesSentence, kanji, word };
+  return withOverrides(db, graph);
+};
 
 const visible = (table: { approval: PgColumn; retired: PgColumn }) =>
   and(eq(table.approval, "approved"), eq(table.retired, false));
