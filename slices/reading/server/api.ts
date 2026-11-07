@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { AuthEnv, createAuthGuards } from "@mojibun/auth";
-import type { ContentGraph } from "@mojibun/content-graph";
+import type { ContentGraph, Word } from "@mojibun/content-graph";
 import type { Learners } from "@mojibun/learner";
 import type { Progress, Texts } from "@mojibun/progress";
 import { LearnerId, StudyItemId } from "@mojibun/shared";
@@ -16,6 +16,12 @@ export type ReadingDeps = {
   guards: ReturnType<typeof createAuthGuards>;
   now: () => Date;
 };
+
+const lookupView = ({ forms, readings, senses }: Word): LookupView => ({
+  label: forms[0]?.text ?? readings[0]?.text ?? "",
+  reading: readings[0]?.text ?? null,
+  meanings: senses.flatMap((s) => s.glosses).slice(0, 4),
+});
 
 const notFound = { message: "no such text" };
 
@@ -61,8 +67,6 @@ export const createReadingApi = ({ contentGraph, progress, texts, learners, guar
       const page = await contentGraph.studyItem(body.data.wordId);
       if (page?.item.type !== "word") return c.json({ message: "no such Word" }, 404);
       await progress.record({ learnerId: LearnerId.parse(c.get("learner").learnerId), studyItemId: body.data.wordId, kind: "lookup", passed: false, at: now().toISOString() });
-      const { forms, readings, senses } = page.item;
-      const view: LookupView = { label: forms[0]?.text ?? readings[0]?.text ?? "", reading: readings[0]?.text ?? null, meanings: senses.flatMap((s) => s.glosses).slice(0, 4) };
-      return c.json(view);
+      return c.json(lookupView(page.item));
     });
 };
