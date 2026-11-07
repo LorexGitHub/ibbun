@@ -5,7 +5,7 @@ import { createPgBossJobs, handler } from "@mojibun/jobs";
 import { createAnthropicLlm, loadLlmConfig } from "@mojibun/llm";
 import { createProgress, createTexts } from "@mojibun/progress";
 import { createVoicevoxTts } from "@mojibun/tts";
-import { createDirectoryAudioStore, loadVoices, synthesise, type SynthesiseDeps } from "../kinds/synthesise/index.ts";
+import { createDirectoryAudioStore, loadSynthesisConfig, synthesise, type SynthesiseDeps } from "../kinds/synthesise/index.ts";
 import { loadGenerationConfig } from "./config.ts";
 import { contentGeneration, type ContentGeneration } from "./generate.ts";
 
@@ -34,15 +34,12 @@ const connected = () =>
 // Same lazy connection for the TTS handler: it needs VOICEVOX_URL, AUDIO_DIR and VOICE_ALLOW_LIST only when a job runs.
 let synthesis: SynthesiseDeps | undefined;
 const synthesisDeps = (): SynthesiseDeps => {
-  const url = process.env.DATABASE_URL;
-  const voicevox = process.env.VOICEVOX_URL;
-  const dir = process.env.AUDIO_DIR;
-  if (!url || !voicevox || !dir) throw new Error("DATABASE_URL, VOICEVOX_URL and AUDIO_DIR must be set to synthesise");
+  const config = loadSynthesisConfig(process.env);
   return (synthesis ??= {
-    auth: createAuthoring(createDb(url)),
-    tts: createVoicevoxTts({ url: voicevox }),
-    store: createDirectoryAudioStore(dir),
-    voices: loadVoices(process.env),
+    auth: createAuthoring(createDb(config.databaseUrl)),
+    tts: createVoicevoxTts({ url: config.voicevoxUrl }),
+    store: createDirectoryAudioStore(config.audioDir),
+    voices: config.voices,
   });
 };
 

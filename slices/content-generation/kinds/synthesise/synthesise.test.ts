@@ -10,7 +10,7 @@ import { createFakeTts } from "@mojibun/tts";
 import { world } from "../../server/world.ts";
 import { audioKeyOf, createDirectoryAudioStore, createMemoryAudioStore, synthesiseHandlers, type Voice } from "./index.ts";
 import { kanaOf } from "./kana.ts";
-import { dialogueVoices, loadVoices, sentenceVoice } from "./voices.ts";
+import { dialogueVoices, loadSynthesisConfig, loadVoices, sentenceVoice } from "./voices.ts";
 
 const VOICES: Voice[] = [
   { id: 11, character: "玄野武宏", speaker: "男" },
@@ -104,6 +104,18 @@ describe("voices", () => {
     expect(() => loadVoices({ VOICE_ALLOW_LIST: JSON.stringify(VOICES.map((v) => ({ ...v, speaker: "男" }))) })).toThrow();
     expect(() => loadVoices({ VOICE_ALLOW_LIST: JSON.stringify([...VOICES, ...VOICES].slice(0, 7)) })).toThrow();
     expect(() => loadVoices({})).toThrow();
+  });
+});
+
+describe("the worker's synthesis settings", () => {
+  const env = { DATABASE_URL: "postgres://db", VOICEVOX_URL: "http://voicevox", AUDIO_DIR: "/audio", VOICE_ALLOW_LIST: JSON.stringify(VOICES) };
+
+  it("reads the database, engine, audio directory and voices", () => {
+    expect(loadSynthesisConfig(env)).toEqual({ databaseUrl: "postgres://db", voicevoxUrl: "http://voicevox", audioDir: "/audio", voices: VOICES });
+  });
+
+  it.each(["DATABASE_URL", "VOICEVOX_URL", "AUDIO_DIR"])("refuses to start without %s", (name) => {
+    expect(() => loadSynthesisConfig({ ...env, [name]: "" })).toThrow("must be set");
   });
 });
 

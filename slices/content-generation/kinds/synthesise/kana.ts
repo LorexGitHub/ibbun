@@ -16,6 +16,28 @@ const spoken = (t: Token): string => {
   return sound;
 };
 
+type Phrase = { text: string; pauseAfter: boolean };
+
+/** A token opens a new accent phrase unless it hangs on the word before it, and nothing follows a pause or a prefix inside one. */
+const opensPhrase = (token: Token, previous: Token | undefined, last: Phrase | undefined): boolean =>
+  !last || last.pauseAfter || !(BOUND.has(token.partOfSpeech[0]!) || previous?.partOfSpeech[0] === "接頭辞");
+
+const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
+  const phrases: Phrase[] = [];
+  let previous: Token | undefined;
+  for (const token of tokens) {
+    const last = phrases[phrases.length - 1];
+    if (isPunctuation(token)) {
+      if (last && PAUSES.has(token.surface)) last.pauseAfter = true;
+      continue;
+    }
+    if (opensPhrase(token, previous, last)) phrases.push({ text: "", pauseAfter: false });
+    phrases[phrases.length - 1]!.text += spoken(token);
+    previous = token;
+  }
+  return phrases;
+};
+
 /**
  * The kana string VOICEVOX is sent for a Sentence, built only from its approved tokens
  * (listening.md#audio-files): one accent phrase per content word with the particles after it, `/` between
@@ -23,20 +45,7 @@ const spoken = (t: Token): string => {
  * last mora, which VOICEVOX reads as flat. Sentence-final marks are dropped.
  */
 export const kanaOf = (tokens: readonly Token[]): string => {
-  const phrases: { text: string; pauseAfter: boolean }[] = [];
-  let joinNext = false;
-  for (const token of tokens) {
-    if (isPunctuation(token)) {
-      if (PAUSES.has(token.surface) && phrases.length) phrases[phrases.length - 1]!.pauseAfter = true;
-      continue;
-    }
-    const open = !phrases.length || phrases[phrases.length - 1]!.pauseAfter;
-    if (open || (!BOUND.has(token.partOfSpeech[0]!) && !joinNext)) phrases.push({ text: "", pauseAfter: false });
-    phrases[phrases.length - 1]!.text += spoken(token);
-    joinNext = token.partOfSpeech[0] === "接頭辞";
-  }
+  const phrases = phrasesOf(tokens);
   if (!phrases.length) throw new Error("nothing to speak");
-  return phrases
-    .map((p, i) => `${p.text}'${i === phrases.length - 1 ? "" : p.pauseAfter ? "、" : "/"}`)
-    .join("");
+  return phrases.map((p, i) => `${p.text}'${i === phrases.length - 1 ? "" : p.pauseAfter ? "、" : "/"}`).join("");
 };

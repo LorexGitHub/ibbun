@@ -31,3 +31,10 @@ export const dialogueVoices = (voices: readonly Voice[], passageId: string): Rec
   男: pick(voices.filter((v) => v.speaker === "男"), passageId),
   女: pick(voices.filter((v) => v.speaker === "女"), passageId),
 });
+
+/** What the worker needs to synthesise, read once from the environment so a missing setting names itself. */
+export const loadSynthesisConfig = (env: Record<string, string | undefined>) => {
+  const { DATABASE_URL: databaseUrl, VOICEVOX_URL: voicevoxUrl, AUDIO_DIR: audioDir } = env;
+  if (!databaseUrl || !voicevoxUrl || !audioDir) throw new Error("DATABASE_URL, VOICEVOX_URL and AUDIO_DIR must be set to synthesise");
+  return { databaseUrl, voicevoxUrl, audioDir, voices: loadVoices(env) };
+};
