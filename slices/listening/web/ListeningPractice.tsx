@@ -3,6 +3,7 @@ import { Button, Card } from "@mojibun/ui";
 import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
 import type { ClipView } from "../contract.ts";
 import { listClips, loadClip } from "./api.ts";
+import { PracticeTexts } from "../practice/web/PracticeTexts.tsx";
 import { ClipCard } from "./ClipCard.tsx";
 
 /** Walks through the clips of a level, one at a time, and starts over at the end. */
@@ -30,6 +31,7 @@ const Session = ({ level }: { level: JlptLevel }) => {
 export const ListeningPractice = () => {
   const [level, setLevel] = useState<JlptLevel | null>(null);
   return (
+    <>
     <Card>
       <h1>Listening practice</h1>
       <div role="group" aria-label="Level">
@@ -41,5 +43,7 @@ export const ListeningPractice = () => {
       </div>
       {level && <Session key={level} level={level} />}
     </Card>
+    <PracticeTexts />
+    </>
   );
 };
