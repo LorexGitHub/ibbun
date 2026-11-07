@@ -12,9 +12,11 @@
     "@mojibun/llm": "workspace:*",
     "@mojibun/mail": "workspace:*",
     "@mojibun/nlp": "workspace:*",
+    "@mojibun/progress": "workspace:*",
     "@mojibun/shared": "workspace:*",
     "@mojibun/slice": "workspace:*",
     "@mojibun/ui": "workspace:*",
+    "drizzle-orm": "^0.44.0",
     "hono": "^4.9.0",
     "react": "^19.1.0",
     "zod": "^4.1.0"

@@ -95,6 +95,6 @@ describe("talking to the API", () => {
 describe("slice registration", () => {
   it("names the slice, puts its screen under /admin and registers the review job", async () => {
     expect(slice).toMatchObject({ name: "content-approval", nav: { path: "/admin/content-approval" } });
-    expect(routes.map((r) => r.path)).toEqual(["/admin/content-approval"]);
+    expect(routes.map((r) => r.path)).toEqual(["/admin/content-approval", "/admin/content-approval/spot-checks"]);
   });
 });

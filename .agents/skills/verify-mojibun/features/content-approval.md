@@ -1,6 +1,6 @@
 # content-approval
 
-The supervisor opens the Content Approval queue under `/admin/content-approval`: every unresolved entry with its reason, whether it is operational (goes straight to the supervisor) or content (the reviewer agent decides), filters by reason and lane, and a Resolve button. Behind it, the `content.review` job tokenises a drafted Example or Japanese Explanation with Sudachi, runs the automatic checks, asks the reviewer agent for per-criterion verdicts, records Approval Decisions (approve, reject, escalate) and, on a reject or failed check, sends the feedback back to the generator as `content.generate`.
+The supervisor opens the Content Approval queue under `/admin/content-approval` and the spot-checks under `/admin/content-approval/spot-checks`: every unresolved entry with its reason, whether it is operational (goes straight to the supervisor) or content (the reviewer agent decides), filters by reason and lane, and a Resolve button. Spot-checks show a running error rate and pause per content kind, the samples waiting for a verdict, and a re-review form. Behind it, the `content.review` job tokenises a drafted Example or Japanese Explanation with Sudachi, runs the automatic checks, asks the reviewer agent for per-criterion verdicts, records Approval Decisions (approve, reject, escalate) and, on a reject or failed check, sends the feedback back to the generator as `content.generate`.
 
 ## Sub-features
 
@@ -8,7 +8,12 @@ The supervisor opens the Content Approval queue under `/admin/content-approval`:
 - `GET /api/content-approval/queue` (`?reason=`, `?lane=supervisor|reviewer`, `?generationRunId=`, `?importRunId=`) and `POST /api/content-approval/queue/:id/resolve`, supervisor only.
 - `content.review` job: Sudachi tokens stored on the Sentence, automatic checks, reviewer verdicts, Approval Decisions, retry through `content.generate` (3 attempts, then `generation failed`).
 - Rubrics: `slices/content-approval/rubrics/<kind>/v<N>.md`, newest version wins.
-- Not built here: spot-check sampling, error rates, pause and resume, the budget alert, rubrics for kinds other than Example and Japanese Explanation.
+- Spot-checks screen: one card per kind (Examples, Japanese Explanations, Listening Clips) with error rate over the last 50 sampled, "auto-approval paused" and Resume; sample cards with Looks right / Reject and a note; re-review form (Generation Run, Rubric version or Model).
+- `GET /api/content-approval/sampling/spot-checks` (`?status=pending|confirmed|rejected`), `POST .../spot-checks/:id/verdict` `{verdict: confirm|reject, note?}`, `POST .../kinds/:kind/resume`, `POST .../re-reviews` `{generationRunId?|rubricVersion?|model?}`, supervisor only.
+- Sampling: every reviewer approval is drawn in `content.review`: all of the first 20 after a model or rubric version change (`calibration`), else 5% (`random`). Listening Clip audio approvals (derived decisions whose process starts `listening`) are drawn the same way when the spot-checks list is loaded. State is in `content_approval.sample` and `content_approval.kind_state`.
+- A rejected sample takes its unit down: Retired if any Learner has a Review of the Example (or its Study Item), else Rejected; a Retired Example opens a Generation Request `example retired`.
+- Pause: more than 10% rejected among the last 50 settled `calibration`/`random` samples of a kind pauses it. While paused the reviewer's approvals stay `draft` and show as `held` samples; Approve makes them live, Reject sends the feedback back to the generator. Resume starts a fresh window.
+- Not built here: the budget alert, rubrics for kinds other than Example and Japanese Explanation.
 
 ## How to get to it (user POV)
 
@@ -27,6 +32,16 @@ Preconditions: the baseline stack; a Supervisor and a Learner exist (account sli
 - **Learner is refused.** Log in as the Learner, open `/admin/content-approval`: the screen says "Supervisors only."; `curl` of the queue API with the Learner cookie answers 403, and without a cookie 401.
 - **Review job (needs Sudachi and an LLM key, otherwise skip and say so).** Enqueue `content.review` for a Generation Run that wrote a draft Example; afterwards `select outcome, decider from content_graph.approval_decision order by at` shows the decision, `content_graph.sentence.tokens` is filled, and a rejection enqueues `content.generate` with `feedback`. The Vitest suite in `slices/content-approval` proves this against fakes; a live run proves the wiring.
 
+## Spot-checks
+
+Preconditions: the baseline stack and a Supervisor. Samples only exist once a reviewer has approved something, which needs the review job (Sudachi and an LLM key). Without them, insert approved rows and `content_graph.approval_decision` rows with `psql` and say so in the evidence; Listening Clip samples come from a decision whose `decider` is `{"kind":"derived","process":"listening/voicevox","version":"1"}`.
+
+- **Sample appears.** After the reviewer approves a draft, `psql -c "select kind, reason, status from content_approval.sample order by at"` shows a `calibration` row; open `/admin/content-approval/spot-checks` and the card shows the Sentence, its translation and the reviewer's model and rubric.
+- **Reject live content.** Type a note, click Reject. The card leaves the list; `select approval, retired from content_graph.example where id = '<id>'` says `rejected, f` for an Example no Learner has met and `approved, t` for one with a Review in `progress.reviews`; the latter also has an `example retired` row in `content_graph.generation_request`.
+- **Pause.** Reject enough drawn samples that more than 10% of the last 50 are rejected. The Examples card says "auto-approval paused" with a Resume button. Run another review: the draft stays `draft` and a `held` card appears. Approve makes it live; Resume clears the pause.
+- **Re-review.** Enter a model name in the form and click Queue re-review: "N queued." and `re-review` cards appear for live approvals by that model that have no open sample.
+- **Learner is refused.** The spot-checks API answers 403 to a Learner and 401 without a cookie.
+
 ## Gotchas
 
 - `level disagreement` entries come from the derived-level process in core `content-graph/levels`, not from this slice: one per Study Item whose approved List candidate differs from its current level, with `detail` `{list, current}`. Resolving one does not re-queue it.
@@ -35,3 +50,6 @@ Preconditions: the baseline stack; a Supervisor and a Learner exist (account sli
 - Operational reasons are `breaker tripped`, `budget exhausted`, `generation failed`, `staleness alarm`. The reviewer agent never handles them.
 - An escalated draft stays `draft`; only the primary record (the Example or explanation) is queued.
 - The generator's reading of an Example is its accepted answer's reading; a disagreement with Sudachi is shown to the reviewer and never fails the draft.
+- Held and re-review samples are chosen, not drawn, so they never count towards the error rate. Neither does a verdict from before the last Resume.
+- A single rejected sample in a brand-new kind is 100% of the sampled items, so it pauses the kind at once; the 10% rule has no minimum sample size.
+- Listening Clip sampling relies on content-generation recording clip audio approval as a derived Approval Decision whose process starts `listening`. Until it does, the Listening Clips card stays empty.

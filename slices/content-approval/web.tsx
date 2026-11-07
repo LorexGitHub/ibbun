@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Card, Pill } from "@mojibun/ui";
+import { SpotChecksRoute } from "./sampling/web.tsx";
 
 export type Lane = "supervisor" | "reviewer";
 export type QueueItem = {
@@ -37,6 +38,9 @@ export const QueueScreen = ({
 }) => (
   <section aria-label="Content Approval queue">
     <h1>Content Approval queue</h1>
+    <p>
+      <a href="/admin/content-approval/spot-checks">Spot-checks</a>
+    </p>
     <div className="row">
       <label>
         Reason{" "}
@@ -103,4 +107,7 @@ const QueueRoute = () => {
   return <QueueScreen {...loaded} filter={filter} onFilter={setFilter} onResolve={resolve} />;
 };
 
-export const routes = [{ path: "/admin/content-approval", component: QueueRoute }];
+export const routes = [
+  { path: "/admin/content-approval", component: QueueRoute },
+  { path: "/admin/content-approval/spot-checks", component: SpotChecksRoute },
+];

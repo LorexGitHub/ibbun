@@ -13,6 +13,9 @@ export const createFakeProgress = (): Progress => {
       const mine = log.filter((r) => r.learnerId === learnerId && (!studyItemId || r.studyItemId === studyItemId));
       return structuredClone(mine.sort((a, b) => Date.parse(a.at) - Date.parse(b.at)));
     },
+    async exists(target) {
+      return log.some((r) => ("exampleId" in target ? r.exampleId === target.exampleId : r.studyItemId === target.studyItemId));
+    },
   };
   return createProgressOver(store, randomUUID);
 };

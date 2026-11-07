@@ -7,6 +7,10 @@ import { createFakeJobs } from "@mojibun/jobs";
 import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@mojibun/llm";
 import { createFakeNlp, type Token } from "@mojibun/nlp";
 import { DEFAULT_CONFIG } from "./config.ts";
+import { createFakeProgress } from "@mojibun/progress/testing";
+import { DEFAULT_SAMPLING } from "../sampling/config.ts";
+import { createSampling } from "../sampling/sampler.ts";
+import { createMemoryStore } from "../sampling/store.ts";
 import { reviewRun } from "./review-job.ts";
 import { handler } from "@mojibun/jobs";
 
@@ -108,10 +112,13 @@ const world = async (options: Options = {}) => {
   return { graph, a, request, run, sentence, example, water, targetId };
 };
 
-const run = async (w: World, answer: (call: FakeLlmCall) => unknown = approving()) => {
+const sampling = (authoring: World["a"], jobs: ReturnType<typeof createFakeJobs>, store = createMemoryStore()) =>
+  createSampling({ store, authoring, progress: createFakeProgress(), jobs, config: DEFAULT_SAMPLING });
+
+const run = async (w: World, answer: (call: FakeLlmCall) => unknown = approving(), store = createMemoryStore()) => {
   const jobs = createFakeJobs();
   const llm = createFakeLlm({ config: loadLlmConfig({}), answer });
-  const deps = { authoring: w.a, nlp: createFakeNlp(lexicon), llm, jobs, config: DEFAULT_CONFIG };
+  const deps = { authoring: w.a, nlp: createFakeNlp(lexicon), llm, jobs, config: DEFAULT_CONFIG, sampling: sampling(w.a, jobs, store) };
   const generated: unknown[] = [];
   await jobs.work([handler(ContentGenerate, async (p) => void generated.push(p)), handler(ContentReview, (p) => reviewRun(deps, p))]);
   await jobs.enqueue(ContentReview, { requestId: w.request.id, runId: w.run.id });
@@ -129,6 +136,36 @@ const exampleRow = (w: World) => w.graph.example.find((e) => e.id === w.example)
 const requestRow = (w: World) => w.graph.generationRequest.find((r) => r.id === w.request.id)!;
 
 type World = Awaited<ReturnType<typeof world>>;
+
+describe("content.review and spot-check sampling", () => {
+  it("draws the reviewer's approval for the supervisor to sample and still approves it at once", async () => {
+    const w = await world();
+    const { deps } = await run(w);
+    expect(exampleRow(w).approval).toBe("approved");
+    expect(await deps.sampling.samples({ status: "pending" })).toMatchObject([
+      { kind: "example", reason: "calibration", primary: { table: "example", id: w.example }, requestId: w.request.id, model: "claude-opus-5-5" },
+    ]);
+  });
+
+  it("holds the approval for the supervisor while its kind is paused: the draft stays a draft and the request waits", async () => {
+    const w = await world();
+    const store = createMemoryStore();
+    await store.saveState({ ...(await store.state("example")), paused: true });
+    const { deps } = await run(w, approving(), store);
+    expect(exampleRow(w).approval).toBe("draft");
+    expect(w.graph.sentence.find((s) => s.id === w.sentence)!.approval).toBe("draft");
+    expect(requestRow(w).status).toBe("in review");
+    expect(await deps.sampling.samples({ status: "pending" })).toMatchObject([{ reason: "held", primary: { id: w.example } }]);
+  });
+
+  it("does not hold a reviewer rejection or escalation, only approvals", async () => {
+    const w = await world();
+    const store = createMemoryStore();
+    await store.saveState({ ...(await store.state("example")), paused: true });
+    await run(w, approving({ failing: ["natural"] }), store);
+    expect(exampleRow(w).approval).toBe("rejected");
+  });
+});
 
 describe("content.review", () => {
   it("stores Sudachi tokens, approves a good draft as a unit and finishes the request", async () => {
@@ -225,7 +262,7 @@ describe("content.review", () => {
     const w = await world({ kind: "reading_passage" });
     const jobs = createFakeJobs();
     const llm = createFakeLlm({ config: loadLlmConfig({}), answer: approving() });
-    await expect(reviewRun({ authoring: w.a, nlp: createFakeNlp(lexicon), llm, jobs, config: DEFAULT_CONFIG }, { requestId: w.request.id, runId: w.run.id })).rejects.toThrow(/no rubric/);
+    await expect(reviewRun({ authoring: w.a, nlp: createFakeNlp(lexicon), llm, jobs, config: DEFAULT_CONFIG, sampling: sampling(w.a, jobs) }, { requestId: w.request.id, runId: w.run.id })).rejects.toThrow(/no rubric/);
   });
 
   it("fails a Japanese Explanation that uses Latin letters or its headword, and approves a clean one", async () => {

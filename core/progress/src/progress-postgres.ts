@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Db, DbOrTx } from "@mojibun/db";
 import { LearnerId, StudyItemId } from "@mojibun/shared";
 import { reviews } from "../db/progress-tables.ts";
@@ -28,6 +28,10 @@ const postgresStore = (db: Db): ReviewStore => ({
       .where(and(eq(reviews.learnerId, learnerId), forItem))
       .orderBy(asc(reviews.at), asc(reviews.seq));
     return rows.map(toReview);
+  },
+  async exists(target, tx: DbOrTx = db) {
+    const match = "exampleId" in target ? sql`${reviews.detail}->>'exampleId' = ${target.exampleId}` : eq(reviews.studyItemId, target.studyItemId);
+    return (await tx.select({ id: reviews.id }).from(reviews).where(match).limit(1)).length > 0;
   },
 });
 
