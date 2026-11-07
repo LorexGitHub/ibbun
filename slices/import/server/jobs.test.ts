@@ -86,7 +86,7 @@ describe("import jobs", () => {
     expect(await w.deps.authoring.queue({ reason: "staleness alarm" })).toHaveLength(1);
   });
 
-  it("refreshes JMdict monthly and KanjiVG weekly by default", () => {
-    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true], ["kanjivg", false]]);
+  it("refreshes JMdict and KANJIDIC2 monthly and KanjiVG weekly by default", () => {
+    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true], ["kanjidic", true], ["kanjivg", false]]);
   });
 });

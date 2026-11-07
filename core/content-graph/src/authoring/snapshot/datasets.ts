@@ -3,20 +3,21 @@ import { moveSpan } from "./match.ts";
 import { same, type RunCtx } from "./run.ts";
 import type { KanjiRecord, KanjiStrokesRecord, SentenceRecord } from "./types.ts";
 
-const kanjiFields = ({ key, ...fields }: KanjiRecord) => ({ literal: key, ...fields });
+/** What KANJIDIC2 owns on a Kanji. `strokes` belong to KanjiVG: KANJIDIC2 starts them empty and never rewrites them. */
+const kanjiFields = ({ key, strokes: _, ...fields }: KanjiRecord) => ({ literal: key, ...fields });
 
 export const kanjidic = {
   add: async (ctx: RunCtx, record: KanjiRecord) => {
     const id = ctx.clock.newId();
     await ctx.tx.insert("studyItem", [{ id, type: "kanji", approval: "approved", retired: false, provenanceId: await ctx.provenance("edrdg") }]);
-    await ctx.tx.insert("kanji", [{ studyItemId: id, ...kanjiFields(record), knownWrongMeanings: [] }]);
+    await ctx.tx.insert("kanji", [{ studyItemId: id, ...kanjiFields(record), strokes: [], knownWrongMeanings: [] }]);
     await ctx.sourceKey(record.key, id);
     return id;
   },
 
   change: async (ctx: RunCtx, id: string, record: KanjiRecord) => {
     const [item] = await ctx.tx.rows("studyItem", { id });
-    const [{ studyItemId: _, knownWrongMeanings: __, ...old }] = (await ctx.tx.rows("kanji", { studyItemId: id })) as [Row<"kanji">];
+    const [{ studyItemId: _, knownWrongMeanings: __, strokes: ___, ...old }] = (await ctx.tx.rows("kanji", { studyItemId: id })) as [Row<"kanji">];
     const next = kanjiFields(record);
     if (!item!.retired && same(old, next)) return false;
     await ctx.tx.update("studyItem", { id }, { retired: false, provenanceId: await ctx.provenance("edrdg") });

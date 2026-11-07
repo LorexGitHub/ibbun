@@ -107,6 +107,15 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await apply("kanjidic", [])).counts.retired).toBe(1);
       expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(true);
     });
+    it("leaves KanjiVG strokes alone when KANJIDIC2 refreshes, and does not count the Kanji as changed", async () => {
+      const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      await apply("kanjidic", [kanji]);
+      await apply("kanjivg", [{ key: "098df", strokes: ["M1,2"] }]);
+      expect((await apply("kanjidic", [kanji])).counts).toMatchObject({ changed: 0 });
+      expect((await apply("kanjidic", [{ ...kanji, meanings: ["eat", "food"] }])).counts).toMatchObject({ changed: 1 });
+      expect((await h.a.rows("kanji", { studyItemId: await idOf("kanjidic", "食") }))[0]).toMatchObject({ meanings: ["eat", "food"], strokes: ["M1,2"] });
+    });
+
     it("sets KanjiVG strokes on the KANJIDIC2 Kanji of the same code point, and skips code points KANJIDIC2 lacks", async () => {
       const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
       await apply("kanjidic", [kanji]);

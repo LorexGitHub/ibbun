@@ -62,6 +62,7 @@ export const QUEUE_REASONS = [
   "level disagreement",
   "merge proposal",
   "sense alignment",
+  "answer flag",
 ] as const;
 export type QueueReason = (typeof QUEUE_REASONS)[number];
 
