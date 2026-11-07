@@ -17,7 +17,7 @@ export type ReadingDeps = {
   now: () => Date;
 };
 
-const lookupView = ({ forms, readings, senses }: Word): LookupView => ({
+export const lookupView = ({ forms, readings, senses }: Word): LookupView => ({
   label: forms[0]?.text ?? readings[0]?.text ?? "",
   reading: readings[0]?.text ?? null,
   meanings: senses.flatMap((s) => s.glosses).slice(0, 4),
