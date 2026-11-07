@@ -14,6 +14,11 @@ export const levelsByItem = async (auth: Authoring): Promise<ReadonlyMap<string,
 /** Weakest first (batch-text.md#earlier-items). */
 const WEAKNESS: Record<Mastery, number> = { relearning: 0, learning: 1, young: 2, mature: 3, new: 4 };
 
+const inLevel = (levels: ReadonlyMap<string, JlptLevel | null>, level: JlptLevel | "unlevelled") => (id: string) =>
+  (levels.get(id) ?? null) === (level === "unlevelled" ? null : level);
+
+const dueAt = (p: ItemProgress) => p.due?.getTime() ?? 0;
+
 /**
  * The Study Items of the batch's level the Learner met in earlier batches, weakest first. `progress` does not
  * expose stability, so within a state the soonest due stands in for the lowest stability.
@@ -26,8 +31,8 @@ export const earlierItems = (
   count: number,
 ): string[] =>
   met
-    .filter((p) => !batch.includes(p.studyItemId) && (levels.get(p.studyItemId) ?? null) === (level === "unlevelled" ? null : level))
-    .sort((a, b) => WEAKNESS[a.mastery] - WEAKNESS[b.mastery] || (a.due?.getTime() ?? 0) - (b.due?.getTime() ?? 0))
+    .filter((p) => !batch.includes(p.studyItemId) && inLevel(levels, level)(p.studyItemId))
+    .sort((a, b) => WEAKNESS[a.mastery] - WEAKNESS[b.mastery] || dueAt(a) - dueAt(b))
     .slice(0, count)
     .map((p) => p.studyItemId);
 
@@ -40,9 +45,9 @@ export const levelProgress = (
   levels: ReadonlyMap<string, JlptLevel | null>,
   level: JlptLevel | "unlevelled",
 ): number => {
-  const inLevel = (id: string) => (levels.get(id) ?? null) === (level === "unlevelled" ? null : level);
-  const metHere = met.filter((p) => inLevel(p.studyItemId)).length;
+  const here = inLevel(levels, level);
+  const metHere = met.filter((p) => here(p.studyItemId)).length;
   if (level === "unlevelled") return metHere;
-  const total = [...levels.keys()].filter(inLevel).length;
+  const total = [...levels.keys()].filter(here).length;
   return total ? metHere / total : 0;
 };
