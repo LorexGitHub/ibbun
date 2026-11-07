@@ -9,9 +9,6 @@ import { answerDataFor, questionFor } from "./question.ts";
 
 export type CramDeps = { contentGraph: ContentGraph; progress: Progress; sessions: SessionResolver; now: () => Date };
 
-/** The dependencies could not be built, for example because the environment is not configured. */
-export class Unavailable extends Error {}
-
 const bad = (c: Context, message: string) => c.json({ message }, 400);
 const missing = (c: Context, message: string) => c.json({ message }, 404);
 
@@ -48,7 +45,7 @@ const review = (parsed: SubmissionData, results: FacetOutcome[], learnerId: Lear
 });
 
 /** Study Items of the types Cram practises, chosen by a search or by level. Locked ones are included. */
-const itemsFor = ({ contentGraph }: CramDeps, { q, level, type }: ItemQuery) => {
+const itemsFor = (contentGraph: ContentGraph, { q, level, type }: ItemQuery) => {
   if (q) return contentGraph.search(q).then((found) => found.filter((i) => !type || i.type === type));
   const types = type ? [type] : CramType.options;
   return Promise.all(types.map((t) => contentGraph.levelList(level!, t))).then((lists) => lists.flat());
@@ -60,32 +57,26 @@ const exampleOf = (examples: Example[], id: string) => examples.find((e) => e.id
  * Cram: choose Study Items, locked or not, and practise them. Answers are graded by the same
  * `grade()` the web client runs, then logged as `cram` Reviews, which never feed the Scheduler or Mastery.
  */
-export const createCramApi = (getDeps: () => Promise<CramDeps>) => {
-  let deps: Promise<CramDeps> | undefined;
-  const ready = () => (deps ??= getDeps().catch((error: unknown) => {
-    deps = undefined;
-    throw new Unavailable(error instanceof Error ? error.message : String(error));
-  }));
-  const { requireLearner } = createAuthGuards({ resolve: async (headers) => (await ready()).sessions.resolve(headers) });
+export const createCramApi = (deps: CramDeps) => {
+  const { requireLearner } = createAuthGuards(deps.sessions);
+  const { contentGraph, progress, now } = deps;
 
   return new Hono<AuthEnv>()
-    .onError((error, c) => (error instanceof Unavailable ? c.json({ message: "Cram is unavailable" }, 503) : Promise.reject(error)))
     .use(requireLearner())
     .get("/items", async (c) => {
       const query = ItemQuery.safeParse(c.req.query());
-      return query.success ? c.json(await itemsFor(await ready(), query.data)) : bad(c, query.error.message);
+      return query.success ? c.json(await itemsFor(contentGraph, query.data)) : bad(c, query.error.message);
     })
     .get("/items/:id/question", async (c) => {
       const id = StudyItemId.safeParse(c.req.param("id"));
       if (!id.success) return bad(c, "not a Study Item id");
-      const page = await (await ready()).contentGraph.studyItem(id.data);
+      const page = await contentGraph.studyItem(id.data);
       const question = page && questionFor(page, c.req.query("after"));
       return question ? c.json(question) : missing(c, "nothing to practise");
     })
     .post("/answers", async (c) => {
       const body = Submission.safeParse(await c.req.json().catch(() => null));
       if (!body.success) return bad(c, body.error.message);
-      const { contentGraph, progress, now } = await ready();
       const submission = body.data;
       const page = await contentGraph.studyItem(submission.studyItemId);
       const example = page && exampleOf(page.examples, submission.exampleId);

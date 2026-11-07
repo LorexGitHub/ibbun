@@ -15,7 +15,7 @@ let progress: ReturnType<typeof createFakeProgress>;
 let headers: Headers;
 let app: ReturnType<typeof createCramApi>;
 
-const depsWith = (g: typeof graph) => async () => ({ contentGraph: createFakeContentGraph(g), progress, sessions, now: () => NOW });
+const depsWith = (g: typeof graph) => ({ contentGraph: createFakeContentGraph(g), progress, sessions, now: () => NOW });
 
 beforeEach(() => {
   sessions = createFakeSessionResolver();
@@ -203,14 +203,5 @@ describe("POST /answers", () => {
   it("answers 404 when the Study Item does not exist", async () => {
     const body = { ...(await wordSubmission("やま")), studyItemId: "00000000-0000-4000-8000-000000000000" };
     expect((await post("/answers", body)).status).toBe(404);
-  });
-});
-
-describe("when the dependencies cannot be built", () => {
-  it("answers 503 for Cram alone", async () => {
-    const broken = createCramApi(async () => {
-      throw new Error("DATABASE_URL is not set");
-    });
-    expect((await broken.request("/items?level=N5")).status).toBe(503);
   });
 });

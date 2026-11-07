@@ -33,7 +33,7 @@ describe("Cram against the real Postgres stores", () => {
     const sessions = createFakeSessionResolver();
     const progress = createProgress(db);
     const headers = sessions.signIn({ learnerId, role: "learner" });
-    const app = createCramApi(async () => ({ contentGraph: createContentGraph(db), progress, sessions, now: () => new Date("2026-11-06T09:00:00.000Z") }));
+    const app = createCramApi({ contentGraph: createContentGraph(db), progress, sessions, now: () => new Date("2026-11-06T09:00:00.000Z") });
     const call = (path: string, body?: object) =>
       app.request(path, { method: body ? "POST" : "GET", headers: new Headers({ ...Object.fromEntries(headers), "content-type": "application/json" }), body: body ? JSON.stringify(body) : undefined });
 
