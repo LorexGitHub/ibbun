@@ -12,6 +12,7 @@
     "@mojibun/progress": "workspace:*",
     "@mojibun/shared": "workspace:*",
     "@mojibun/slice": "workspace:*",
+    "@mojibun/tts": "workspace:*",
     "zod": "^4.1.0"
   },
   "devDependencies": { "@types/node": "^24.0.0" }
