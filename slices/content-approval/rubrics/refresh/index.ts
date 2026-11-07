@@ -20,7 +20,7 @@ const rubricOf = (reason: RefreshReason) => rubricFor(reason.replaceAll(" ", "-"
 export type RefreshDeps = { authoring: Authoring; llm: Llm; config: ApprovalConfig };
 
 type Detail = Record<string, unknown>;
-const detailOf = (entry: QueueEntry): Detail => (entry.detail && typeof entry.detail === "object" ? (entry.detail as Detail) : {});
+const detailOf = (entry: QueueEntry) => entry.detail as Detail;
 const show = (value: unknown): string => (value === undefined || value === null ? "none" : typeof value === "string" ? value : JSON.stringify(value));
 
 /** The tables an override's record can live in, searched for the upstream value now. */
@@ -89,21 +89,32 @@ const unmatchedSenseFacts = async (a: Authoring, entry: QueueEntry): Promise<Pre
   return { subject: { kind: "unit", records: [primary], primary }, values: { record: `Japanese Explanation ${explanation.id}`, text: explanation.text, detail: show(entry.detail) } };
 };
 
-const prepare = async (a: Authoring, entry: QueueEntry, reason: RefreshReason): Promise<Prepared> => {
-  if (reason === "stale override" || reason === "orphaned override") {
-    const { override, values } = await overrideFacts(a, entry);
-    return { subject: { kind: "override", override }, values };
-  }
-  if (reason === "level disagreement") {
-    const [kanji] = await a.rows("kanji", { studyItemId: entry.recordId! });
-    const level = await levelOf(a, entry.recordId!);
-    return { subject: { kind: "kanji" }, values: { target: kanji?.literal ?? entry.recordId!, level: level === null ? "Unlevelled" : level, detail: show(detailOf(entry).old ?? entry.detail) } };
-  }
-  if (reason === "unmatched sense") return unmatchedSenseFacts(a, entry);
+const levelFlagFacts = async (a: Authoring, entry: QueueEntry): Promise<Prepared> => {
+  const [kanji] = await a.rows("kanji", { studyItemId: entry.recordId! });
+  const level = await levelOf(a, entry.recordId!);
+  return { subject: { kind: "kanji" }, values: { target: kanji!.literal, level: level === null ? "Unlevelled" : level, detail: show(entry.detail) } };
+};
+
+const overrideFlagFacts = async (a: Authoring, entry: QueueEntry): Promise<Prepared> => {
+  const { override, values } = await overrideFacts(a, entry);
+  return { subject: { kind: "override", override }, values };
+};
+
+const exampleFlagFacts = async (a: Authoring, entry: QueueEntry): Promise<Prepared> => {
   const [example] = await a.rows("example", { id: entry.recordId! });
-  if (!example) throw new Error(`${reason} entry ${entry.id} names no Example`);
+  if (!example) throw new Error(`${entry.reason} entry ${entry.id} names no Example`);
   const { draft, values } = await exampleFacts(a, example, entry);
   return { subject: { kind: "unit", records: draft.records, primary: draft.primary }, values };
+};
+
+/** How each reason's flag is turned into what the reviewer sees and what a decision applies to. */
+const PREPARE: Record<RefreshReason, (a: Authoring, entry: QueueEntry) => Promise<Prepared>> = {
+  "stale override": overrideFlagFacts,
+  "orphaned override": overrideFlagFacts,
+  "example redrafted": exampleFlagFacts,
+  superseded: exampleFlagFacts,
+  "unmatched sense": unmatchedSenseFacts,
+  "level disagreement": levelFlagFacts,
 };
 
 /** Overrides are never deleted: rejecting one retires it. */
@@ -138,7 +149,7 @@ const apply = async (a: Authoring, entry: QueueEntry, subject: Subject, judgemen
 /** Reviews one flag against its reason's rubric and acts on the verdict. */
 export const reviewFlag = async (d: RefreshDeps, entry: QueueEntry, reason: RefreshReason) => {
   const rubric = rubricOf(reason);
-  const { subject, values } = await prepare(d.authoring, entry, reason);
+  const { subject, values } = await PREPARE[reason](d.authoring, entry);
   const result = await d.llm.review({
     system: `Judge the flag against every criterion. Rubric ${rubric.version}.`,
     prompt: fill(rubric.template, values),

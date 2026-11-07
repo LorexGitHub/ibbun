@@ -116,6 +116,7 @@ describe("refresh flag rubrics", () => {
   it("dismisses a level disagreement it approves, and writes no Level Candidate when it does not", async () => {
     const w = world();
     const before = w.graph.levelCandidate.length;
+    w.graph.kanji.push({ studyItemId: w.word, literal: "水", meanings: [], onReadings: [], kunReadings: [], grade: 1, frequency: null, strokeCount: 4, components: [], strokes: [], knownWrongMeanings: [] });
     await w.flag("level disagreement", w.word, { old: 3 });
     await w.run("level disagreement");
     expect(open(w)).toEqual([]);
@@ -123,6 +124,25 @@ describe("refresh flag rubrics", () => {
     await w.run("level disagreement", answering("level disagreement", { fail: ["tanos-stands"] }));
     expect(open(w)).toEqual(["escalated"]);
     expect(w.graph.levelCandidate).toHaveLength(before);
+  });
+
+  it("approves a Japanese Explanation behind an `unmatched sense` flag", async () => {
+    const w = world();
+    const id = randomUUID();
+    w.graph.japaneseExplanation.push({ id, wordSenseId: randomUUID(), grammarPointId: null, text: "みずのこと。", approval: "draft", retired: false, provenanceId: w.graph.provenance[0]!.id });
+    await w.flag("unmatched sense", id, { senseId: randomUUID() });
+    await w.run("unmatched sense");
+    expect(w.graph.japaneseExplanation.find((e) => e.id === id)!.approval).toBe("approved");
+  });
+
+  it.each([
+    ["superseded", "names no Example", {}],
+    ["unmatched sense", "names no Example or Japanese Explanation", {}],
+    ["stale override", "names no override", { overrideId: randomUUID() }],
+  ] as const)("fails loudly on a `%s` flag that names nothing to review", async (reason, message, detail) => {
+    const w = world();
+    await w.flag(reason, reason === "stale override" ? w.word : randomUUID(), detail);
+    await expect(w.run(reason)).rejects.toThrow(message);
   });
 
   it("leaves flags for other reasons alone and does nothing the second time", async () => {
