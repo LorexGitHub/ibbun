@@ -1,4 +1,5 @@
 import type { Row } from "../store.ts";
+import { replaceLinks } from "./links.ts";
 import { moveSpan } from "./match.ts";
 import { same, type RunCtx } from "./run.ts";
 import type { KanjiRecord, KanjiStrokesRecord, SentenceRecord } from "./types.ts";
@@ -82,10 +83,12 @@ export const tatoeba = {
       { id, text, translationEn, tokens, audioKey: null, audioVoice: null, unlevelledWordCount: 0, approval: "draft", retired: false, provenanceId },
     ]);
     await ctx.sourceKey(record.key, id);
+    await replaceLinks(ctx, id, record);
     return id;
   },
 
   change: async (ctx: RunCtx, id: string, record: SentenceRecord) => {
+    await replaceLinks(ctx, id, record);
     const [old] = (await ctx.tx.rows("sentence", { id })) as [Row<"sentence">];
     const [provenance] = await ctx.tx.rows("provenance", { id: old.provenanceId });
     const { text, translationEn, tokens } = record;
