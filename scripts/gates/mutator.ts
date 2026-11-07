@@ -7,7 +7,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { availableParallelism, freemem } from "node:os";
 import { join, resolve } from "node:path";
 import { uncoveredForms } from "./gates.ts";
-import { tool, toolEnv, toolsDir } from "./tools.ts";
+import { tool, toolEnv } from "./tools.ts";
 
 const root = resolve(import.meta.dirname, "../..");
 const started = Date.now();

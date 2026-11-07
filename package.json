@@ -16,9 +16,7 @@
     "depcruise": "node scripts/gates/depcruise.ts",
     "gate:dryer": "node scripts/gates/dryer.ts",
     "gate:mutator": "node scripts/gates/mutator.ts",
-    "e2e": "pnpm gen && playwright test",
-    "gate:local": "node scripts/gates/local.ts",
-    "ship": "node scripts/ship.ts"
+    "e2e": "pnpm gen && playwright test"
   },
   "devDependencies": {
     "@mojibun/jobs": "workspace:*",
