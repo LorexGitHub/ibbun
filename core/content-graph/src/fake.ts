@@ -9,5 +9,6 @@ export const createFakeContentGraph = (graph: Graph): ContentGraph => {
     levelList: async (level, type) => read.levelList(level, type),
     search: async (query, { limit } = {}) => read.search(query, limit),
     credits: async () => read.credits(),
+    pathItems: async () => read.pathItems(),
   };
 };

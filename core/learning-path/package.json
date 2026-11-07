@@ -1,0 +1,21 @@
+{
+  "name": "@mojibun/learning-path",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts"
+  },
+  "dependencies": {
+    "@mojibun/content-graph": "workspace:*",
+    "@mojibun/db": "workspace:*",
+    "@mojibun/progress": "workspace:*",
+    "@mojibun/shared": "workspace:*",
+    "drizzle-orm": "^0.44.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
+}
