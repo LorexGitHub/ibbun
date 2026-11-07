@@ -63,12 +63,15 @@ describe("merge_proposal", () => {
 
   it("queues the Tanos entry the model picked, with its reason and the Generation Run", async () => {
     const { t, hanabira, tai } = grammar();
+    // The Tanos dataset also keys Kanji; only its Grammar Points are candidates.
+    t.graph.sourceKey.push({ dataset: "tanos", upstreamKey: "食", recordId: t.kanjiId });
     const request = await t.run(hanabira, "merge_proposal");
 
     const [run] = await t.auth.rows("generationRun", { requestId: request.id });
     expect(run!.promptTemplateVersion).toBe("merge-proposal/1");
     expect(JSON.stringify(run!.inputs)).toContain("want to do");
     expect(JSON.stringify(run!.inputs)).toContain("N4");
+    expect(run!.inputs).toHaveLength(3);
 
     const entries = await t.auth.queue({ reason: "merge proposal" });
     expect(entries).toHaveLength(1);
