@@ -8,16 +8,16 @@ const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not set");
 
 const root = resolve(import.meta.dirname, "../../..");
-const db = createDb(url, { max: 1 });
+const db = createDb(url);
 await migrate(db.$client, await collectMigrations(await workspacePackageDirs(root)));
-await db.$client.end();
 
 const jobs = await createPgBossJobs(url);
-const names = await startWorker(jobs, slices);
+const names = await startWorker(jobs, slices, { db, sessions: { resolve: async () => null } });
 console.log(`worker running ${names.length} job type(s)`);
 
 const stop = async () => {
   await jobs.stop();
+  await db.$client.end();
   process.exit(0);
 };
 process.on("SIGINT", stop);

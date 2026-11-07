@@ -136,6 +136,16 @@ export const fixture = () => {
     { id: next(), clipId: clip, sentenceId: draftSentence, position: 1, speaker: "男", voice: "玄野武宏", audioKey: null, ...life() },
   );
 
+  const clipAtN5 = item("listening_clip");
+  graph.listeningClip.push({ studyItemId: clipAtN5, kind: "sentence" });
+  level(clipAtN5, "N5", "derived");
+  const retiredClip = item("listening_clip", "approved", true);
+  graph.listeningClip.push({ studyItemId: retiredClip, kind: "sentence" });
+  level(retiredClip, "N5", "derived");
+  const draftClip = item("listening_clip", "draft");
+  graph.listeningClip.push({ studyItemId: draftClip, kind: "dialogue" });
+  level(draftClip, "N5", "derived");
+
   const passage = next();
   graph.readingPassage.push({ id: passage, title: "朝ごはん", form: "prose", comprehensionQuestions: [], ...life() });
   graph.passageContainsSentence.push({ id: next(), passageId: passage, sentenceId: sentence, position: 0, ...life() });
@@ -149,7 +159,7 @@ export const fixture = () => {
     ids: {
       taberu: taberu.id, taberuForm: taberu.formId, taberuReading: taberu.readingId, taberuSense: taberu.senseId, taberuSecondForm,
       taberuExample, accepted, alternate, knownWrong, sentence,
-      nomu: nomu.id, shoku, teshimau, chau, clip,
+      nomu: nomu.id, shoku, teshimau, chau, clip, clipAtN5, retiredClip, draftClip,
       draftWord: draftWord.id, rejectedWord: rejectedWord.id, retiredWord: retiredWord.id,
       missing: next(),
     },
