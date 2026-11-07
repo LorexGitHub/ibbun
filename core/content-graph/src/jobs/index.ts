@@ -7,10 +7,14 @@ import { z } from "zod";
  * (architecture.md#dependency-rules). Handlers live in the slices, never here.
  */
 
-/** `learn` asks for the Batch Text of a picked batch (ADR 0008, batch-text.md). */
+/** `learn` asks for the Batch Text of a picked batch (ADR 0008, batch-text.md). `level` is the batch's hardest; "unlevelled" counts as hardest. */
 export const BatchTextGenerate = defineJob(
   "batch-text.generate",
-  z.object({ learnerId: LearnerId, level: JlptLevel, itemIds: z.array(StudyItemId).nonempty() }),
+  z.object({
+    learnerId: LearnerId,
+    level: z.union([JlptLevel, z.literal("unlevelled")]),
+    itemIds: z.array(StudyItemId).nonempty(),
+  }),
 );
 
 /** `reading` or `listening` asks for a Practice Text of a Cleared Level (ADR 0013, listening.md#practice-texts). */
