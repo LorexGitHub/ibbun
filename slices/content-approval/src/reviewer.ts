@@ -60,7 +60,7 @@ const promptFor = (draft: ExampleDraft | ExplanationDraft, check: ExampleCheck |
     };
   }
   const c = check as ExplanationCheck;
-  const rubric = rubricFor("japanese-explanation");
+  const rubric = rubricFor("explanation");
   return {
     rubric,
     prompt: fill(rubric.template, {
@@ -68,6 +68,7 @@ const promptFor = (draft: ExampleDraft | ExplanationDraft, check: ExampleCheck |
       level: c.level === null ? "Unlevelled" : c.level,
       meaning: c.meaning,
       text: draft.explanation.text,
+      references: c.references.length ? c.references.map((r) => `- ${r}`).join("\n") : "none",
     }),
   };
 };
