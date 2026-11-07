@@ -51,14 +51,44 @@ const Filters = ({ level, type, search, setLevel, setType, setSearch, onFind }: 
   </form>
 );
 
+type Choice = Map<string, StudyItemSummary>;
+
+/** The Study Items ticked so far, kept across searches. */
+const useChoice = (shown: StudyItemSummary[]) => {
+  const [chosen, setChosen] = useState<Choice>(new Map());
+  return {
+    chosen,
+    toggle: (item: StudyItemSummary) =>
+      setChosen((now) => {
+        const next = new Map(now);
+        if (!next.delete(item.id)) next.set(item.id, item);
+        return next;
+      }),
+    chooseShown: () => setChosen((now) => new Map([...now, ...shown.map((i): [string, StudyItemSummary] => [i.id, i])])),
+    clear: () => setChosen(new Map()),
+  };
+};
+
+const Choices = ({ shown, chosen, toggle }: { shown: StudyItemSummary[]; chosen: Choice; toggle: (item: StudyItemSummary) => void }) => (
+  <ul aria-label="Study Items" style={{ listStyle: "none", padding: 0 }}>
+    {shown.map((item) => (
+      <li key={item.id}>
+        <label>
+          <input type="checkbox" checked={chosen.has(item.id)} onChange={() => toggle(item)} /> <span lang="ja">{describe(item)}</span>
+        </label>
+      </li>
+    ))}
+  </ul>
+);
+
 /** Choose Study Items by level, type or search. Locked ones are listed: Cram practises anything. */
 export const Picker = ({ client, onStart }: { client: CramClient; onStart: (items: StudyItemSummary[]) => void }) => {
   const [level, setLevel] = useState<JlptLevel>("N5");
   const [type, setType] = useState<CramType | "">("");
   const [search, setSearch] = useState("");
   const [shown, setShown] = useState<StudyItemSummary[]>([]);
-  const [chosen, setChosen] = useState<Map<string, StudyItemSummary>>(new Map());
   const [error, setError] = useState<string | null>(null);
+  const { chosen, toggle, chooseShown, clear } = useChoice(shown);
 
   const typeFilter = type || undefined;
   const load = async (query: { q?: string; level?: JlptLevel; type?: CramType }) => {
@@ -72,13 +102,6 @@ export const Picker = ({ client, onStart }: { client: CramClient; onStart: (item
     event.preventDefault();
     return load(search.trim() ? { q: search.trim(), type: typeFilter } : { level, type: typeFilter });
   };
-  const toggle = (item: StudyItemSummary) =>
-    setChosen((now) => {
-      const next = new Map(now);
-      if (!next.delete(item.id)) next.set(item.id, item);
-      return next;
-    });
-  const chooseShown = () => setChosen((now) => new Map([...now, ...shown.map((i): [string, StudyItemSummary] => [i.id, i])]));
 
   return (
     <Card>
@@ -92,19 +115,11 @@ export const Picker = ({ client, onStart }: { client: CramClient; onStart: (item
         <Button onClick={chooseShown} disabled={!shown.length}>
           Choose all shown
         </Button>{" "}
-        <Button onClick={() => setChosen(new Map())} disabled={!chosen.size}>
+        <Button onClick={clear} disabled={!chosen.size}>
           Clear
         </Button>
       </p>
-      <ul aria-label="Study Items" style={{ listStyle: "none", padding: 0 }}>
-        {shown.map((item) => (
-          <li key={item.id}>
-            <label>
-              <input type="checkbox" checked={chosen.has(item.id)} onChange={() => toggle(item)} /> <span lang="ja">{describe(item)}</span>
-            </label>
-          </li>
-        ))}
-      </ul>
+      <Choices shown={shown} chosen={chosen} toggle={toggle} />
       {!shown.length && !error && <p className="muted">Nothing found.</p>}
       <Button variant="primary" big disabled={!chosen.size} onClick={() => onStart([...chosen.values()])}>
         Practise {chosen.size} {chosen.size === 1 ? "item" : "items"}
