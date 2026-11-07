@@ -700,6 +700,9 @@ importers:
       '@mojibun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
+      '@mojibun/tts':
+        specifier: workspace:*
+        version: link:../../platform/tts
       zod:
         specifier: ^4.1.0
         version: 4.6.7
