@@ -181,7 +181,7 @@ describe("content.review", () => {
     expect(llm.calls()).toHaveLength(1);
     expect(llm.calls()[0]!.prompt).toContain("Reading disagreements between the generator and Sudachi:\nnone");
     const [decision] = await w.a.decisions(w.example);
-    expect(decision).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", model: "claude-opus-5-5", rubricVersion: "example/v1" } });
+    expect(decision).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", model: "claude-opus-5-5", rubricVersion: "example/v2" } });
     expect(decision!.verdicts.map((v) => v.criterion)).toEqual(PASS);
   });
 
