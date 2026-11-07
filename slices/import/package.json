@@ -11,12 +11,14 @@
     "@mojibun/content-graph": "workspace:*",
     "@mojibun/db": "workspace:*",
     "@mojibun/jobs": "workspace:*",
+    "@mojibun/nlp": "workspace:*",
     "@mojibun/shared": "workspace:*",
     "@mojibun/slice": "workspace:*",
     "@mojibun/ui": "workspace:*",
     "drizzle-orm": "^0.44.0",
     "hono": "^4.9.0",
     "react": "^19.1.0",
+    "seek-bzip": "2.0.0",
     "zod": "^4.1.0"
   },
   "devDependencies": {

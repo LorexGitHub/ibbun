@@ -38,7 +38,7 @@ export const runImport = async <D extends Dataset>(deps: ImportDeps, source: Sou
 
   const files = (await raw.read(dataset, upstreamVersion)) ?? (await source.download(upstreamVersion));
   await raw.keep(dataset, upstreamVersion, files);
-  const records: Records[D][] = source.parse(files);
+  const records: Records[D][] = await source.parse(files);
 
   const changes = diff((await snapshots.latest(dataset))?.records ?? [], records);
   const report = await authoring.applySnapshot(dataset, { upstreamVersion, checksum: checksum(files) }, records, options);

@@ -22,12 +22,20 @@ export type KanjiRecord = {
   strokes: string[];
 };
 
+/**
+ * One Sentence-uses-Word link as the source states it: a JMdict `entry` when it knows one (`jpn_indices`), else the
+ * dictionary `form` and `reading`. `sense` is the 1-based sense number, when known. Resolved to a Word when applied.
+ */
+export type SentenceLink = { entry: string | null; form: string; reading: string | null; sense: number | null; start: number; end: number };
+
 /** One Tatoeba Sentence, keyed by sentence id, with the translation the fixed rule chose and its rebuilt tokens. */
 export type SentenceRecord = {
   key: string;
   text: string;
   translationEn: string;
   tokens: Token[];
+  /** Sentence-uses-Word links; the source has already chosen between `jpn_indices` and Sudachi. */
+  links?: SentenceLink[];
   author: string | null;
   licence: Extract<Licence, "cc-by-2.0-fr" | "cc0">;
 };
