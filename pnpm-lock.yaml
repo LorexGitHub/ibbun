@@ -328,6 +328,31 @@ importers:
         specifier: ^24.0.0
         version: 24.19.2
 
+  core/learning-path:
+    dependencies:
+      '@mojibun/content-graph':
+        specifier: workspace:*
+        version: link:../content-graph
+      '@mojibun/db':
+        specifier: workspace:*
+        version: link:../../platform/db
+      '@mojibun/progress':
+        specifier: workspace:*
+        version: link:../progress
+      '@mojibun/shared':
+        specifier: workspace:*
+        version: link:../../platform/shared
+      drizzle-orm:
+        specifier: ^0.44.0
+        version: 0.44.7(@electric-sql/pglite@0.3.16)(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(kysely@0.28.19)(pg@8.23.1)
+      zod:
+        specifier: ^4.1.0
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.19.2
+
   core/progress:
     dependencies:
       '@mojibun/db':
@@ -504,6 +529,89 @@ importers:
       react-dom:
         specifier: ^19.1.0
         version: 19.3.1(react@19.3.1)
+
+  slices/account:
+    dependencies:
+      '@mojibun/learner':
+        specifier: workspace:*
+        version: link:../../core/learner
+      '@mojibun/slice':
+        specifier: workspace:*
+        version: link:../../platform/slice
+      '@mojibun/ui':
+        specifier: workspace:*
+        version: link:../../platform/ui
+      react:
+        specifier: ^19.1.0
+        version: 19.3.1
+      react-router:
+        specifier: ^7.9.0
+        version: 7.18.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.64.1
+        version: 1.64.1
+      '@testing-library/react':
+        specifier: ^16.3.0
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/react':
+        specifier: ^19.1.0
+        version: 19.3.0
+      happy-dom:
+        specifier: ^20.0.0
+        version: 20.14.6
+
+  slices/listening:
+    dependencies:
+      '@mojibun/auth':
+        specifier: workspace:*
+        version: link:../../platform/auth
+      '@mojibun/content-graph':
+        specifier: workspace:*
+        version: link:../../core/content-graph
+      '@mojibun/db':
+        specifier: workspace:*
+        version: link:../../platform/db
+      '@mojibun/learner':
+        specifier: workspace:*
+        version: link:../../core/learner
+      '@mojibun/mail':
+        specifier: workspace:*
+        version: link:../../platform/mail
+      '@mojibun/progress':
+        specifier: workspace:*
+        version: link:../../core/progress
+      '@mojibun/shared':
+        specifier: workspace:*
+        version: link:../../platform/shared
+      '@mojibun/slice':
+        specifier: workspace:*
+        version: link:../../platform/slice
+      '@mojibun/ui':
+        specifier: workspace:*
+        version: link:../../platform/ui
+      hono:
+        specifier: ^4.9.0
+        version: 4.13.16
+      react:
+        specifier: ^19.1.0
+        version: 19.3.1
+      zod:
+        specifier: ^4.1.0
+        version: 4.6.7
+    devDependencies:
+      '@testing-library/react':
+        specifier: ^16.3.0
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.19.2
+      '@types/react':
+        specifier: ^19.1.0
+        version: 19.3.0
+      happy-dom:
+        specifier: ^20.0.0
+        version: 20.14.6
 
   slices/placement:
     dependencies:
