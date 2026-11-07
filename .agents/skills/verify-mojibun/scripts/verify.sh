@@ -10,6 +10,11 @@ PROJECT=mojibun-verify
 API_PORT=${API_PORT:-3000}
 WEB=http://localhost:5173
 export API_PORT DATABASE_URL=${DATABASE_URL:-postgres://mojibun:mojibun@localhost:5432/mojibun}
+# The account slice's auth config and the dev accounts the seed creates (accounts.md#testing).
+export APP_URL=${APP_URL:-http://localhost:5173}
+export AUTH_SECRET=${AUTH_SECRET:-verify-only-secret-0123456789abcdefghij}
+export SEED_LEARNER_PASSWORD=${SEED_LEARNER_PASSWORD:-learner-password}
+export SEED_SUPERVISOR_PASSWORD=${SEED_SUPERVISOR_PASSWORD:-supervisor-password}
 compose() { docker compose -p "$PROJECT" "$@"; }
 
 port_busy() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
@@ -29,6 +34,7 @@ up() {
   pnpm install --frozen-lockfile >"$RUN/install.log" 2>&1
   pnpm gen >/dev/null
   pnpm db:migrate >"$RUN/migrate.log" 2>&1
+  pnpm --filter @mojibun/learner seed >"$RUN/seed.log" 2>&1
   nohup pnpm --filter @mojibun/api start >"$RUN/api.log" 2>&1 & echo $! >"$RUN/api.pid"
   nohup pnpm --filter @mojibun/web dev --port 5173 --strictPort >"$RUN/web.log" 2>&1 & echo $! >"$RUN/web.pid"
   wait_http "http://localhost:$API_PORT/api/health" 60

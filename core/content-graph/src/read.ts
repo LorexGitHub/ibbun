@@ -86,6 +86,27 @@ export type StudyItemLink =
 /** What a Browse page shows: the Study Item, its Examples and its links, and the Attribution the item's own records owe. */
 export type StudyItemPage = { item: StudyItem; examples: Example[]; links: StudyItemLink[]; attribution: Attribution };
 
+/**
+ * What the Learning Path orders and locks by (docs/learning-path.md): one visible Study Item's level, sort facts and
+ * fact-link dependencies. Levels are not compared here; `learning-path` keeps only same-level dependencies.
+ */
+export type PathItem = {
+  id: StudyItemId;
+  type: StudyItem["type"];
+  level: JlptLevel | null;
+  /** No approved Example yet. Never true for a Listening Clip. */
+  suspended: boolean;
+  /** Words: JMdict priority tags. Empty for other types. */
+  priorityTags: string[];
+  /** Kanji: KANJIDIC2 `freq` and grade. Null for other types. */
+  frequency: number | null;
+  grade: number | null;
+  /** Words: the Kanji in the first written form. Listening Clips: the Words and Grammar Points their Sentences link to. */
+  dependsOn: StudyItemId[];
+  /** Grammar Points: the other Grammar Points their approved Examples demonstrate. */
+  demonstrates: StudyItemId[];
+};
+
 /** Reads of approved, non-retired Content Graph records with overrides applied. */
 export interface ContentGraph {
   studyItem(id: StudyItemId): Promise<StudyItemPage | null>;
@@ -97,6 +118,8 @@ export interface ContentGraph {
   search(query: string, options?: { limit?: number }): Promise<StudyItemSummary[]>;
   /** The Credits page: every source with its licence, link and live version, then every VOICEVOX voice in use. */
   credits(): Promise<CreditsEntry[]>;
+  /** Every visible Study Item, for `learning-path`. */
+  pathItems(): Promise<PathItem[]>;
 }
 
 export const DEFAULT_SEARCH_LIMIT = 50;
@@ -319,6 +342,60 @@ const SEARCH_TEXTS: ByType<string[]> = {
 const bestTier = (item: StudyItem, query: string) =>
   Math.min(...byType(SEARCH_TEXTS, item).map((text) => matchTier(text, query) ?? Infinity));
 
+const distinct = (ids: string[]) => [...new Set(ids)].sort() as StudyItemId[];
+
+/** Visible Sentences linked to a Study Item by a visible row of `rows`. */
+const sentencesOf = <R extends Lifecycle & { sentenceId: string }>(ctx: Ctx, rows: R[], mine: (r: R) => boolean) =>
+  new Set(rows.filter((r) => mine(r) && visible(r) && sentenceOf(ctx, r.sentenceId)).map((r) => r.sentenceId));
+
+/** Visible Study Items that `rows` link from the given Sentences. */
+const linkedFrom = <R extends Lifecycle & { sentenceId: string }>(ctx: Ctx, rows: R[], sentences: Set<string>, end: (r: R) => string) =>
+  rows.filter((r) => sentences.has(r.sentenceId) && visible(r) && ctx.items.has(end(r))).map(end);
+
+const exampleSentences = (ctx: Ctx, id: string) => sentencesOf(ctx, ctx.graph.example, (e) => e.studyItemId === id);
+
+const firstFormKanji = (ctx: Ctx, id: string) => {
+  const first = subEntries(ctx, ctx.graph.wordForm, id)[0];
+  const inFirst = new Set(ctx.graph.kanji.filter((k) => first?.text.includes(k.literal)).map((k) => k.studyItemId));
+  return ctx.graph.wordContainsKanji.filter((l) => l.wordId === id && visible(l) && ctx.items.has(l.kanjiId) && inFirst.has(l.kanjiId)).map((l) => l.kanjiId);
+};
+
+const clipDependencies = (ctx: Ctx, id: string) => {
+  const sentences = sentencesOf(ctx, ctx.graph.clipVoicesSentence, (l) => l.clipId === id);
+  return [
+    ...linkedFrom(ctx, ctx.graph.sentenceUsesWord, sentences, (l) => l.wordId),
+    ...linkedFrom(ctx, ctx.graph.sentenceDemonstratesGrammar, sentences, (l) => l.grammarPointId),
+  ];
+};
+
+const demonstratedBy = (ctx: Ctx, id: string) =>
+  linkedFrom(ctx, ctx.graph.sentenceDemonstratesGrammar, exampleSentences(ctx, id), (l) => l.grammarPointId).filter((g) => g !== id);
+
+type PathFacts = Pick<PathItem, "priorityTags" | "frequency" | "grade" | "dependsOn" | "demonstrates">;
+const NO_FACTS: PathFacts = { priorityTags: [], frequency: null, grade: null, dependsOn: [], demonstrates: [] };
+const PATH_FACTS: { [K in StudyItem["type"]]: (ctx: Ctx, id: string) => Partial<PathFacts> } = {
+  kanji: (ctx, id) => {
+    const row = ctx.graph.kanji.find((k) => k.studyItemId === id);
+    const k = row && current(ctx, row, id);
+    return { frequency: k?.frequency ?? null, grade: k?.grade ?? null };
+  },
+  word: (ctx, id) => {
+    const row = ctx.graph.word.find((w) => w.studyItemId === id);
+    return { priorityTags: row ? current(ctx, row, id).priorityTags : [], dependsOn: distinct(firstFormKanji(ctx, id)) };
+  },
+  grammar_point: (ctx, id) => ({ demonstrates: distinct(demonstratedBy(ctx, id)) }),
+  listening_clip: (ctx, id) => ({ dependsOn: distinct(clipDependencies(ctx, id)) }),
+};
+
+const pathItemOf = (ctx: Ctx, row: Row<"studyItem">): PathItem => ({
+  id: row.id as StudyItemId,
+  type: row.type,
+  level: levelOf(ctx, row.id),
+  suspended: row.type !== "listening_clip" && exampleSentences(ctx, row.id).size === 0,
+  ...NO_FACTS,
+  ...PATH_FACTS[row.type](ctx, row.id),
+});
+
 /** The pure reads over a set of rows. The fake runs it over its whole graph; Postgres over the rows a read loaded. */
 export const reader = (graph: Graph, links: Map<string, string> = recordProvenance(graph)) => {
   const ctx = context(graph, links);
@@ -358,6 +435,10 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
 
     credits(): CreditsEntry[] {
       return creditsOf(graph);
+    },
+
+    pathItems(): PathItem[] {
+      return [...ctx.items.values()].sort(byId).map((row) => pathItemOf(ctx, row));
     },
   };
 };
