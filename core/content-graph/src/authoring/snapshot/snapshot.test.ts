@@ -91,6 +91,41 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await apply("jmdict", [taberu, nomu])).counts).toMatchObject({ added: 0, changed: 0 });
     });
 
+    describe("Sentence uses Word links", () => {
+      const link = (over: Partial<NonNullable<SentenceRecord["links"]>[number]> = {}) => ({
+        entry: null, form: "食べる", reading: null, sense: null, start: 3, end: 6, ...over,
+      });
+      const withLinks = (links: NonNullable<SentenceRecord["links"]>, text = "パンを食べる。") => ({ ...sentence("10", text), links });
+      const linksOf = async () => h.a.rows("sentenceUsesWord", { sentenceId: await idOf("tatoeba", "10") });
+
+      it("links by JMdict entry, picking the numbered sense and the form it was written in", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        await apply("tatoeba", [withLinks([link({ entry: "1", sense: 2 })])]);
+        const [row] = await linksOf();
+        expect(row).toMatchObject({ wordId: await idOf("jmdict", "1"), spanStart: 3, spanEnd: 6, approval: "draft" });
+        expect(row!.senseId).toBe((await senses(await idOf("jmdict", "1")))[1]!.id);
+        expect(row!.formId).not.toBeNull();
+      });
+
+      it("falls back to the form when there is no entry, and leaves an unknown form unlinked", async () => {
+        await apply("jmdict", [taberu]);
+        await apply("tatoeba", [withLinks([link(), link({ form: "走る", start: 0, end: 1 })])]);
+        expect(await linksOf()).toHaveLength(1);
+      });
+
+      it("replaces the links when they change and keeps them when they do not", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        await apply("tatoeba", [withLinks([link()])]);
+        const [first] = await linksOf();
+        await apply("tatoeba", [withLinks([link()])]);
+        expect((await linksOf())[0]!.id).toBe(first!.id);
+        await apply("tatoeba", [withLinks([link({ form: "飲む", start: 0, end: 2 })])]);
+        const rows = await linksOf();
+        expect(rows).toHaveLength(1);
+        expect(rows[0]!.wordId).toBe(await idOf("jmdict", "2"));
+      });
+    });
+
     it("adds Tatoeba Sentences as Draft, credited to their author", async () => {
       await apply("tatoeba", [sentence("10", "パンを食べる。")]);
       const [row] = await h.a.rows("sentence", { id: await idOf("tatoeba", "10") });

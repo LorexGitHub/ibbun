@@ -87,6 +87,6 @@ describe("import jobs", () => {
   });
 
   it("refreshes JMdict from the jmdict-simplified source by default", () => {
-    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true]]);
+    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true], ["tatoeba", false]]);
   });
 });
