@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
+import { createDb } from "@mojibun/db";
 import { startTestPostgres } from "@mojibun/db/testing";
 import { createFakeJobs, createPgBossJobs, defineJob, handler, type FakeJobs, type Jobs } from "./index.ts";
 
@@ -65,6 +66,20 @@ describe("fake jobs", () => {
     expect(jobs.pending()).toEqual([]);
   });
 
+  it("queues a scheduled job with its payload when it fires, and rejects a payload the contract refuses", async () => {
+    const jobs = createFakeJobs();
+    const seen: string[] = [];
+    await jobs.work([handler(Greet, async (p) => void seen.push(p.name))]);
+    await jobs.schedule(Greet, "0 6 * * 1", { name: "weekly" });
+    expect(jobs.schedules()).toEqual(new Map([["test.greet", "0 6 * * 1"]]));
+    expect(seen).toEqual([]);
+    await jobs.fire("test.greet");
+    await jobs.drain();
+    expect(seen).toEqual(["weekly"]);
+    await expect(jobs.schedule(Greet, "0 6 * * 1", { name: "" })).rejects.toThrow();
+    await expect(jobs.fire("test.none")).rejects.toThrow("no schedule for test.none");
+  });
+
   it("lets a handler error surface from drain", async () => {
     const jobs = createFakeJobs();
     await jobs.work([handler(Greet, async () => Promise.reject(new Error("boom")))]);
@@ -81,4 +96,15 @@ describe("pg-boss jobs, against Postgres", () => {
   afterAll(() => pg.stop());
 
   jobsContract(() => createPgBossJobs(pg.url, { max: 1 }), waitFor);
+
+  it("stores a schedule, and replaces it when scheduled again", async () => {
+    const jobs = await createPgBossJobs(pg.url, { max: 1 });
+    await jobs.schedule(Greet, "0 6 * * 1", { name: "weekly" });
+    await jobs.schedule(Greet, "0 7 * * 1", { name: "weekly" });
+    await jobs.stop();
+    const db = createDb(pg.url, { max: 1 });
+    const { rows } = await db.$client.query("select cron from jobs.schedule where name = 'test.greet'");
+    await db.$client.end();
+    expect(rows).toEqual([{ cron: "0 7 * * 1" }]);
+  });
 });

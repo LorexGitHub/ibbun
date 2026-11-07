@@ -6,15 +6,29 @@ export interface FakeJobs extends Jobs {
   drain(): Promise<void>;
   /** Names of the jobs still waiting, oldest first. */
   pending(): string[];
+  /** The schedules registered, by job name. */
+  schedules(): Map<string, string>;
+  /** Queues the scheduled job now, as the real queue would when its cron time comes. */
+  fire(name: string): Promise<void>;
 }
 
 export const createFakeJobs = (): FakeJobs => {
   const handlers = new Map<string, JobHandler>();
   let queue: { contract: JobContract; payload: unknown }[] = [];
+  const scheduled = new Map<string, { contract: JobContract; cron: string; payload: unknown }>();
 
   return {
     async enqueue<S extends z.ZodType>(contract: JobContract<S>, payload: z.input<S>) {
       queue.push({ contract, payload: contract.payload.parse(payload) });
+    },
+    async schedule<S extends z.ZodType>(contract: JobContract<S>, cron: string, payload: z.input<S>) {
+      scheduled.set(contract.name, { contract, cron, payload: contract.payload.parse(payload) });
+    },
+    schedules: () => new Map([...scheduled].map(([name, s]) => [name, s.cron])),
+    async fire(name) {
+      const s = scheduled.get(name);
+      if (!s) throw new Error(`no schedule for ${name}`);
+      queue.push({ contract: s.contract, payload: s.payload });
     },
     async work(list) {
       for (const h of list) handlers.set(h.contract.name, h);
