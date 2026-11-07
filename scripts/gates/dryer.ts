@@ -1,18 +1,20 @@
 // The dryer gate: one dryer run over the whole workspace at 0.8. A pair inside
 // one package fails the build; a pair across packages is printed and passes
 // (slices copy small logic until a third use; architecture.md#changing-the-core).
-// unclebob/dryer is cloned next to the repo, or at $UB_TOOLS/dryer.
+// unclebob/dryer lives in $UB_TOOLS (see tools.ts).
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { parseDuplicates, splitDuplicates } from "./gates.ts";
+import { tool, toolEnv } from "./tools.ts";
 
 const root = resolve(import.meta.dirname, "../..");
-const tools = process.env.UB_TOOLS ?? resolve(root, "..");
 const dirs = ["apps", "core", "platform", "slices", "scripts"].filter((dir) => existsSync(join(root, dir)));
 
-const run = spawnSync(join(tools, "dryer/dryer"), ["--threshold", "0.8", ...dirs], {
+const dryer = tool("dryer");
+const run = spawnSync(dryer.command, [...dryer.prefix, "--threshold", "0.8", ...dirs], {
   cwd: root,
+  env: toolEnv,
   encoding: "utf8",
   stdio: ["ignore", "pipe", "inherit"],
 });

@@ -7,7 +7,8 @@ import { existsSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "../..");
-const vitest = join(root, "node_modules/.bin/vitest");
+// Run the JS entry through node: .bin/vitest is a shell script on Windows.
+const vitest = join(root, "node_modules/vitest/vitest.mjs");
 const coverage = process.argv.includes("--coverage");
 
 const packages = ["apps", "core", "platform", "slices"]
@@ -26,7 +27,7 @@ for (const [dir, filters] of runs) {
   const report = ["--coverage", "--coverage.reporter=lcovonly", `--coverage.reportsDirectory=${join(root, "target/coverage/typescript", slug)}`];
   const args = ["run", "--passWithNoTests", ...(coverage ? report : []), ...(coverage ? filters : filters.slice(0, 1))];
   console.log(`\n=== vitest: ${dir}`);
-  if (spawnSync(vitest, args, { cwd: join(root, dir), stdio: "inherit" }).status !== 0) failed.push(dir);
+  if (spawnSync("node", [vitest, ...args], { cwd: join(root, dir), stdio: "inherit" }).status !== 0) failed.push(dir);
 }
 
 console.log(failed.length ? `\nFailed: ${failed.join(", ")}` : "\nEvery package passed.");

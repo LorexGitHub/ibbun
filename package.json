@@ -13,10 +13,12 @@
     "test": "pnpm gen && vitest run",
     "typecheck": "pnpm gen && tsc -p . && tsc -p apps/web",
     "test:packages": "pnpm gen && node scripts/gates/vitest-per-package.ts",
-    "depcruise": "depcruise --config .dependency-cruiser.cjs $(ls -d apps core platform slices 2>/dev/null)",
+    "depcruise": "node scripts/gates/depcruise.ts",
     "gate:dryer": "node scripts/gates/dryer.ts",
     "gate:mutator": "node scripts/gates/mutator.ts",
-    "e2e": "pnpm gen && playwright test"
+    "e2e": "pnpm gen && playwright test",
+    "gate:local": "node scripts/gates/local.ts",
+    "ship": "node scripts/ship.ts"
   },
   "devDependencies": {
     "@mojibun/jobs": "workspace:*",
