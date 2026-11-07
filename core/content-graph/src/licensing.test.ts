@@ -151,7 +151,7 @@ const contract = (make: () => Promise<ContentGraph>) => {
     expect(credits.find((c) => c.name === "Wiktionary (ja)")).toMatchObject({ version: null, appliedAt: null });
     expect(credits.map((c) => c.name)).toEqual([
       "JMdict", "KANJIDIC2", "KRADFILE", "JmdictFurigana", "KanjiVG (© Ulrich Apel)", "Tatoeba",
-      "Jonathan Waller's JLPT Resources (Tanos)", "hanabira", "UniDic", "Wiktionary (ja)", "VOICEVOX:四国めたん",
+      "Jonathan Waller's JLPT Resources (Tanos)", "yomitan-jlpt-vocab (stephenmk)", "hanabira", "UniDic", "Wiktionary (ja)", "VOICEVOX:四国めたん",
     ]);
   });
 };

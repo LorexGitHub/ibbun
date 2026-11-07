@@ -43,7 +43,7 @@ Each file has an H1, one paragraph of user-visible behaviour, then exactly these
 - [import](./import.md): admin Import Runs and reports. Not built yet.
 - [content-generation](./content-generation.md): admin Generation Requests and Runs. Not built yet.
 - [content-approval](./content-approval.md): admin checks, reviewer agent, queue. Built (review job needs Sudachi and an LLM key).
-- [credits](./credits.md): the public Credits page. Not built yet.
+- [credits](./credits.md): the public Credits page, its sources, level note and UniDic notice. Built.
 
 ## Core modules without screens
 

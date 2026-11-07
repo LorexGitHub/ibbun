@@ -1,0 +1,21 @@
+{
+  "name": "@mojibun/credits",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {},
+  "dependencies": {
+    "@mojibun/content-graph": "workspace:*",
+    "@mojibun/db": "workspace:*",
+    "@mojibun/slice": "workspace:*",
+    "@mojibun/ui": "workspace:*",
+    "hono": "^4.9.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0"
+  }
+}
