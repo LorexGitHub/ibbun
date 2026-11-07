@@ -9,7 +9,7 @@ description: >
 # ub-mode
 
 > **mojibun overrides** (vendored from unclebob/ub-mode @ 3da62bf; decided in #14):
-> - *Commit and Push*: run `pnpm ship` from your worktree: it runs the gates locally and pushes to the main line. See AGENTS.md.
+> - *Commit and Push*: push your branch and open a PR; never push to the main line. The PR merges when its gates pass.
 > - *Dryer*: run per package. Duplication inside a package fails; duplication across packages is reported only (slices copy small logic until a third use).
 > - Tools: `crapper`, `dryer`, `mutator` from `github.com/unclebob/*`, cloned side by side (mutator needs `../crapper`).
 
@@ -154,4 +154,4 @@ Every time you are asked to make a change follow:
 
 * Commit often, in small ordered commits.
 * Each commit says why, what changed, and how you proved it.
-* Run `pnpm ship` at the end (mojibun override).
+* Push the branch and open a PR at the end (mojibun override).
