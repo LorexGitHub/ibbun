@@ -28,6 +28,7 @@ const queue = once(() => createPgBossJobs(required("DATABASE_URL")));
 const queueJobs: Jobs = {
   enqueue: async (contract, payload) => (await queue()).enqueue(contract, payload),
   work: async (handlers) => (await queue()).work(handlers),
+  schedule: async (contract, cron, payload) => (await queue()).schedule(contract, cron, payload),
   stop: async () => (await queue()).stop(),
 };
 

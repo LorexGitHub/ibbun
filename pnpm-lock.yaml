@@ -587,6 +587,9 @@ importers:
       '@mojibun/nlp':
         specifier: workspace:*
         version: link:../../platform/nlp
+      '@mojibun/progress':
+        specifier: workspace:*
+        version: link:../../core/progress
       '@mojibun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
@@ -596,6 +599,9 @@ importers:
       '@mojibun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
+      drizzle-orm:
+        specifier: ^0.44.0
+        version: 0.44.7(@electric-sql/pglite@0.3.16)(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(kysely@0.28.19)(pg@8.23.1)
       hono:
         specifier: ^4.9.0
         version: 4.13.16
