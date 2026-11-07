@@ -633,6 +633,9 @@ importers:
       '@mojibun/llm':
         specifier: workspace:*
         version: link:../../platform/llm
+      '@mojibun/progress':
+        specifier: workspace:*
+        version: link:../../core/progress
       '@mojibun/shared':
         specifier: workspace:*
         version: link:../../platform/shared

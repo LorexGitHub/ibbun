@@ -9,6 +9,7 @@
     "@mojibun/db": "workspace:*",
     "@mojibun/jobs": "workspace:*",
     "@mojibun/llm": "workspace:*",
+    "@mojibun/progress": "workspace:*",
     "@mojibun/shared": "workspace:*",
     "@mojibun/slice": "workspace:*",
     "zod": "^4.1.0"
