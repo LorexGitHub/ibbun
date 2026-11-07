@@ -60,6 +60,7 @@ export const SubmitRequest = z.object({
   timeToAnswerMs: z.number().int().nonnegative().optional(),
 });
 export type SubmitRequest = z.input<typeof SubmitRequest>;
+export type Submission = z.output<typeof SubmitRequest>;
 
 export const SubmitResponse = z.object({
   passed: z.boolean(),

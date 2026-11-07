@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
 import type { DueResponse, ReviewPrompt, SubmitRequest, SubmitResponse } from "../contract.ts";
 import { ReviewCard } from "./ReviewCard.tsx";
-import { ReviewsScreen } from "./ReviewsScreen.tsx";
+import { loadDue, ReviewsScreen, submitAnswer } from "./ReviewsScreen.tsx";
 import { notAnswers, shownByDefault } from "./check.ts";
 
 afterEach(cleanup);
@@ -181,6 +181,33 @@ describe("check helpers", () => {
     const [facet] = cloze.facets;
     expect(notAnswers([facet!], { cloze: "mizu" }, true)[0]!.note).toBe("finish the kana first");
     expect(notAnswers([facet!], { cloze: "みず" }, true)).toEqual([]);
+  });
+});
+
+describe("talking to the API", () => {
+  const reply = (body: unknown, status = 200) => vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(body), { status })));
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("loads the due Reviews from /api/reviews/due", async () => {
+    reply({ preferences: prefs(), reviews: [cloze] });
+    expect((await loadDue()).reviews).toHaveLength(1);
+    expect(vi.mocked(fetch).mock.calls[0]![0]).toBe("/api/reviews/due");
+  });
+
+  it("posts an answer as JSON and reads the result", async () => {
+    reply(PASS);
+    const request: SubmitRequest = { studyItemId: cloze.studyItemId, exampleId: "ex-1", facets: [{ facet: "cloze", input: "みず" }] };
+    expect(await submitAnswer(request)).toEqual(PASS);
+    const [url, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(url).toBe("/api/reviews/answer");
+    expect(init).toMatchObject({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request) });
+  });
+
+  it("fails with the API's message, or the status text when it sends none", async () => {
+    reply({ message: "log in first" }, 401);
+    await expect(loadDue()).rejects.toThrow("log in first");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("nope", { status: 500, statusText: "Server Error" })));
+    await expect(loadDue()).rejects.toThrow("Server Error");
   });
 });
 
