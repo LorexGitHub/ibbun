@@ -17,11 +17,12 @@ const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, tatoeba
 
 /** Thrown inside the transaction so a tripped run rolls back everything it wrote. */
 class Tripped extends Error {
-  constructor(
-    readonly counts: Counts,
-    readonly reasons: string[],
-  ) {
+  readonly counts: Counts;
+  readonly reasons: string[];
+  constructor(counts: Counts, reasons: string[]) {
     super("breaker tripped");
+    this.counts = counts;
+    this.reasons = reasons;
   }
 }
 

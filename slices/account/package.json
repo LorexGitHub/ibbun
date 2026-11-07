@@ -1,0 +1,22 @@
+{
+  "name": "@mojibun/account",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./register": "./register.ts"
+  },
+  "dependencies": {
+    "@mojibun/learner": "workspace:*",
+    "@mojibun/slice": "workspace:*",
+    "@mojibun/ui": "workspace:*",
+    "react": "^19.1.0",
+    "react-router": "^7.9.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.0",
+    "happy-dom": "^20.0.0"
+  }
+}
