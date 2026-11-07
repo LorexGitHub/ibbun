@@ -854,6 +854,9 @@ importers:
       '@mojibun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
+      '@mojibun/nlp':
+        specifier: workspace:*
+        version: link:../../platform/nlp
       '@mojibun/shared':
         specifier: workspace:*
         version: link:../../platform/shared

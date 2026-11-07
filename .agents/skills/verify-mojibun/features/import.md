@@ -8,7 +8,8 @@ The supervisor sees every Import Run at `/admin/import`: dataset, upstream versi
 - **Snapshot and raw files**: the latest normalised snapshot per dataset in Postgres (`import.snapshot`, `import.snapshot_record`); the raw files of the last 3 runs per dataset under `IMPORT_RAW_DIR` (default `./data/import-raw`). A held run is released by replaying from those files.
 - **Scheduled jobs**: `import.jmdict` and `import.kanjidic` (each daily 12:00 UTC, runs only when the monthly refresh is due) and `import.staleness` (daily 07:00 UTC), started by `apps/worker`.
 - **Report screen** (`GET /api/import/runs`, supervisor only; screen at `/admin/import`).
-- **Sources** live in `slices/import/sources/<source>/`. Built: JMdict, KANJIDIC2 + KRADFILE (`kanjidic2-all` and `kradfile` files of the same jmdict-simplified release; every character, English meanings only, `strokes` empty until the KanjiVG seed). KanjiVG, Tatoeba and the rest are separate Seed issues.
+- **Sources** live in `slices/import/sources/<source>/`. Built: JMdict, KANJIDIC2 + KRADFILE (`kanjidic2-all` and `kradfile` files of the same jmdict-simplified release; every character, English meanings only, `strokes` empty until the KanjiVG seed). Grammar seed: see below. KanjiVG, Tatoeba and the rest are separate Seed issues.
+- **Grammar Point seed** (`slices/import/sources/grammar-seed/`, one-time, no schedule): job `import.grammar-seed`, started by hand, needs `DATABASE_URL`, `SUDACHI_URL` and `ANTHROPIC_API_KEY` for the merge proposals. It downloads hanabira's five `grammar_json` level files at the latest commit of tristcoil/hanabira.org-japanese-content and the five Tanos level list pages (Wayback Machine snapshot, since tanos.co.uk no longer resolves), then seeds 828 hanabira and about 287 Tanos Grammar Points as `draft` with a `list` Level Candidate, hanabira's example Sentences as `draft` with `draft` demonstrates links, and one `merge_proposal` Generation Request per hanabira point. A second run does nothing (it finds the `hanabira` Import Run).
 - **Apply rules** (core, built): `applySnapshot` for `jmdict`, `kanjidic` and `tatoeba`. Its proof is `npx vitest run core/content-graph/src/authoring/snapshot`.
 
 ## How to get to it (user POV)
@@ -29,6 +30,8 @@ Preconditions: baseline from the README, plus `verify.sh` must also start `pnpm 
 - **Staleness alarm**: `psql "$DATABASE_URL" -c "update content_graph.import_run set applied_at = now() - interval '40 days' where dataset='jmdict'"`, fire `import.staleness`. Expect one unresolved `content_graph.queue_entry` with reason `staleness alarm` and `detail.dataset = 'jmdict'`.
 - **Second view of the stored value** for every journey: `psql "$DATABASE_URL" -c "select dataset, upstream_version, status, counts from content_graph.import_run order by applied_at desc nulls first"`.
 
+- **Grammar seed**: enqueue `import.grammar-seed` once (`psql "$DATABASE_URL"` into `jobs.job`, or the pg-boss CLI). Expect `select dataset, upstream_version, status from content_graph.import_run where dataset in ('hanabira','tanos-grammar')` to show two `applied` rows; `select count(*) from content_graph.grammar_point` about 1,115; `select count(*) from content_graph.sentence_demonstrates_grammar where approval='draft'` about 3,310; `select count(*) from content_graph.generation_request where kind='merge_proposal'` 828. Enqueue it again: no new rows.
+
 ## Gotchas
 
 - The `import` Postgres schema holds the slice's private tables. `import` is not a reserved word, but quote it in ad-hoc SQL if a client complains.
@@ -37,3 +40,4 @@ Preconditions: baseline from the README, plus `verify.sh` must also start `pnpm 
 - jmdict-simplified publishes only a `common` flag, so Word `priorityTags` is `["common"]` or `[]`. Pitch accent is `null` until the UniDic seed.
 - The Content Approval queue screen is another slice. Until it ships, the link from the report goes to a route the shell answers with its home fallback.
 - Not run end to end against the Compose stack by the author: no supervisor login exists until the account slice ships. The unit and Postgres tests cover the run, the schedule logic, the API roles and the screen.
+- Grammar seed: not run against live hanabira, Tanos or Sudachi by the author. The parsers were run on the real files (828 hanabira points with 3,310 examples; Tanos N5 40, N4 50, N3 63, N2 63, N1 71 entries). The seeded Grammar Points have hanabira's free-text formation split on `+`, not structured slots; generation of fields, the level rule on merge and the merge itself are later steps.

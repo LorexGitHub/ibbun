@@ -11,6 +11,7 @@
     "@mojibun/content-graph": "workspace:*",
     "@mojibun/db": "workspace:*",
     "@mojibun/jobs": "workspace:*",
+    "@mojibun/nlp": "workspace:*",
     "@mojibun/shared": "workspace:*",
     "@mojibun/slice": "workspace:*",
     "@mojibun/ui": "workspace:*",
