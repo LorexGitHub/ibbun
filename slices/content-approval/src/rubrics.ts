@@ -19,7 +19,7 @@ const criteriaOf = (template: string): string[] =>
 export const rubricFor = (kind: string, root = ROOT): Rubric => {
   const files = readdirSync(join(root, kind)).filter((f) => /^v\d+\.md$/.test(f));
   const latest = files.sort((a, b) => versionNumber(b) - versionNumber(a))[0]!;
-  const template = readFileSync(join(root, kind, latest), "utf8");
+  const template = readFileSync(join(root, kind, latest), "utf8").replaceAll("\r\n", "\n");
   return { kind, version: `${kind}/${latest.replace(/\.md$/, "")}`, template, criteria: criteriaOf(template) };
 };
 
