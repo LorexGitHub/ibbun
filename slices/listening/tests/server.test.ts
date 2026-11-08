@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { lazyApi } from "../server/index.ts";
+import { lazyApi } from "../server/listening-mount.ts";
 import { productionDeps } from "../server/production.ts";
 
 describe("lazyApi", () => {
