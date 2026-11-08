@@ -6,7 +6,7 @@ import { coversFacets, regrade, type FacetOutcome } from "./regrade.ts";
 import type { Teacher } from "./teach.ts";
 
 export type Graded = { answer: CheckedAnswer; results: FacetOutcome[] };
-export type Refusal = { status: 404 | 422; message: string };
+export type Refusal = { status: 400 | 404 | 422; message: string };
 
 const refuse = (status: Refusal["status"], message: string): { refusal: Refusal } => ({ refusal: { status, message } });
 
@@ -31,8 +31,8 @@ export const gradeQuiz = async (locate: Teacher["locate"], answers: CheckedAnswe
   return { graded };
 };
 
-/** Appends one `learn` Review per answer: this is what puts the items into Reviews. */
-export const recordQuiz = async (progress: Progress, learnerId: LearnerId, graded: Graded[], at: Date) => {
+/** Appends one `learn` Review per answer: this is what puts the items into Reviews. `learnNow` marks the Reviews as Learn now. */
+export const recordQuiz = async (progress: Progress, learnerId: LearnerId, graded: Graded[], at: Date, learnNow = false) => {
   for (const { answer, results } of graded) {
     await progress.record({
       learnerId,
@@ -44,6 +44,7 @@ export const recordQuiz = async (progress: Progress, learnerId: LearnerId, grade
       facets: results,
       attempts: answer.facets.flatMap((f) => f.attempts.map((input) => ({ facet: f.facet, input }))),
       timeToAnswerMs: answer.timeToAnswerMs,
+      source: learnNow ? "learn-now" : undefined,
     });
   }
 };

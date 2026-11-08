@@ -10,6 +10,7 @@ The `learn` slice (`slices/learn`): the Active Track grid, a batch of New Study 
 - `learn-quiz` asks each item through its first approved Example: a cloze for a Word or Grammar Point, a reading and a meaning facet for a Kanji. The Learner's try is graded in the browser with `grade()`. A miss shows the answer and is asked again later; the quiz ends when every item has been answered right. The same try rules as Reviews apply: an empty try, leftover Latin letters or an alternate's nudge are not graded and are kept as `attempts`.
 - `learn-record` sends the correct answers to `POST /api/learn/complete`. The API grades them again from the stored answer data, and stores nothing unless every answer passes (422). Then it appends one `learn` Review per item with `exampleId`, per-facet input and outcome, `attempts[]` and `timeToAnswerMs`.
 - `learn-skip` records **I know this** through `POST /api/learn/skip` and drops the item from the lessons and the quiz. It counts against the day's budget.
+- `learn-now` (`slices/learn/learn-now`) opens `/learn?now=<study item id>`, which is where Browse's **Learn now** button goes. `GET /api/learn/now/:id` returns the item and its pulled-in dependencies from `learning-path.forItem()` as a batch, locked or not, whatever is left of the budget. The same lessons and quiz run; the screen sends `now: true` to `/complete` and `/skip`, so the Reviews carry `detail.source = 'learn-now'` and the daily budget does not count them. The item is introduced, so its Track skips it later.
 
 ## How to get to it (user POV)
 
@@ -29,6 +30,7 @@ Preconditions:
 - **I know this.** On a lesson press **I know this**. The item leaves the batch and a `manual | t` row with `detail->>'source' = 'learn-skip'` appears. The learned-today count goes up.
 - **Budget.** Set `daily_budget` to the number just learned (`/api/learner/preferences`, or in `learner.preferences`). Reload `/learn`: "You have used the budget for new items today. Come back tomorrow." and no **Start batch**.
 - **Forged pass.** `curl -s -X POST -b <session cookie> -H 'content-type: application/json' -d '{"answers":[{"studyItemId":"<id>","exampleId":"<example>","facets":[{"facet":"cloze","input":"zzz"}]}]}' http://localhost:3000/api/learn/complete` prints a 422 message and `progress.reviews` gains no row.
+- **Learn now.** Open a locked item in Browse (`/browse`) and press **Learn now**; the URL is `/learn?now=<id>` and the screen reads "Lesson 1 of N" with no grid. Pass the quiz. Check: `psql "$DATABASE_URL" -c "select kind, passed, detail->>'source' from progress.reviews where learner_id = '<id>' order by seq"` shows `learn | t | learn-now` rows, and `/learn` still reads the same "N of M new items learned today". With the budget used up the button still works. `curl -s -b <cookie> http://localhost:3000/api/learn/now/<id>` returns the batch (404 for an unknown id, 400 for a malformed one).
 - **Spec.** `pnpm exec playwright test --project=learner slices/learn/tests` passes.
 
 ## Gotchas
@@ -36,4 +38,5 @@ Preconditions:
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
 - The batch is not stored. Reloading `/learn` before the quiz is passed returns the same items, because nothing is introduced until the quiz passes or **I know this** is pressed.
 - The day for the budget is the UTC day, as on the Today screen.
+- Learn now Reviews are `learn` Reviews with `source: learn-now`; only the budget ignores them. Reviews and the Learning Path treat the item as introduced.
 - A Word in the batch pulls its Kanji into the same batch, so a batch can be longer than `batchSize`.

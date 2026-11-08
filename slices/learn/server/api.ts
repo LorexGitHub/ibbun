@@ -4,10 +4,10 @@ import type { ContentGraph } from "@mojibun/content-graph";
 import type { Learners } from "@mojibun/learner";
 import type { LearningPath } from "@mojibun/learning-path";
 import type { Progress } from "@mojibun/progress";
-import type { LearnerId } from "@mojibun/shared";
-import { CompleteRequest, SkipRequest, TrackChange, type Batch, type State } from "../contract.ts";
+import { StudyItemId, type LearnerId } from "@mojibun/shared";
+import { TrackChange, type Batch, type State } from "../contract.ts";
 import { learnedToday } from "./budget.ts";
-import { gradeQuiz, recordQuiz } from "./complete.ts";
+import { createActions, type Refusal } from "./actions.ts";
 import { createTeacher } from "./teach.ts";
 
 export type LearnDeps = {
@@ -37,15 +37,29 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
     };
   };
 
-  const batch = async (learnerId: LearnerId): Promise<Batch> => {
-    const { batchSize, dailyBudget, learnedToday: learned } = await state(learnerId);
-    const remaining = Math.max(0, dailyBudget - learned);
-    const size = Math.min(batchSize, remaining);
-    const ids = size > 0 ? await learningPath.next(learnerId, size) : [];
+  const batchOf = async (learnerId: LearnerId, ids: StudyItemId[], remaining: number): Promise<Batch> => {
     const taught = await Promise.all(ids.map(teacher.teach));
     const { convertRomaji, explanations } = await learners.preferences(learnerId);
     return { preferences: { convertRomaji, explanations }, remaining, items: taught.flatMap((t) => (t ? [t] : [])) };
   };
+
+  const batch = async (learnerId: LearnerId): Promise<Batch> => {
+    const { batchSize, dailyBudget, learnedToday: learned } = await state(learnerId);
+    const remaining = Math.max(0, dailyBudget - learned);
+    const size = Math.min(batchSize, remaining);
+    return batchOf(learnerId, size > 0 ? await learningPath.next(learnerId, size) : [], remaining);
+  };
+
+  /** Learn now: the item and its pulled-in dependencies, whatever the budget says. */
+  const batchNow = async (learnerId: LearnerId, raw: string): Promise<Batch | { refusal: Refusal }> => {
+    const id = StudyItemId.safeParse(raw);
+    if (!id.success) return { refusal: { status: 400, message: "not a valid Study Item" } };
+    if (!(await teacher.isTaught(id.data))) return { refusal: { status: 404, message: "no such Study Item" } };
+    const { dailyBudget, learnedToday: learned } = await state(learnerId);
+    return batchOf(learnerId, await learningPath.forItem(learnerId, id.data), Math.max(0, dailyBudget - learned));
+  };
+
+  const { skip, complete } = createActions({ teacher, progress, now });
 
   return new Hono<AuthEnv>()
     .use(requireLearner())
@@ -59,21 +73,16 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
       return c.json(await state(learnerId));
     })
     .get("/batch", async (c) => c.json(await batch(c.get("learner").learnerId)))
+    .get("/now/:id", async (c) => {
+      const found = await batchNow(c.get("learner").learnerId, c.req.param("id"));
+      return "refusal" in found ? c.json({ message: found.refusal.message }, found.refusal.status) : c.json(found);
+    })
     .post("/skip", async (c) => {
-      const request = SkipRequest.safeParse(await c.req.json().catch(() => null));
-      if (!request.success) return c.json({ message: "not a valid Study Item" }, 400);
-      const { studyItemId } = request.data;
-      if (!(await teacher.isTaught(studyItemId))) return c.json({ message: "no such Study Item" }, 404);
-      const { learnerId } = c.get("learner");
-      await progress.record({ learnerId, studyItemId, kind: "manual", passed: true, at: now().toISOString(), source: "learn-skip" });
-      return c.json({ studyItemId });
+      const done = await skip(c.get("learner").learnerId, await c.req.json().catch(() => null));
+      return "refusal" in done ? c.json({ message: done.refusal.message }, done.refusal.status) : c.json(done);
     })
     .post("/complete", async (c) => {
-      const request = CompleteRequest.safeParse(await c.req.json().catch(() => null));
-      if (!request.success) return c.json({ message: "not a valid quiz" }, 400);
-      const checked = await gradeQuiz(teacher.locate, request.data.answers);
-      if ("refusal" in checked) return c.json({ message: checked.refusal.message }, checked.refusal.status);
-      await recordQuiz(progress, c.get("learner").learnerId, checked.graded, now());
-      return c.json({ recorded: checked.graded.length });
+      const done = await complete(c.get("learner").learnerId, await c.req.json().catch(() => null));
+      return "refusal" in done ? c.json({ message: done.refusal.message }, done.refusal.status) : c.json({ recorded: done.recorded });
     });
 };
