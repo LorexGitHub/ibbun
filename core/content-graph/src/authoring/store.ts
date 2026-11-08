@@ -12,6 +12,8 @@ export type Store = {
   rows<N extends TableName>(name: N, where?: Where<N>): Promise<Row<N>[]>;
   insert<N extends TableName>(name: N, rows: Row<N>[]): Promise<void>;
   update<N extends TableName>(name: N, where: Where<N>, patch: Partial<Row<N>>): Promise<void>;
+  /** Hard delete. Only for derived links, which are a cache (docs/adr/0004). */
+  remove<N extends TableName>(name: N, where: Where<N>): Promise<void>;
   atomically<T>(work: (store: Store) => Promise<T>): Promise<T>;
 };
 
@@ -26,6 +28,11 @@ export const memoryStore = (graph: Graph): Store => {
     },
     update: async (name, where, patch) => {
       for (const row of graph[name]) if (matches(row, where)) Object.assign(row, patch);
+    },
+    remove: async (name, where) => {
+      const rows = graph[name] as object[];
+      const kept = rows.filter((row) => !matches(row, where));
+      rows.splice(0, rows.length, ...kept);
     },
     atomically: async (work) => {
       const before = structuredClone(graph);
@@ -54,6 +61,9 @@ export const postgresStore = (db: DbOrTx): Store => ({
   },
   update: async (name, where, patch) => {
     await db.update(table(name)).set(patch as never).where(condition(name, where));
+  },
+  remove: async (name, where) => {
+    await db.delete(table(name)).where(condition(name, where));
   },
   atomically: (work) => db.transaction((tx) => work(postgresStore(tx))),
 });

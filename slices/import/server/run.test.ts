@@ -2,7 +2,7 @@ import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createAuthoring, type Authoring, type WordRecord } from "@mojibun/content-graph/authoring";
+import { createAuthoring, type Authoring, type SentenceRecord, type WordRecord } from "@mojibun/content-graph/authoring";
 import { createFakeAuthoring, emptyGraph, migrateContentGraph } from "@mojibun/content-graph/testing";
 import { collectMigrations, createDb, migrate, type Db } from "@mojibun/db";
 import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
@@ -58,6 +58,34 @@ const importContract = (name: string, make: () => Promise<World>) =>
       expect(await w.authoring.rows("word")).toHaveLength(3);
       expect((await w.snapshots.latest("jmdict"))?.records.map((r) => r.key).sort()).toEqual(["1", "2", "3"]);
       expect((await w.snapshots.diffs([report.importRunId])).get(report.importRunId)).toEqual({ added: 3, changed: 0, gone: 0 });
+    });
+
+    it("applies a source whose parse is async: a Draft Sentence with its credit, tokens and Word link", async () => {
+      const jm = fakeUpstream();
+      jm.state.words = NEARLY_ALL;
+      await runImport(w.deps, jm.source);
+      const sentence: SentenceRecord = {
+        key: "10",
+        text: "パンを食べる。",
+        translationEn: "I eat bread.",
+        tokens: [{ surface: "食べる", reading: "タベル", lemma: "食べる", partOfSpeech: ["動詞"], conjugationForm: null, start: 3, end: 6 }],
+        links: [{ entry: "1", form: "食べる", reading: null, sense: 1, start: 3, end: 6 }],
+        author: "ann",
+        licence: "cc-by-2.0-fr",
+      };
+      const tatoeba: Source<"tatoeba"> = {
+        dataset: "tatoeba",
+        latest: async () => "2026-11-07",
+        download: async () => [{ name: "x", bytes: new Uint8Array() }],
+        parse: async () => [sentence],
+      };
+      const { report } = await runImport(w.deps, tatoeba);
+      expect(report.counts.added).toBe(1);
+      const [row] = await w.authoring.rows("sentence");
+      expect(row).toMatchObject({ approval: "draft", translationEn: "I eat bread." });
+      expect(row!.tokens).toEqual(sentence.tokens);
+      expect((await w.authoring.rows("provenance", { id: row!.provenanceId }))[0]).toMatchObject({ author: "ann" });
+      expect(await w.authoring.rows("sentenceUsesWord", { sentenceId: row!.id })).toHaveLength(1);
     });
 
     it("changes nothing on a rerun of the same upstream version, and downloads nothing", async () => {

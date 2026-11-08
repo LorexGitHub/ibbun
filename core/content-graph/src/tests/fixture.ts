@@ -148,7 +148,12 @@ export const fixture = () => {
 
   const passage = next();
   graph.readingPassage.push({ id: passage, title: "朝ごはん", form: "prose", comprehensionQuestions: [], ...life() });
-  graph.passageContainsSentence.push({ id: next(), passageId: passage, sentenceId: sentence, position: 0, speaker: null, ...life() });
+  graph.passageContainsSentence.push(
+    { id: next(), passageId: passage, sentenceId: sentence, position: 0, speaker: null, ...life() },
+    { id: next(), passageId: passage, sentenceId: draftSentence, position: 1, speaker: null, ...life() },
+  );
+  const draftPassage = next();
+  graph.readingPassage.push({ id: draftPassage, title: "下書き", form: "prose", comprehensionQuestions: [], ...life("draft") });
   graph.sentenceDemonstratesGrammar.push({ id: next(), sentenceId: sentence, grammarPointId: teshimau, spanStart: 0, spanEnd: 1, ...life("draft") });
   graph.wordSupersededBy.push({ id: next(), retiredWordId: retiredWord.id, wordId: taberu.id, ...life() });
   graph.sourceKey.push({ dataset: "jmdict", upstreamKey: "1358280", recordId: taberu.id });
@@ -158,7 +163,7 @@ export const fixture = () => {
     tokens,
     ids: {
       taberu: taberu.id, taberuForm: taberu.formId, taberuReading: taberu.readingId, taberuSense: taberu.senseId, taberuSecondForm,
-      taberuExample, accepted, alternate, knownWrong, sentence,
+      taberuExample, accepted, alternate, knownWrong, sentence, passage, draftPassage,
       nomu: nomu.id, shoku, teshimau, chau, clip, clipAtN5, retiredClip, draftClip,
       draftWord: draftWord.id, rejectedWord: rejectedWord.id, retiredWord: retiredWord.id,
       missing: next(),
