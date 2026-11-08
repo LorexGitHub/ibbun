@@ -4,8 +4,11 @@ import type { ContentGraph } from "@mojibun/content-graph";
 import type { Learners } from "@mojibun/learner";
 import type { LearningPath } from "@mojibun/learning-path";
 import type { Progress } from "@mojibun/progress";
-import type { LearnerId } from "@mojibun/shared";
-import { CompleteRequest, SkipRequest, TrackChange, type Batch, type State } from "../contract.ts";
+import type { LearnerId, StudyItemId } from "@mojibun/shared";
+import { CompleteRequest, SkipRequest, TrackChange, type Batch, type BatchItem, type State } from "../contract.ts";
+import { ClipAnswer } from "../listening/contract.ts";
+import { answerClip } from "../listening/server/answer.ts";
+import { createClipTeacher } from "../listening/server/clip-teach.ts";
 import { learnedToday } from "./budget.ts";
 import { gradeQuiz, recordQuiz } from "./complete.ts";
 import { createTeacher } from "./teach.ts";
@@ -17,11 +20,14 @@ export type LearnDeps = {
   learners: Learners;
   learningPath: LearningPath;
   now: () => Date;
+  /** [0, 1), for shuffling a comprehension question's options. */
+  random?: () => number;
 };
 
-export const createLearnApi = ({ sessions, contentGraph, progress, learners, learningPath, now }: LearnDeps) => {
+export const createLearnApi = ({ sessions, contentGraph, progress, learners, learningPath, now, random }: LearnDeps) => {
   const { requireLearner } = createAuthGuards(sessions);
   const teacher = createTeacher(contentGraph);
+  const clips = createClipTeacher(contentGraph, random);
 
   const state = async (learnerId: LearnerId): Promise<State> => {
     const [tracks, { batchSize, dailyBudget }, log] = await Promise.all([
@@ -42,8 +48,12 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
     const remaining = Math.max(0, dailyBudget - learned);
     const size = Math.min(batchSize, remaining);
     const ids = size > 0 ? await learningPath.next(learnerId, size) : [];
-    const taught = await Promise.all(ids.map(teacher.teach));
-    const { convertRomaji, explanations } = await learners.preferences(learnerId);
+    const { convertRomaji, explanations, examMode, slowAudio } = await learners.preferences(learnerId);
+    const teach = async (id: StudyItemId): Promise<BatchItem | null> => {
+      const clip = await clips.teach(id, { examMode, slowAudio });
+      return clip ? { clip } : teacher.teach(id);
+    };
+    const taught = await Promise.all(ids.map(teach));
     return { preferences: { convertRomaji, explanations }, remaining, items: taught.flatMap((t) => (t ? [t] : [])) };
   };
 
@@ -67,6 +77,14 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
       const { learnerId } = c.get("learner");
       await progress.record({ learnerId, studyItemId, kind: "manual", passed: true, at: now().toISOString(), source: "learn-skip" });
       return c.json({ studyItemId });
+    })
+    .post("/clip/answer", async (c) => {
+      const request = ClipAnswer.safeParse(await c.req.json().catch(() => null));
+      if (!request.success) return c.json({ message: "not a valid answer" }, 400);
+      const { learnerId } = c.get("learner");
+      const { examMode } = await learners.preferences(learnerId);
+      const verdict = await answerClip({ clips, progress, examMode, now: now() }, learnerId, request.data);
+      return verdict ? c.json(verdict) : c.json({ message: "no such quiz question" }, 404);
     })
     .post("/complete", async (c) => {
       const request = CompleteRequest.safeParse(await c.req.json().catch(() => null));

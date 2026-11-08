@@ -8,6 +8,9 @@ import { StudyItemId, type LearnerId } from "@mojibun/shared";
 import type { Batch, CompleteRequest, QuizPrompt, State } from "../contract.ts";
 import { createLearnApi } from "./api.ts";
 
+/** The N5 fixture has no Listening Clip, so every item has a lesson and a question. */
+type TaughtBatch = Omit<Batch, "items"> & { items: Extract<Batch["items"][number], { lesson: unknown }>[] };
+
 const NOW = new Date("2026-11-06T09:00:00.000Z");
 const DAY_MS = 86_400_000;
 
@@ -29,7 +32,7 @@ const setup = async (mutate: (graph: ReturnType<typeof n5Fixture>["graph"]) => v
       body: body === undefined || method === "GET" ? undefined : JSON.stringify(body),
     });
   const get = (path: string, as: Headers = headers) => api.request(path, { headers: as });
-  const batch = async () => (await (await get("/batch")).json()) as Batch;
+  const batch = async () => (await (await get("/batch")).json()) as TaughtBatch;
   const state = async () => (await (await get("/state")).json()) as State;
   const prefer = (change: object) => learners.changePreferences(learner.id, change);
   return { fixture, learner: learner.id as LearnerId, learningPath, progress, send, get, batch, state, prefer };

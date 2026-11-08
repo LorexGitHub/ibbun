@@ -84,6 +84,7 @@ const apiOf = (over: Partial<LearnApi> = {}): LearnApi => ({
   saveTracks: vi.fn(async () => state()),
   skip: vi.fn(async () => undefined),
   complete: vi.fn(async (request) => request.answers.length),
+  answerClip: vi.fn(async () => ({ outcome: "pass" as const })),
   ...over,
 });
 
@@ -375,5 +376,7 @@ describe("talking to the API", () => {
     await expect(learnApi.batch()).rejects.toThrow("not a valid quiz");
     vi.stubGlobal("fetch", vi.fn(async () => new Response("nope", { status: 401, statusText: "Unauthorized" })));
     await expect(learnApi.batch()).rejects.toThrow("Unauthorized");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ message: "" }), { status: 400, statusText: "Bad Request" })));
+    await expect(learnApi.batch()).rejects.toMatchObject({ message: "" });
   });
 });

@@ -7,7 +7,7 @@ export type FacetData = QuizPrompt["facets"][number];
 
 const TAUGHT = new Set<string>(["word", "grammar_point", "kanji"]);
 
-/** Listening Clips are not taught here; every other Study Item is quizzed through an Example. */
+/** Listening Clips are taught by `listening/`; every other Study Item is quizzed through an Example. */
 export const isTaught = (page: StudyItemPage): page is TaughtPage => TAUGHT.has(page.item.type);
 
 const japanese = (example: Example): AnswerData => ({

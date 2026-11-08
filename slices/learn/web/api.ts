@@ -1,4 +1,5 @@
 import { Batch, CompleteResponse, State, type CompleteRequest, type Track } from "../contract.ts";
+import { ClipVerdict, type ClipAnswer } from "../listening/contract.ts";
 
 const BASE = "/api/learn";
 
@@ -18,6 +19,8 @@ export type LearnApi = {
   saveTracks: (tracks: Track[]) => Promise<State>;
   skip: (studyItemId: string) => Promise<void>;
   complete: (request: CompleteRequest) => Promise<number>;
+  /** Grades one try at a Listening Clip's quiz; a pass is recorded. */
+  answerClip: (answer: ClipAnswer) => Promise<ClipVerdict>;
 };
 
 export const learnApi: LearnApi = {
@@ -26,4 +29,5 @@ export const learnApi: LearnApi = {
   saveTracks: async (tracks) => State.parse(await send("PUT", "/tracks", { tracks })),
   skip: async (studyItemId) => void (await send("POST", "/skip", { studyItemId })),
   complete: async (request) => CompleteResponse.parse(await send("POST", "/complete", request)).recorded,
+  answerClip: async (answer) => ClipVerdict.parse(await send("POST", "/clip/answer", answer)),
 };
