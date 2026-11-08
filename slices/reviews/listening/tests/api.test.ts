@@ -5,6 +5,7 @@ import { createFakeLearners } from "@mojibun/learner/testing";
 import { createFakeProgress } from "@mojibun/progress/testing";
 import type { StudyItemId } from "@mojibun/shared";
 import { createReviewsApi } from "../../server/api.ts";
+import { withListening } from "../server/with-listening.ts";
 import { createClipReviewsApi } from "../server/clip-reviews-api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}` as StudyItemId;
@@ -60,7 +61,8 @@ const setup = async () => {
   const contentGraph = createFakeContentGraph(buildGraph());
   const learner = await learners.add({ email: "a@example.com" });
   const headers = sessions.signIn({ learnerId: learner.id, role: "learner" });
-  const app = createClipReviewsApi({ contentGraph, progress, learners, guards: createAuthGuards(sessions), now: () => clock.now, random: () => 0 });
+  const deps = { contentGraph, progress, learners, guards: createAuthGuards(sessions), now: () => clock.now, random: () => 0 };
+  const app = createClipReviewsApi(deps);
   const learn = (id: StudyItemId) => progress.record({ learnerId: learner.id, studyItemId: id, kind: "learn", passed: true, at: LEARNED });
   const get = (path: string, h: Headers = headers) => app.request(path, { headers: h });
   const post = (path: string, body: unknown, h: Headers = headers) =>
@@ -68,7 +70,7 @@ const setup = async () => {
   const answer = (clipId: StudyItemId, body: object) => post("/answer", { clipId, ...body });
   const log = (id: StudyItemId) => progress.log(learner.id, id);
   const due = async () => ((await (await get("/due")).json()) as { clips: ClipJson[] }).clips;
-  return { clock, sessions, learners, progress, contentGraph, learner, headers, get, post, answer, learn, log, due };
+  return { deps, clock, sessions, learners, progress, contentGraph, learner, headers, get, post, answer, learn, log, due };
 };
 
 describe("scheduled Listening Clip Reviews", () => {
@@ -191,10 +193,9 @@ describe("scheduled Listening Clip Reviews", () => {
     expect((await t.answer(ID(999), { exampleId: SENTENCE_EXAMPLE, input: "x" })).status).toBe(404);
   });
 
-  it("is mounted under /listening by the reviews API, and /due leaves clips to it", async () => {
-    const api = createReviewsApi({
-      sessions: t.sessions, learners: t.learners, progress: t.progress, contentGraph: t.contentGraph, now: () => NOW, random: () => 0,
-    });
+  it("is mounted under /listening beside the reviews API, and /due leaves clips to it", async () => {
+    const reviewsApi = createReviewsApi({ sessions: t.sessions, learners: t.learners, progress: t.progress, contentGraph: t.contentGraph, now: () => NOW });
+    const api = withListening(reviewsApi, { ...t.deps, random: () => 0 });
     const { clips } = await (await api.request("/listening/due", { headers: t.headers })).json();
     expect(clips).toHaveLength(2);
     const { reviews } = await (await api.request("/due", { headers: t.headers })).json();

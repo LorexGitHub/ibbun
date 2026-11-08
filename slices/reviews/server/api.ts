@@ -4,7 +4,6 @@ import type { ContentGraph } from "@mojibun/content-graph";
 import type { Learners } from "@mojibun/learner";
 import type { Progress } from "@mojibun/progress";
 import { StudyItemId, type LearnerId } from "@mojibun/shared";
-import { createClipReviewsApi } from "../listening/server/clip-reviews-api.ts";
 import { SubmitRequest } from "../contract.ts";
 import { facetsOf, pickExample } from "./prompt.ts";
 import { createPrompts } from "./prompts.ts";
@@ -18,16 +17,13 @@ export type ReviewsDeps = {
   progress: Progress;
   learners: Learners;
   now: () => Date;
-  /** [0, 1), for shuffling a listening question's options. */
-  random?: () => number;
 };
 
 /** The most Reviews one request hands out. */
 export const DUE_LIMIT = 50;
 
-export const createReviewsApi = ({ sessions, contentGraph, progress, learners, now, random = Math.random }: ReviewsDeps) => {
-  const guards = createAuthGuards(sessions);
-  const { requireLearner } = guards;
+export const createReviewsApi = ({ sessions, contentGraph, progress, learners, now }: ReviewsDeps) => {
+  const { requireLearner } = createAuthGuards(sessions);
   const { promptThrough, withPreferences, locate } = createPrompts(contentGraph, learners);
 
   const prompt = async (learnerId: LearnerId, id: StudyItemId) => {
@@ -37,7 +33,6 @@ export const createReviewsApi = ({ sessions, contentGraph, progress, learners, n
 
   return new Hono<AuthEnv>()
     .use(requireLearner())
-    .route("/listening", createClipReviewsApi({ contentGraph, progress, learners, guards, now, random }))
     .get("/due", async (c) => {
       const { learnerId } = c.get("learner");
       const due = (await progress.due(learnerId, now())).slice(0, DUE_LIMIT);
