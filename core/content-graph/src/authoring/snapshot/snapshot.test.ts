@@ -6,6 +6,7 @@ import { getTableName } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import { emptyGraph, tables } from "../../graph.ts";
 import { createFakeAuthoring, migrateContentGraph } from "../../testing.ts";
+import { currentLevel } from "../../levels/levels.ts";
 import { createAuthoring, type Authoring, type Clock } from "../index.ts";
 import type { Dataset, Records, SentenceRecord, SnapshotOptions, WordRecord } from "./types.ts";
 
@@ -281,6 +282,72 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await apply("kanjivg", [])).counts.retired).toBe(1);
       expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual([]);
       expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(false);
+    });
+
+    describe("Tanos Kanji levels", () => {
+      const shoku = { key: "食", meanings: ["eat"], onReadings: ["ショク"], kunReadings: ["た.べる"], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      const candidates = async (literal: string) => h.a.rows("levelCandidate", { studyItemId: await idOf("kanjidic", literal) });
+      const levelOf = async (literal: string) => currentLevel(await candidates(literal));
+
+      it("adds an Approved List candidate to each listed Kanji, credited to Waller under CC BY", async () => {
+        await apply("kanjidic", [shoku]);
+        const report = await apply("tanos", [{ key: "食", level: "N4" }]);
+        const [candidate] = await candidates("食");
+        expect(candidate).toMatchObject({ level: "N4", kind: "list", approval: "approved", retired: false });
+        expect(await levelOf("食")).toBe("N4");
+        expect(report.counts).toMatchObject({ added: 1, levelsChanged: 1 });
+        const [provenance] = await h.a.rows("provenance", { id: candidate!.provenanceId });
+        expect(provenance).toMatchObject({
+          licence: "cc-by",
+          author: "Jonathan Waller",
+          sourceUrl: "https://web.archive.org/web/20200117222855/http://www.tanos.co.uk/jlpt/",
+          source: { kind: "import", importRunId: report.importRunId },
+        });
+      });
+
+      it("skips a Kanji KANJIDIC2 does not have and says so in the report", async () => {
+        await apply("kanjidic", [shoku]);
+        const report = await apply("tanos", [{ key: "食", level: "N4" }, { key: "仮", level: "N1" }]);
+        expect(report.notes).toEqual(["仮 is not in KANJIDIC2: skipped"]);
+        expect(report.counts.added).toBe(1);
+        expect(await h.a.rows("sourceKey", { dataset: "tanos", upstreamKey: "仮" })).toEqual([]);
+      });
+
+      it("fails, writing nothing, when KANJIDIC2 has not been imported yet", async () => {
+        await expect(apply("tanos", [{ key: "食", level: "N4" }])).rejects.toThrow(/import KANJIDIC2 first/);
+        expect(await h.a.rows("importRun", { dataset: "tanos" })).toEqual([]);
+        expect(await h.a.rows("levelCandidate", {})).toEqual([]);
+      });
+
+      it("rewrites only its own candidate when the list changes, and never an Editorial one", async () => {
+        await apply("kanjidic", [shoku]);
+        await apply("tanos", [{ key: "食", level: "N4" }]);
+        const [list] = await candidates("食");
+        const editorial = randomUUID();
+        await h.a.insert("levelCandidate", [{ id: editorial, studyItemId: list!.studyItemId, level: "N2", kind: "editorial", approval: "approved", retired: false, provenanceId: list!.provenanceId }]);
+
+        expect((await apply("tanos", [{ key: "食", level: "N3" }])).counts.changed).toBe(1);
+        expect((await h.a.rows("levelCandidate", { id: list!.id }))[0]).toMatchObject({ level: "N3", retired: false });
+        expect((await h.a.rows("levelCandidate", { id: editorial }))[0]).toMatchObject({ level: "N2" });
+        expect(await levelOf("食")).toBe("N2");
+        expect((await apply("tanos", [{ key: "食", level: "N3" }])).counts).toMatchObject({ changed: 0, levelsChanged: 0 });
+      });
+
+      it("Retires the List candidate when the list drops the Kanji, leaving the Kanji itself alone", async () => {
+        await apply("kanjidic", [shoku]);
+        await apply("tanos", [{ key: "食", level: "N4" }]);
+        expect((await apply("tanos", [])).counts).toMatchObject({ retired: 1, levelsChanged: 1 });
+        expect(await levelOf("食")).toBeNull();
+        expect((await h.a.rows("studyItem", { id: await idOf("kanjidic", "食") }))[0]!.retired).toBe(false);
+      });
+
+      it("revives a Retired candidate that the list brings back", async () => {
+        await apply("kanjidic", [shoku]);
+        await apply("tanos", [{ key: "食", level: "N4" }]);
+        await apply("tanos", []);
+        expect((await apply("tanos", [{ key: "食", level: "N4" }])).counts).toMatchObject({ changed: 1, levelsChanged: 1 });
+        expect(await levelOf("食")).toBe("N4");
+      });
     });
   });
 

@@ -149,8 +149,8 @@ export const fixture = () => {
   const passage = next();
   graph.readingPassage.push({ id: passage, title: "朝ごはん", form: "prose", comprehensionQuestions: [], ...life() });
   graph.passageContainsSentence.push(
-    { id: next(), passageId: passage, sentenceId: sentence, position: 0, ...life() },
-    { id: next(), passageId: passage, sentenceId: draftSentence, position: 1, ...life() },
+    { id: next(), passageId: passage, sentenceId: sentence, position: 0, speaker: null, ...life() },
+    { id: next(), passageId: passage, sentenceId: draftSentence, position: 1, speaker: null, ...life() },
   );
   const draftPassage = next();
   graph.readingPassage.push({ id: draftPassage, title: "下書き", form: "prose", comprehensionQuestions: [], ...life("draft") });

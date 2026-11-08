@@ -48,6 +48,12 @@ export type SentenceRecord = {
 };
 
 /**
+ * The List level the Tanos kanji lists give one Kanji, keyed by its literal. A Kanji listed at several levels has
+ * already been reduced to its easiest by the parser (jlpt-levels.md#collisions-and-misses-in-the-tanos-lists).
+ */
+export type KanjiLevelRecord = { key: string; level: JlptLevel };
+
+/**
  * One ja Wiktionary gloss, keyed by page title, entry number and gloss number on that page. `title` is the headword page
  * (a kanji spelling, or a kana spelling when the Word has no kanji form); the rule finds the JLPT Word it belongs to.
  */
@@ -71,6 +77,7 @@ export type Records = {
   kanjidic: KanjiRecord;
   kanjivg: KanjiStrokesRecord;
   tatoeba: SentenceRecord;
+  tanos: KanjiLevelRecord;
   yomitan: WordLevelRecord;
   "wiktionary-ja": WiktionaryRecord;
   unidic: UnidicRecord;
@@ -119,6 +126,6 @@ export type SnapshotReport = {
   status: "applied" | "breaker tripped" | "unchanged";
   counts: Counts;
   tripped: string[];
-  /** Records the run skipped, one line each: for yomitan, every `ent_seq` that is not a JMdict Word. */
+  /** Records the run skipped, one line each: for tanos, every Kanji that is not in KANJIDIC2; for yomitan, every `ent_seq` that is not a JMdict Word. */
   notes?: string[];
 };

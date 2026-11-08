@@ -8,6 +8,7 @@ import { unidicSource } from "../sources/unidic-pitch/index.ts";
 import { wiktionarySource } from "../sources/ja-wiktionary/index.ts";
 import { tatoebaSource } from "../sources/tatoeba/index.ts";
 import { kanjivgSource } from "../sources/kanjivg/index.ts";
+import { tanosSource } from "../sources/tanos-kanji/index.ts";
 import { yomitanSource } from "../sources/yomitan-jlpt-vocab/index.ts";
 import { runImport, type ImportDeps } from "./run.ts";
 import { monthlyRefreshDue } from "./schedule.ts";
@@ -39,6 +40,9 @@ export const refreshes = (env: { SUDACHI_URL?: string } = process.env): Refresh[
   { source: wiktionarySource() as Source, cron: "0 12 * * 1", monthly: false },
   // UniDic: a release every year or so, so weekly. The run is a no-op until a new release stamp appears.
   { source: unidicSource() as Source, cron: "0 12 * * 1", monthly: false },
+  // Tanos kanji lists: one archived snapshot, so there is only ever one run. It needs KANJIDIC2 and fails until that is in,
+  // so the daily retry lands it the day after; once applied, every later firing finds the version live and does nothing.
+  { source: tanosSource() as Source, cron: "0 13 * * *", monthly: false },
 ];
 
 const DAILY_STALENESS_CHECK = "0 7 * * *";

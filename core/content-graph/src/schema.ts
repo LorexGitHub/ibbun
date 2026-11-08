@@ -237,6 +237,8 @@ export const passageContainsSentence = contentGraph.table("passage_contains_sent
   passageId: uuid("passage_id").notNull(),
   sentenceId: uuid("sentence_id").notNull(),
   position: integer("position").notNull(),
+  /** Who says the line in a `dialogue` passage; null in `prose`. */
+  speaker: text("speaker").$type<"男" | "女">(),
   ...lifecycle(),
 });
 

@@ -1,5 +1,6 @@
 import type { WordLevelRecord } from "@mojibun/content-graph/authoring";
 import type { JlptLevel } from "@mojibun/shared";
+import { easiestLevels } from "../easiest.ts";
 import { parseCsv } from "./csv.ts";
 
 /** Easiest first: the order the lists are read in, and the order a collision is settled in. */
@@ -33,15 +34,12 @@ const entries = (file: { name: string; text: string }, level: JlptLevel, report:
  * `report`, one line each. A file that is missing or has no `jmdict_seq` column fails the whole run.
  */
 export const parseLevels = (files: { name: string; text: string }[], report: (line: string) => void): WordLevelRecord[] => {
-  const levels = new Map<string, JlptLevel>();
-  for (const level of LEVELS) {
-    const file = files.find((f) => f.name === fileOf(level));
-    if (!file) throw new Error(`the raw files hold no ${fileOf(level)}`);
-    for (const { entry, word } of entries(file, level, report)) {
-      const kept = levels.get(entry);
-      if (kept === undefined) levels.set(entry, level);
-      else if (kept !== level) report(`ent_seq ${entry} (${word}) is also listed at ${kept}: kept ${kept}`);
-    }
-  }
+  const levels = easiestLevels(
+    files,
+    fileOf,
+    (file, level) => entries(file, level, report).map(({ entry, word }) => ({ key: entry, word })),
+    ({ key, word }, _level, kept) => `ent_seq ${key} (${word}) is also listed at ${kept}: kept ${kept}`,
+    report,
+  );
   return [...levels].map(([key, level]) => ({ key, level }));
 };
