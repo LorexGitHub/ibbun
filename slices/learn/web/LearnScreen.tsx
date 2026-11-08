@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Card } from "@mojibun/ui";
 import type { Batch, QuizAnswer, State, Track } from "../contract.ts";
-import { learnApi, type LearnApi } from "./api.ts";
+import { learnApi, type LearnApi } from "./learn-client.ts";
 import { LessonCard } from "./LessonCard.tsx";
 import { Quiz } from "./Quiz.tsx";
+import { ReadingStep } from "./ReadingStep.tsx";
 import { TrackGrid } from "./TrackGrid.tsx";
 
 type Item = Batch["items"][number];
@@ -47,6 +48,27 @@ const Session = ({ batch, api, now, onFinished }: { batch: Batch; api: LearnApi;
   );
 };
 
+type OverviewProps = { state: State; batch: Batch; learned: number | null; onTracks: (tracks: Track[]) => void; onStart: () => void };
+
+/** The Active Track grid with what the last batch earned and the button for the next. */
+const Overview = ({ state, batch, learned, onTracks, onStart }: OverviewProps) => (
+  <section>
+    <h1>Learn</h1>
+    {learned !== null && <Card>{learned > 0 ? `${learned} new items are in your Reviews.` : "Skipped."}</Card>}
+    <p>
+      {state.learnedToday} of {state.dailyBudget} new items learned today. {batch.items.length} in this batch.
+    </p>
+    <TrackGrid tracks={state.activeTracks} onChange={onTracks} />
+    {batch.items.length > 0 ? (
+      <Button variant="primary" big onClick={onStart}>
+        Start batch
+      </Button>
+    ) : (
+      <p>{batch.remaining === 0 ? "You have used the budget for new items today. Come back tomorrow." : "Nothing new is left in your active Tracks."}</p>
+    )}
+  </section>
+);
+
 /** The Study Item Learn now was asked for: `/learn?now=<id>`, which Browse links to. */
 const nowFromUrl = () => new URLSearchParams(globalThis.location?.search).get("now");
 
@@ -56,10 +78,15 @@ const LearnNow = ({ id, api, onFinished }: { id: string; api: LearnApi; onFinish
   const [failed, setFailed] = useState<string | null>(null);
   useEffect(() => void api.now(id).then(setBatch, (e: Error) => setFailed(e.message)), [api, id]);
   if (failed) return <p role="alert">{failed}</p>;
-  if (!batch) return <p>Loading�</p>;
+  if (!batch) return <p>Loading…</p>;
   if (batch.items.length === 0) return <p>This item cannot be taught yet.</p>;
   return <Session batch={batch} api={api} now onFinished={onFinished} />;
 };
+
+type Asked = { ids: string[]; enqueued: boolean } | null;
+
+/** The batch to read about once a quiz is passed: only a passed batch whose text was requested. */
+const readingFor = (learned: number, asked: Asked) => (learned > 0 && asked?.enqueued ? { ids: asked.ids } : null);
 
 /** The Learn screen: choose Active Tracks, take a batch, learn it, pass the quiz. */
 export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: LearnApi; nowId?: string | null }) => {
@@ -67,6 +94,9 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
   const [loaded, setLoaded] = useState<{ state: State; batch: Batch } | null>(null);
   const [learned, setLearned] = useState<number | null>(null);
   const [started, setStarted] = useState(false);
+  /** The batch whose Batch Text the reading screen waits for, once its quiz has passed. */
+  const [reading, setReading] = useState<{ ids: string[] } | null>(null);
+  const [asked, setAsked] = useState<Asked>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const load = useCallback(
     () => Promise.all([api.state(), api.batch()]).then(([state, batch]) => setLoaded({ state, batch }), (e: Error) => setFailed(e.message)),
@@ -78,37 +108,25 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
   const finished = (n: number) => {
     setLearned(n);
     setStarted(false);
+    const wasNow = now !== null;
     setNow(null);
+    if (!wasNow) setReading(readingFor(n, asked));
     void load();
+  };
+  const start = (batch: Batch) => {
+    const ids = batch.items.map((i) => i.lesson.studyItemId);
+    setLearned(null);
+    setStarted(true);
+    setAsked({ ids, enqueued: false });
+    // The batch is still learnable without a text, so a failed request only means there is none to wait for.
+    void api.startText(ids).then((enqueued) => setAsked({ ids, enqueued }), () => undefined);
   };
 
   if (now) return <LearnNow id={now} api={api} onFinished={finished} />;
   if (failed) return <p role="alert">{failed}</p>;
   if (!loaded) return <p>Loading…</p>;
   const { state, batch } = loaded;
+  if (reading) return <ReadingStep api={api} ids={reading.ids} onDone={() => setReading(null)} />;
   if (started) return <Session batch={batch} api={api} now={false} onFinished={finished} />;
-  return (
-    <section>
-      <h1>Learn</h1>
-      {learned !== null && <Card>{learned > 0 ? `${learned} new items are in your Reviews.` : "Skipped."}</Card>}
-      <p>
-        {state.learnedToday} of {state.dailyBudget} new items learned today. {batch.items.length} in this batch.
-      </p>
-      <TrackGrid tracks={state.activeTracks} onChange={(t) => void saveTracks(t)} />
-      {batch.items.length > 0 ? (
-        <Button
-          variant="primary"
-          big
-          onClick={() => {
-            setLearned(null);
-            setStarted(true);
-          }}
-        >
-          Start batch
-        </Button>
-      ) : (
-        <p>{batch.remaining === 0 ? "You have used the budget for new items today. Come back tomorrow." : "Nothing new is left in your active Tracks."}</p>
-      )}
-    </section>
-  );
+  return <Overview state={state} batch={batch} learned={learned} onTracks={(t) => void saveTracks(t)} onStart={() => start(batch)} />;
 };
