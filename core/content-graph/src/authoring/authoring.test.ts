@@ -68,6 +68,36 @@ const contract = (make: () => Promise<Harness>) => {
     });
   });
 
+  describe("derived links", () => {
+    const link = (item: string, provenanceId: string) => ({ id: randomUUID(), retiredWordId: item, wordId: item, approval: "approved" as const, retired: false, provenanceId });
+
+    it("hard-deletes derived links by id and leaves the rest", async () => {
+      const w = world();
+      const derived = randomUUID();
+      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+      const [gone, kept] = [link(w.item, derived), link(w.item, derived)];
+      w.graph.wordSupersededBy.push(gone, kept);
+      await h.seed(w.graph);
+      await h.authoring.removeDerivedLinks("wordSupersededBy", [gone.id]);
+      expect((await h.authoring.rows("wordSupersededBy", { provenanceId: derived })).map((r) => r.id)).toEqual([kept.id]);
+    });
+
+    it("refuses to delete a link that is not derived, and deletes nothing", async () => {
+      const w = world();
+      const derived = randomUUID();
+      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+      const [fine, authored] = [link(w.item, derived), link(w.item, w.graph.provenance[0]!.id)];
+      w.graph.wordSupersededBy.push(fine, authored);
+      await h.seed(w.graph);
+      await expect(h.authoring.removeDerivedLinks("wordSupersededBy", [fine.id, authored.id])).rejects.toThrow(/not a derived link/);
+      expect(await h.authoring.rows("wordSupersededBy", { id: fine.id })).toHaveLength(1);
+    });
+
+    it("refuses a table that holds no derived links", async () => {
+      await expect(h.authoring.removeDerivedLinks("example" as never, [])).rejects.toThrow(/not a derived link table/);
+    });
+  });
+
   describe("Approval Decisions", () => {
     it("appends every decision and takes the latest as the record's state", async () => {
       const { a, examples } = await given("draft", "approved");
