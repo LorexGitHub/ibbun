@@ -91,6 +91,41 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await apply("jmdict", [taberu, nomu])).counts).toMatchObject({ added: 0, changed: 0 });
     });
 
+    describe("Sentence uses Word links", () => {
+      const link = (over: Partial<NonNullable<SentenceRecord["links"]>[number]> = {}) => ({
+        entry: null, form: "食べる", reading: null, sense: null, start: 3, end: 6, ...over,
+      });
+      const withLinks = (links: NonNullable<SentenceRecord["links"]>, text = "パンを食べる。") => ({ ...sentence("10", text), links });
+      const linksOf = async () => h.a.rows("sentenceUsesWord", { sentenceId: await idOf("tatoeba", "10") });
+
+      it("links by JMdict entry, picking the numbered sense and the form it was written in", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        await apply("tatoeba", [withLinks([link({ entry: "1", sense: 2 })])]);
+        const [row] = await linksOf();
+        expect(row).toMatchObject({ wordId: await idOf("jmdict", "1"), spanStart: 3, spanEnd: 6, approval: "draft" });
+        expect(row!.senseId).toBe((await senses(await idOf("jmdict", "1")))[1]!.id);
+        expect(row!.formId).not.toBeNull();
+      });
+
+      it("falls back to the form when there is no entry, and leaves an unknown form unlinked", async () => {
+        await apply("jmdict", [taberu]);
+        await apply("tatoeba", [withLinks([link(), link({ form: "走る", start: 0, end: 1 })])]);
+        expect(await linksOf()).toHaveLength(1);
+      });
+
+      it("replaces the links when they change and keeps them when they do not", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        await apply("tatoeba", [withLinks([link()])]);
+        const [first] = await linksOf();
+        await apply("tatoeba", [withLinks([link()])]);
+        expect((await linksOf())[0]!.id).toBe(first!.id);
+        await apply("tatoeba", [withLinks([link({ form: "飲む", start: 0, end: 2 })])]);
+        const rows = await linksOf();
+        expect(rows).toHaveLength(1);
+        expect(rows[0]!.wordId).toBe(await idOf("jmdict", "2"));
+      });
+    });
+
     it("adds Tatoeba Sentences as Draft, credited to their author", async () => {
       await apply("tatoeba", [sentence("10", "パンを食べる。")]);
       const [row] = await h.a.rows("sentence", { id: await idOf("tatoeba", "10") });
@@ -162,6 +197,32 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await h.a.rows("kanji", { studyItemId: id }))[0]).toMatchObject({ literal: "食", meanings: ["eat", "food"] });
       expect((await apply("kanjidic", [])).counts.retired).toBe(1);
       expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(true);
+    });
+    it("leaves KanjiVG strokes alone when KANJIDIC2 refreshes, and does not count the Kanji as changed", async () => {
+      const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      await apply("kanjidic", [kanji]);
+      await apply("kanjivg", [{ key: "098df", strokes: ["M1,2"] }]);
+      expect((await apply("kanjidic", [kanji])).counts).toMatchObject({ changed: 0 });
+      expect((await apply("kanjidic", [{ ...kanji, meanings: ["eat", "food"] }])).counts).toMatchObject({ changed: 1 });
+      expect((await h.a.rows("kanji", { studyItemId: await idOf("kanjidic", "食") }))[0]).toMatchObject({ meanings: ["eat", "food"], strokes: ["M1,2"] });
+    });
+
+    it("sets KanjiVG strokes on the KANJIDIC2 Kanji of the same code point, and skips code points KANJIDIC2 lacks", async () => {
+      const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      await apply("kanjidic", [kanji]);
+      const id = await idOf("kanjidic", "食");
+      const stray = { key: "04e80", strokes: ["M1,1"] };
+      const report = await apply("kanjivg", [{ key: "098df", strokes: ["M1,2", "M3,4"] }, stray]);
+      expect(report.counts).toMatchObject({ added: 1, changed: 0 });
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual(["M1,2", "M3,4"]);
+      expect(await idOf("kanjivg", "098df")).toBe(id);
+
+      expect((await apply("kanjivg", [{ key: "098df", strokes: ["M1,2", "M5,6"] }])).counts).toMatchObject({ added: 0, changed: 1, retired: 0 });
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual(["M1,2", "M5,6"]);
+
+      expect((await apply("kanjivg", [])).counts.retired).toBe(1);
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual([]);
+      expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(false);
     });
   });
 
@@ -292,6 +353,66 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await apply("tatoeba", [])).counts).toMatchObject({ retired: 1, suspended: 1 });
       expect((await h.a.rows("example", { id }))[0]!.retired).toBe(true);
       expect(await h.a.isSuspended(item)).toBe(true);
+    });
+  });
+
+  describe("Word Level Candidates from yomitan-jlpt-vocab", () => {
+    const listed = (key: string, level: Records["yomitan"]["level"]) => ({ key, level });
+    const candidates = async (key: string) => h.a.rows("levelCandidate", { studyItemId: await idOf("jmdict", key) });
+
+    it("lists a List candidate on each JMdict Word by ent_seq, credited to Waller and stephenmk, and a rerun changes nothing", async () => {
+      await apply("jmdict", [taberu, nomu]);
+      const report = await apply("yomitan", [listed("1", "N5")]);
+      expect(report).toMatchObject({ status: "applied", counts: { added: 1, levelsChanged: 1 }, notes: [] });
+      const [candidate] = await candidates("1");
+      expect(candidate).toMatchObject({ level: "N5", kind: "list", approval: "approved", retired: false });
+      expect((await h.a.rows("provenance", { id: candidate!.provenanceId }))[0]).toMatchObject({
+        licence: "cc-by-sa-4.0",
+        source: { kind: "import", importRunId: report.importRunId },
+        author: "Jonathan Waller, via stephenmk",
+        sourceUrl: "https://github.com/stephenmk/yomitan-jlpt-vocab",
+      });
+      expect(await candidates("2")).toEqual([]);
+      expect((await apply("yomitan", [listed("1", "N5")])).counts).toMatchObject({ added: 0, changed: 0, levelsChanged: 0 });
+      expect(await candidates("1")).toHaveLength(1);
+    });
+
+    it("skips an ent_seq with no JMdict Word, names it in the report, and lists it once the Word arrives", async () => {
+      await apply("jmdict", [taberu]);
+      const report = await apply("yomitan", [listed("1", "N5"), listed("99", "N3")]);
+      expect(report).toMatchObject({ counts: { added: 1 }, notes: ["ent_seq 99 is not in JMdict: skipped"] });
+      await apply("jmdict", [taberu, word("99", ["猫"], ["ねこ"], [[["n"], ["cat"]]])]);
+      const again = await apply("yomitan", [listed("1", "N5"), listed("99", "N3")]);
+      expect(again).toMatchObject({ counts: { added: 1 }, notes: [] });
+      expect((await candidates("99"))[0]).toMatchObject({ level: "N3", kind: "list" });
+    });
+
+    it("changes the level in place, and retires the candidate when the list drops the Word", async () => {
+      await apply("jmdict", [taberu]);
+      await apply("yomitan", [listed("1", "N4")]);
+      const [before] = await candidates("1");
+      expect((await apply("yomitan", [listed("1", "N5")])).counts).toMatchObject({ changed: 1, levelsChanged: 1 });
+      expect((await candidates("1"))[0]).toMatchObject({ id: before!.id, level: "N5", retired: false });
+      expect((await apply("yomitan", [])).counts).toMatchObject({ retired: 1, levelsChanged: 1, retiredLevelledWithoutSuccessor: 0 });
+      expect((await candidates("1"))[0]).toMatchObject({ retired: true });
+      expect((await h.a.rows("studyItem", { id: await idOf("jmdict", "1") }))[0]!.retired).toBe(false);
+    });
+
+    it("never changes the current level while an Editorial candidate wins", async () => {
+      await apply("jmdict", [taberu]);
+      const id = await idOf("jmdict", "1");
+      const { life } = await exampleOn(id);
+      await h.a.insert("levelCandidate", [{ id: randomUUID(), studyItemId: id, level: "N2", kind: "editorial", ...life }]);
+      expect((await apply("yomitan", [listed("1", "N5")])).counts).toMatchObject({ added: 1, levelsChanged: 0 });
+      expect((await candidates("1")).find((c) => c.kind === "editorial")).toMatchObject({ level: "N2", retired: false });
+    });
+
+    it("trips the breaker when a run would change the current level of too many Words", async () => {
+      await apply("jmdict", [taberu, nomu]);
+      const strict = { maxChangedShare: 1, maxExamplesRedrafted: 0, maxLevelChanges: 1 };
+      const report = await apply("yomitan", [listed("1", "N5"), listed("2", "N5")], { breaker: strict });
+      expect(report).toMatchObject({ status: "breaker tripped", tripped: ["level changes"] });
+      expect(await candidates("1")).toEqual([]);
     });
   });
 

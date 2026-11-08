@@ -854,6 +854,9 @@ importers:
       '@mojibun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
+      '@mojibun/nlp':
+        specifier: workspace:*
+        version: link:../../platform/nlp
       '@mojibun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
@@ -872,6 +875,9 @@ importers:
       react:
         specifier: ^19.1.0
         version: 19.3.1
+      seek-bzip:
+        specifier: 2.0.0
+        version: 2.0.0
       zod:
         specifier: ^4.1.0
         version: 4.6.7
@@ -1035,6 +1041,67 @@ importers:
       '@types/react':
         specifier: ^19.1.0
         version: 19.3.0
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.3.1(react@19.3.1)
+
+  slices/reading:
+    dependencies:
+      '@mojibun/auth':
+        specifier: workspace:*
+        version: link:../../platform/auth
+      '@mojibun/content-graph':
+        specifier: workspace:*
+        version: link:../../core/content-graph
+      '@mojibun/db':
+        specifier: workspace:*
+        version: link:../../platform/db
+      '@mojibun/learner':
+        specifier: workspace:*
+        version: link:../../core/learner
+      '@mojibun/mail':
+        specifier: workspace:*
+        version: link:../../platform/mail
+      '@mojibun/progress':
+        specifier: workspace:*
+        version: link:../../core/progress
+      '@mojibun/shared':
+        specifier: workspace:*
+        version: link:../../platform/shared
+      '@mojibun/slice':
+        specifier: workspace:*
+        version: link:../../platform/slice
+      '@mojibun/ui':
+        specifier: workspace:*
+        version: link:../../platform/ui
+      hono:
+        specifier: ^4.9.0
+        version: 4.13.16
+      react:
+        specifier: ^19.1.0
+        version: 19.3.1
+      react-router:
+        specifier: ^7.9.0
+        version: 7.18.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      zod:
+        specifier: ^4.1.0
+        version: 4.6.7
+    devDependencies:
+      '@testing-library/react':
+        specifier: ^16.3.0
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.19.2
+      '@types/react':
+        specifier: ^19.1.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.1.0
+        version: 19.3.0(@types/react@19.3.0)
+      happy-dom:
+        specifier: ^20.0.0
+        version: 20.14.6
       react-dom:
         specifier: ^19.1.0
         version: 19.3.1(react@19.3.1)
@@ -2022,6 +2089,10 @@ packages:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
     engines: {node: '>=20'}
 
+  commander@6.2.1:
+    resolution: {integrity: sha512-U7VdrJFnJgo4xjrHpTzu0yrHPGImdsmD95ZlgYSEajAn2JKzDhDTPG9kBTefmObL2w/ngeZnilk+OV9CG3d7UA==}
+    engines: {node: '>= 6'}
+
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
@@ -2592,6 +2663,10 @@ packages:
 
   scheduler@0.28.0:
     resolution: {integrity: sha512-juorfCmIkIw8tT+p5BXSm6PJjQF/ycEYmKyzURCIt/RaZIhL+PulbQ9Yu2z1HdOJDdqDTlxA1+xKBmHXJsczAw==}
+
+  seek-bzip@2.0.0:
+    resolution: {integrity: sha512-SMguiTnYrhpLdk3PwfzHeotrcwi8bNV4iemL9tx9poR/yeaMYwB9VzR1w7b57DuWpuqR8n6oZboi0hj3AxZxQg==}
+    hasBin: true
 
   semver@6.3.2:
     resolution: {integrity: sha512-GYrCADwpu6yV5OAvchkQ27Z5wwMxWAEMg5NNWjyHh/5DboFFqbdbvYNIvZouQpxXyeMPoTOh0vdPYKlf0ZswdQ==}
@@ -3628,6 +3703,8 @@ snapshots:
 
   commander@14.0.3: {}
 
+  commander@6.2.1: {}
+
   convert-source-map@2.0.0: {}
 
   cookie@1.1.1: {}
@@ -4100,6 +4177,10 @@ snapshots:
       regexp-tree: 0.1.27
 
   scheduler@0.28.0: {}
+
+  seek-bzip@2.0.0:
+    dependencies:
+      commander: 6.2.1
 
   semver@6.3.2: {}
 
