@@ -4,7 +4,7 @@ import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@moj
 import { createFakeLearners } from "@mojibun/learner/testing";
 import { createFakeJobs } from "@mojibun/jobs";
 import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { createListeningApi } from "../server/api.ts";
+import { createListeningApi } from "../server/listening-api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}`;
 const SENTENCE_CLIP = ID(10);

@@ -4,7 +4,7 @@ import { createFakeContentGraph, emptyGraph, type Graph } from "@mojibun/content
 import { createFakeJobs } from "@mojibun/jobs";
 import { createFakeLearners } from "@mojibun/learner/testing";
 import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { createListeningApi } from "../../server/api.ts";
+import { createListeningApi } from "../../server/listening-api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}`;
 const KANJI = ID(10);

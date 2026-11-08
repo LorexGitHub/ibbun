@@ -5,7 +5,7 @@ import { createLearnerAuth, learnerConfigFromEnv } from "@mojibun/learner";
 import type { Mail } from "@mojibun/mail";
 import { createPgBossJobs, type Jobs } from "@mojibun/jobs";
 import { createProgress, createTexts } from "@mojibun/progress";
-import type { ListeningDeps } from "./api.ts";
+import type { ListeningDeps } from "./listening-api.ts";
 
 /** Resolving a session never sends mail. */
 const noMail: Mail = {
