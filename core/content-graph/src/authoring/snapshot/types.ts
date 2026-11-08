@@ -65,6 +65,13 @@ export type WiktionaryRecord = { key: string; title: string; text: string };
  */
 export type WordLevelRecord = { key: string; level: JlptLevel };
 
+/**
+ * UniDic's accent for one dictionary-form lexeme: `form` is its orthographic base and `reading` its kana base in hiragana, keyed
+ * `form\treading`. `pitchAccent` is the `aType` values, the more common first; 0 is heiban. The rule lands them on the JMdict
+ * reading that has this form and reading. A Word UniDic splits into several tokens has no lexeme, so it gets none.
+ */
+export type UnidicRecord = { key: string; form: string; reading: string; pitchAccent: number[] };
+
 export type Records = {
   jmdict: WordRecord;
   kanjidic: KanjiRecord;
@@ -73,6 +80,7 @@ export type Records = {
   tanos: KanjiLevelRecord;
   yomitan: WordLevelRecord;
   "wiktionary-ja": WiktionaryRecord;
+  unidic: UnidicRecord;
 };
 export type Dataset = keyof Records;
 

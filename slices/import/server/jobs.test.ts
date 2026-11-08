@@ -86,7 +86,7 @@ describe("import jobs", () => {
     expect(await w.deps.authoring.queue({ reason: "staleness alarm" })).toHaveLength(1);
   });
 
-  it("refreshes JMdict and KANJIDIC2 monthly, KanjiVG, Tatoeba, yomitan-jlpt-vocab and ja Wiktionary weekly, and tries the one-time Tanos kanji import daily", () => {
+  it("refreshes JMdict and KANJIDIC2 monthly, KanjiVG, Tatoeba, yomitan-jlpt-vocab, ja Wiktionary and UniDic weekly, and tries the one-time Tanos kanji import daily", () => {
     expect(refreshes().map((r) => [r.source.dataset, r.monthly, r.cron])).toEqual([
       ["jmdict", true, "0 12 * * *"],
       ["kanjidic", true, "0 12 * * *"],
@@ -94,6 +94,7 @@ describe("import jobs", () => {
       ["tatoeba", false, "0 12 * * 6,0"],
       ["yomitan", false, "0 8 * * 1"],
       ["wiktionary-ja", false, "0 12 * * 1"],
+      ["unidic", false, "0 12 * * 1"],
       ["tanos", false, "0 13 * * *"],
     ]);
   });

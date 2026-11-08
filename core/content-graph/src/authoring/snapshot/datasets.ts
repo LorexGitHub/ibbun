@@ -2,7 +2,7 @@ import type { Row } from "../store.ts";
 import { replaceLinks } from "./links.ts";
 import { moveSpan } from "./match.ts";
 import { same, type RunCtx } from "./run.ts";
-import type { KanjiRecord, KanjiStrokesRecord, SentenceRecord, WordLevelRecord } from "./types.ts";
+import type { KanjiRecord, KanjiStrokesRecord, SentenceRecord, UnidicRecord, WordLevelRecord } from "./types.ts";
 
 /** What KANJIDIC2 owns on a Kanji. `strokes` belong to KanjiVG: KANJIDIC2 starts them empty and never rewrites them. */
 const kanjiFields = ({ key, strokes: _, ...fields }: KanjiRecord) => ({ literal: key, ...fields });
@@ -158,5 +158,71 @@ export const yomitan = {
     const [old] = (await ctx.tx.rows("levelCandidate", { id })) as [Row<"levelCandidate">];
     ctx.counts.retired++;
     await settleLevel(ctx, old.studyItemId, () => ctx.tx.update("levelCandidate", { id }, { retired: true }));
+  },
+};
+
+const UNIDIC_URL = "https://clrd.ninjal.ac.jp/unidic/";
+
+/** The BSD notice (docs/licensing.md#approved-licences): one Provenance row per run, shared by every reading the run gives an accent. */
+const bsdNotices = new WeakMap<RunCtx, Promise<string>>();
+const bsdNotice = (ctx: RunCtx) => {
+  if (!bsdNotices.has(ctx)) bsdNotices.set(ctx, ctx.provenance("bsd-3-clause", "National Institute for Japanese Language and Linguistics", UNIDIC_URL));
+  return bsdNotices.get(ctx)!;
+};
+
+const toHiragana = (text: string) => text.replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+
+/** The live readings of live Words by `form\treading`: every form of a Word, or the reading itself when the Word has no form. */
+const readingsByKey = async (ctx: RunCtx) => {
+  const words = new Set((await ctx.tx.rows("studyItem", { type: "word", retired: false })).map((w) => w.id));
+  const formsOf = new Map<string, string[]>();
+  for (const { wordId, text } of await ctx.tx.rows("wordForm", { retired: false })) formsOf.set(wordId, [...(formsOf.get(wordId) ?? []), text]);
+  const keys = new Map<string, string[]>();
+  for (const r of (await ctx.tx.rows("wordReading", { retired: false })).filter((r) => words.has(r.wordId))) {
+    for (const form of formsOf.get(r.wordId) ?? [r.text]) {
+      const key = `${form}\t${toHiragana(r.text)}`;
+      keys.set(key, [...(keys.get(key) ?? []), r.id]);
+    }
+  }
+  return keys;
+};
+
+const indexes = new WeakMap<RunCtx, ReturnType<typeof readingsByKey>>();
+const readingsOf = async (ctx: RunCtx, key: string) => {
+  if (!indexes.has(ctx)) indexes.set(ctx, readingsByKey(ctx));
+  return [...new Set((await indexes.get(ctx)!).get(key) ?? [])];
+};
+
+const readingOf = async (ctx: RunCtx, id: string) => ((await ctx.tx.rows("wordReading", { id })) as [Row<"wordReading">])[0];
+
+/**
+ * UniDic gives pitch accent to the JMdict reading with the same form and reading (research/pitch-accent-source.md). The source
+ * key points at that reading, so a refresh rewrites only what UniDic gave. A key that matches no reading, or more than one,
+ * is skipped, and a later run tries it again once JMdict has it. JMdict refreshes keep the accent (`jmdict.ts`).
+ */
+export const unidic = {
+  add: async (ctx: RunCtx, record: UnidicRecord) => {
+    const targets = await readingsOf(ctx, record.key);
+    if (targets.length > 1) ctx.notes.push(`${record.form} (${record.reading}) matches ${targets.length} JMdict readings: skipped`);
+    if (targets.length !== 1) return null;
+    const id = targets[0]!;
+    await ctx.tx.update("wordReading", { id }, { pitchAccent: record.pitchAccent, provenanceId: await bsdNotice(ctx) });
+    await ctx.sourceKey(record.key, id);
+    return id;
+  },
+
+  change: async (ctx: RunCtx, id: string, record: UnidicRecord) => {
+    const old = await readingOf(ctx, id);
+    if (same(old.pitchAccent, record.pitchAccent)) return false;
+    await ctx.tx.update("wordReading", { id }, { pitchAccent: record.pitchAccent, provenanceId: await bsdNotice(ctx) });
+    await ctx.checkOverrides(id, { pitchAccent: record.pitchAccent });
+    return true;
+  },
+
+  /** The lexeme left UniDic: the reading loses the accent and goes back to JMdict's credit. */
+  retire: async (ctx: RunCtx, id: string) => {
+    ctx.counts.retired++;
+    await ctx.tx.update("wordReading", { id }, { pitchAccent: null, provenanceId: await ctx.provenance("edrdg") });
+    await ctx.checkOverrides(id, { pitchAccent: null });
   },
 };
