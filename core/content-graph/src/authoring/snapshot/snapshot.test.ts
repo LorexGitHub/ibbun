@@ -190,6 +190,64 @@ const contract = (make: () => Promise<Harness>) => {
       });
     });
 
+    describe("UniDic pitch accent", () => {
+      const accent = (form: string, reading: string, pitchAccent: number[]) => ({ key: `${form}\t${reading}`, form, reading, pitchAccent });
+      const readingOf = async (wordKey: string) => (await h.a.rows("wordReading", { wordId: await idOf("jmdict", wordKey) }))[0]!;
+
+      it("gives a reading the accent of the UniDic lexeme with its form and reading, credited to NINJAL under the BSD licence", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        const report = await apply("unidic", [accent("食べる", "たべる", [2]), accent("走る", "はしる", [1])]);
+        expect(report.counts).toMatchObject({ added: 1 });
+        const row = await readingOf("1");
+        expect(row.pitchAccent).toEqual([2]);
+        expect((await h.a.rows("provenance", { id: row.provenanceId }))[0]).toMatchObject({
+          licence: "bsd-3-clause",
+          author: "National Institute for Japanese Language and Linguistics",
+          source: { kind: "import", importRunId: report.importRunId },
+        });
+        expect((await readingOf("2")).pitchAccent).toBeNull();
+      });
+
+      it("matches a katakana reading by its hiragana, and a Word with no form by its reading", async () => {
+        await apply("jmdict", [word("3", [], ["コーヒー"], [[["n"], ["coffee"]]]), word("4", [], ["いちばん"], [[["adv"], ["best"]]])]);
+        await apply("unidic", [accent("コーヒー", "こーひー", [3]), accent("いちばん", "いちばん", [3, 0])]);
+        expect((await readingOf("3")).pitchAccent).toEqual([3]);
+        expect((await readingOf("4")).pitchAccent).toEqual([3, 0]);
+      });
+
+      it("leaves a lexeme that could be two readings alone, then takes it once JMdict has one", async () => {
+        await apply("jmdict", [word("5", ["雨"], ["あめ"], [[["n"], ["rain"]]]), word("6", ["雨"], ["あめ"], [[["n"], ["rain"]]])]);
+        const report = await apply("unidic", [accent("雨", "あめ", [1])]);
+        expect(report.counts).toMatchObject({ added: 0 });
+        expect(report.notes).toEqual(["雨 (あめ) matches 2 JMdict readings: skipped"]);
+        await apply("jmdict", [word("5", ["雨"], ["あめ"], [[["n"], ["rain"]]])]);
+        expect((await apply("unidic", [accent("雨", "あめ", [1])])).counts).toMatchObject({ added: 1 });
+      });
+
+      it("keeps the accent and its credit when JMdict refreshes, and counts nothing as changed", async () => {
+        await apply("jmdict", [taberu]);
+        await apply("unidic", [accent("食べる", "たべる", [2])]);
+        const before = await readingOf("1");
+        const report = await apply("jmdict", [{ ...taberu, senses: [{ partsOfSpeech: ["v1"], glosses: ["to eat"] }, taberu.senses[1]!] }, ]);
+        expect(report.counts).toMatchObject({ changed: 0 });
+        expect(await readingOf("1")).toMatchObject({ pitchAccent: [2], provenanceId: before.provenanceId });
+        await apply("jmdict", [{ ...taberu, priorityTags: ["ichi1"] }]);
+        expect(await readingOf("1")).toMatchObject({ pitchAccent: [2], provenanceId: before.provenanceId });
+      });
+
+      it("changes a changed accent, ignores an unchanged one, and takes the accent away when the lexeme leaves UniDic", async () => {
+        await apply("jmdict", [taberu]);
+        await apply("unidic", [accent("食べる", "たべる", [2])]);
+        expect((await apply("unidic", [accent("食べる", "たべる", [2])])).counts).toMatchObject({ changed: 0 });
+        expect((await apply("unidic", [accent("食べる", "たべる", [0, 2])])).counts).toMatchObject({ changed: 1 });
+        expect((await readingOf("1")).pitchAccent).toEqual([0, 2]);
+        expect((await apply("unidic", [])).counts).toMatchObject({ retired: 1 });
+        const row = await readingOf("1");
+        expect(row.pitchAccent).toBeNull();
+        expect((await h.a.rows("provenance", { id: row.provenanceId }))[0]).toMatchObject({ licence: "edrdg" });
+      });
+    });
+
     it("adds, changes and retires KANJIDIC2 characters", async () => {
       const kanji = { key: "食", meanings: ["eat"], onReadings: ["ショク"], kunReadings: ["た.べる"], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
       await apply("kanjidic", [kanji]);
