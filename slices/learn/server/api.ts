@@ -7,7 +7,7 @@ import type { Progress } from "@mojibun/progress";
 import type { LearnerId, StudyItemId } from "@mojibun/shared";
 import { TrackChange, type Batch, type State } from "../contract.ts";
 import { createNowIds } from "../learn-now/now.ts";
-import { learnedToday, remainingOf } from "./budget.ts";
+import { learnedToday, remainingOf } from "./learn-budget.ts";
 import { createActions, type Refusal } from "./actions.ts";
 import { createTeacher } from "./teach.ts";
 
