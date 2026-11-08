@@ -48,6 +48,27 @@ const Session = ({ batch, api, onFinished }: { batch: Batch; api: LearnApi; onFi
   );
 };
 
+type OverviewProps = { state: State; batch: Batch; learned: number | null; onTracks: (tracks: Track[]) => void; onStart: () => void };
+
+/** The Active Track grid with what the last batch earned and the button for the next. */
+const Overview = ({ state, batch, learned, onTracks, onStart }: OverviewProps) => (
+  <section>
+    <h1>Learn</h1>
+    {learned !== null && <Card>{learned > 0 ? `${learned} new items are in your Reviews.` : "Skipped."}</Card>}
+    <p>
+      {state.learnedToday} of {state.dailyBudget} new items learned today. {batch.items.length} in this batch.
+    </p>
+    <TrackGrid tracks={state.activeTracks} onChange={onTracks} />
+    {batch.items.length > 0 ? (
+      <Button variant="primary" big onClick={onStart}>
+        Start batch
+      </Button>
+    ) : (
+      <p>{batch.remaining === 0 ? "You have used the budget for new items today. Come back tomorrow." : "Nothing new is left in your active Tracks."}</p>
+    )}
+  </section>
+);
+
 /** The Learn screen: choose Active Tracks, take a batch, learn it, pass the quiz. */
 export const LearnScreen = ({ api = learnApi }: { api?: LearnApi }) => {
   const [loaded, setLoaded] = useState<{ state: State; batch: Batch } | null>(null);
@@ -84,25 +105,5 @@ export const LearnScreen = ({ api = learnApi }: { api?: LearnApi }) => {
   const { state, batch } = loaded;
   if (reading) return <ReadingStep api={api} ids={reading.ids} onDone={() => setReading(null)} />;
   if (started) return <Session batch={batch} api={api} onFinished={finished} />;
-  return (
-    <section>
-      <h1>Learn</h1>
-      {learned !== null && <Card>{learned > 0 ? `${learned} new items are in your Reviews.` : "Skipped."}</Card>}
-      <p>
-        {state.learnedToday} of {state.dailyBudget} new items learned today. {batch.items.length} in this batch.
-      </p>
-      <TrackGrid tracks={state.activeTracks} onChange={(t) => void saveTracks(t)} />
-      {batch.items.length > 0 ? (
-        <Button
-          variant="primary"
-          big
-          onClick={() => start(batch)}
-        >
-          Start batch
-        </Button>
-      ) : (
-        <p>{batch.remaining === 0 ? "You have used the budget for new items today. Come back tomorrow." : "Nothing new is left in your active Tracks."}</p>
-      )}
-    </section>
-  );
+  return <Overview state={state} batch={batch} learned={learned} onTracks={(t) => void saveTracks(t)} onStart={() => start(batch)} />;
 };

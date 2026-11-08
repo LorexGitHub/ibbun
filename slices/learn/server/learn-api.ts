@@ -29,7 +29,7 @@ export type LearnDeps = {
   progress: Progress;
   learners: Learners;
   learningPath: LearningPath;
-  jobs: Jobs;
+  jobs: Pick<Jobs, "enqueue">;
   texts: Texts;
   now: () => Date;
 };
