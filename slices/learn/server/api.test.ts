@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createFakeSessionResolver } from "@mojibun/auth";
 import { createFakeContentGraph, n5Fixture } from "@mojibun/content-graph/testing";
+import { createFakeJobs } from "@mojibun/jobs";
 import { createFakeLearners } from "@mojibun/learner/testing";
 import { createFakeLearningPath } from "@mojibun/learning-path/testing";
-import { createFakeProgress } from "@mojibun/progress/testing";
+import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
 import { StudyItemId, type LearnerId } from "@mojibun/shared";
 import type { Batch, CompleteRequest, QuizPrompt, State } from "../contract.ts";
 import { createLearnApi } from "./api.ts";
@@ -21,7 +22,7 @@ const setup = async (mutate: (graph: ReturnType<typeof n5Fixture>["graph"]) => v
   const learningPath = createFakeLearningPath({ contentGraph, progress });
   const learner = await learners.add({ email: "a@example.com" });
   const headers = sessions.signIn({ learnerId: learner.id, role: "learner" });
-  const api = createLearnApi({ sessions, learners, progress, contentGraph, learningPath, now: () => NOW });
+  const api = createLearnApi({ sessions, learners, progress, contentGraph, learningPath, jobs: createFakeJobs(), texts: createFakeTexts(), now: () => NOW });
   const send = (method: string, path: string, body?: unknown, as: Headers = headers) =>
     api.request(path, {
       method,

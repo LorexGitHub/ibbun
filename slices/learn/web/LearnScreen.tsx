@@ -4,6 +4,7 @@ import type { Batch, QuizAnswer, State, Track } from "../contract.ts";
 import { learnApi, type LearnApi } from "./api.ts";
 import { LessonCard } from "./LessonCard.tsx";
 import { Quiz } from "./Quiz.tsx";
+import { ReadingStep } from "./ReadingStep.tsx";
 import { TrackGrid } from "./TrackGrid.tsx";
 
 type Item = Batch["items"][number];
@@ -52,6 +53,9 @@ export const LearnScreen = ({ api = learnApi }: { api?: LearnApi }) => {
   const [loaded, setLoaded] = useState<{ state: State; batch: Batch } | null>(null);
   const [learned, setLearned] = useState<number | null>(null);
   const [started, setStarted] = useState(false);
+  /** The batch whose Batch Text the reading screen waits for, once its quiz has passed. */
+  const [reading, setReading] = useState<{ ids: string[] } | null>(null);
+  const [asked, setAsked] = useState<{ ids: string[]; enqueued: boolean } | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const load = useCallback(
     () => Promise.all([api.state(), api.batch()]).then(([state, batch]) => setLoaded({ state, batch }), (e: Error) => setFailed(e.message)),
@@ -63,12 +67,22 @@ export const LearnScreen = ({ api = learnApi }: { api?: LearnApi }) => {
   const finished = (n: number) => {
     setLearned(n);
     setStarted(false);
+    if (n > 0 && asked?.enqueued) setReading({ ids: asked.ids });
     void load();
+  };
+  const start = (batch: Batch) => {
+    const ids = batch.items.map((i) => i.lesson.studyItemId);
+    setLearned(null);
+    setStarted(true);
+    setAsked({ ids, enqueued: false });
+    // The batch is still learnable without a text, so a failed request only means there is none to wait for.
+    void api.startText(ids).then((enqueued) => setAsked({ ids, enqueued }), () => undefined);
   };
 
   if (failed) return <p role="alert">{failed}</p>;
   if (!loaded) return <p>Loading…</p>;
   const { state, batch } = loaded;
+  if (reading) return <ReadingStep api={api} ids={reading.ids} onDone={() => setReading(null)} />;
   if (started) return <Session batch={batch} api={api} onFinished={finished} />;
   return (
     <section>
@@ -82,10 +96,7 @@ export const LearnScreen = ({ api = learnApi }: { api?: LearnApi }) => {
         <Button
           variant="primary"
           big
-          onClick={() => {
-            setLearned(null);
-            setStarted(true);
-          }}
+          onClick={() => start(batch)}
         >
           Start batch
         </Button>

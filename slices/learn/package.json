@@ -7,6 +7,7 @@
   "dependencies": {
     "@mojibun/auth": "workspace:*",
     "@mojibun/content-graph": "workspace:*",
+    "@mojibun/jobs": "workspace:*",
     "@mojibun/learner": "workspace:*",
     "@mojibun/learning-path": "workspace:*",
     "@mojibun/progress": "workspace:*",

@@ -1,13 +1,26 @@
 import { Hono } from "hono";
 import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
 import type { ContentGraph } from "@mojibun/content-graph";
+import { BatchTextGenerate } from "@mojibun/content-graph/jobs";
+import type { Jobs } from "@mojibun/jobs";
 import type { Learners } from "@mojibun/learner";
 import type { LearningPath } from "@mojibun/learning-path";
-import type { Progress } from "@mojibun/progress";
-import type { LearnerId } from "@mojibun/shared";
-import { CompleteRequest, SkipRequest, TrackChange, type Batch, type State } from "../contract.ts";
+import type { Progress, Texts } from "@mojibun/progress";
+import type { LearnerId, StudyItemId } from "@mojibun/shared";
+import {
+  BATCH_TEXT_LIMIT_24H,
+  BatchTextRequest,
+  CompleteRequest,
+  LookupRequest,
+  SkipRequest,
+  TrackChange,
+  type Batch,
+  type BatchTextStatus,
+  type State,
+} from "../contract.ts";
 import { learnedToday } from "./budget.ts";
 import { gradeQuiz, recordQuiz } from "./complete.ts";
+import { batchLevel, lookupView, sameItems, textView } from "./reading.ts";
 import { createTeacher } from "./teach.ts";
 
 export type LearnDeps = {
@@ -16,10 +29,12 @@ export type LearnDeps = {
   progress: Progress;
   learners: Learners;
   learningPath: LearningPath;
+  jobs: Jobs;
+  texts: Texts;
   now: () => Date;
 };
 
-export const createLearnApi = ({ sessions, contentGraph, progress, learners, learningPath, now }: LearnDeps) => {
+export const createLearnApi = ({ sessions, contentGraph, progress, learners, learningPath, jobs, texts, now }: LearnDeps) => {
   const { requireLearner } = createAuthGuards(sessions);
   const teacher = createTeacher(contentGraph);
 
@@ -47,6 +62,10 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
     return { preferences: { convertRomaji, explanations }, remaining, items: taught.flatMap((t) => (t ? [t] : [])) };
   };
 
+  /** The Learner's Batch Text for exactly this batch, once generation has written it. */
+  const textOf = async (learnerId: LearnerId, ids: readonly string[]) =>
+    (await texts.batchTexts(learnerId)).find((t) => sameItems(t.studyItemIds, ids));
+
   return new Hono<AuthEnv>()
     .use(requireLearner())
     .get("/state", async (c) => c.json(await state(c.get("learner").learnerId)))
@@ -59,6 +78,36 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
       return c.json(await state(learnerId));
     })
     .get("/batch", async (c) => c.json(await batch(c.get("learner").learnerId)))
+    .post("/batch-text", async (c) => {
+      const request = BatchTextRequest.safeParse(await c.req.json().catch(() => null));
+      if (!request.success) return c.json({ message: "not a valid batch" }, 400);
+      const { learnerId } = c.get("learner");
+      const { studyItemIds } = request.data;
+      const limited = (await texts.countLast24h(learnerId, "batch", now())) >= BATCH_TEXT_LIMIT_24H;
+      if (limited || (await textOf(learnerId, studyItemIds))) return c.json({ enqueued: false });
+      await jobs.enqueue(BatchTextGenerate, { learnerId, level: await batchLevel(contentGraph, studyItemIds), itemIds: studyItemIds });
+      return c.json({ enqueued: true });
+    })
+    .get("/batch-text", async (c) => {
+      const { learnerId } = c.get("learner");
+      const ids = (c.req.query("ids") ?? "").split(",").filter(Boolean);
+      const text = ids.length > 0 ? await textOf(learnerId, ids) : undefined;
+      const passage = text && (await contentGraph.readingPassage(text.passageId));
+      if (!text || !passage) return c.json<BatchTextStatus>({ status: "preparing" });
+      const [{ furigana }, items] = await Promise.all([learners.preferences(learnerId), progress.items(learnerId)]);
+      const byId = new Map(items.map((p) => [p.studyItemId, p.mastery]));
+      const reader = { furigana, mastery: (id: StudyItemId) => byId.get(id) ?? "new", batch: new Set(text.studyItemIds) };
+      return c.json<BatchTextStatus>({ status: "ready", text: textView(passage, reader) });
+    })
+    .post("/lookups", async (c) => {
+      const request = LookupRequest.safeParse(await c.req.json().catch(() => null));
+      if (!request.success) return c.json({ message: "not a lookup" }, 400);
+      const page = await contentGraph.studyItem(request.data.wordId);
+      if (page?.item.type !== "word") return c.json({ message: "no such Word" }, 404);
+      const { learnerId } = c.get("learner");
+      await progress.record({ learnerId, studyItemId: request.data.wordId, kind: "lookup", passed: false, at: now().toISOString() });
+      return c.json(lookupView(page.item));
+    })
     .post("/skip", async (c) => {
       const request = SkipRequest.safeParse(await c.req.json().catch(() => null));
       if (!request.success) return c.json({ message: "not a valid Study Item" }, 400);
