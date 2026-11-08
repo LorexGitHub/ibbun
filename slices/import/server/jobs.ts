@@ -1,9 +1,13 @@
 import { z } from "zod";
 import { defineJob, handler, type JobHandler } from "@mojibun/jobs";
 import type { Dataset } from "@mojibun/content-graph/authoring";
+import { createSudachiNlp } from "@mojibun/nlp";
 import { jmdictSource } from "../sources/jmdict/index.ts";
 import { kanjidicSource } from "../sources/kanjidic2/index.ts";
+import { tatoebaSource } from "../sources/tatoeba/index.ts";
+import { kanjivgSource } from "../sources/kanjivg/index.ts";
 import { tanosSource } from "../sources/tanos-kanji/index.ts";
+import { yomitanSource } from "../sources/yomitan-jlpt-vocab/index.ts";
 import { runImport, type ImportDeps } from "./run.ts";
 import { monthlyRefreshDue } from "./schedule.ts";
 import type { Source } from "./source.ts";
@@ -19,11 +23,17 @@ export const StalenessCheck = defineJob("import.staleness", z.object({}));
 export type Refresh = { source: Source; cron: string; monthly: boolean };
 
 /** Each further source adds one line here and a folder under `sources/`. */
-export const refreshes = (): Refresh[] => [
+export const refreshes = (env: { SUDACHI_URL?: string } = process.env): Refresh[] => [
   // JMdict: the EDRDG licence wants a refresh at least monthly, so the first Monday, retried daily until it lands.
   { source: jmdictSource() as Source, cron: "0 12 * * *", monthly: true },
   // KANJIDIC2 and KRADFILE: the same licence and release as JMdict, so the same schedule.
   { source: kanjidicSource() as Source, cron: "0 12 * * *", monthly: true },
+  // KanjiVG: checked weekly. A run on a tag already applied downloads and changes nothing, so only a new release tag applies.
+  { source: kanjivgSource() as Source, cron: "0 12 * * 1", monthly: false },
+  // Tatoeba: exported Saturdays 06:30 UTC. Saturday and Sunday noon, so a failed Saturday run is tried once more; an applied version is a no-op.
+  { source: tatoebaSource(createSudachiNlp({ url: env.SUDACHI_URL ?? "http://localhost:8000" })) as Source, cron: "0 12 * * 6,0", monthly: false },
+  // yomitan-jlpt-vocab: checked every Monday, applied only when upstream has a new release (a rerun of a live version is a no-op).
+  { source: yomitanSource() as Source, cron: "0 8 * * 1", monthly: false },
   // Tanos kanji lists: one archived snapshot, so there is only ever one run. It needs KANJIDIC2 and fails until that is in,
   // so the daily retry lands it the day after; once applied, every later firing finds the version live and does nothing.
   { source: tanosSource() as Source, cron: "0 13 * * *", monthly: false },
@@ -41,7 +51,8 @@ export const importJobs = (deps: ImportDeps, list: Refresh[], now: () => Date = 
           const live = await liveRun(deps.authoring, source.dataset);
           if (!monthlyRefreshDue(now(), live?.appliedAt ?? null)) return;
         }
-        await runImport(deps, source, { release });
+        const { report } = await runImport(deps, source, { release });
+        for (const note of report.notes ?? []) console.info(`import.${source.dataset}: ${note}`);
       },
       { cron, payload: { scheduled: true } },
     );
