@@ -4,9 +4,10 @@ import type { ContentGraph } from "@mojibun/content-graph";
 import type { Learners } from "@mojibun/learner";
 import type { LearningPath } from "@mojibun/learning-path";
 import type { Progress } from "@mojibun/progress";
-import { StudyItemId, type LearnerId } from "@mojibun/shared";
+import type { LearnerId, StudyItemId } from "@mojibun/shared";
 import { TrackChange, type Batch, type State } from "../contract.ts";
-import { learnedToday } from "./budget.ts";
+import { createNowIds } from "../learn-now/now.ts";
+import { learnedToday, remainingOf } from "./budget.ts";
 import { createActions, type Refusal } from "./actions.ts";
 import { createTeacher } from "./teach.ts";
 
@@ -44,19 +45,16 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
   };
 
   const batch = async (learnerId: LearnerId): Promise<Batch> => {
-    const { batchSize, dailyBudget, learnedToday: learned } = await state(learnerId);
-    const remaining = Math.max(0, dailyBudget - learned);
-    const size = Math.min(batchSize, remaining);
+    const current = await state(learnerId);
+    const remaining = remainingOf(current);
+    const size = Math.min(current.batchSize, remaining);
     return batchOf(learnerId, size > 0 ? await learningPath.next(learnerId, size) : [], remaining);
   };
 
-  /** Learn now: the item and its pulled-in dependencies, whatever the budget says. */
+  const nowIds = createNowIds({ teacher, learningPath });
   const batchNow = async (learnerId: LearnerId, raw: string): Promise<Batch | { refusal: Refusal }> => {
-    const id = StudyItemId.safeParse(raw);
-    if (!id.success) return { refusal: { status: 400, message: "not a valid Study Item" } };
-    if (!(await teacher.isTaught(id.data))) return { refusal: { status: 404, message: "no such Study Item" } };
-    const { dailyBudget, learnedToday: learned } = await state(learnerId);
-    return batchOf(learnerId, await learningPath.forItem(learnerId, id.data), Math.max(0, dailyBudget - learned));
+    const ids = await nowIds(learnerId, raw);
+    return "refusal" in ids ? ids : batchOf(learnerId, ids, remainingOf(await state(learnerId)));
   };
 
   const { skip, complete } = createActions({ teacher, progress, now });
