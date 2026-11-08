@@ -41,8 +41,8 @@ const buildGraph = (): Graph => {
     { id: DRAFT_PASSAGE, title: "下書き", form: "prose", comprehensionQuestions: [], ...life, approval: "draft" },
   );
   graph.passageContainsSentence.push(
-    { id: ID(50), passageId: PASSAGE, sentenceId: ID(2), position: 0, ...life },
-    { id: ID(51), passageId: PASSAGE, sentenceId: ID(3), position: 1, ...life },
+    { id: ID(50), passageId: PASSAGE, sentenceId: ID(2), position: 0, speaker: null, ...life },
+    { id: ID(51), passageId: PASSAGE, sentenceId: ID(3), position: 1, speaker: null, ...life },
   );
   return graph;
 };

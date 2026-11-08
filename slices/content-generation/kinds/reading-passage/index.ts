@@ -1,9 +1,9 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import { z } from "zod";
-import type { Authoring, GenerationRequest, GenerationRun } from "@mojibun/content-graph/authoring";
+import type { Authoring, GenerationRequest } from "@mojibun/content-graph/authoring";
 import type { Texts } from "@mojibun/progress";
 import { definePlan, type Kind, type Services } from "../kind.ts";
-import { subjectOf, type Subject } from "../example-sentence/subject.ts";
+import { factsOf, subjects, writePassageDraft } from "../passage/draft.ts";
 import { contextOf, type BatchContext } from "./context.ts";
 import { earlierItems, levelProgress, levelsByItem } from "./earlier.ts";
 import { earlierItemCount, passageType, targetLength } from "./plan-numbers.ts";
@@ -31,48 +31,12 @@ export const passageIdOf = ({ learnerId, itemIds }: BatchContext): string => {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 };
 
-const subjects = async (auth: Authoring, ids: readonly string[]): Promise<Subject[]> =>
-  (await Promise.all(ids.map((id) => subjectOf(auth, id)))).filter((s): s is Subject => s !== null);
-
-const factsOf = (items: readonly Subject[]) => items.map((s) => s.facts.join(" / "));
-
 const story = (previous: { cast: string[]; episodeSummary: string } | undefined) =>
   previous
     ? [`Recurring cast and setting: ${previous.cast.join("、")}`, `Story so far: ${previous.episodeSummary}`, "Continue the story with the next episode."]
     : ["This is the first episode: invent a small recurring cast and a setting that suit the level."];
 
-type Attempt = { auth: Authoring; texts: Texts; now: () => Date; request: GenerationRequest; context: BatchContext; episode: number };
-
-const insertDraft = async ({ auth, request }: Attempt, run: GenerationRun, inputs: string[], { title, sentences }: Passage) => {
-  const provenanceId = randomUUID();
-  await auth.insert("provenance", [
-    {
-      id: provenanceId,
-      source: { kind: "generated", model: run.model, promptTemplateVersion: run.promptTemplateVersion, generationRunId: run.id },
-      licence: "mojibun",
-      author: null,
-      sourceUrl: null,
-      inputs,
-    },
-  ]);
-  const life = { approval: "draft", retired: false, provenanceId } as const;
-  const passageId = request.targetId;
-  // A retry rewrites the same passage; the links of the rejected attempt are retired.
-  const [existing] = await auth.rows("readingPassage", { id: passageId });
-  if (existing) {
-    await auth.update("readingPassage", { id: passageId }, { title, ...life });
-    await auth.update("passageContainsSentence", { passageId }, { retired: true });
-  } else {
-    await auth.insert("readingPassage", [{ id: passageId, title, form: "prose", comprehensionQuestions: [], ...life }]);
-  }
-  for (const [position, s] of sentences.entries()) {
-    const sentenceId = randomUUID();
-    await auth.insert("sentence", [
-      { id: sentenceId, text: s.text, translationEn: s.translationEn, tokens: [], audioKey: null, audioVoice: null, unlevelledWordCount: 0, ...life },
-    ]);
-    await auth.insert("passageContainsSentence", [{ id: randomUUID(), passageId, sentenceId, position, ...life }]);
-  }
-};
+type Attempt = { texts: Texts; now: () => Date; request: GenerationRequest; context: BatchContext; episode: number };
 
 /** The Batch Text record is written once, with the first attempt; retries rewrite only the passage. */
 const recordBatchText = async ({ texts, now, request, context, episode }: Attempt, { cast, episodeSummary }: Passage) => {
@@ -114,7 +78,7 @@ const plan = async (auth: Authoring, request: GenerationRequest, feedback: strin
     ...(feedback ? [`The previous attempt was rejected: ${feedback}`] : []),
   ].join("\n");
 
-  const attempt: Attempt = { auth, texts, now, request, context, episode };
+  const attempt: Attempt = { texts, now, request, context, episode };
   const used = [...batch, ...earlier];
   return definePlan({
     templateVersion: TEMPLATE_VERSION,
@@ -123,7 +87,13 @@ const plan = async (auth: Authoring, request: GenerationRequest, feedback: strin
     output: Passage,
     inputs: factsOf(used),
     async write(output, run) {
-      await insertDraft(attempt, run, used.flatMap((s) => s.recordIds), output);
+      const { title, sentences } = output;
+      await writePassageDraft(auth, request.targetId, run, used.flatMap((s) => s.recordIds), {
+        title,
+        form: "prose",
+        comprehensionQuestions: [],
+        sentences: sentences.map((s) => ({ ...s, speaker: null })),
+      });
       await recordBatchText(attempt, output);
     },
   });

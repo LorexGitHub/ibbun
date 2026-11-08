@@ -1,14 +1,17 @@
 import type { Authoring } from "@mojibun/content-graph/authoring";
 import type { GenerationConfig } from "./config.ts";
 
-export type Pool = "batch-text" | "general";
+export type Pool = "learner" | "general";
 
-/** Batch Texts, including their reviews, have a pool of their own; everything else shares the rest. */
-export const poolOf = (requestKind: string): Pool => (requestKind === "batch-text" ? "batch-text" : "general");
+/** Kinds a Learner sets off: Batch Texts and Practice Texts (listening.md#limits). */
+const LEARNER_TRIGGERED = ["batch-text", "practice-text"];
+
+/** Learner-triggered kinds, including their reviews, share a pool of their own; everything else shares the rest. */
+export const poolOf = (requestKind: string): Pool => (LEARNER_TRIGGERED.includes(requestKind) ? "learner" : "general");
 
 export const limitOf = (config: GenerationConfig, pool: Pool): number => {
   const batch = Math.floor(config.dailyTokenBudget * config.batchTextShare);
-  return pool === "batch-text" ? batch : config.dailyTokenBudget - batch;
+  return pool === "learner" ? batch : config.dailyTokenBudget - batch;
 };
 
 const startOfDay = (now: Date) => Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());

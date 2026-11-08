@@ -65,17 +65,24 @@ const voiceSentence = async (deps: SynthesiseDeps, sentence: Sentence, voice: Vo
   }
 };
 
-/** Each line of an approved dialogue, in order. A line a clip already gives to a speaker keeps it; the rest alternate 男, 女. */
-const voiceDialogue = async (deps: SynthesiseDeps, passageId: string) => {
-  const { auth, voices } = deps;
+const assertApprovedDialogue = async ({ auth }: SynthesiseDeps, passageId: string) => {
   const [passage] = await auth.rows("readingPassage", { id: passageId });
   if (passage?.form !== "dialogue" || passage.approval !== "approved" || passage.retired) throw new Error(`Reading Passage ${passageId} is not an approved dialogue`);
+};
+
+/** Who says a line: the passage's own speaker, else a clip's, else the lines alternate 男, 女. */
+const speakerOf = (link: { speaker: Speaker | null }, clipLine: { speaker: Speaker } | undefined, index: number): Speaker =>
+  link.speaker ?? clipLine?.speaker ?? (index % 2 === 0 ? "男" : "女");
+
+/** Each line of an approved dialogue, in order, in its speaker's voice. */
+const voiceDialogue = async (deps: SynthesiseDeps, passageId: string) => {
+  const { auth, voices } = deps;
+  await assertApprovedDialogue(deps, passageId);
   const cast = dialogueVoices(voices, passageId);
   const links = (await auth.rows("passageContainsSentence", { passageId, retired: false })).sort((a, b) => a.position - b.position);
   for (const [index, link] of links.entries()) {
     const [clipLine] = await auth.rows("clipVoicesSentence", { sentenceId: link.sentenceId, retired: false });
-    const speaker: Speaker = clipLine?.speaker ?? (index % 2 === 0 ? "男" : "女");
-    await voiceSentence(deps, await approvedSentence(auth, link.sentenceId), cast[speaker]);
+    await voiceSentence(deps, await approvedSentence(auth, link.sentenceId), cast[speakerOf(link, clipLine, index)]);
   }
 };
 
