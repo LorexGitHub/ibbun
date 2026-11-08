@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import { AudioPlayer, Button, Card, KanaInput, Pill } from "@mojibun/ui";
 import type { ClipAnswerResponse, ClipReview } from "../contract.ts";
-import type { AnswerClip } from "./api.ts";
-import { ClipPlayer } from "./ClipPlayer.tsx";
+import type { AnswerClip } from "./clip-reviews-client.ts";
+import { ClipReviewPlayer } from "./ClipReviewPlayer.tsx";
 import { DictationDiff } from "./DictationDiff.tsx";
 
 type Done = Exclude<ClipAnswerResponse, { outcome: "retry" }>;
@@ -93,7 +93,7 @@ export const ClipReviewCard = ({ review, answer, onDone }: { review: ClipReview;
   const asking = review.examMode || plays > 0;
   return (
     <Card>
-      <ClipPlayer
+      <ClipReviewPlayer
         audio={review.audio}
         examMode={review.examMode}
         slowAudio={review.slowAudio}

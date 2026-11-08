@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@mojibun/ui";
 import { DueResponse, SubmitResponse, type SubmitRequest } from "../contract.ts";
 import { ListeningReviews } from "../listening/web/ListeningReviews.tsx";
-import type { LoadClips } from "../listening/web/api.ts";
+import type { LoadClips } from "../listening/web/clip-reviews-client.ts";
 import { ReviewCard, type Submit } from "./ReviewCard.tsx";
 
 const BASE = "/api/reviews";

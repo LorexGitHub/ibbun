@@ -33,7 +33,7 @@ const SlowToggle = ({ slow, onChange }: { slow: boolean; onChange: (slow: boolea
 const labelOf = (examMode: boolean, plays: number) => (examMode || plays === 0 ? "Play" : "Replay");
 
 /** Plays a clip's lines in order. Replays are unlimited unless Exam Mode is on. */
-export const ClipPlayer = ({ audio, examMode, slowAudio, onPlay }: Props) => {
+export const ClipReviewPlayer = ({ audio, examMode, slowAudio, onPlay }: Props) => {
   const [plays, setPlays] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [slow, setSlow] = useState(!examMode && slowAudio);

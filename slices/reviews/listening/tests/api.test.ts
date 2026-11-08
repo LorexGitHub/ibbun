@@ -5,7 +5,7 @@ import { createFakeLearners } from "@mojibun/learner/testing";
 import { createFakeProgress } from "@mojibun/progress/testing";
 import type { StudyItemId } from "@mojibun/shared";
 import { createReviewsApi } from "../../server/api.ts";
-import { createClipReviewsApi } from "../server/api.ts";
+import { createClipReviewsApi } from "../server/clip-reviews-api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}` as StudyItemId;
 const SENTENCE_CLIP = ID(10);

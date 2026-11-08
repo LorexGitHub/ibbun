@@ -6,7 +6,7 @@ import type { Progress } from "@mojibun/progress";
 import { StudyItemId, type LearnerId } from "@mojibun/shared";
 import { DueResponse, SubmitRequest } from "../contract.ts";
 import { explanationOf, facetsOf, isReviewable, pickExample, promptOf } from "./prompt.ts";
-import { createClipReviewsApi } from "../listening/server/api.ts";
+import { createClipReviewsApi } from "../listening/server/clip-reviews-api.ts";
 import { coversFacets, detailOf, regrade, responseOf, storedFacets } from "./regrade.ts";
 
 export type ReviewsDeps = {

@@ -6,8 +6,8 @@ import type { Learners } from "@mojibun/learner";
 import type { Progress } from "@mojibun/progress";
 import type { LearnerId, StudyItemId } from "@mojibun/shared";
 import { ClipAnswerRequest, type ClipAnswerResponse, type ClipDueResponse } from "../contract.ts";
-import { gradingOf, nextExample, playable, reviewOf, transcriptOf, type Playable } from "./clip.ts";
-import { diffDictation } from "./diff.ts";
+import { gradingOf, nextExample, playable, reviewOf, transcriptOf, type Playable } from "./clip-playable.ts";
+import { diffDictation } from "./dictation-diff.ts";
 
 export type ClipReviewsDeps = {
   contentGraph: ContentGraph;

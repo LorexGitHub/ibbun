@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diffDictation } from "../server/diff.ts";
+import { diffDictation } from "../server/dictation-diff.ts";
 
 const SENTENCE = [
   { surface: "パン", reading: "パン" },

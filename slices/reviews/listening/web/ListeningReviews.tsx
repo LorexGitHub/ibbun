@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { ClipDueResponse } from "../contract.ts";
-import { answerClip, loadDueClips, type AnswerClip, type LoadClips } from "./api.ts";
+import { answerClip, loadDueClips, type AnswerClip, type LoadClips } from "./clip-reviews-client.ts";
 import { ClipReviewCard } from "./ClipReviewCard.tsx";
 
 type Props = { load?: LoadClips; answer?: AnswerClip; empty: ReactNode };
