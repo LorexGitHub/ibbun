@@ -8,6 +8,8 @@ import { afterAnswer, type Miss } from "./WrapUp.tsx";
 
 afterEach(cleanup);
 
+const noClips = async () => ({ clips: [] });
+
 const ID = StudyItemId.parse("00000000-0000-4000-8000-000000000001");
 const prompt = (exampleId: string, target = "水"): ReviewPrompt => ({
   studyItemId: ID,
@@ -56,7 +58,7 @@ describe("a review session with a miss", () => {
     const submit = vi.fn(async (_: SubmitRequest) => verdict(answers.shift()!));
     const wrapUp = vi.fn(async (_id: StudyItemId, asked: string[]) => due(prompt(`again-${asked.length}`)));
     const ghosts = vi.fn(async () => due());
-    render(<ReviewsScreen load={async () => due(prompt("first"))} submit={submit} wrapUp={wrapUp} ghosts={ghosts} />);
+    render(<ReviewsScreen clips={noClips} load={async () => due(prompt("first"))} submit={submit} wrapUp={wrapUp} ghosts={ghosts} />);
     return { submit, wrapUp, ghosts };
   };
   const GIVEN_KINDS = (submit: ReturnType<typeof setup>["submit"]) => submit.mock.calls.map(([r]) => r.kind);
@@ -88,7 +90,7 @@ describe("a review session with a miss", () => {
   it("shows Ghosts after Wrap-Up and records them as Ghosts", async () => {
     const submit = vi.fn(async (_: SubmitRequest) => verdict(true));
     const ghosts = vi.fn(async () => due(prompt("ghost")));
-    render(<ReviewsScreen load={async () => due(prompt("first"))} submit={submit} wrapUp={async () => due()} ghosts={ghosts} />);
+    render(<ReviewsScreen clips={noClips} load={async () => due(prompt("first"))} submit={submit} wrapUp={async () => due()} ghosts={ghosts} />);
     await answerWith("水");
     await next();
     await screen.findByRole("heading", { name: "Ghosts" });
@@ -101,14 +103,14 @@ describe("a review session with a miss", () => {
 
   it("goes on to the end when Wrap-Up has nothing to ask for the miss", async () => {
     const submit = vi.fn(async (_: SubmitRequest) => verdict(false));
-    render(<ReviewsScreen load={async () => due(prompt("first"))} submit={submit} wrapUp={async () => due()} ghosts={async () => due()} />);
+    render(<ReviewsScreen clips={noClips} load={async () => due(prompt("first"))} submit={submit} wrapUp={async () => due()} ghosts={async () => due()} />);
     await answerWith("ちがう");
     await next();
     await screen.findByText("Session complete.");
   });
 
   it("says so when the re-ask cannot be loaded", async () => {
-    render(<ReviewsScreen load={async () => due(prompt("first"))} submit={async () => verdict(false)} wrapUp={async () => Promise.reject(new Error("offline"))} ghosts={async () => due()} />);
+    render(<ReviewsScreen clips={noClips} load={async () => due(prompt("first"))} submit={async () => verdict(false)} wrapUp={async () => Promise.reject(new Error("offline"))} ghosts={async () => due()} />);
     await answerWith("ちがう");
     await next();
     expect((await screen.findByRole("alert")).textContent).toBe("offline");
@@ -118,7 +120,7 @@ describe("a review session with a miss", () => {
 describe("a review session with nothing due", () => {
   it("still offers Ghosts", async () => {
     const submit = vi.fn(async (_: SubmitRequest) => verdict(true));
-    render(<ReviewsScreen load={async () => due()} submit={submit} ghosts={async () => due(prompt("ghost"))} />);
+    render(<ReviewsScreen clips={noClips} load={async () => due()} submit={submit} ghosts={async () => due(prompt("ghost"))} />);
     expect(await screen.findByText("No Reviews are due. Come back later.")).toBeTruthy();
     await screen.findByRole("heading", { name: "Ghosts" });
     await answerWith("水");
@@ -128,7 +130,7 @@ describe("a review session with nothing due", () => {
   });
 
   it("shows no Ghosts section when there are none, or when they cannot be loaded", async () => {
-    render(<ReviewsScreen load={async () => due()} ghosts={async () => Promise.reject(new Error("offline"))} />);
+    render(<ReviewsScreen clips={noClips} load={async () => due()} ghosts={async () => Promise.reject(new Error("offline"))} />);
     await screen.findByText("Session complete.");
     expect(screen.queryByRole("heading", { name: "Ghosts" })).toBeNull();
   });
