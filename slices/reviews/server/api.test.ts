@@ -191,8 +191,11 @@ describe("the reviews API", () => {
       const [reading, meaning] = prompt.facets;
       const wrongMeaning = submit(prompt, { facets: [{ facet: "reading", input: answerFor(prompt, reading!), attempts: [] }, { facet: "meaning", input: "zzzzzz", attempts: [] }] });
       expect(await (await t.post("/answer", wrongMeaning)).json()).toMatchObject({ passed: false, facets: [{ outcome: "pass" }, { outcome: "fail" }] });
-      expect(await (await t.post("/answer", submit(prompt))).json()).toMatchObject({ passed: true });
       expect(answerFor(prompt, meaning!)).toBeTruthy();
+      const fresh = await setup();
+      await fresh.learn(fresh.fixture.ids.kanji["水"]!);
+      const again = (await fresh.due()).reviews[0]!;
+      expect(await (await fresh.post("/answer", submit(again))).json()).toMatchObject({ passed: true });
     });
 
     it("refuses an answer that leaves out a facet", async () => {
@@ -206,6 +209,128 @@ describe("the reviews API", () => {
       expect((await t.post("/answer", submit(prompt, { exampleId: "nope" }))).status).toBe(404);
       expect((await t.post("/answer", { nonsense: true })).status).toBe(400);
       expect((await t.post("/answer", "not json at all")).status).toBe(400);
+    });
+
+    it("counts only the first answer of a session: a second scheduled answer is refused and stores nothing", async () => {
+      const prompt = await first(t.fixture.ids.words["水"]!);
+      const wrong = submit(prompt, { facets: [{ facet: "cloze", input: "ちがう", attempts: [] }] });
+      expect((await t.post("/answer", wrong)).status).toBe(200);
+      expect((await t.post("/answer", submit(prompt))).status).toBe(409);
+      expect(await t.progress.log(t.learner, prompt.studyItemId)).toHaveLength(2);
+    });
+  });
+
+  describe("Wrap-Up", () => {
+    const word = () => t.fixture.ids.words["水"]!;
+    const wrapUp = async (asked: string[]) => {
+      const query = new URLSearchParams(asked.map((a) => ["asked", a]));
+      return t.get(`/wrap-up/${word()}?${query}`);
+    };
+
+    it("asks a miss again through a different Example than the one missed", async () => {
+      await t.learn(word());
+      const missed = (await t.due()).reviews[0]!;
+      const body = (await (await wrapUp([missed.exampleId])).json()) as DueResponse;
+      expect(body.reviews).toHaveLength(1);
+      expect(body.reviews[0]!.studyItemId).toBe(word());
+      expect(body.reviews[0]!.exampleId).not.toBe(missed.exampleId);
+      expect(body.preferences).toEqual({ convertRomaji: true, explanations: "english" });
+    });
+
+    it("moves on to an Example not asked yet, and when all were asked to any but the latest", async () => {
+      const [first, second] = t.fixture.graph.example.filter((e) => e.studyItemId === word()).map((e) => e.id);
+      const exampleOf = async (asked: string[]) => ((await (await wrapUp(asked)).json()) as DueResponse).reviews[0]!.exampleId;
+      expect(await exampleOf([])).toBe(first);
+      expect(await exampleOf([first!])).toBe(second);
+      expect(await exampleOf([first!, second!])).toBe(first);
+    });
+
+    it("asks the same Example again when the Study Item has only one", async () => {
+      const t2 = await setup((f) => {
+        const id = f.ids.words["水"]!;
+        const [keep] = f.graph.example.filter((e) => e.studyItemId === id);
+        f.graph.example = f.graph.example.filter((e) => e.studyItemId !== id || e.id === keep!.id);
+      });
+      const only = t2.fixture.graph.example.find((e) => e.studyItemId === t2.fixture.ids.words["水"]!)!.id;
+      const response = await t2.get(`/wrap-up/${t2.fixture.ids.words["水"]!}?asked=${only}`);
+      expect(((await response.json()) as DueResponse).reviews[0]!.exampleId).toBe(only);
+    });
+
+    it("records the re-ask as a wrap-up Review that neither changes the schedule nor Mastery", async () => {
+      await t.learn(word());
+      const missed = (await t.due()).reviews[0]!;
+      await t.post("/answer", submit(missed, { facets: [{ facet: "cloze", input: "ちがう", attempts: [] }] }));
+      const before = await t.progress.item(t.learner, word());
+      const again = ((await (await wrapUp([missed.exampleId])).json()) as DueResponse).reviews[0]!;
+      const response = await t.post("/answer", submit(again, { kind: "wrap-up" }));
+      expect(await response.json()).toMatchObject({ passed: true });
+      expect((await t.progress.log(t.learner, word())).at(-1)).toMatchObject({ kind: "wrap-up", passed: true, exampleId: again.exampleId });
+      expect(await t.progress.item(t.learner, word())).toEqual(before);
+    });
+
+    it("does not need the Study Item to be due, and refuses an unknown Study Item", async () => {
+      expect((await wrapUp([])).status).toBe(200);
+      expect((await t.get("/wrap-up/not-an-id")).status).toBe(404);
+      expect((await t.get("/wrap-up/00000000-0000-4000-8000-000000000000")).status).toBe(404);
+    });
+  });
+
+  describe("Ghosts", () => {
+    const hoursAgo = (hours: number) => new Date(NOW.getTime() - hours * 3_600_000).toISOString();
+    const word = () => t.fixture.ids.words["水"]!;
+    const miss = async (hours: number, passed = false) => {
+      await t.learn(word());
+      const exampleId = (await t.due()).reviews[0]!.exampleId;
+      await t.progress.record({ learnerId: t.learner, studyItemId: word(), kind: "srs", passed, at: hoursAgo(hours), exampleId });
+      return exampleId;
+    };
+    const ghosts = async () => ((await (await t.get("/ghosts")).json()) as DueResponse).reviews;
+
+    it("re-tests the exact Example that was missed, in a later session", async () => {
+      const exampleId = await miss(2);
+      const [ghost] = await ghosts();
+      expect(ghost).toMatchObject({ studyItemId: word(), exampleId });
+    });
+
+    it("waits until the session that missed it is over, and is short-lived", async () => {
+      await miss(0.5);
+      expect(await ghosts()).toEqual([]);
+      const t2 = await setup();
+      await t2.learn(word());
+      await t2.progress.record({ learnerId: t2.learner, studyItemId: word(), kind: "srs", passed: false, at: hoursAgo(72), exampleId: "x" });
+      expect(((await (await t2.get("/ghosts")).json()) as DueResponse).reviews).toEqual([]);
+    });
+
+    it("raises nothing for a pass, and nothing once the Ghost has been answered", async () => {
+      await miss(2, true);
+      expect(await ghosts()).toEqual([]);
+      const t2 = await setup();
+      t = t2;
+      const exampleId = await miss(3);
+      await t.progress.record({ learnerId: t.learner, studyItemId: word(), kind: "ghost", passed: false, at: hoursAgo(1), exampleId });
+      expect(await ghosts()).toEqual([]);
+    });
+
+    it("records an answer as a ghost Review that leaves the schedule and Mastery alone", async () => {
+      await miss(2);
+      const before = await t.progress.item(t.learner, word());
+      const [ghost] = await ghosts();
+      const response = await t.post("/answer", submit(ghost!, { kind: "ghost" }));
+      expect(await response.json()).toMatchObject({ passed: true });
+      expect((await t.progress.log(t.learner, word())).at(-1)).toMatchObject({ kind: "ghost", passed: true, exampleId: ghost!.exampleId });
+      expect(await t.progress.item(t.learner, word())).toEqual(before);
+      expect(await ghosts()).toEqual([]);
+    });
+
+    it("leaves out a Ghost whose Example is no longer approved", async () => {
+      await miss(2);
+      t.fixture.graph.example = t.fixture.graph.example.filter((e) => e.studyItemId !== word());
+      expect(await ghosts()).toEqual([]);
+    });
+
+    it("refuses a request with no session", async () => {
+      expect((await t.get("/ghosts", new Headers())).status).toBe(401);
+      expect((await t.get(`/wrap-up/${word()}`, new Headers())).status).toBe(401);
     });
   });
 });

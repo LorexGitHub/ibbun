@@ -31,7 +31,7 @@ Each file has an H1, one paragraph of user-visible behaviour, then exactly these
 - [App shell](./shell.md): layout, nav, home fallback, API health. Built.
 - [learning-path](./learning-path.md): core Learning Path, seed and active Tracks. Core only; journeys arrive with learn and browse.
 - [learn](./learn.md): Learn batches, lesson, quiz, Batch Text. Not built yet.
-- [reviews](./reviews.md): Review session, Wrap-Up, Ghosts. Not built yet.
+- [reviews](./reviews.md): Review session, Wrap-Up, Ghosts. Built.
 - [cram](./cram.md): practice without changing Mastery. Built (needs the account slice to log in).
 - [placement](./placement.md): per-level tick-list making items Known. Built.
 - [browse](./browse.md): Kanji, Word and Grammar Point pages, search. Not built yet.

@@ -220,7 +220,7 @@ describe("the reviews screen", () => {
   });
 
   it("walks through the due Reviews one by one", async () => {
-    render(<ReviewsScreen load={async () => due([cloze, { ...cloze, exampleId: "ex-2" }])} submit={async () => PASS} />);
+    render(<ReviewsScreen load={async () => due([cloze, { ...cloze, exampleId: "ex-2" }])} submit={async () => PASS} ghosts={async () => due([])} />);
     expect(await screen.findByText("1 of 2")).toBeTruthy();
     type("Answer", "みず");
     press("Check");
