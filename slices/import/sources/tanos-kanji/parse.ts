@@ -1,5 +1,6 @@
 import type { KanjiLevelRecord } from "@mojibun/content-graph/authoring";
 import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
+import { easiestLevels } from "../easiest.ts";
 
 /** Easiest first: the order the lists are read in, and the order a collision is settled in. */
 export const LEVELS: readonly JlptLevel[] = JLPT_LEVELS;
@@ -25,15 +26,12 @@ const kanjiOf = (file: { name: string; text: string }): string[] => {
  * whole run, so a changed page cannot half-apply.
  */
 export const parseKanjiLevels = (files: { name: string; text: string }[], report: (line: string) => void): KanjiLevelRecord[] => {
-  const levels = new Map<string, JlptLevel>();
-  for (const level of LEVELS) {
-    const file = files.find((f) => f.name === fileOf(level));
-    if (!file) throw new Error(`the raw files hold no ${fileOf(level)}`);
-    for (const kanji of kanjiOf(file)) {
-      const kept = levels.get(kanji);
-      if (kept === undefined) levels.set(kanji, level);
-      else if (kept !== level) report(`${kanji} is also listed at ${level}: kept ${kept}`);
-    }
-  }
+  const levels = easiestLevels(
+    files,
+    fileOf,
+    (file) => kanjiOf(file).map((key) => ({ key })),
+    ({ key }, level, kept) => `${key} is also listed at ${level}: kept ${kept}`,
+    report,
+  );
   return [...levels].map(([key, level]) => ({ key, level }));
 };

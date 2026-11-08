@@ -117,7 +117,7 @@ export const tatoeba = {
 const YOMITAN_URL = "https://github.com/stephenmk/yomitan-jlpt-vocab";
 
 /** Runs `write`, and counts the Study Item as level-changed when its current level differs afterwards. */
-const settleLevel = async (ctx: RunCtx, studyItemId: string, write: () => Promise<unknown>) => {
+export const settleLevel = async (ctx: RunCtx, studyItemId: string, write: () => Promise<unknown>) => {
   const before = await ctx.currentLevel(studyItemId);
   await write();
   if (before !== (await ctx.currentLevel(studyItemId))) ctx.counts.levelsChanged++;

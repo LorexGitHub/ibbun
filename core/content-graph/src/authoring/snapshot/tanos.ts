@@ -1,16 +1,10 @@
 import type { Row } from "../store.ts";
+import { settleLevel } from "./datasets.ts";
 import type { RunCtx } from "./run.ts";
 import type { KanjiLevelRecord } from "./types.ts";
 
 const TANOS_URL = "https://web.archive.org/web/20200117222855/http://www.tanos.co.uk/jlpt/";
 const provenance = (ctx: RunCtx) => ctx.provenance("cc-by", "Jonathan Waller", TANOS_URL);
-
-/** Runs `write`, and counts the Study Item as level-changed when its current level differs afterwards. */
-const settleLevel = async (ctx: RunCtx, studyItemId: string, write: () => Promise<unknown>) => {
-  const before = await ctx.currentLevel(studyItemId);
-  await write();
-  if (before !== (await ctx.currentLevel(studyItemId))) ctx.counts.levelsChanged++;
-};
 
 /** The live Kanji with this literal, or null. Throws when KANJIDIC2 has not been imported at all, since every record would be skipped. */
 const kanjiFor = async (ctx: RunCtx, literal: string) => {
