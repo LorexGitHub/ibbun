@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
 import type { Batch, QuizAnswer, QuizPrompt, State, TextView } from "../contract.ts";
-import { learnApi, type LearnApi } from "./api.ts";
+import { learnApi, type LearnApi } from "./learn-client.ts";
 import { notAnswers, shownByDefault, SWITCH_TO_JAPANESE } from "./check.ts";
 import { LearnScreen } from "./LearnScreen.tsx";
 import { ReadingStep } from "./ReadingStep.tsx";

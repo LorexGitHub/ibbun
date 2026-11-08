@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, Card, Furigana } from "@mojibun/ui";
 import { BATCH_TEXT_WAIT_MS, type BatchTextStatus, type LookupView, type Run, type SentenceView, type TextView } from "../contract.ts";
-import type { LearnApi } from "./api.ts";
+import type { LearnApi } from "./learn-client.ts";
 
 const POLL_MS = 1_000;
 

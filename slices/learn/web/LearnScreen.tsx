@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Card } from "@mojibun/ui";
 import type { Batch, QuizAnswer, State, Track } from "../contract.ts";
-import { learnApi, type LearnApi } from "./api.ts";
+import { learnApi, type LearnApi } from "./learn-client.ts";
 import { LessonCard } from "./LessonCard.tsx";
 import { Quiz } from "./Quiz.tsx";
 import { ReadingStep } from "./ReadingStep.tsx";
