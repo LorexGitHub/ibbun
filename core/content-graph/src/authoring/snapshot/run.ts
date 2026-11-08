@@ -18,6 +18,8 @@ const base = (tx: Store, clock: Clock, dataset: Dataset, importRunId: string, se
     importRunId,
     senseThreshold,
     r,
+    /** Records the run skipped, for the report. */
+    notes: [] as string[],
     counts: Object.fromEntries(COUNT_KEYS.map((k) => [k, 0])) as Counts,
     enqueue: (reason: QueueReason, recordId: string, detail: unknown = null) => r.enqueue({ reason, recordId, detail }),
     sourceKey: (upstreamKey: string, recordId: string) => tx.insert("sourceKey", [{ dataset, upstreamKey, recordId }]),

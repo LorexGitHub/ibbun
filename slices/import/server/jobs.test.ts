@@ -86,7 +86,11 @@ describe("import jobs", () => {
     expect(await w.deps.authoring.queue({ reason: "staleness alarm" })).toHaveLength(1);
   });
 
-  it("refreshes JMdict and KANJIDIC2 from the jmdict-simplified releases by default", () => {
-    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true], ["kanjidic", true]]);
+  it("refreshes JMdict and KANJIDIC2 monthly by default, and tries the one-time Tanos kanji import daily after them", () => {
+    expect(refreshes().map((r) => [r.source.dataset, r.monthly, r.cron])).toEqual([
+      ["jmdict", true, "0 12 * * *"],
+      ["kanjidic", true, "0 12 * * *"],
+      ["tanos", false, "0 13 * * *"],
+    ]);
   });
 });

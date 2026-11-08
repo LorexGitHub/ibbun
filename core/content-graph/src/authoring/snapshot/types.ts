@@ -1,3 +1,4 @@
+import type { JlptLevel } from "@mojibun/shared";
 import type { Licence, Token } from "../../schema.ts";
 
 /** One JMdict entry, keyed by `ent_seq`. Forms and readings in upstream order. */
@@ -32,7 +33,13 @@ export type SentenceRecord = {
   licence: Extract<Licence, "cc-by-2.0-fr" | "cc0">;
 };
 
-export type Records = { jmdict: WordRecord; kanjidic: KanjiRecord; tatoeba: SentenceRecord };
+/**
+ * The List level the Tanos kanji lists give one Kanji, keyed by its literal. A Kanji listed at several levels has
+ * already been reduced to its easiest by the parser (jlpt-levels.md#collisions-and-misses-in-the-tanos-lists).
+ */
+export type KanjiLevelRecord = { key: string; level: JlptLevel };
+
+export type Records = { jmdict: WordRecord; kanjidic: KanjiRecord; tatoeba: SentenceRecord; tanos: KanjiLevelRecord };
 export type Dataset = keyof Records;
 
 export type Run = { upstreamVersion: string; checksum: string };
@@ -77,4 +84,6 @@ export type SnapshotReport = {
   status: "applied" | "breaker tripped" | "unchanged";
   counts: Counts;
   tripped: string[];
+  /** Records the run skipped, one line each: for tanos, every Kanji that is not in KANJIDIC2. */
+  notes?: string[];
 };
