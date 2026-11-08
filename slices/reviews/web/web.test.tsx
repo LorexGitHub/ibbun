@@ -49,7 +49,7 @@ const prefs = (over: Partial<DueResponse["preferences"]> = {}): DueResponse["pre
 const mount = (prompt = cloze, preferences = prefs(), result: SubmitResponse = PASS) => {
   const submit = vi.fn(async (_: SubmitRequest) => result);
   const onDone = vi.fn();
-  render(<ReviewCard prompt={prompt} preferences={preferences} submit={submit} flag={async () => undefined} onDone={onDone} />);
+  render(<ReviewCard prompt={prompt} preferences={preferences} submit={submit} onDone={onDone} />);
   return { submit, onDone };
 };
 const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
@@ -220,7 +220,7 @@ describe("the reviews screen", () => {
   });
 
   it("walks through the due Reviews one by one", async () => {
-    render(<ReviewsScreen load={async () => due([cloze, { ...cloze, exampleId: "ex-2" }])} submit={async () => PASS} />);
+    render(<ReviewsScreen load={async () => due([cloze, { ...cloze, exampleId: "ex-2" }])} submit={async () => PASS} ghosts={async () => due([])} />);
     expect(await screen.findByText("1 of 2")).toBeTruthy();
     type("Answer", "みず");
     press("Check");

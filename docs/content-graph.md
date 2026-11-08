@@ -27,7 +27,7 @@ A hybrid layout:
 | Node | Study Item? | Source | Holds |
 |---|---|---|---|
 | **Kanji** | yes | KANJIDIC2 (all ~13k) | readings, meanings, grade, frequency, KRADFILE components and KanjiVG strokes as plain data (no component nodes) |
-| **Word** | yes | JMdict (all ~219k entries) | one entry: written forms, readings, senses (English glosses plus a **Japanese Explanation** per sense), priority tags. **Pitch accent** per reading: the field exists but stays empty until a licensed source is approved (see the pitch accent ticket) |
+| **Word** | yes | JMdict (all ~219k entries) | one entry: written forms, readings, senses (English glosses plus a **Japanese Explanation** per sense), priority tags. **Pitch accent** per reading: UniDic `aType` for Words that are a single UniDic lexeme ([research](research/pitch-accent-source.md)); compounds stay empty |
 | **Grammar Point** | yes | hanabira and Tanos, merged and seeded once, then Content Approval ([grammar-points.md](grammar-points.md)) | title, forms, formation, register, English meaning, **Japanese Explanation**, notes, Matcher Rule |
 | **Listening Clip** | yes | VOICEVOX TTS (#5, #11); dialogues generated ([listening.md](listening.md)) | kind (`sentence` \| `dialogue`), audio key per line |
 | **Sentence** | no | Tatoeba (arrives `draft`), generated | Japanese text, one English translation (more languages later), token list with readings from Sudachi (rebuilt when the text changes; reading fixes go in as overrides), **Sentence Audio** key and voice ([listening.md](listening.md)) |

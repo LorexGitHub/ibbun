@@ -9,6 +9,17 @@ export type Flag = (request: FlagRequest) => Promise<void>;
 export const flaggableFacet = (result: SubmitResponse, revealed: boolean): Facet | null =>
   revealed ? null : (result.facets.find((f) => f.outcome === "fail" && (FLAGGABLE_FACETS as readonly string[]).includes(f.facet))?.facet ?? null);
 
+/** Sends the flag to the reviews API. */
+export const flagAnswer: Flag = async (request) => {
+  const response = await fetch("/api/reviews/flag", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) throw new Error(response.statusText);
+};
+
 type State = "idle" | "sending" | "sent" | "failed";
 
 /** "My answer was right": sends the graded facet to Content Approval. It never changes the grade just given. */

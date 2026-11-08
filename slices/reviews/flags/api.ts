@@ -6,6 +6,9 @@ import { FlagRequest, FLAGGABLE_FACETS } from "./contract.ts";
 
 export type FlagsDeps = { sessions: SessionResolver; progress: Progress; answerFlags: AnswerFlags };
 
+/** The Review kinds a Learner answered in a session, whether scheduled, in Wrap-Up or as a Ghost. */
+const ASKED: readonly string[] = ["srs", "wrap-up", "ghost"];
+
 type Flaggable = { input: string };
 
 /** The wrong, typed input of a graded facet, or why it cannot be flagged. */
@@ -29,7 +32,7 @@ export const createFlagsApi = ({ sessions, progress, answerFlags }: FlagsDeps) =
     if (!request.success) return c.json({ message: "not a valid flag" }, 400);
     const { studyItemId, exampleId, facet } = request.data;
 
-    const review = (await progress.log(learnerId, studyItemId)).findLast((r) => r.kind === "srs" && r.exampleId === exampleId);
+    const review = (await progress.log(learnerId, studyItemId)).findLast((r) => ASKED.includes(r.kind) && r.exampleId === exampleId);
     if (!review) return c.json({ message: "no such Review" }, 404);
     const found = flaggable(review, facet);
     if ("refusal" in found) return c.json({ message: found.refusal }, 422);

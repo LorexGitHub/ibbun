@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
 import type { ReviewPrompt, SubmitResponse } from "../contract.ts";
 import { ReviewCard } from "../web/ReviewCard.tsx";
-import { flaggableFacet } from "./FlagButton.tsx";
+import { flagAnswer, flaggableFacet } from "./FlagButton.tsx";
 
 afterEach(cleanup);
 
@@ -61,6 +61,18 @@ describe("flagging from a Review", () => {
     mount(WRONG);
     await answer("Show answer");
     expect(screen.queryByRole("button", { name: "My answer was right" })).toBeNull();
+  });
+});
+
+describe("sending a flag", () => {
+  it("posts the request to the reviews API and fails when it is refused", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true }).mockResolvedValueOnce({ ok: false, statusText: "no" });
+    vi.stubGlobal("fetch", fetchMock);
+    const request = { studyItemId: WORD, exampleId: "ex-1", facet: "cloze" as const };
+    await flagAnswer(request);
+    expect(fetchMock).toHaveBeenCalledWith("/api/reviews/flag", expect.objectContaining({ method: "POST", body: JSON.stringify(request) }));
+    await expect(flagAnswer(request)).rejects.toThrow("no");
+    vi.unstubAllGlobals();
   });
 });
 

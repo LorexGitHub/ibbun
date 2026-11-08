@@ -1,7 +1,7 @@
 import type { Clock } from "../authoring.ts";
 import { rules } from "../authoring.ts";
 import type { Store } from "../store.ts";
-import { kanjidic, kanjivg, tatoeba, yomitan } from "./datasets.ts";
+import { kanjidic, kanjivg, tatoeba, unidic, yomitan } from "./datasets.ts";
 import { jmdict } from "./jmdict.ts";
 import { wiktionary } from "./wiktionary.ts";
 import { tripped } from "./match.ts";
@@ -16,7 +16,7 @@ type Rules<R> = {
   retire: (ctx: RunCtx, id: string, surviving: R[], idOf: (key: string) => string) => Promise<void>;
 };
 
-const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, kanjivg, tatoeba, tanos, yomitan, "wiktionary-ja": wiktionary };
+const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, kanjivg, tatoeba, tanos, yomitan, "wiktionary-ja": wiktionary, unidic };
 
 /** Thrown inside the transaction so a tripped run rolls back everything it wrote. */
 class Tripped extends Error {
@@ -32,7 +32,7 @@ class Tripped extends Error {
 }
 
 const isLive = async (ctx: RunCtx, dataset: Dataset, id: string) => {
-  const table = { tatoeba: "sentence", "wiktionary-ja": "japaneseExplanation", tanos: "levelCandidate", yomitan: "levelCandidate", jmdict: "studyItem", kanjidic: "studyItem", kanjivg: "studyItem" } as const;
+  const table = { tatoeba: "sentence", "wiktionary-ja": "japaneseExplanation", tanos: "levelCandidate", yomitan: "levelCandidate", unidic: "wordReading", jmdict: "studyItem", kanjidic: "studyItem", kanjivg: "studyItem" } as const;
   const [row] = await ctx.tx.rows(table[dataset], { id });
   return row !== undefined && !row.retired;
 };
@@ -40,7 +40,8 @@ const isLive = async (ctx: RunCtx, dataset: Dataset, id: string) => {
 /** New keys, changed keys, then gone keys, so successor detection sees every surviving entry. */
 const applyRecords = async <D extends Dataset>(ctx: RunCtx, dataset: D, records: Records[D][], ids: Map<string, string>) => {
   const rule = RULES[dataset] as Rules<Records[D]>;
-  const gone = [...ids].filter(([key]) => !records.some((r) => r.key === key));
+  const present = new Set(records.map((r) => r.key));
+  const gone = [...ids].filter(([key]) => !present.has(key));
   for (const record of records) {
     const id = ids.get(record.key);
     if (id === undefined) {

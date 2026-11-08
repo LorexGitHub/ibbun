@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Button, Card, Input, KanaInput, Pill } from "@mojibun/ui";
 import type { DueResponse, Facet, Hint, ReviewPrompt, SubmitRequest, SubmitResponse } from "../contract.ts";
-import { FlagButton, flaggableFacet, type Flag } from "../flags/FlagButton.tsx";
+import { FlagButton, flagAnswer, flaggableFacet, type Flag } from "../flags/FlagButton.tsx";
 import { acceptedOf, isJapanese, notAnswers, shownByDefault, type PromptFacet } from "./check.ts";
 
 export type Submit = (request: SubmitRequest) => Promise<SubmitResponse>;
@@ -129,8 +129,8 @@ const Actions = (props: { prompt: ReviewPrompt; preferences: Preferences; busy: 
 };
 
 /** One Review. The first graded submission is final: there is no Undo. */
-export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferences; submit: Submit; flag: Flag; onDone: () => void }) => {
-  const { prompt, preferences, submit, flag, onDone } = props;
+export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferences; submit: Submit; flag?: Flag; onDone: (result: SubmitResponse) => void }) => {
+  const { prompt, preferences, submit, flag = flagAnswer, onDone } = props;
   const a = useAnswering(prompt, preferences, submit);
   const shown = shownByDefault(preferences.explanations);
   const flagged = a.result && flaggableFacet(a.result, a.revealed);
@@ -158,7 +158,7 @@ export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferenc
         <>
           <Info prompt={prompt} result={a.result} />
           {flagged && <FlagButton request={{ studyItemId: prompt.studyItemId, exampleId: prompt.exampleId, facet: flagged }} flag={flag} />}
-          <Button variant="primary" onClick={onDone}>
+          <Button variant="primary" onClick={() => onDone(a.result!)}>
             Next
           </Button>
         </>

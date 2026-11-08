@@ -78,6 +78,14 @@ describe("flagging a graded facet", () => {
     expect((await t.queued())[0]!.detail).toMatchObject({ reviewId: latest.id });
   });
 
+  it("flags a Wrap-Up or Ghost answer too, but not a Learn or Cram one", async () => {
+    await t.review({ kind: "wrap-up" });
+    expect((await t.flag({ studyItemId: WORD, exampleId: EXAMPLE, facet: "cloze" })).status).toBe(201);
+    const other = setup();
+    await other.review({ kind: "cram" });
+    expect((await other.flag({ studyItemId: WORD, exampleId: EXAMPLE, facet: "cloze" })).status).toBe(404);
+  });
+
   it("refuses what is not a valid flag", async () => {
     expect((await t.flag({ exampleId: "x" })).status).toBe(400);
   });
