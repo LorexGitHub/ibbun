@@ -134,6 +134,62 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await h.a.rows("provenance", { id: row!.provenanceId }))[0]).toMatchObject({ author: "ann", licence: "cc-by-2.0-fr", sourceUrl: "https://tatoeba.org/sentences/show/10" });
     });
 
+    describe("ja Wiktionary glosses", () => {
+      const gloss = (key: string, title: string, text = "食物を口に入れて、かみ砕いて飲み込むこと。") => ({ key, title, text });
+      const levelled = async (wordKey: string) => {
+        const wordId = await idOf("jmdict", wordKey);
+        const provenanceId = randomUUID();
+        await h.a.insert("provenance", [{ id: provenanceId, source: { kind: "authored", by: "t" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] }]);
+        await h.a.insert("levelCandidate", [{ id: randomUUID(), studyItemId: wordId, level: "N5", kind: "editorial", approval: "approved", retired: false, provenanceId }]);
+        return wordId;
+      };
+
+      it("adds a gloss of a JLPT Word as a Draft on its first sense, with CC BY-SA 4.0 and a link to the page, and asks for alignment", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        const wordId = await levelled("1");
+        const report = await apply("wiktionary-ja", [gloss("食べる#0.0", "食べる"), gloss("飲む#0.0", "飲む"), gloss("犬#0.0", "犬")]);
+        expect(report.counts).toMatchObject({ added: 1 });
+        const [row] = await h.a.rows("japaneseExplanation", { id: await idOf("wiktionary-ja", "食べる#0.0") });
+        expect(row).toMatchObject({ approval: "draft", retired: false, wordSenseId: (await senses(wordId))[0]!.id, grammarPointId: null });
+        expect((await h.a.rows("provenance", { id: row!.provenanceId }))[0]).toMatchObject({
+          licence: "cc-by-sa-4.0",
+          sourceUrl: `https://ja.wiktionary.org/wiki/${encodeURIComponent("食べる")}`,
+          source: { kind: "import", importRunId: report.importRunId },
+        });
+        expect(await h.a.rows("generationRequest", { targetId: wordId, kind: "sense_alignment" })).toHaveLength(1);
+      });
+
+      it("matches a kana page to a Word with no kanji form, and leaves a page that could be two Words alone", async () => {
+        await apply("jmdict", [word("3", [], ["いちばん"], [[["adv"], ["best"]]]), word("4", ["雨"], ["あめ"], [[["n"], ["rain"]]]), word("5", ["飴"], ["あめ"], [[["n"], ["candy"]]]), word("6", [], ["あめ"], [[["n"], ["sweet"]]])]);
+        for (const key of ["3", "4", "5", "6"]) await levelled(key);
+        const report = await apply("wiktionary-ja", [gloss("いちばん#0.0", "いちばん"), gloss("あめ#0.0", "あめ")]);
+        expect(report.counts).toMatchObject({ added: 2 });
+      });
+
+      it("waits for a Word that has no live sense, then takes the gloss on a later run", async () => {
+        await apply("jmdict", [nomu]);
+        const wordId = await levelled("2");
+        await h.a.update("wordSense", { wordId }, { retired: true });
+        expect((await apply("wiktionary-ja", [gloss("飲む#0.0", "飲む")])).counts).toMatchObject({ added: 0 });
+        expect(await h.a.rows("generationRequest", { targetId: wordId })).toEqual([]);
+        await h.a.update("wordSense", { wordId }, { retired: false });
+        expect((await apply("wiktionary-ja", [gloss("飲む#0.0", "飲む")])).counts).toMatchObject({ added: 1 });
+      });
+
+      it("returns a changed gloss to Draft, retires one that left the page, and ignores one still unmatched on a rerun", async () => {
+        await apply("jmdict", [taberu]);
+        await levelled("1");
+        await apply("wiktionary-ja", [gloss("食べる#0.0", "食べる"), gloss("犬#0.0", "犬")]);
+        const id = await idOf("wiktionary-ja", "食べる#0.0");
+        await h.a.update("japaneseExplanation", { id }, { approval: "approved" });
+        expect((await apply("wiktionary-ja", [gloss("食べる#0.0", "食べる"), gloss("犬#0.0", "犬")])).counts).toMatchObject({ added: 0, changed: 0 });
+        expect((await apply("wiktionary-ja", [gloss("食べる#0.0", "食べる", "新しい説明。")])).counts).toMatchObject({ changed: 1 });
+        expect((await h.a.rows("japaneseExplanation", { id }))[0]).toMatchObject({ text: "新しい説明。", approval: "draft" });
+        expect((await apply("wiktionary-ja", [])).counts).toMatchObject({ retired: 1 });
+        expect((await h.a.rows("japaneseExplanation", { id }))[0]!.retired).toBe(true);
+      });
+    });
+
     it("adds, changes and retires KANJIDIC2 characters", async () => {
       const kanji = { key: "食", meanings: ["eat"], onReadings: ["ショク"], kunReadings: ["た.べる"], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
       await apply("kanjidic", [kanji]);

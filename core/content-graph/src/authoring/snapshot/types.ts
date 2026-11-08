@@ -54,12 +54,26 @@ export type SentenceRecord = {
 export type KanjiLevelRecord = { key: string; level: JlptLevel };
 
 /**
+ * One ja Wiktionary gloss, keyed by page title, entry number and gloss number on that page. `title` is the headword page
+ * (a kanji spelling, or a kana spelling when the Word has no kanji form); the rule finds the JLPT Word it belongs to.
+ */
+export type WiktionaryRecord = { key: string; title: string; text: string };
+
+/**
  * The List level yomitan-jlpt-vocab gives one JMdict Word, keyed by `ent_seq`. A Word listed at several levels has
  * already been reduced to its easiest by the parser (jlpt-levels.md#collisions-and-misses-in-the-tanos-lists).
  */
 export type WordLevelRecord = { key: string; level: JlptLevel };
 
-export type Records = { jmdict: WordRecord; kanjidic: KanjiRecord; kanjivg: KanjiStrokesRecord; tatoeba: SentenceRecord; tanos: KanjiLevelRecord; yomitan: WordLevelRecord };
+export type Records = {
+  jmdict: WordRecord;
+  kanjidic: KanjiRecord;
+  kanjivg: KanjiStrokesRecord;
+  tatoeba: SentenceRecord;
+  tanos: KanjiLevelRecord;
+  yomitan: WordLevelRecord;
+  "wiktionary-ja": WiktionaryRecord;
+};
 export type Dataset = keyof Records;
 
 export type Run = { upstreamVersion: string; checksum: string };
