@@ -95,3 +95,42 @@ export type CompleteRequest = z.input<typeof CompleteRequest>;
 export const CompleteResponse = z.object({ recorded: z.number().int() });
 
 export const SkipRequest = z.object({ studyItemId: StudyItemId, now: z.boolean().optional() });
+
+/** The most Batch Texts a Learner gets in 24 h; past it a batch has none (batch-text.md#flow). */
+export const BATCH_TEXT_LIMIT_24H = 5;
+/** How long the end of Learn waits for an approved text before pointing to `reading`. */
+export const BATCH_TEXT_WAIT_MS = 20_000;
+
+/** The picked batch, sent when the Learner starts it. */
+export const BatchTextRequest = z.object({ studyItemIds: z.array(StudyItemId).min(1) });
+export type BatchTextRequest = z.infer<typeof BatchTextRequest>;
+/** `enqueued` is false when the Learner hit the limit; the batch then has no Batch Text. */
+export const BatchTextStart = z.object({ enqueued: z.boolean() });
+
+/** A run of a Sentence. `reading` is set only where the Learner's furigana setting asks for it. */
+export const Run = z.object({
+  text: z.string(),
+  reading: z.string().nullable(),
+  /** The Word a tap looks up; null for particles, punctuation and Words nobody linked. */
+  wordId: StudyItemId.nullable(),
+  /** `batch`: a Word of this batch. `earlier`: a Word the Learner met in an earlier batch. */
+  highlight: z.enum(["batch", "earlier"]).nullable(),
+});
+export type Run = z.infer<typeof Run>;
+
+export const SentenceView = z.object({ id: z.uuid(), runs: z.array(Run), translation: z.string().nullable() });
+export type SentenceView = z.infer<typeof SentenceView>;
+
+export const TextView = z.object({ title: z.string(), sentences: z.array(SentenceView) });
+export type TextView = z.infer<typeof TextView>;
+
+/** `GET /api/learn/batch-text`: the approved text of a batch, or that it is still being prepared. */
+export const BatchTextStatus = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("preparing") }),
+  z.object({ status: z.literal("ready"), text: TextView }),
+]);
+export type BatchTextStatus = z.infer<typeof BatchTextStatus>;
+
+export const LookupRequest = z.object({ wordId: StudyItemId });
+export const LookupView = z.object({ label: z.string(), reading: z.string().nullable(), meanings: z.array(z.string()) });
+export type LookupView = z.infer<typeof LookupView>;

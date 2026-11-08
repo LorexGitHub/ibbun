@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createAuthGuards, createFakeSessionResolver } from "@mojibun/auth";
 import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@mojibun/content-graph/testing";
+import { createFakeJobs } from "@mojibun/jobs";
 import { createFakeLearners } from "@mojibun/learner/testing";
 import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
 import { StudyItemId } from "@mojibun/shared";
@@ -59,6 +60,7 @@ const setup = async () => {
     progress, texts, learners,
     guards: createAuthGuards(sessions),
     now: () => new Date("2026-03-01T10:00:00Z"),
+    practice: { jobs: createFakeJobs(), newId: () => ID(999), sleep: async () => {}, config: { dailyLimit: 5, waitMs: 0, pollMs: 1 } },
   });
   const get = (path: string, h: Headers = headers) => app.request(path, { headers: h });
   const post = (path: string, body: unknown, h: Headers = headers) =>
@@ -80,6 +82,11 @@ describe("reading API", () => {
   it("refuses a request without a session", async () => {
     expect((await t.get("/episodes", new Headers())).status).toBe(401);
     expect((await t.post("/lookups", {}, new Headers())).status).toBe(401);
+  });
+
+  it("mounts Practice Texts behind the same session guard", async () => {
+    expect((await t.get("/practice/options", new Headers())).status).toBe(401);
+    expect((await t.get("/practice/options")).status).toBe(200);
   });
 
   describe("episodes", () => {

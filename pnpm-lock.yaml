@@ -903,6 +903,9 @@ importers:
       '@mojibun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
+      '@mojibun/jobs':
+        specifier: workspace:*
+        version: link:../../platform/jobs
       '@mojibun/learner':
         specifier: workspace:*
         version: link:../../core/learner
@@ -1056,6 +1059,9 @@ importers:
       '@mojibun/db':
         specifier: workspace:*
         version: link:../../platform/db
+      '@mojibun/jobs':
+        specifier: workspace:*
+        version: link:../../platform/jobs
       '@mojibun/learner':
         specifier: workspace:*
         version: link:../../core/learner

@@ -2,10 +2,11 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
-import type { Batch, QuizAnswer, QuizPrompt, State } from "../contract.ts";
-import { learnApi, type LearnApi } from "./api.ts";
+import type { Batch, QuizAnswer, QuizPrompt, State, TextView } from "../contract.ts";
+import { learnApi, type LearnApi } from "./learn-client.ts";
 import { notAnswers, shownByDefault, SWITCH_TO_JAPANESE } from "./check.ts";
 import { LearnScreen } from "./LearnScreen.tsx";
+import { ReadingStep } from "./ReadingStep.tsx";
 import { answered, isFinished, startQuiz, type Given } from "./queue.ts";
 
 afterEach(cleanup);
@@ -85,6 +86,9 @@ const apiOf = (over: Partial<LearnApi> = {}): LearnApi => ({
   saveTracks: vi.fn(async () => state()),
   skip: vi.fn(async () => undefined),
   complete: vi.fn(async (request) => request.answers.length),
+  startText: vi.fn(async () => false),
+  text: vi.fn(async () => ({ status: "preparing" as const })),
+  lookUp: vi.fn(async () => ({ label: "水", reading: "みず", meanings: ["water"] })),
   ...over,
 });
 
@@ -177,7 +181,7 @@ describe("a lesson", () => {
   it("teaches one Study Item at a time, then starts the quiz", async () => {
     await open();
     await lessons();
-    expect(screen.getByRole("heading", { name: "水" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /水/ })).toBeTruthy();
     expect(screen.getByText("みず")).toBeTruthy();
     expect(screen.getByText("のむ水。")).toBeTruthy();
     expect(screen.getByText("私は水を飲む。")).toBeTruthy();
@@ -417,5 +421,102 @@ describe("talking to the API", () => {
     await expect(learnApi.batch()).rejects.toThrow("not a valid quiz");
     vi.stubGlobal("fetch", vi.fn(async () => new Response("nope", { status: 401, statusText: "Unauthorized" })));
     await expect(learnApi.batch()).rejects.toThrow("Unauthorized");
+  });
+});
+
+const story: TextView = {
+  title: "朝ごはん",
+  sentences: [
+    {
+      id: "00000000-0000-4000-8000-0000000000a1",
+      runs: [
+        { text: "水", reading: "みず", wordId: idOf(1), highlight: "batch" },
+        { text: "茶", reading: null, wordId: idOf(3), highlight: "earlier" },
+        { text: "。", reading: null, wordId: null, highlight: null },
+      ],
+      translation: "Water and tea.",
+    },
+  ],
+};
+
+describe("the reading screen", () => {
+  const ready = () => apiOf({ text: vi.fn(async () => ({ status: "ready" as const, text: story })) });
+
+  it("asks for the Batch Text when the batch starts and shows it after the quiz", async () => {
+    const api = apiOf({ ...ready(), startText: vi.fn(async () => true) });
+    await open(api);
+    press("Start batch");
+    await screen.findByText("Lesson 1 of 2");
+    expect(api.startText).toHaveBeenCalledWith([idOf(1), idOf(2)]);
+    press("Next");
+    press("Start quiz");
+    type("Answer", "みず");
+    press("Check");
+    await screen.findByText("Correct");
+    press("Next");
+    type("Reading in this sentence", "みず");
+    type("Meaning of the kanji", "water");
+    press("Check");
+    await screen.findByText("Correct");
+    press("Next");
+    await screen.findByText("朝ごはん");
+    expect(api.text).toHaveBeenCalledWith([idOf(1), idOf(2)]);
+    press("Done");
+    expect((await screen.findByText("2 new items are in your Reviews.")).textContent).toBeTruthy();
+  });
+
+  it("goes straight back when the batch got no Batch Text", async () => {
+    const api = apiOf({ ...ready(), startText: vi.fn(async () => false) });
+    await open(api);
+    press("Start batch");
+    await screen.findByText("Lesson 1 of 2");
+    press("Next");
+    press("Start quiz");
+    type("Answer", "みず");
+    press("Check");
+    await screen.findByText("Correct");
+    press("Next");
+    type("Reading in this sentence", "みず");
+    type("Meaning of the kanji", "water");
+    press("Check");
+    await screen.findByText("Correct");
+    press("Next");
+    await screen.findByText("2 new items are in your Reviews.");
+    expect(api.text).not.toHaveBeenCalled();
+  });
+
+  it("styles batch Words and earlier Words differently and hides the translation until tapped", async () => {
+    render(<ReadingStep api={ready()} ids={[idOf(1)]} onDone={() => undefined} />);
+    const batch = await screen.findByRole("button", { name: /水/ });
+    expect(batch.getAttribute("data-highlight")).toBe("batch");
+    expect(screen.getByRole("button", { name: /茶/ }).getAttribute("data-highlight")).toBe("earlier");
+    expect(screen.queryByText("Water and tea.")).toBeNull();
+    press("Show translation");
+    expect(screen.getByText("Water and tea.")).toBeTruthy();
+  });
+
+  it("looks a Word up when tapped", async () => {
+    const api = ready();
+    render(<ReadingStep api={api} ids={[idOf(1)]} onDone={() => undefined} />);
+    fireEvent.click(await screen.findByRole("button", { name: /水/ }));
+    expect((await screen.findByRole("status", { name: "Lookup" })).textContent).toContain("water");
+    expect(api.lookUp).toHaveBeenCalledWith(idOf(1));
+  });
+
+  it("keeps asking until the text is approved", async () => {
+    const text = vi.fn<LearnApi["text"]>().mockResolvedValueOnce({ status: "preparing" }).mockResolvedValue({ status: "ready", text: story });
+    render(<ReadingStep api={apiOf({ text })} ids={[idOf(1)]} onDone={() => undefined} pollMs={1} />);
+    expect(screen.getByText("Preparing your story…")).toBeTruthy();
+    await screen.findByText("朝ごはん");
+    expect(text).toHaveBeenCalledTimes(2);
+  });
+
+  it("points to Reading when the text is not ready in time, and can be skipped", async () => {
+    const onDone = vi.fn();
+    render(<ReadingStep api={apiOf()} ids={[idOf(1)]} onDone={onDone} waitMs={5} pollMs={1} />);
+    expect((await screen.findByText(/still being prepared/)).textContent).toContain("Reading");
+    expect(screen.getByRole("link", { name: "Reading" }).getAttribute("href")).toBe("/reading");
+    press("Skip reading");
+    expect(onDone).toHaveBeenCalledOnce();
   });
 });
