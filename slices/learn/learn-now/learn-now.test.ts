@@ -9,6 +9,9 @@ import { StudyItemId, type LearnerId } from "@mojibun/shared";
 import type { Batch, CompleteRequest, QuizPrompt, State } from "../contract.ts";
 import { createLearnApi } from "../server/learn-api.ts";
 
+/** The N5 fixture has no Listening Clip, so every item has a lesson and a question. */
+type TaughtBatch = Omit<Batch, "items"> & { items: Extract<Batch["items"][number], { lesson: unknown }>[] };
+
 const NOW = new Date("2026-11-06T09:00:00.000Z");
 
 const setup = async () => {
@@ -45,7 +48,7 @@ const correct = (prompt: QuizPrompt): CompleteRequest["answers"][number] => ({
 /** A Study Item that is locked: the Learning Path would not offer it first. */
 const lockedItem = async (t: Awaited<ReturnType<typeof setup>>) => {
   const [first] = await t.learningPath.next(t.learner, 1);
-  const pending = (await t.get<Batch>("/batch")).items.map((i) => i.lesson.studyItemId);
+  const pending = (await t.get<TaughtBatch>("/batch")).items.map((i) => i.lesson.studyItemId);
   const all = await Promise.all(pending.map(async (id) => ((await t.learningPath.isLocked(t.learner, id)) ? id : null)));
   return all.find((id) => id !== null && id !== first) ?? null;
 };
@@ -53,9 +56,9 @@ const lockedItem = async (t: Awaited<ReturnType<typeof setup>>) => {
 describe("Learn now", () => {
   it("teaches any item with its dependencies pulled in, as forItem() says", async () => {
     const t = await setup();
-    const wordId = (await t.get<Batch>("/batch")).items.find((i) => i.lesson.type === "word")!.lesson.studyItemId;
+    const wordId = (await t.get<TaughtBatch>("/batch")).items.find((i) => i.lesson.type === "word")!.lesson.studyItemId;
     const expected = await t.learningPath.forItem(t.learner, wordId);
-    const batch = await t.get<Batch>(`/now/${wordId}`);
+    const batch = await t.get<TaughtBatch>(`/now/${wordId}`);
     expect(batch.items.map((i) => i.lesson.studyItemId)).toEqual(expected);
     expect(batch.items.map((i) => i.lesson.studyItemId)).toContain(wordId);
     expect(batch.items[0]).toHaveProperty("prompt");
@@ -65,7 +68,7 @@ describe("Learn now", () => {
     const t = await setup();
     const id = await lockedItem(t);
     expect(id).not.toBeNull();
-    const batch = await t.get<Batch>(`/now/${id}`);
+    const batch = await t.get<TaughtBatch>(`/now/${id}`);
     expect(batch.items.map((i) => i.lesson.studyItemId)).toContain(id);
   });
 
@@ -81,12 +84,12 @@ describe("Learn now", () => {
     const t = await setup();
     const id = await lockedItem(t);
     await t.learners.changePreferences(t.learner, { batchSize: 1, dailyBudget: 1 });
-    const first = (await t.get<Batch>("/batch")).items;
+    const first = (await t.get<TaughtBatch>("/batch")).items;
     await t.send("POST", "/complete", { answers: first.map((i) => correct(i.prompt)) });
-    expect(await t.get<Batch>("/batch")).toMatchObject({ remaining: 0, items: [] });
+    expect(await t.get<TaughtBatch>("/batch")).toMatchObject({ remaining: 0, items: [] });
     const learnedBefore = (await t.get<State>("/state")).learnedToday;
 
-    const batch = await t.get<Batch>(`/now/${id}`);
+    const batch = await t.get<TaughtBatch>(`/now/${id}`);
     expect(batch.items.length).toBeGreaterThan(0);
     const response = await t.send("POST", "/complete", { now: true, answers: batch.items.map((i) => correct(i.prompt)) });
     expect(response.status).toBe(200);
@@ -96,10 +99,10 @@ describe("Learn now", () => {
   it("counts a passed item as introduced, so its Track skips it", async () => {
     const t = await setup();
     const id = await lockedItem(t);
-    const batch = await t.get<Batch>(`/now/${id}`);
+    const batch = await t.get<TaughtBatch>(`/now/${id}`);
     await t.send("POST", "/complete", { now: true, answers: batch.items.map((i) => correct(i.prompt)) });
     expect(await t.progress.item(t.learner, id!)).toMatchObject({ introduced: true });
-    const offered = (await t.get<Batch>("/batch")).items.map((i) => i.lesson.studyItemId);
+    const offered = (await t.get<TaughtBatch>("/batch")).items.map((i) => i.lesson.studyItemId);
     expect(offered).not.toContain(id);
   });
 

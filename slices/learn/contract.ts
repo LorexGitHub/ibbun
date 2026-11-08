@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { JLPT_LEVELS, StudyItemId } from "@mojibun/shared";
+import { ClipLesson } from "./listening/contract.ts";
 
-/** One Study Item type at one level, as the Active Track grid shows it. Listening Clips are not taught here yet. */
+/** One Study Item type at one level, as the Active Track grid shows it. Listening Clips are taught in `listening/`, not through this grid. */
 export const Track = z.object({
   level: z.enum([...JLPT_LEVELS, "unlevelled"]),
   type: z.enum(["kanji", "word", "grammar_point"]),
@@ -74,9 +75,11 @@ export const Batch = z.object({
   }),
   /** New Study Items today's budget still allows; 0 explains an empty batch. */
   remaining: z.number().int(),
-  items: z.array(z.object({ lesson: Lesson, prompt: QuizPrompt })),
+  /** A Listening Clip is taught whole, quiz included (`clip`); every other item has a lesson and a question in the batch quiz. */
+  items: z.array(z.union([z.object({ lesson: Lesson, prompt: QuizPrompt }), z.object({ clip: ClipLesson })])),
 });
 export type Batch = z.infer<typeof Batch>;
+export type BatchItem = Batch["items"][number];
 
 /** The Learner's last, correct answer to one quiz question, with the tries before it that missed. */
 export const QuizAnswer = z.object({
