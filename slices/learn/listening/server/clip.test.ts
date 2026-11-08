@@ -3,10 +3,11 @@ import { createFakeSessionResolver } from "@mojibun/auth";
 import { createFakeContentGraph, n5Fixture, type Graph, type Token } from "@mojibun/content-graph/testing";
 import { createFakeLearners } from "@mojibun/learner/testing";
 import { createFakeLearningPath } from "@mojibun/learning-path/testing";
-import { createFakeProgress } from "@mojibun/progress/testing";
+import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
+import { createFakeJobs } from "@mojibun/jobs";
 import type { LearnerId } from "@mojibun/shared";
 import type { Batch } from "../../contract.ts";
-import { createLearnApi } from "../../server/api.ts";
+import { createLearnApi } from "../../server/learn-api.ts";
 import type { ClipLesson, ClipVerdict } from "../contract.ts";
 
 const ID = (n: number) => `00000999-0000-7000-8000-${String(n).padStart(12, "0")}`;
@@ -61,7 +62,7 @@ const setup = async () => {
   const learningPath = createFakeLearningPath({ contentGraph, progress });
   const learner = await learners.add({ email: "a@example.com" });
   const headers = sessions.signIn({ learnerId: learner.id, role: "learner" });
-  const api = createLearnApi({ sessions, learners, progress, contentGraph, learningPath, now: () => NOW, random: () => 0 });
+  const api = createLearnApi({ sessions, learners, progress, contentGraph, learningPath, jobs: createFakeJobs(), texts: createFakeTexts(), now: () => NOW, random: () => 0 });
   await learningPath.setActiveTracks(learner.id as LearnerId, [{ level: "N5", type: "listening_clip" }]);
   const post = (path: string, body: unknown, as: Headers = headers) =>
     api.request(path, { method: "POST", headers: new Headers([...as, ["content-type", "application/json"]]), body: JSON.stringify(body) });

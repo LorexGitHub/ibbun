@@ -1,6 +1,6 @@
 # learn
 
-The `learn` slice (`slices/learn`): the Active Track grid, a batch of New Study Items, a lesson for each, and the quiz that must be answered fully correctly. Passing the quiz appends a Review of `kind` `learn` per item, so the items go into Reviews. **I know this** appends a `manual` Review with `source` `learn-skip`. A Listening Clip is taught here too, as a three-step lesson (`slices/learn/listening`, issue #105).
+The `learn` slice (`slices/learn`): the Active Track grid, a batch of New Study Items, a lesson for each, the quiz that must be answered fully correctly, and the Batch Text reading screen after it. Passing the quiz appends a Review of `kind` `learn` per item, so the items go into Reviews. **I know this** appends a `manual` Review with `source` `learn-skip`. A Listening Clip is taught here too, as a three-step lesson (`slices/learn/listening`, issue #105).
 
 ## Sub-features
 
@@ -14,6 +14,8 @@ The `learn` slice (`slices/learn`): the Active Track grid, a batch of New Study 
 - `learn-record` sends the correct answers to `POST /api/learn/complete`. The API grades them again from the stored answer data, and stores nothing unless every answer passes (422). Then it appends one `learn` Review per item with `exampleId`, per-facet input and outcome, `attempts[]` and `timeToAnswerMs`.
 - `learn-skip` records **I know this** through `POST /api/learn/skip` and drops the item from the lessons and the quiz. It counts against the day's budget.
 - `learn-now` (`slices/learn/learn-now`) opens `/learn?now=<study item id>`, which is where Browse's **Learn now** button goes. `GET /api/learn/now/:id` returns the item and its pulled-in dependencies from `learning-path.forItem()` as a batch, locked or not, whatever is left of the budget. The same lessons and quiz run; the screen sends `now: true` to `/complete` and `/skip`, so the Reviews carry `detail.source = 'learn-now'` and the daily budget does not count them. The item is introduced, so its Track skips it later.
+- `learn-batch-text` asks for the batch's Batch Text when **Start batch** is pressed: `POST /api/learn/batch-text` with the batch's Study Item IDs enqueues `batch-text.generate` (level = the batch's hardest, Unlevelled hardest of all) and answers `{enqueued}`. It enqueues nothing, and answers `{enqueued:false}`, when the Learner already has 5 Batch Texts in the last 24 h or this batch already has its text.
+- `learn-reading` is the skippable reading screen after a passed quiz (only when a text was requested). It asks `GET /api/learn/batch-text?ids=` every second for up to 20 s. While the passage is not approved the screen reads "Preparing your story…"; after 20 s "Your story is still being prepared. Read it later from Reading." with a link to `/reading`. Once approved it shows the Sentences: batch Words bold and underlined (`data-highlight="batch"`), earlier Words dotted-underlined (`data-highlight="earlier"`), furigana by the Learner's `furigana` setting, each translation hidden behind **Show translation**. Tapping a Word shows a lookup and logs a `lookup` Review (`POST /api/learn/lookups`). **Done** / **Skip reading** returns to the grid; Reviews are unaffected.
 
 ## How to get to it (user POV)
 
@@ -34,9 +36,12 @@ Preconditions:
 - **Budget.** Set `daily_budget` to the number just learned (`/api/learner/preferences`, or in `learner.preferences`). Reload `/learn`: "You have used the budget for new items today. Come back tomorrow." and no **Start batch**.
 - **Forged pass.** `curl -s -X POST -b <session cookie> -H 'content-type: application/json' -d '{"answers":[{"studyItemId":"<id>","exampleId":"<example>","facets":[{"facet":"cloze","input":"zzz"}]}]}' http://localhost:3000/api/learn/complete` prints a 422 message and `progress.reviews` gains no row.
 - **Learn now.** Open a locked item in Browse (`/browse`) and press **Learn now**; the URL is `/learn?now=<id>` and the screen reads "Lesson 1 of N" with no grid. Pass the quiz. Check: `psql "$DATABASE_URL" -c "select kind, passed, detail->>'source' from progress.reviews where learner_id = '<id>' order by seq"` shows `learn | t | learn-now` rows, and `/learn` still reads the same "N of M new items learned today". With the budget used up the button still works. `curl -s -b <cookie> http://localhost:3000/api/learn/now/<id>` returns the batch (404 for an unknown id, 400 for a malformed one).
+- **Batch Text hand-off.** Start a batch and read `select name from pgboss.job where name = 'batch-text.generate' order by created_on desc limit 1`: one job with the batch's `itemIds`. Pass the quiz: the screen shows "Preparing your story…" and then the story once the worker has generated and approved it, or the "still being prepared" note after 20 s. Tap a Word: the lookup panel appears and `progress.reviews` gains a `lookup` row. Start a sixth batch within 24 h: no new job and no reading screen.
 - **Spec.** `pnpm exec playwright test --project=learner slices/learn/tests` passes.
 
 ## Gotchas
+
+- The reading screen needs a running worker with `content-generation` and `content-approval` plus an LLM key to produce a text; without them it always ends on the "still being prepared" note, which is the expected degraded path.
 
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
 - The batch is not stored. Reloading `/learn` before the quiz is passed returns the same items, because nothing is introduced until the quiz passes or **I know this** is pressed.

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
 import type { Batch, QuizPrompt } from "../../contract.ts";
 import { LearnScreen } from "../../web/LearnScreen.tsx";
-import type { LearnApi } from "../../web/api.ts";
+import type { LearnApi } from "../../web/learn-client.ts";
 import type { ClipLesson, ClipVerdict } from "../contract.ts";
 
 const plays: { src: string; rate: number }[] = [];
@@ -59,9 +59,13 @@ const apiOf = (clip: ClipLesson, verdicts: ClipVerdict[] = [{ outcome: "pass" }]
   return {
     state: vi.fn(async () => ({ activeTracks: [], batchSize: 5, dailyBudget: 15, learnedToday: 0 })),
     batch: vi.fn(async () => batchOf(clip)),
+    now: vi.fn(async () => batchOf(clip)),
     saveTracks: vi.fn(),
     skip: vi.fn(async () => undefined),
     complete: vi.fn(),
+    startText: vi.fn(async () => false),
+    text: vi.fn(async () => ({ status: "preparing" as const })),
+    lookUp: vi.fn(),
     answerClip: vi.fn(async () => queue.shift() ?? { outcome: "pass" as const }),
   };
 };

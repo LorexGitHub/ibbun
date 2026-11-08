@@ -1,17 +1,29 @@
 import { Hono } from "hono";
 import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
 import type { ContentGraph } from "@mojibun/content-graph";
+import { BatchTextGenerate } from "@mojibun/content-graph/jobs";
+import type { Jobs } from "@mojibun/jobs";
 import type { Learners } from "@mojibun/learner";
 import type { LearningPath } from "@mojibun/learning-path";
-import type { Progress } from "@mojibun/progress";
+import type { Progress, Texts } from "@mojibun/progress";
 import type { LearnerId, StudyItemId } from "@mojibun/shared";
-import { TrackChange, type Batch, type BatchItem, type State } from "../contract.ts";
+import {
+  BATCH_TEXT_LIMIT_24H,
+  BatchTextRequest,
+  LookupRequest,
+  TrackChange,
+  type Batch,
+  type BatchItem,
+  type BatchTextStatus,
+  type State,
+} from "../contract.ts";
 import { ClipAnswer } from "../listening/contract.ts";
 import { answerClip } from "../listening/server/answer.ts";
 import { createClipTeacher } from "../listening/server/clip-teach.ts";
 import { createNowIds } from "../learn-now/now.ts";
 import { learnedToday, remainingOf } from "./learn-budget.ts";
 import { createActions, type Refusal } from "./actions.ts";
+import { batchLevel, lookupView, sameItems, textView } from "./reading.ts";
 import { createTeacher } from "./teach.ts";
 
 export type LearnDeps = {
@@ -20,12 +32,14 @@ export type LearnDeps = {
   progress: Progress;
   learners: Learners;
   learningPath: LearningPath;
+  jobs: Pick<Jobs, "enqueue">;
+  texts: Texts;
   now: () => Date;
   /** [0, 1), for shuffling a comprehension question's options. */
   random?: () => number;
 };
 
-export const createLearnApi = ({ sessions, contentGraph, progress, learners, learningPath, now, random }: LearnDeps) => {
+export const createLearnApi = ({ sessions, contentGraph, progress, learners, learningPath, jobs, texts, now, random }: LearnDeps) => {
   const { requireLearner } = createAuthGuards(sessions);
   const teacher = createTeacher(contentGraph);
   const clips = createClipTeacher(contentGraph, random);
@@ -54,6 +68,10 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
     return { preferences: { convertRomaji, explanations }, remaining, items: taught.flatMap((t) => (t ? [t] : [])) };
   };
 
+  /** The Learner's Batch Text for exactly this batch, once generation has written it. */
+  const textOf = async (learnerId: LearnerId, ids: readonly string[]) =>
+    (await texts.batchTexts(learnerId)).find((t) => sameItems(t.studyItemIds, ids));
+
   const batch = async (learnerId: LearnerId): Promise<Batch> => {
     const current = await state(learnerId);
     const remaining = remainingOf(current);
@@ -81,6 +99,36 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
       return c.json(await state(learnerId));
     })
     .get("/batch", async (c) => c.json(await batch(c.get("learner").learnerId)))
+    .post("/batch-text", async (c) => {
+      const request = BatchTextRequest.safeParse(await c.req.json().catch(() => null));
+      if (!request.success) return c.json({ message: "not a valid batch" }, 400);
+      const { learnerId } = c.get("learner");
+      const { studyItemIds } = request.data;
+      const limited = (await texts.countLast24h(learnerId, "batch", now())) >= BATCH_TEXT_LIMIT_24H;
+      if (limited || (await textOf(learnerId, studyItemIds))) return c.json({ enqueued: false });
+      await jobs.enqueue(BatchTextGenerate, { learnerId, level: await batchLevel(contentGraph, studyItemIds), itemIds: studyItemIds });
+      return c.json({ enqueued: true });
+    })
+    .get("/batch-text", async (c) => {
+      const { learnerId } = c.get("learner");
+      const ids = (c.req.query("ids") ?? "").split(",").filter(Boolean);
+      const text = ids.length > 0 ? await textOf(learnerId, ids) : undefined;
+      const passage = text && (await contentGraph.readingPassage(text.passageId));
+      if (!text || !passage) return c.json<BatchTextStatus>({ status: "preparing" });
+      const [{ furigana }, items] = await Promise.all([learners.preferences(learnerId), progress.items(learnerId)]);
+      const byId = new Map(items.map((p) => [p.studyItemId, p.mastery]));
+      const reader = { furigana, mastery: (id: StudyItemId) => byId.get(id) ?? "new", batch: new Set(text.studyItemIds) };
+      return c.json<BatchTextStatus>({ status: "ready", text: textView(passage, reader) });
+    })
+    .post("/lookups", async (c) => {
+      const request = LookupRequest.safeParse(await c.req.json().catch(() => null));
+      if (!request.success) return c.json({ message: "not a lookup" }, 400);
+      const page = await contentGraph.studyItem(request.data.wordId);
+      if (page?.item.type !== "word") return c.json({ message: "no such Word" }, 404);
+      const { learnerId } = c.get("learner");
+      await progress.record({ learnerId, studyItemId: request.data.wordId, kind: "lookup", passed: false, at: now().toISOString() });
+      return c.json(lookupView(page.item));
+    })
     .get("/now/:id", async (c) => {
       const found = await batchNow(c.get("learner").learnerId, c.req.param("id"));
       return "refusal" in found ? c.json({ message: found.refusal.message }, found.refusal.status) : c.json(found);
