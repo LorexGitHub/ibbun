@@ -32,7 +32,13 @@ export type SentenceRecord = {
   licence: Extract<Licence, "cc-by-2.0-fr" | "cc0">;
 };
 
-export type Records = { jmdict: WordRecord; kanjidic: KanjiRecord; tatoeba: SentenceRecord };
+/**
+ * One ja Wiktionary gloss, keyed by page title, entry number and gloss number on that page. `title` is the headword page
+ * (a kanji spelling, or a kana spelling when the Word has no kanji form); the rule finds the JLPT Word it belongs to.
+ */
+export type WiktionaryRecord = { key: string; title: string; text: string };
+
+export type Records = { jmdict: WordRecord; kanjidic: KanjiRecord; tatoeba: SentenceRecord; "wiktionary-ja": WiktionaryRecord };
 export type Dataset = keyof Records;
 
 export type Run = { upstreamVersion: string; checksum: string };

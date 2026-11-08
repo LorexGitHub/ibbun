@@ -3,17 +3,19 @@ import { rules } from "../authoring.ts";
 import type { Store } from "../store.ts";
 import { kanjidic, tatoeba } from "./datasets.ts";
 import { jmdict } from "./jmdict.ts";
+import { wiktionary } from "./wiktionary.ts";
 import { tripped } from "./match.ts";
 import { runContext, type RunCtx } from "./run.ts";
 import { DEFAULT_BREAKER, type Counts, type Dataset, type Records, type Run, type SnapshotOptions, type SnapshotReport } from "./types.ts";
 
 type Rules<R> = {
-  add: (ctx: RunCtx, record: R) => Promise<string>;
+  /** Null when the record belongs to nothing in the graph yet; it is offered again on the next run. */
+  add: (ctx: RunCtx, record: R) => Promise<string | null>;
   change: (ctx: RunCtx, id: string, record: R) => Promise<boolean>;
   retire: (ctx: RunCtx, id: string, surviving: R[], idOf: (key: string) => string) => Promise<void>;
 };
 
-const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, tatoeba };
+const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, tatoeba, "wiktionary-ja": wiktionary };
 
 /** Thrown inside the transaction so a tripped run rolls back everything it wrote. */
 class Tripped extends Error {
@@ -27,7 +29,8 @@ class Tripped extends Error {
 }
 
 const isLive = async (ctx: RunCtx, dataset: Dataset, id: string) => {
-  const [row] = dataset === "tatoeba" ? await ctx.tx.rows("sentence", { id }) : await ctx.tx.rows("studyItem", { id });
+  const table = { tatoeba: "sentence", "wiktionary-ja": "japaneseExplanation", jmdict: "studyItem", kanjidic: "studyItem" } as const;
+  const [row] = await ctx.tx.rows(table[dataset], { id });
   return row !== undefined && !row.retired;
 };
 
@@ -38,7 +41,9 @@ const applyRecords = async <D extends Dataset>(ctx: RunCtx, dataset: D, records:
   for (const record of records) {
     const id = ids.get(record.key);
     if (id === undefined) {
-      ids.set(record.key, await rule.add(ctx, record));
+      const added = await rule.add(ctx, record);
+      if (added === null) continue;
+      ids.set(record.key, added);
       ctx.counts.added++;
     } else if (await rule.change(ctx, id, record)) ctx.counts.changed++;
   }

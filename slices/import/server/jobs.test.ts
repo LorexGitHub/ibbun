@@ -86,7 +86,7 @@ describe("import jobs", () => {
     expect(await w.deps.authoring.queue({ reason: "staleness alarm" })).toHaveLength(1);
   });
 
-  it("refreshes JMdict and KANJIDIC2 from the jmdict-simplified releases by default", () => {
-    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true], ["kanjidic", true]]);
+  it("refreshes JMdict and KANJIDIC2 monthly and ja Wiktionary weekly by default", () => {
+    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true], ["kanjidic", true], ["wiktionary-ja", false]]);
   });
 });

@@ -3,6 +3,7 @@ import { defineJob, handler, type JobHandler } from "@mojibun/jobs";
 import type { Dataset } from "@mojibun/content-graph/authoring";
 import { jmdictSource } from "../sources/jmdict/index.ts";
 import { kanjidicSource } from "../sources/kanjidic2/index.ts";
+import { wiktionarySource } from "../sources/ja-wiktionary/index.ts";
 import { runImport, type ImportDeps } from "./run.ts";
 import { monthlyRefreshDue } from "./schedule.ts";
 import type { Source } from "./source.ts";
@@ -23,6 +24,8 @@ export const refreshes = (): Refresh[] => [
   { source: jmdictSource() as Source, cron: "0 12 * * *", monthly: true },
   // KANJIDIC2 and KRADFILE: the same licence and release as JMdict, so the same schedule.
   { source: kanjidicSource() as Source, cron: "0 12 * * *", monthly: true },
+  // ja Wiktionary: no licence deadline, so weekly, as often as kaikki.org extracts. The run is a no-op until a new extraction date appears.
+  { source: wiktionarySource() as Source, cron: "0 12 * * 1", monthly: false },
 ];
 
 const DAILY_STALENESS_CHECK = "0 7 * * *";
