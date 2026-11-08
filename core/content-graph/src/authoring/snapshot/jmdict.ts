@@ -5,7 +5,7 @@ import type { WordRecord } from "./types.ts";
 
 type Life = { approval: "approved"; retired: false; provenanceId: string };
 type Sub = "wordForm" | "wordReading";
-type SubFields = { wordForm: object; wordReading: { pitchAccent: number[] | null } };
+type SubFields = { wordForm: object; wordReading: object };
 
 const live = async (ctx: RunCtx, wordId: string) => ({
   forms: (await ctx.tx.rows("wordForm", { wordId, retired: false })).sort((a, b) => a.position - b.position),
@@ -16,20 +16,24 @@ const live = async (ctx: RunCtx, wordId: string) => ({
 const asRecord = (key: string, priorityTags: string[], rows: Awaited<ReturnType<typeof live>>): WordRecord => ({
   key,
   forms: rows.forms.map((f) => f.text),
-  readings: rows.readings.map((r) => ({ text: r.text, pitchAccent: r.pitchAccent })),
+  readings: rows.readings.map((r) => ({ text: r.text, pitchAccent: null })),
   senses: rows.senses.map((s) => ({ partsOfSpeech: s.partsOfSpeech, glosses: s.glosses })),
   priorityTags,
 });
 
-/** Forms and readings keep their ID when their text survives; the rest are retired with their overrides orphaned. */
+/**
+ * Forms and readings keep their ID when their text survives; the rest are retired with their overrides orphaned.
+ * JMdict does not own pitch accent: a kept reading keeps the accent UniDic gave it, and the UniDic credit that goes with it.
+ */
 const syncByText = async <N extends Sub>(ctx: RunCtx, name: N, wordId: string, old: Row<N>[], next: (SubFields[N] & { text: string })[], life: Life) => {
   for (const [position, entry] of next.entries()) {
     const kept = old.find((o) => o.text === entry.text);
     if (!kept) {
-      await ctx.tx.insert(name, [{ id: ctx.clock.newId(), wordId, position, ...entry, ...life } as Row<N>]);
+      await ctx.tx.insert(name, [{ id: ctx.clock.newId(), wordId, position, ...entry, ...(name === "wordReading" ? { pitchAccent: null } : {}), ...life } as Row<N>]);
       continue;
     }
-    await ctx.tx.update(name, { id: kept.id } as never, { position, ...entry, provenanceId: life.provenanceId } as never);
+    const pitched = name === "wordReading" && (kept as Row<"wordReading">).pitchAccent !== null;
+    await ctx.tx.update(name, { id: kept.id } as never, { position, ...entry, provenanceId: pitched ? kept.provenanceId : life.provenanceId } as never);
     await ctx.checkOverrides(kept.id, entry);
   }
   for (const gone of old.filter((o) => !next.some((n) => n.text === o.text))) {
@@ -72,7 +76,7 @@ const life = async (ctx: RunCtx): Promise<Life> => ({ approval: "approved", reti
 
 const write = async (ctx: RunCtx, wordId: string, record: WordRecord, old: Awaited<ReturnType<typeof live>>, l: Life) => {
   await syncByText(ctx, "wordForm", wordId, old.forms, record.forms.map((text) => ({ text })), l);
-  await syncByText(ctx, "wordReading", wordId, old.readings, record.readings, l);
+  await syncByText(ctx, "wordReading", wordId, old.readings, record.readings.map(({ text }) => ({ text })), l);
   await syncSenses(ctx, wordId, old.senses, record.senses, l);
 };
 

@@ -2,8 +2,8 @@ import type { DbOrTx } from "@mojibun/db";
 import { authoring, type Authoring, type Clock } from "./authoring.ts";
 import { postgresStore } from "./store.ts";
 
-export { MAX_ATTEMPTS } from "./authoring.ts";
-export type { ApprovalDecision, Authoring, Clock, Decision, GenerationRequest, GenerationRun, NewQueueEntry, QueueEntry, QueueFilter, RecordTable } from "./authoring.ts";
+export { DERIVED_LINK_TABLES, MAX_ATTEMPTS } from "./authoring.ts";
+export type { ApprovalDecision, Authoring, Clock, Decision, DerivedLinkTable, GenerationRequest, GenerationRun, NewQueueEntry, QueueEntry, QueueFilter, RecordTable } from "./authoring.ts";
 export type { Row, TableName, Where } from "./store.ts";
 export * from "./schema.ts";
 export * from "./snapshot/types.ts";

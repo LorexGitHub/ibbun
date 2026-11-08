@@ -180,9 +180,9 @@ describe("the running error rate", () => {
   it("pauses auto-approval for a kind above 10% of the last 50, and for that kind only", async () => {
     const s = setup({ calibration: 100 });
     await settle(s, [...Array(45).fill("confirm"), ...Array(5).fill("reject")]);
-    expect((await s.sampling.states()).map((x) => x.paused)).toEqual([false, false, false]);
+    expect((await s.sampling.states()).map((x) => x.paused)).toEqual([false, false, false, false]);
     await settle(s, ["reject"]);
-    expect((await s.sampling.states()).map((x) => [x.kind, x.paused])).toEqual([["example", true], ["japanese-explanation", false], ["listening-clip", false]]);
+    expect((await s.sampling.states()).map((x) => [x.kind, x.paused])).toEqual([["example", true], ["japanese-explanation", false], ["grammar-fields", false], ["listening-clip", false]]);
   });
 
   it("does not count held drafts or re-reviews, which the supervisor chose rather than drew", async () => {

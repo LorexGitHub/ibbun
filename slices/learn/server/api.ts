@@ -5,12 +5,13 @@ import type { Learners } from "@mojibun/learner";
 import type { LearningPath } from "@mojibun/learning-path";
 import type { Progress } from "@mojibun/progress";
 import type { LearnerId, StudyItemId } from "@mojibun/shared";
-import { CompleteRequest, SkipRequest, TrackChange, type Batch, type BatchItem, type State } from "../contract.ts";
+import { TrackChange, type Batch, type BatchItem, type State } from "../contract.ts";
 import { ClipAnswer } from "../listening/contract.ts";
 import { answerClip } from "../listening/server/answer.ts";
 import { createClipTeacher } from "../listening/server/clip-teach.ts";
-import { learnedToday } from "./budget.ts";
-import { gradeQuiz, recordQuiz } from "./complete.ts";
+import { createNowIds } from "../learn-now/now.ts";
+import { learnedToday, remainingOf } from "./learn-budget.ts";
+import { createActions, type Refusal } from "./actions.ts";
 import { createTeacher } from "./teach.ts";
 
 export type LearnDeps = {
@@ -43,11 +44,7 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
     };
   };
 
-  const batch = async (learnerId: LearnerId): Promise<Batch> => {
-    const { batchSize, dailyBudget, learnedToday: learned } = await state(learnerId);
-    const remaining = Math.max(0, dailyBudget - learned);
-    const size = Math.min(batchSize, remaining);
-    const ids = size > 0 ? await learningPath.next(learnerId, size) : [];
+  const batchOf = async (learnerId: LearnerId, ids: StudyItemId[], remaining: number): Promise<Batch> => {
     const { convertRomaji, explanations, examMode, slowAudio } = await learners.preferences(learnerId);
     const teach = async (id: StudyItemId): Promise<BatchItem | null> => {
       const clip = await clips.teach(id, { examMode, slowAudio });
@@ -56,6 +53,21 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
     const taught = await Promise.all(ids.map(teach));
     return { preferences: { convertRomaji, explanations }, remaining, items: taught.flatMap((t) => (t ? [t] : [])) };
   };
+
+  const batch = async (learnerId: LearnerId): Promise<Batch> => {
+    const current = await state(learnerId);
+    const remaining = remainingOf(current);
+    const size = Math.min(current.batchSize, remaining);
+    return batchOf(learnerId, size > 0 ? await learningPath.next(learnerId, size) : [], remaining);
+  };
+
+  const nowIds = createNowIds({ teacher, learningPath });
+  const batchNow = async (learnerId: LearnerId, raw: string): Promise<Batch | { refusal: Refusal }> => {
+    const ids = await nowIds(learnerId, raw);
+    return "refusal" in ids ? ids : batchOf(learnerId, ids, remainingOf(await state(learnerId)));
+  };
+
+  const { skip, complete } = createActions({ teacher, progress, now });
 
   return new Hono<AuthEnv>()
     .use(requireLearner())
@@ -69,14 +81,13 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
       return c.json(await state(learnerId));
     })
     .get("/batch", async (c) => c.json(await batch(c.get("learner").learnerId)))
+    .get("/now/:id", async (c) => {
+      const found = await batchNow(c.get("learner").learnerId, c.req.param("id"));
+      return "refusal" in found ? c.json({ message: found.refusal.message }, found.refusal.status) : c.json(found);
+    })
     .post("/skip", async (c) => {
-      const request = SkipRequest.safeParse(await c.req.json().catch(() => null));
-      if (!request.success) return c.json({ message: "not a valid Study Item" }, 400);
-      const { studyItemId } = request.data;
-      if (!(await teacher.isTaught(studyItemId))) return c.json({ message: "no such Study Item" }, 404);
-      const { learnerId } = c.get("learner");
-      await progress.record({ learnerId, studyItemId, kind: "manual", passed: true, at: now().toISOString(), source: "learn-skip" });
-      return c.json({ studyItemId });
+      const done = await skip(c.get("learner").learnerId, await c.req.json().catch(() => null));
+      return "refusal" in done ? c.json({ message: done.refusal.message }, done.refusal.status) : c.json(done);
     })
     .post("/clip/answer", async (c) => {
       const request = ClipAnswer.safeParse(await c.req.json().catch(() => null));
@@ -87,11 +98,7 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
       return verdict ? c.json(verdict) : c.json({ message: "no such quiz question" }, 404);
     })
     .post("/complete", async (c) => {
-      const request = CompleteRequest.safeParse(await c.req.json().catch(() => null));
-      if (!request.success) return c.json({ message: "not a valid quiz" }, 400);
-      const checked = await gradeQuiz(teacher.locate, request.data.answers);
-      if ("refusal" in checked) return c.json({ message: checked.refusal.message }, checked.refusal.status);
-      await recordQuiz(progress, c.get("learner").learnerId, checked.graded, now());
-      return c.json({ recorded: checked.graded.length });
+      const done = await complete(c.get("learner").learnerId, await c.req.json().catch(() => null));
+      return "refusal" in done ? c.json({ message: done.refusal.message }, done.refusal.status) : c.json({ recorded: done.recorded });
     });
 };

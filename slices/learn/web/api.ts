@@ -16,8 +16,10 @@ const send = (method: string, path: string, body: unknown) =>
 export type LearnApi = {
   state: () => Promise<State>;
   batch: () => Promise<Batch>;
+  /** The Learn now batch for one Study Item: it and its pulled-in dependencies. */
+  now: (studyItemId: string) => Promise<Batch>;
   saveTracks: (tracks: Track[]) => Promise<State>;
-  skip: (studyItemId: string) => Promise<void>;
+  skip: (studyItemId: string, now?: boolean) => Promise<void>;
   complete: (request: CompleteRequest) => Promise<number>;
   /** Grades one try at a Listening Clip's quiz; a pass is recorded. */
   answerClip: (answer: ClipAnswer) => Promise<ClipVerdict>;
@@ -26,8 +28,9 @@ export type LearnApi = {
 export const learnApi: LearnApi = {
   state: async () => State.parse(await call("/state")),
   batch: async () => Batch.parse(await call("/batch")),
+  now: async (studyItemId) => Batch.parse(await call(`/now/${encodeURIComponent(studyItemId)}`)),
   saveTracks: async (tracks) => State.parse(await send("PUT", "/tracks", { tracks })),
-  skip: async (studyItemId) => void (await send("POST", "/skip", { studyItemId })),
+  skip: async (studyItemId, now) => void (await send("POST", "/skip", { studyItemId, now })),
   complete: async (request) => CompleteResponse.parse(await send("POST", "/complete", request)).recorded,
   answerClip: async (answer) => ClipVerdict.parse(await send("POST", "/clip/answer", answer)),
 };

@@ -1,12 +1,14 @@
-import { BatchTextGenerate, ContentGenerate, ContentReview } from "@mojibun/content-graph/jobs";
+import { BatchTextGenerate, ContentGenerate, ContentReview, PracticeGenerate } from "@mojibun/content-graph/jobs";
 import type { Authoring, GenerationRequest } from "@mojibun/content-graph/authoring";
 import { handler, type JobHandler, type Jobs } from "@mojibun/jobs";
 import { LlmError, type Llm } from "@mojibun/llm";
 import type { Progress, Texts } from "@mojibun/progress";
+import type { LearnerId } from "@mojibun/shared";
 import { KINDS } from "../kinds/index.ts";
 import type { Plan } from "../kinds/kind.ts";
 import { reasonOf, type BatchContext } from "../kinds/reading-passage/context.ts";
 import { passageIdOf } from "../kinds/reading-passage/index.ts";
+import { requestPracticeText } from "../kinds/practice-text/index.ts";
 import { alertExhausted, isSpent, poolOf } from "./budget.ts";
 import type { GenerationConfig } from "./config.ts";
 
@@ -15,7 +17,7 @@ export type GenerationDeps = {
   llm: Llm;
   /** Where `content.review` and the next attempt are enqueued. */
   jobs: Jobs;
-  /** The Learner's Reviews and Batch Texts, for kinds written for one Learner. */
+  /** The Learner's Reviews, Batch Texts and Practice Texts, for kinds written for one Learner. */
   progress: Progress;
   texts: Texts;
   config: GenerationConfig;
@@ -77,6 +79,8 @@ export type ContentGeneration = {
   generate(payload: { requestId: string; feedback?: string }): Promise<void>;
   /** Opens the Generation Request for a picked batch, as the `batch-text.generate` handler does. */
   requestBatchText(context: BatchContext): Promise<void>;
+  /** Opens the Generation Request for a recorded Practice Text, as the `practice.generate` handler does. */
+  requestPracticeText(payload: { learnerId: LearnerId; practiceTextId: string }): Promise<void>;
   /** Re-enqueues every open request whose pool has budget again. Returns how many. */
   resumePaused(): Promise<number>;
 };
@@ -86,9 +90,11 @@ export const contentGeneration = (deps: GenerationDeps): ContentGeneration => ({
   handlers: [
     handler(ContentGenerate, ({ requestId, feedback }) => generate(deps, requestId, feedback)),
     handler(BatchTextGenerate, (context) => requestBatchText(deps, context)),
+    handler(PracticeGenerate, (payload) => requestPracticeText(deps, payload)),
   ],
   generate: ({ requestId, feedback }) => generate(deps, requestId, feedback),
   requestBatchText: (context) => requestBatchText(deps, context),
+  requestPracticeText: (payload) => requestPracticeText(deps, payload),
   async resumePaused() {
     const { auth, jobs, config, now = () => new Date() } = deps;
     const open = await auth.rows("generationRequest", { status: "open" });

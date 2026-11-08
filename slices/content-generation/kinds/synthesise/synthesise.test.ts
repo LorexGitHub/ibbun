@@ -244,7 +244,7 @@ describe("listening.synthesise for a dialogue", () => {
     t.graph.readingPassage.push({ id: passageId, title: "会話", form: state.form ?? "dialogue", comprehensionQuestions: [], ...t.life, approval: state.approval ?? "approved", retired: state.retired ?? false });
     const sentences = Array.from({ length: lines }, (_, position) => {
       const sentenceId = t.sentence();
-      t.graph.passageContainsSentence.push({ id: randomUUID(), passageId, sentenceId, position, ...t.life });
+      t.graph.passageContainsSentence.push({ id: randomUUID(), passageId, sentenceId, position, speaker: null, ...t.life });
       return sentenceId;
     });
     // Stored out of order, to show the position decides.
@@ -270,6 +270,15 @@ describe("listening.synthesise for a dialogue", () => {
     t.graph.clipVoicesSentence.push({ id: randomUUID(), clipId: randomUUID(), sentenceId: sentences[0]!, position: 0, speaker: "女", voice: "", audioKey: null, ...t.life });
     await t.run({ kind: "dialogue", passageId });
     expect((await t.row(sentences[0]!)).audioVoice).toBe(String(dialogueVoices(VOICES, passageId).女.id));
+  });
+
+  it("gives a line the speaker its passage names, before any clip's", async () => {
+    const t = setup();
+    const { passageId, sentences } = dialogue(t, 2);
+    t.graph.passageContainsSentence.find((l) => l.sentenceId === sentences[1])!.speaker = "男";
+    t.graph.clipVoicesSentence.push({ id: randomUUID(), clipId: randomUUID(), sentenceId: sentences[1]!, position: 0, speaker: "女", voice: "", audioKey: null, ...t.life });
+    await t.run({ kind: "dialogue", passageId });
+    expect((await t.row(sentences[1]!)).audioVoice).toBe(String(dialogueVoices(VOICES, passageId).男.id));
   });
 
   it("skips a line that was retired from the passage", async () => {

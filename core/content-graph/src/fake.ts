@@ -6,6 +6,7 @@ export const createFakeContentGraph = (graph: Graph): ContentGraph => {
   const read = reader(graph);
   return {
     studyItem: async (id) => read.studyItem(id),
+    readingPassage: async (id) => read.readingPassage(id),
     successorOf: async (id) => read.successorOf(id),
     levelList: async (level, type) => read.levelList(level, type),
     listeningClips: async (level) => read.listeningClips(level),

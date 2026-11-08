@@ -92,8 +92,9 @@ export type QuizAnswer = z.input<typeof QuizAnswer>;
 /** A quiz answer after parsing: every facet has its `attempts`. */
 export type CheckedAnswer = z.output<typeof QuizAnswer>;
 
-export const CompleteRequest = z.object({ answers: z.array(QuizAnswer).min(1) });
+/** `now` marks a Learn now session, whose Reviews the daily budget does not count. */
+export const CompleteRequest = z.object({ answers: z.array(QuizAnswer).min(1), now: z.boolean().optional() });
 export type CompleteRequest = z.input<typeof CompleteRequest>;
 export const CompleteResponse = z.object({ recorded: z.number().int() });
 
-export const SkipRequest = z.object({ studyItemId: StudyItemId });
+export const SkipRequest = z.object({ studyItemId: StudyItemId, now: z.boolean().optional() });

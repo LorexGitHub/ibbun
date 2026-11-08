@@ -110,7 +110,7 @@ describe("kanjidicSource", () => {
     const source = kanjidicSource(upstream);
     const files = await source.download("3.6.2+20261102210542");
     expect(files.map((f) => f.name)).toEqual(["kanjidic2-all-3.6.2+x.json.tgz", "kradfile-3.6.2+x.json.tgz"]);
-    expect(source.parse(files).map((k) => [k.key, k.components])).toEqual([["食", ["人", "良"]], ["丂", []]]);
+    expect((await source.parse(files)).map((k) => [k.key, k.components])).toEqual([["食", ["人", "良"]], ["丂", []]]);
   });
 
   it("fails when upstream answers an error or a release lacks a file", async () => {

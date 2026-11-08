@@ -17,7 +17,7 @@ const settled = (items: BatchItem[], at: number) => at >= items.length && !items
  * The lessons of a batch one by one, then the quiz. "I know this" drops an item from both. A Listening Clip is
  * taught whole, quiz included, in its turn.
  */
-const Session = ({ batch, api, onFinished }: { batch: Batch; api: LearnApi; onFinished: (learned: number) => void }) => {
+const Session = ({ batch, api, now, onFinished }: { batch: Batch; api: LearnApi; now: boolean; onFinished: (learned: number) => void }) => {
   const [items, setItems] = useState<BatchItem[]>(batch.items);
   const [at, setAt] = useState(0);
   const [clipsPassed, setClipsPassed] = useState(0);
@@ -25,7 +25,7 @@ const Session = ({ batch, api, onFinished }: { batch: Batch; api: LearnApi; onFi
   const fail = (e: Error) => setFailed(e.message);
 
   const known = (item: Taught) =>
-    api.skip(item.lesson.studyItemId).then(() => {
+    api.skip(item.lesson.studyItemId, now).then(() => {
       const rest = items.filter((i) => i !== item);
       setItems(rest);
       if (settled(rest, at)) onFinished(clipsPassed);
@@ -35,7 +35,7 @@ const Session = ({ batch, api, onFinished }: { batch: Batch; api: LearnApi; onFi
     setAt(at + 1);
     if (settled(items, at + 1)) onFinished(clipsPassed + 1);
   };
-  const passed = (answers: QuizAnswer[]) => api.complete({ answers }).then((n) => onFinished(n + clipsPassed), fail);
+  const passed = (answers: QuizAnswer[]) => api.complete({ answers, now }).then((n) => onFinished(n + clipsPassed), fail);
 
   const item = items[at];
   return (
@@ -65,8 +65,23 @@ const Session = ({ batch, api, onFinished }: { batch: Batch; api: LearnApi; onFi
   );
 };
 
+/** The Study Item Learn now was asked for: `/learn?now=<id>`, which Browse links to. */
+const nowFromUrl = () => new URLSearchParams(globalThis.location?.search).get("now");
+
+/** Learn now: one item and its dependencies through the normal lesson and quiz, outside the daily budget. */
+const LearnNow = ({ id, api, onFinished }: { id: string; api: LearnApi; onFinished: (learned: number) => void }) => {
+  const [batch, setBatch] = useState<Batch | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  useEffect(() => void api.now(id).then(setBatch, (e: Error) => setFailed(e.message)), [api, id]);
+  if (failed) return <p role="alert">{failed}</p>;
+  if (!batch) return <p>Loading…</p>;
+  if (batch.items.length === 0) return <p>This item cannot be taught yet.</p>;
+  return <Session batch={batch} api={api} now onFinished={onFinished} />;
+};
+
 /** The Learn screen: choose Active Tracks, take a batch, learn it, pass the quiz. */
-export const LearnScreen = ({ api = learnApi }: { api?: LearnApi }) => {
+export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: LearnApi; nowId?: string | null }) => {
+  const [now, setNow] = useState(nowId);
   const [loaded, setLoaded] = useState<{ state: State; batch: Batch } | null>(null);
   const [learned, setLearned] = useState<number | null>(null);
   const [started, setStarted] = useState(false);
@@ -81,13 +96,15 @@ export const LearnScreen = ({ api = learnApi }: { api?: LearnApi }) => {
   const finished = (n: number) => {
     setLearned(n);
     setStarted(false);
+    setNow(null);
     void load();
   };
 
+  if (now) return <LearnNow id={now} api={api} onFinished={finished} />;
   if (failed) return <p role="alert">{failed}</p>;
   if (!loaded) return <p>Loading…</p>;
   const { state, batch } = loaded;
-  if (started) return <Session batch={batch} api={api} onFinished={finished} />;
+  if (started) return <Session batch={batch} api={api} now={false} onFinished={finished} />;
   return (
     <section>
       <h1>Learn</h1>

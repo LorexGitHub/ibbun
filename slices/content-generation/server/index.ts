@@ -1,4 +1,4 @@
-import { BatchTextGenerate, ContentGenerate, ListeningSynthesise } from "@mojibun/content-graph/jobs";
+import { BatchTextGenerate, ContentGenerate, ListeningSynthesise, PracticeGenerate } from "@mojibun/content-graph/jobs";
 import { createAuthoring } from "@mojibun/content-graph/authoring";
 import { createDb } from "@mojibun/db";
 import { createPgBossJobs, handler } from "@mojibun/jobs";
@@ -46,5 +46,6 @@ const synthesisDeps = (): SynthesiseDeps => {
 export const jobs = [
   handler(ContentGenerate, async (payload) => (await connected()).generate(payload)),
   handler(BatchTextGenerate, async (payload) => (await connected()).requestBatchText(payload)),
+  handler(PracticeGenerate, async (payload) => (await connected()).requestPracticeText(payload)),
   handler(ListeningSynthesise, ({ target }) => synthesise(synthesisDeps(), target)),
 ];

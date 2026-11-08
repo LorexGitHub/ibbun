@@ -50,7 +50,12 @@ export const DueResponse = z.object({
 });
 export type DueResponse = z.infer<typeof DueResponse>;
 
+/** Which Review this is: a scheduled one, a Wrap-Up re-ask, or a Ghost. Only `srs` feeds the Scheduler. */
+export const AnswerKind = z.enum(["srs", "wrap-up", "ghost"]);
+export type AnswerKind = z.infer<typeof AnswerKind>;
+
 export const SubmitRequest = z.object({
+  kind: AnswerKind.default("srs"),
   studyItemId: StudyItemId,
   exampleId: z.string(),
   /** `input` is the graded try; `attempts` are the earlier tries that were not answers or matched an alternate. */

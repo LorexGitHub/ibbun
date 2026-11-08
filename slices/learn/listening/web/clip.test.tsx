@@ -313,6 +313,6 @@ describe("a batch with more than one lesson", () => {
     await screen.findByText("Lesson 2 of 2");
     press("I know this");
     await screen.findByText("1 new items are in your Reviews.");
-    expect(api.skip).toHaveBeenCalledWith(prompt.studyItemId);
+    expect(api.skip).toHaveBeenCalledWith(prompt.studyItemId, false);
   });
 });

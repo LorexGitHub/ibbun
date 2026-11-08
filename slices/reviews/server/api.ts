@@ -1,11 +1,14 @@
 import { Hono } from "hono";
 import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { ContentGraph, StudyItemPage, Word } from "@mojibun/content-graph";
+import type { ContentGraph } from "@mojibun/content-graph";
 import type { Learners } from "@mojibun/learner";
 import type { Progress } from "@mojibun/progress";
 import { StudyItemId, type LearnerId } from "@mojibun/shared";
-import { DueResponse, SubmitRequest } from "../contract.ts";
-import { explanationOf, facetsOf, isReviewable, pickExample, promptOf } from "./prompt.ts";
+import { SubmitRequest } from "../contract.ts";
+import { facetsOf, pickExample } from "./prompt.ts";
+import { createPrompts } from "./prompts.ts";
+import { ghostsOf } from "../wrap-up/ghosts.ts";
+import { pickDifferent } from "../wrap-up/pick.ts";
 import { coversFacets, detailOf, regrade, responseOf, storedFacets } from "./regrade.ts";
 
 export type ReviewsDeps = {
@@ -19,32 +22,13 @@ export type ReviewsDeps = {
 /** The most Reviews one request hands out. */
 export const DUE_LIMIT = 50;
 
-/** The Words a Kanji appears in, so the target Word sense's Japanese Explanation can be found. */
-const wordsOf = async (graph: ContentGraph, page: StudyItemPage): Promise<Word[]> => {
-  if (page.item.type !== "kanji") return [];
-  const pages = await Promise.all(
-    page.links.flatMap((l) => (l.kind === "contained_in_word" ? [graph.studyItem(StudyItemId.parse(l.word.id))] : [])),
-  );
-  return pages.flatMap((p) => (p?.item.type === "word" ? [p.item] : []));
-};
-
 export const createReviewsApi = ({ sessions, contentGraph, progress, learners, now }: ReviewsDeps) => {
   const { requireLearner } = createAuthGuards(sessions);
+  const { promptThrough, withPreferences, locate } = createPrompts(contentGraph, learners);
 
   const prompt = async (learnerId: LearnerId, id: StudyItemId) => {
-    const page = await contentGraph.studyItem(id);
-    if (!page || !isReviewable(page)) return null;
     const last = (await progress.log(learnerId, id)).findLast((r) => r.exampleId);
-    const example = pickExample(page.examples, last?.exampleId);
-    if (!example) return null;
-    return promptOf(page, example, explanationOf(page.item, example, await wordsOf(contentGraph, page)));
-  };
-
-  /** The approved Example of a reviewable Study Item, or null when either is not there. */
-  const locate = async (studyItemId: StudyItemId, exampleId: string) => {
-    const page = await contentGraph.studyItem(studyItemId);
-    const example = page?.examples.find((e) => e.id === exampleId);
-    return page && isReviewable(page) && example ? { page, example } : null;
+    return promptThrough(id, (examples) => pickExample(examples, last?.exampleId));
   };
 
   return new Hono<AuthEnv>()
@@ -53,15 +37,31 @@ export const createReviewsApi = ({ sessions, contentGraph, progress, learners, n
       const { learnerId } = c.get("learner");
       const due = (await progress.due(learnerId, now())).slice(0, DUE_LIMIT);
       const prompts = await Promise.all(due.map((id) => prompt(learnerId, id)));
-      const { convertRomaji, explanations } = await learners.preferences(learnerId);
-      const body: DueResponse = { preferences: { convertRomaji, explanations }, reviews: prompts.flatMap((p) => (p ? [p] : [])) };
-      return c.json(body);
+      return c.json(await withPreferences(learnerId, prompts));
+    })
+    .get("/ghosts", async (c) => {
+      const { learnerId } = c.get("learner");
+      const ghosts = ghostsOf(await progress.log(learnerId), now());
+      const prompts = await Promise.all(ghosts.map((g) => promptThrough(g.studyItemId, (examples) => examples.find((e) => e.id === g.exampleId))));
+      return c.json(await withPreferences(learnerId, prompts));
+    })
+    .get("/wrap-up/:studyItemId", async (c) => {
+      const { learnerId } = c.get("learner");
+      const id = StudyItemId.safeParse(c.req.param("studyItemId"));
+      if (!id.success) return c.json({ message: "no such Study Item" }, 404);
+      const asked = c.req.queries("asked") ?? [];
+      const asking = await promptThrough(id.data, (examples) => pickDifferent(examples, asked));
+      if (!asking) return c.json({ message: "no such Review" }, 404);
+      return c.json(await withPreferences(learnerId, [asking]));
     })
     .post("/answer", async (c) => {
       const { learnerId } = c.get("learner");
       const request = SubmitRequest.safeParse(await c.req.json().catch(() => null));
       if (!request.success) return c.json({ message: "not a valid answer" }, 400);
-      const { studyItemId, exampleId, facets, revealed } = request.data;
+      const { kind, studyItemId, exampleId, facets, revealed } = request.data;
+      if (kind === "srs" && !(await progress.due(learnerId, now())).includes(studyItemId)) {
+        return c.json({ message: "that Review is not due; only the first answer counts" }, 409);
+      }
 
       const found = await locate(studyItemId, exampleId);
       if (!found) return c.json({ message: "no such Review" }, 404);
@@ -74,7 +74,7 @@ export const createReviewsApi = ({ sessions, contentGraph, progress, learners, n
       await progress.record({
         learnerId,
         studyItemId,
-        kind: "srs",
+        kind,
         passed: body.passed,
         at: now().toISOString(),
         exampleId,
