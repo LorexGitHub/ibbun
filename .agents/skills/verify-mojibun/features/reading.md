@@ -30,7 +30,7 @@ Steps:
 3. Click a Word button; expect the lookup status region, and a `lookup` entry in the Learner's Review log.
 4. Change the `furigana` preference (On, Off, Mixed), reload, and expect `rt` elements to follow the rule.
 
-5. For Practice Texts, seed Known progress for every unsuspended Kanji of N5 (otherwise the page shows the locked message), open `/reading/practice`, press Generate, and expect either the text screen or the library notice; after 5 texts expect "Try again tomorrow." (set `PRACTICE_DAILY_LIMIT` to lower the limit).
+5. For Practice Texts, seed Known progress for every unsuspended Kanji of N5 (otherwise the page shows the locked message), open `/reading/practice`, press Generate, and expect either the text screen or the library notice; after 5 texts expect "Try again tomorrow.".
 
 The specs are `slices/reading/tests/reading.spec.ts` (an episode or the empty state is accepted) and `slices/reading/tests/practice.spec.ts` (locked state or the form).
 

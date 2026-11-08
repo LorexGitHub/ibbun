@@ -39,7 +39,7 @@ export const productionDeps = (env: Record<string, string | undefined>): Reading
       jobs: lazyJobs(url),
       newId: randomUUID,
       sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-      config: { ...DEFAULT_PRACTICE, dailyLimit: Number(env.PRACTICE_DAILY_LIMIT ?? DEFAULT_PRACTICE.dailyLimit) },
+      config: DEFAULT_PRACTICE,
     },
   };
 };
