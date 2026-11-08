@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeAnswerFlags, createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
+import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
+import { createFakeAnswerFlags } from "@mojibun/content-graph/flags/testing";
 import { createFakeProgress } from "@mojibun/progress/testing";
 import { LearnerId, StudyItemId } from "@mojibun/shared";
 import { createFlagsApi } from "./api.ts";

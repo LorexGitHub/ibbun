@@ -4,7 +4,8 @@ import { createDb, type Db } from "@mojibun/db";
 import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
 import { createAuthoring, type Authoring } from "../authoring/index.ts";
 import { emptyGraph } from "../graph.ts";
-import { createFakeAnswerFlags, createFakeAuthoring, migrateContentGraph } from "../testing.ts";
+import { createFakeAuthoring, migrateContentGraph } from "../testing.ts";
+import { createFakeAnswerFlags } from "./fake.ts";
 import { createAnswerFlags, type AnswerFlags } from "./index.ts";
 
 type Harness = { flags: AnswerFlags; authoring: Authoring };

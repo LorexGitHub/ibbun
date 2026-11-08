@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@mojibun/ui";
 import { DueResponse, SubmitResponse, type SubmitRequest } from "../contract.ts";
-import type { Flag } from "../flags/web.tsx";
+import type { Flag } from "../flags/FlagButton.tsx";
 import { ReviewCard, type Submit } from "./ReviewCard.tsx";
 
 const BASE = "/api/reviews";

@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Button, Card, Input, KanaInput, Pill } from "@mojibun/ui";
 import type { DueResponse, Facet, Hint, ReviewPrompt, SubmitRequest, SubmitResponse } from "../contract.ts";
-import { FlagButton, flaggableFacet, type Flag } from "../flags/web.tsx";
+import { FlagButton, flaggableFacet, type Flag } from "../flags/FlagButton.tsx";
 import { acceptedOf, isJapanese, notAnswers, shownByDefault, type PromptFacet } from "./check.ts";
 
 export type Submit = (request: SubmitRequest) => Promise<SubmitResponse>;

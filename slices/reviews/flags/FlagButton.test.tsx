@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
 import type { ReviewPrompt, SubmitResponse } from "../contract.ts";
 import { ReviewCard } from "../web/ReviewCard.tsx";
-import { flaggableFacet } from "./web.tsx";
+import { flaggableFacet } from "./FlagButton.tsx";
 
 afterEach(cleanup);
 
