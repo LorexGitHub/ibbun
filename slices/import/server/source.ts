@@ -15,7 +15,8 @@ export type Source<D extends Dataset = Dataset> = {
   latest(): Promise<string>;
   /** Downloads the files of `version`. */
   download(version: string): Promise<RawFile[]>;
-  parse(files: RawFile[]): Records[D][];
+  /** Async because a source may need a service, as Tatoeba needs Sudachi for its tokens. */
+  parse(files: RawFile[]): Records[D][] | Promise<Records[D][]>;
 };
 
 /** One checksum for a set of files, whatever order they came in. */

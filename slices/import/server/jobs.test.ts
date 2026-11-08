@@ -86,7 +86,13 @@ describe("import jobs", () => {
     expect(await w.deps.authoring.queue({ reason: "staleness alarm" })).toHaveLength(1);
   });
 
-  it("refreshes JMdict from the jmdict-simplified source by default", () => {
-    expect(refreshes().map((r) => [r.source.dataset, r.monthly])).toEqual([["jmdict", true]]);
+  it("refreshes JMdict and KANJIDIC2 monthly, KanjiVG, Tatoeba and yomitan-jlpt-vocab weekly by default", () => {
+    expect(refreshes().map((r) => [r.source.dataset, r.monthly, r.cron])).toEqual([
+      ["jmdict", true, "0 12 * * *"],
+      ["kanjidic", true, "0 12 * * *"],
+      ["kanjivg", false, "0 12 * * 1"],
+      ["tatoeba", false, "0 12 * * 6,0"],
+      ["yomitan", false, "0 8 * * 1"],
+    ]);
   });
 });

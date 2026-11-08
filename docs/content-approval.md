@@ -107,7 +107,7 @@ Each content kind has its own rubric, kept as a versioned prompt template in the
 
 ### What it handles
 
-Every content draft, whatever made it: generated content, Tatoeba Examples, hanabira Sentences, Matcher Rule proposals, merge and sense-alignment proposals, `level disagreement`, `stale override`, `orphaned override`, `superseded`, `example redrafted`, `unmatched sense`, and Learner answer flags ([#18](https://github.com/LorexGitHub/mojibun/issues/18)).
+Every content draft, whatever made it: generated content, Tatoeba Examples, hanabira Sentences, Matcher Rule proposals, merge and sense-alignment proposals, `level disagreement`, `stale override`, `orphaned override`, `superseded`, `example redrafted`, `unmatched sense`, and Learner answer flags (`answer flag`, [#18](https://github.com/LorexGitHub/mojibun/issues/18)).
 
 These reasons are operational and always go straight to the supervisor: `breaker tripped`, `budget exhausted`, `generation failed`, and the staleness alarm ([#19](https://github.com/LorexGitHub/mojibun/issues/19)).
 

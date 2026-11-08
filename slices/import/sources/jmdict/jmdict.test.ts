@@ -2,7 +2,7 @@ import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { jmdictSource } from "./index.ts";
 import { parseJmdict } from "./parse.ts";
-import { untgz } from "./tgz.ts";
+import { untgz } from "../tgz.ts";
 
 const kanjiEntry = {
   id: "1358280",
@@ -108,7 +108,7 @@ describe("jmdictSource", () => {
     const files = await source.download("3.6.2+20261102210542");
     expect(files.map((f) => f.name)).toEqual(["jmdict-eng-3.6.2+x.json.tgz"]);
     expect(calls.at(-1)).toBe("https://example.test/eng.tgz");
-    expect(source.parse(files).map((w) => w.key)).toEqual(["1358280"]);
+    expect((await source.parse(files)).map((w) => w.key)).toEqual(["1358280"]);
   });
 
   it("fails when upstream answers an error or a release lacks the file", async () => {

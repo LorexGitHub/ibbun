@@ -421,8 +421,8 @@ const successorOf = (ctx: Ctx, id: string): StudyItemId | null => {
   return (link?.wordId as StudyItemId | undefined) ?? null;
 };
 
-/** A visible Reading Passage with its Sentences in order, each with the Words linked to it. */
-const passageOf = (ctx: Ctx, id: string): ReadingPassage | null => {
+/** The visible Reading Passage with its visible Sentences in order, each with the Words linked to it. */
+const readingPassageOf = (ctx: Ctx, id: string): ReadingPassage | null => {
   const row = ctx.graph.readingPassage.find((p) => p.id === id && visible(p));
   if (!row) return null;
   const passage = current(ctx, row, id);
@@ -462,7 +462,7 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
 
     successorOf: (id: string) => successorOf(ctx, id),
 
-    readingPassage: (id: string) => passageOf(ctx, id),
+    readingPassage: (id: string) => readingPassageOf(ctx, id),
 
     levelList(level: JlptLevel, type: BrowsableType): StudyItemSummary[] {
       return visibleItems()
