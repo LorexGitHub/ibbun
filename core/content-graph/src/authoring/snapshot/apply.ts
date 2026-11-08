@@ -3,6 +3,7 @@ import { rules } from "../authoring.ts";
 import type { Store } from "../store.ts";
 import { kanjidic, kanjivg, tatoeba, yomitan } from "./datasets.ts";
 import { jmdict } from "./jmdict.ts";
+import { wiktionary } from "./wiktionary.ts";
 import { tripped } from "./match.ts";
 import { runContext, type RunCtx } from "./run.ts";
 import { DEFAULT_BREAKER, type Counts, type Dataset, type Records, type Run, type SnapshotOptions, type SnapshotReport } from "./types.ts";
@@ -14,7 +15,7 @@ type Rules<R> = {
   retire: (ctx: RunCtx, id: string, surviving: R[], idOf: (key: string) => string) => Promise<void>;
 };
 
-const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, kanjivg, tatoeba, yomitan };
+const RULES: { [D in Dataset]: Rules<Records[D]> } = { jmdict, kanjidic, kanjivg, tatoeba, yomitan, "wiktionary-ja": wiktionary };
 
 /** Thrown inside the transaction so a tripped run rolls back everything it wrote. */
 class Tripped extends Error {
@@ -30,7 +31,8 @@ class Tripped extends Error {
 }
 
 const isLive = async (ctx: RunCtx, dataset: Dataset, id: string) => {
-  const [row] = await (dataset === "tatoeba" ? ctx.tx.rows("sentence", { id }) : dataset === "yomitan" ? ctx.tx.rows("levelCandidate", { id }) : ctx.tx.rows("studyItem", { id }));
+  const table = { tatoeba: "sentence", "wiktionary-ja": "japaneseExplanation", yomitan: "levelCandidate", jmdict: "studyItem", kanjidic: "studyItem", kanjivg: "studyItem" } as const;
+  const [row] = await ctx.tx.rows(table[dataset], { id });
   return row !== undefined && !row.retired;
 };
 

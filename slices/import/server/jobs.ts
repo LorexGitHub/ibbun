@@ -4,6 +4,7 @@ import type { Dataset } from "@mojibun/content-graph/authoring";
 import { createSudachiNlp } from "@mojibun/nlp";
 import { jmdictSource } from "../sources/jmdict/index.ts";
 import { kanjidicSource } from "../sources/kanjidic2/index.ts";
+import { wiktionarySource } from "../sources/ja-wiktionary/index.ts";
 import { tatoebaSource } from "../sources/tatoeba/index.ts";
 import { kanjivgSource } from "../sources/kanjivg/index.ts";
 import { yomitanSource } from "../sources/yomitan-jlpt-vocab/index.ts";
@@ -33,6 +34,8 @@ export const refreshes = (env: { SUDACHI_URL?: string } = process.env): Refresh[
   { source: tatoebaSource(createSudachiNlp({ url: env.SUDACHI_URL ?? "http://localhost:8000" })) as Source, cron: "0 12 * * 6,0", monthly: false },
   // yomitan-jlpt-vocab: checked every Monday, applied only when upstream has a new release (a rerun of a live version is a no-op).
   { source: yomitanSource() as Source, cron: "0 8 * * 1", monthly: false },
+  // ja Wiktionary: no licence deadline, so weekly, as often as kaikki.org extracts. The run is a no-op until a new extraction date appears.
+  { source: wiktionarySource() as Source, cron: "0 12 * * 1", monthly: false },
 ];
 
 const DAILY_STALENESS_CHECK = "0 7 * * *";
