@@ -83,6 +83,10 @@ describe("listening practice API", () => {
     expect((await t.post(`/clips/${SENTENCE_CLIP}/answer`, {}, new Headers())).status).toBe(401);
   });
 
+  it("has no clip to serve for an id it does not know", async () => {
+    expect((await t.get(`/clips/${ID(99)}`)).status).toBe(404);
+  });
+
   it("lists the clips of the chosen level", async () => {
     const body = await (await t.get("/clips?level=N5")).json();
     expect(body).toEqual({ level: "N5", clipIds: [SENTENCE_CLIP, DIALOGUE_CLIP] });
