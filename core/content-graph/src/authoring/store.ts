@@ -1,4 +1,4 @@
-import { and, eq, isNull, type SQL } from "drizzle-orm";
+import { and, eq, inArray, isNull, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import type { DbOrTx } from "@mojibun/db";
 import { tables, type Graph } from "../graph.ts";
@@ -14,6 +14,8 @@ export type Store = {
   update<N extends TableName>(name: N, where: Where<N>, patch: Partial<Row<N>>): Promise<void>;
   /** Hard delete. Only for derived links, which are a cache (docs/adr/0004). */
   remove<N extends TableName>(name: N, where: Where<N>): Promise<void>;
+  /** Hard delete of many rows by id, in one statement. Only for derived links. */
+  removeByIds<N extends TableName>(name: N, ids: string[]): Promise<void>;
   atomically<T>(work: (store: Store) => Promise<T>): Promise<T>;
 };
 
@@ -33,6 +35,10 @@ export const memoryStore = (graph: Graph): Store => {
       const rows = graph[name] as object[];
       const kept = rows.filter((row) => !matches(row, where));
       rows.splice(0, rows.length, ...kept);
+    },
+    removeByIds: async (name, ids) => {
+      const rows = graph[name] as unknown as { id: string }[];
+      for (let at = rows.length - 1; at >= 0; at--) if (ids.includes(rows[at]!.id)) rows.splice(at, 1);
     },
     atomically: async (work) => {
       const before = structuredClone(graph);
@@ -64,6 +70,10 @@ export const postgresStore = (db: DbOrTx): Store => ({
   },
   remove: async (name, where) => {
     await db.delete(table(name)).where(condition(name, where));
+  },
+  removeByIds: async (name, ids) => {
+    const { id } = tables[name] as unknown as { id: PgColumn };
+    if (ids.length) await db.delete(table(name)).where(inArray(id, ids));
   },
   atomically: (work) => db.transaction((tx) => work(postgresStore(tx))),
 });

@@ -19,6 +19,10 @@ export type Decision = {
   reason?: string | null;
 };
 
+/** The link tables a rebuild may replace: nothing points at their rows (ADR 0004). */
+export const DERIVED_LINK_TABLES = ["wordContainsKanji", "sentenceUsesWord", "clipVoicesSentence", "wordSupersededBy"] as const;
+export type DerivedLinkTable = (typeof DERIVED_LINK_TABLES)[number];
+
 export type GenerationRequest = Row<"generationRequest">;
 export type GenerationRun = Row<"generationRun">;
 export type QueueEntry = Row<"queueEntry">;
@@ -59,6 +63,9 @@ export type Authoring = {
   /** Unresolved queue entries, oldest first. */
   queue(filter?: QueueFilter): Promise<QueueEntry[]>;
   resolve(entryId: string): Promise<void>;
+
+  /** Hard-deletes derived links by id, the one exception to "nothing is hard-deleted". Rejects a link whose Provenance is not `derived`. */
+  removeDerivedLinks(name: DerivedLinkTable, ids: string[]): Promise<void>;
 
   /** Applies one dataset's normalised snapshot in one transaction under the refresh rules (import-pipeline.md). */
   applySnapshot<D extends Dataset>(dataset: D, run: Run, records: Records[D][], options?: SnapshotOptions): Promise<SnapshotReport>;
@@ -155,6 +162,16 @@ const failAttempt = async (tx: Store, clock: Clock, id: string): Promise<Generat
   return { ...request, attempts, status };
 };
 
+const removeDerivedLinks = async (s: Store, name: DerivedLinkTable, ids: string[]) => {
+  if (!DERIVED_LINK_TABLES.includes(name)) throw new Error(`${name} is not a derived link table`);
+  const wanted = new Set(ids);
+  const links = (await s.rows(name)).filter((row) => wanted.has(row.id));
+  const sources = new Map((await s.rows("provenance")).map((p) => [p.id, p.source.kind]));
+  const kept = links.find((row) => sources.get(row.provenanceId) !== "derived");
+  if (kept) throw new Error(`${name} ${kept.id} is not a derived link and cannot be deleted`);
+  await s.removeByIds(name, links.map((row) => row.id));
+};
+
 export const authoring = (s: Store, clock: Clock = systemClock): Authoring => {
   const { enqueue, isSuspended } = rules(s, clock);
   const decisions: Authoring["decisions"] = async (recordId) => byTime(await s.rows("approvalDecision", { recordId }));
@@ -189,6 +206,8 @@ export const authoring = (s: Store, clock: Clock = systemClock): Authoring => {
     enqueue,
     queue: async (filter = {}) => byTime(await s.rows("queueEntry", { ...filter, resolved: false })),
     resolve: (id) => s.update("queueEntry", { id }, { resolved: true }),
+
+    removeDerivedLinks: (name, ids) => s.atomically((tx) => removeDerivedLinks(tx, name, ids)),
 
     applySnapshot: (dataset, run, records, options) => applySnapshot(s, clock, dataset, run, records, options),
   };
