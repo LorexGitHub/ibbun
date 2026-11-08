@@ -25,8 +25,11 @@ export const ListeningDetail = z.object({
   examMode: z.boolean(),
 });
 
-/** Who made a `manual` Review: Placement, or "I know this" in Learn. */
-export const ManualSource = z.enum(["placement", "learn-skip"]);
+/**
+ * Who made a Review that needs saying. `placement` and `learn-skip` mark a `manual` Review (Placement, or "I know this"
+ * in Learn). `learn-now` marks a Review Learn now made, which the daily budget does not count.
+ */
+export const ManualSource = z.enum(["placement", "learn-skip", "learn-now"]);
 
 export const ReviewDetail = z.object({
   exampleId: z.string().optional(),

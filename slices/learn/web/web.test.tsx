@@ -82,6 +82,7 @@ const twoItems = batchOf([
 const apiOf = (over: Partial<LearnApi> = {}): LearnApi => ({
   state: vi.fn(async () => state()),
   batch: vi.fn(async () => twoItems),
+  now: vi.fn(async () => twoItems),
   saveTracks: vi.fn(async () => state()),
   skip: vi.fn(async () => undefined),
   complete: vi.fn(async (request) => request.answers.length),
@@ -195,7 +196,7 @@ describe("a lesson", () => {
     const api = await open();
     await lessons();
     press("I know this");
-    await waitFor(() => expect(api.skip).toHaveBeenCalledWith(water.studyItemId));
+    await waitFor(() => expect(api.skip).toHaveBeenCalledWith(water.studyItemId, false));
     await screen.findByText("Lesson 1 of 1");
     press("Start quiz");
     expect(screen.getByLabelText("Reading in this sentence")).toBeTruthy();
@@ -216,6 +217,47 @@ describe("a lesson", () => {
     await lessons();
     press("I know this");
     expect((await screen.findByRole("alert")).textContent).toBe("try again");
+  });
+});
+
+describe("Learn now", () => {
+  it("opens the lessons of the asked-for item without the grid, and tells the API the session is Learn now", async () => {
+    const api = apiOf({ batch: vi.fn(async () => batchOf([], { remaining: 0 })) });
+    render(<LearnScreen api={api} nowId={idOf(2)} />);
+    await screen.findByText("Lesson 1 of 2");
+    expect(api.now).toHaveBeenCalledWith(idOf(2));
+    press("I know this");
+    await waitFor(() => expect(api.skip).toHaveBeenCalledWith(twoItems.items[0]!.lesson.studyItemId, true));
+  });
+
+  it("sends the quiz as Learn now and returns to the grid", async () => {
+    const api = apiOf();
+    render(<LearnScreen api={api} nowId={idOf(2)} />);
+    await screen.findByText("Lesson 1 of 2");
+    press("Next");
+    press("Start quiz");
+    type("Answer", "みず");
+    press("Check");
+    await screen.findByText("Correct");
+    press("Next");
+    type("Reading in this sentence", "みず");
+    type("Meaning of the kanji", "water");
+    press("Check");
+    await screen.findByText("Correct");
+    press("Next");
+    await waitFor(() => expect(api.complete).toHaveBeenCalledOnce());
+    expect(vi.mocked(api.complete).mock.calls[0]![0].now).toBe(true);
+    expect(await screen.findByText("2 new items are in your Reviews.")).toBeTruthy();
+  });
+
+  it("shows a failure to load the item", async () => {
+    render(<LearnScreen api={apiOf({ now: vi.fn(async () => Promise.reject(new Error("no such Study Item"))) })} nowId={idOf(2)} />);
+    expect((await screen.findByRole("alert")).textContent).toBe("no such Study Item");
+  });
+
+  it("says so when the item has nothing to teach", async () => {
+    render(<LearnScreen api={apiOf({ now: vi.fn(async () => batchOf([])) })} nowId={idOf(2)} />);
+    expect(await screen.findByText("This item cannot be taught yet.")).toBeTruthy();
   });
 });
 
