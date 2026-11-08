@@ -1,20 +1,10 @@
+import { fetchJson, postJson } from "../../web/api.ts";
 import { Library, PracticeOptions, PracticeResult, TextView, type PracticeRequest } from "../contract.ts";
 
-const BASE = "/api/reading/practice";
+export const loadOptions = async () => PracticeOptions.parse(await fetchJson("/practice/options"));
 
-const fetchJson = async (path: string, init?: RequestInit): Promise<unknown> => {
-  const response = await fetch(`${BASE}${path}`, init);
-  if (!response.ok) throw new Error(`reading practice ${path}: ${response.status}`);
-  return response.json();
-};
+export const loadLibrary = async () => Library.parse(await fetchJson("/practice/texts"));
 
-export const loadOptions = async () => PracticeOptions.parse(await fetchJson("/options"));
+export const loadPracticeText = async (id: string) => TextView.parse(await fetchJson(`/practice/texts/${id}`));
 
-export const loadLibrary = async () => Library.parse(await fetchJson("/texts"));
-
-export const loadPracticeText = async (id: string) => TextView.parse(await fetchJson(`/texts/${id}`));
-
-export const generate = async (request: PracticeRequest) =>
-  PracticeResult.parse(
-    await fetchJson("/texts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request) }),
-  );
+export const generate = async (request: PracticeRequest) => PracticeResult.parse(await postJson("/practice/texts", request));

@@ -2,7 +2,7 @@ import { EpisodeLists, LookupView, TextView, type LookupRequest } from "../contr
 
 const BASE = "/api/reading";
 
-const fetchJson = async (path: string, init?: RequestInit): Promise<unknown> => {
+export const fetchJson = async (path: string, init?: RequestInit): Promise<unknown> => {
   const response = await fetch(`${BASE}${path}`, init);
   if (!response.ok) throw new Error(`reading ${path}: ${response.status}`);
   return response.json();
@@ -14,7 +14,8 @@ export const loadBatchText = async (id: string) => TextView.parse(await fetchJso
 
 export const loadPassage = async (id: string) => TextView.parse(await fetchJson(`/passages/${id}`));
 
-export const lookUp = async (request: LookupRequest) =>
-  LookupView.parse(
-    await fetchJson("/lookups", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request) }),
-  );
+/** POSTs `body` as JSON. */
+export const postJson = (path: string, body: unknown) =>
+  fetchJson(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+
+export const lookUp = async (request: LookupRequest) => LookupView.parse(await postJson("/lookups", request));
