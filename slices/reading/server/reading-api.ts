@@ -7,6 +7,7 @@ import { LearnerId, StudyItemId } from "@mojibun/shared";
 import { LookupRequest, type EpisodeLists, type LookupView, type TextView } from "../contract.ts";
 import { episodeLists } from "./episodes.ts";
 import { textView, type Reader } from "./text.ts";
+import { createPracticeApi, type PracticeRuntime } from "../practice/server/practice-api.ts";
 
 export type ReadingDeps = {
   contentGraph: ContentGraph;
@@ -15,6 +16,7 @@ export type ReadingDeps = {
   learners: Learners;
   guards: ReturnType<typeof createAuthGuards>;
   now: () => Date;
+  practice: PracticeRuntime;
 };
 
 export const lookupView = ({ forms, readings, senses }: Word): LookupView => ({
@@ -29,7 +31,7 @@ const notFound = { message: "no such text" };
  * Reading (batch-text.md#reading-screen): the Learner's past Batch Texts as episodes per level, and Reading Passages.
  * Tapping a Word is logged as a `lookup` Review, which never feeds the scheduler.
  */
-export const createReadingApi = ({ contentGraph, progress, texts, learners, guards, now }: ReadingDeps) => {
+export const createReadingApi = ({ contentGraph, progress, texts, learners, guards, now, practice }: ReadingDeps) => {
   const readerFor = async (learnerId: LearnerId, batch: readonly StudyItemId[]): Promise<Reader> => {
     const [{ furigana }, items] = await Promise.all([learners.preferences(learnerId), progress.items(learnerId)]);
     const byId = new Map(items.map((p) => [p.studyItemId, p.mastery]));
@@ -38,6 +40,8 @@ export const createReadingApi = ({ contentGraph, progress, texts, learners, guar
 
   return new Hono<AuthEnv>()
     .use(guards.requireLearner())
+
+    .route("/practice", createPracticeApi({ contentGraph, progress, texts, now, readerFor: (id) => readerFor(id, []), ...practice }))
 
     .get("/episodes", async (c) => {
       const learnerId = LearnerId.parse(c.get("learner").learnerId);

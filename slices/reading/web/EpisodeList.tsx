@@ -6,6 +6,9 @@ import type { EpisodeLists } from "../contract.ts";
 export const EpisodeList = ({ lists }: { lists: EpisodeLists }) => (
   <Card>
     <h1>Reading</h1>
+    <p>
+      <Link to="/reading/practice">Practice texts</Link>
+    </p>
     {lists.levels.length === 0 && <p>No stories yet. Finish a Learn batch and your first one arrives.</p>}
     {lists.levels.map(({ level, episodes }) => (
       <section key={level}>

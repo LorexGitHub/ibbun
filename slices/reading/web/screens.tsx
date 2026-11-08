@@ -8,7 +8,7 @@ import { TextReader } from "./TextReader.tsx";
 
 type Loaded<T> = { state: "loading" } | { state: "failed" } | { state: "ready"; value: T };
 
-const useLoaded = <T,>(load: () => Promise<T>, key: string): Loaded<T> => {
+export const useLoaded = <T,>(load: () => Promise<T>, key: string): Loaded<T> => {
   const [loaded, setLoaded] = useState<{ key: string; result: Loaded<T> } | null>(null);
   useEffect(() => {
     let live = true;
@@ -23,14 +23,14 @@ const useLoaded = <T,>(load: () => Promise<T>, key: string): Loaded<T> => {
   return loaded?.key === key ? loaded.result : { state: "loading" };
 };
 
-const Shown = <T,>({ loaded, children }: { loaded: Loaded<T>; children: (value: T) => React.ReactNode }) =>
+export const Shown = <T,>({ loaded, children }: { loaded: Loaded<T>; children: (value: T) => React.ReactNode }) =>
   loaded.state === "ready" ? <>{children(loaded.value)}</> : <p role="status">{loaded.state === "loading" ? "Loading…" : "Reading could not load this."}</p>;
 
 export const EpisodesScreen = () => (
   <Shown<EpisodeLists> loaded={useLoaded(loadEpisodes, "episodes")}>{(lists) => <EpisodeList lists={lists} />}</Shown>
 );
 
-const TextShown = ({ loaded }: { loaded: Loaded<TextView> }) => (
+export const TextShown = ({ loaded }: { loaded: Loaded<TextView> }) => (
   <Shown loaded={loaded}>{(text) => <TextReader text={text} onLookup={(wordId) => lookUp({ wordId: StudyItemId.parse(wordId) })} />}</Shown>
 );
 
