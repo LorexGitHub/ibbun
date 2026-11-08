@@ -150,12 +150,6 @@ describe("the reviews API", () => {
       expect(review!.facets[0]!.matchedAnswerId).toBeDefined();
     });
 
-    it("returns the id of the Review it logged", async () => {
-      const prompt = await first(t.fixture.ids.words["水"]!);
-      const body = (await (await t.post("/answer", submit(prompt))).json()) as { reviewId: string };
-      expect((await t.progress.log(t.learner, prompt.studyItemId)).at(-1)!.id).toBe(body.reviewId);
-    });
-
     it("records a fail for a wrong answer", async () => {
       const prompt = await first(t.fixture.ids.words["水"]!);
       const response = await t.post("/answer", submit(prompt, { facets: [{ facet: "cloze", input: "ちがう", attempts: [] }] }));

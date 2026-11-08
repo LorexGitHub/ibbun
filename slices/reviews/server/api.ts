@@ -71,7 +71,7 @@ export const createReviewsApi = ({ sessions, contentGraph, progress, learners, n
       const results = regrade(expected, facets, revealed);
       if (!results) return c.json({ message: "that is not an answer yet" }, 422);
       const body = responseOf(results);
-      const review = await progress.record({
+      await progress.record({
         learnerId,
         studyItemId,
         kind: "srs",
@@ -81,6 +81,6 @@ export const createReviewsApi = ({ sessions, contentGraph, progress, learners, n
         facets: storedFacets(results),
         ...detailOf(request.data),
       });
-      return c.json({ ...body, reviewId: review.id });
+      return c.json(body);
     });
 };

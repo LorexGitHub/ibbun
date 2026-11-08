@@ -20,8 +20,8 @@ const prompt: ReviewPrompt = {
   hint: null,
   facets: [{ facet: "cloze", answerData: { facet: "japanese", accepted: [{ id: "a1", written: "水", reading: "みず" }], alternates: [], knownWrong: [] } }],
 };
-const WRONG: SubmitResponse = { reviewId: "r-1", passed: false, facets: [{ facet: "cloze", outcome: "fail" }] };
-const RIGHT: SubmitResponse = { reviewId: "r-1", passed: true, facets: [{ facet: "cloze", outcome: "pass" }] };
+const WRONG: SubmitResponse = { passed: false, facets: [{ facet: "cloze", outcome: "fail" }] };
+const RIGHT: SubmitResponse = { passed: true, facets: [{ facet: "cloze", outcome: "pass" }] };
 
 const mount = (result: SubmitResponse, flag = vi.fn(async () => undefined)) => {
   render(<ReviewCard prompt={prompt} preferences={{ convertRomaji: true, explanations: "english" }} submit={async () => result} flag={flag} onDone={() => undefined} />);
@@ -39,7 +39,7 @@ describe("flagging from a Review", () => {
     await answer();
     fireEvent.click(screen.getByRole("button", { name: "My answer was right" }));
     await waitFor(() => expect(screen.getByText(/stays as graded/)).toBeTruthy());
-    expect(flag).toHaveBeenCalledWith({ studyItemId: WORD, reviewId: "r-1", facet: "cloze" });
+    expect(flag).toHaveBeenCalledWith({ studyItemId: WORD, exampleId: "ex-1", facet: "cloze" });
     expect(screen.queryByRole("button", { name: "My answer was right" })).toBeNull();
   });
 
@@ -67,7 +67,6 @@ describe("flagging from a Review", () => {
 describe("which facet can be flagged", () => {
   it("is the wrong reading or cloze, never a meaning", () => {
     const kanji = (reading: "pass" | "fail", meaning: "pass" | "fail"): SubmitResponse => ({
-      reviewId: "r",
       passed: false,
       facets: [{ facet: "reading", outcome: reading }, { facet: "meaning", outcome: meaning }],
     });

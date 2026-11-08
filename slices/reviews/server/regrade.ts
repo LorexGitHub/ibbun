@@ -47,7 +47,7 @@ export const detailOf = (request: Submission) => ({
   timeToAnswerMs: request.timeToAnswerMs,
 });
 
-export const responseOf = (results: FacetOutcome[]): Omit<SubmitResponse, "reviewId"> => ({
+export const responseOf = (results: FacetOutcome[]): SubmitResponse => ({
   passed: results.every((r) => r.outcome === "pass"),
   facets: results.map(({ facet, outcome, matchedAnswerId, message }) => ({ facet, outcome, matchedAnswerId, message })),
 });

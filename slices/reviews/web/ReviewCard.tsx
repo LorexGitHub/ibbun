@@ -157,7 +157,7 @@ export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferenc
       {a.result && (
         <>
           <Info prompt={prompt} result={a.result} />
-          {flagged && <FlagButton request={{ studyItemId: prompt.studyItemId, reviewId: a.result.reviewId, facet: flagged }} flag={flag} />}
+          {flagged && <FlagButton request={{ studyItemId: prompt.studyItemId, exampleId: prompt.exampleId, facet: flagged }} flag={flag} />}
           <Button variant="primary" onClick={onDone}>
             Next
           </Button>
