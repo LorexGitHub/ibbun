@@ -29,4 +29,13 @@ describe("productionDeps", () => {
     expect(Object.keys(deps).sort()).toEqual(["contentGraph", "guards", "learners", "now", "practice", "progress", "texts"]);
     expect(deps.now()).toBeInstanceOf(Date);
   });
+
+  it("limits Practice Texts to 5 a day unless PRACTICE_DAILY_LIMIT says otherwise", async () => {
+    const env = { DATABASE_URL: "postgres://nobody@127.0.0.1:1/none", AUTH_SECRET: "x".repeat(32), APP_URL: "http://localhost:5173" };
+    expect(productionDeps(env).practice.config).toEqual({ dailyLimit: 5, waitMs: 20_000, pollMs: 1_000 });
+    expect(productionDeps({ ...env, PRACTICE_DAILY_LIMIT: "2" }).practice.config.dailyLimit).toBe(2);
+    const { practice } = productionDeps(env);
+    await practice.sleep(1);
+    expect(practice.newId()).toMatch(/^[0-9a-f-]{36}$/);
+  });
 });
