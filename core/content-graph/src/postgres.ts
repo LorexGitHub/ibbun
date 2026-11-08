@@ -16,6 +16,10 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
     return (await readerOver(db, await loadPage(db, id))).studyItem(id);
   },
 
+  async readingPassage(id) {
+    return (await readerOver(db, await loadPassage(db, id))).readingPassage(id);
+  },
+
   async successorOf(id) {
     const [link] = await db
       .select({ id: t.wordSupersededBy.wordId })
@@ -136,6 +140,21 @@ const loadPage = async (db: DbOrTx, id: string): Promise<Graph> => {
   return loadItems(db, ends, { ...emptyGraph(), example, exampleAnswer, sentence, wordContainsKanji, grammarRelatesTo, clipVoicesSentence });
 };
 
+/** The rows a Reading Passage needs: it, its Sentence links, the Sentences, and the Words they use. */
+const loadPassage = async (db: DbOrTx, id: string): Promise<Graph> => {
+  const [readingPassage, passageContainsSentence] = await Promise.all([
+    db.select().from(t.readingPassage).where(eq(t.readingPassage.id, id)),
+    db.select().from(t.passageContainsSentence).where(eq(t.passageContainsSentence.passageId, id)),
+  ]);
+  const sentenceIds = passageContainsSentence.map((l) => l.sentenceId);
+  const [sentence, sentenceUsesWord] = await Promise.all([
+    db.select().from(t.sentence).where(inArray(t.sentence.id, sentenceIds)),
+    db.select().from(t.sentenceUsesWord).where(inArray(t.sentenceUsesWord.sentenceId, sentenceIds)),
+  ]);
+  const studyItem = await db.select().from(t.studyItem).where(inArray(t.studyItem.id, unique(sentenceUsesWord.map((u) => u.wordId))));
+  return withOverrides(db, { ...emptyGraph(), readingPassage, passageContainsSentence, sentence, sentenceUsesWord, studyItem });
+};
+
 const withOverrides = async (db: DbOrTx, graph: Graph): Promise<Graph> => {
   const recordIds = unique([
     ...graph.studyItem,
@@ -146,6 +165,7 @@ const withOverrides = async (db: DbOrTx, graph: Graph): Promise<Graph> => {
     ...graph.example,
     ...graph.exampleAnswer,
     ...graph.sentence,
+    ...graph.readingPassage,
   ].map((r) => r.id));
   return { ...graph, override: await db.select().from(t.override).where(inArray(t.override.recordId, recordIds)) };
 };
