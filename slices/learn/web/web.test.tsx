@@ -224,7 +224,7 @@ describe("Learn now", () => {
     await screen.findByText("Lesson 1 of 2");
     expect(api.now).toHaveBeenCalledWith(idOf(2));
     press("I know this");
-    await waitFor(() => expect(api.skip).toHaveBeenCalledWith(twoItems.items[0]!.lesson.studyItemId, true));
+    await waitFor(() => expect(api.skip).toHaveBeenCalledWith(water.studyItemId, true));
   });
 
   it("sends the quiz as Learn now and returns to the grid", async () => {
