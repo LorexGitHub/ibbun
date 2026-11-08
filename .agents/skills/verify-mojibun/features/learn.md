@@ -40,5 +40,5 @@ Preconditions:
 - The batch is not stored. Reloading `/learn` before the quiz is passed returns the same items, because nothing is introduced until the quiz passes or **I know this** is pressed.
 - The day for the budget is the UTC day, as on the Today screen.
 - A Word in the batch pulls its Kanji into the same batch, so a batch can be longer than `batchSize`.
-- No screen activates a Listening Track yet, so the clip lesson only shows for a Learner whose `learning_path` row lists a `listening_clip` Track (set it with `psql`, or through `learningPath.setActiveTracks`), and only when the Content Graph holds an approved clip with audio at that level. The N5 fixture has no clips: seed one first, or the batch simply has none.
+- The default Active Tracks already include `N5:listening_clip`, so a new Learner meets a clip in the batch as soon as the Content Graph holds an approved clip with audio at N5 (no screen changes Listening Tracks yet; a Learner who changed them can be reset with `learningPath.setActiveTracks`). The N5 fixture has no clips: seed one first, or the batch simply has none. A clip's linked Words and Kanji come first as plain lessons, ahead of the clip.
 - The clip lesson shows its text in the Read step; the quiz step's own text stays hidden until the Learner answers or asks again.
