@@ -94,7 +94,10 @@ export type ReadingPassage = {
   id: string;
   title: string;
   form: "prose" | "dialogue";
-  sentences: (Sentence & { words: SentenceWord[] })[];
+  /** A dialogue's comprehension questions, which belong to the passage, not to an Example. */
+  questions: ComprehensionQuestion[];
+  /** `speaker` is who says the line in a dialogue, null in prose. */
+  sentences: (Sentence & { speaker: "男" | "女" | null; words: SentenceWord[] })[];
   attribution: Attribution;
 };
 
@@ -426,8 +429,10 @@ const readingPassageOf = (ctx: Ctx, id: string): ReadingPassage | null => {
   const sentences = ctx.graph.passageContainsSentence
     .filter((l) => l.passageId === id && visible(l))
     .sort(byPosition)
-    .map((l) => sentenceOf(ctx, l.sentenceId))
-    .filter(present)
+    .flatMap((l) => {
+      const sentence = sentenceOf(ctx, l.sentenceId);
+      return sentence ? [{ ...sentence, speaker: l.speaker }] : [];
+    })
     .map((sentence) => ({
       ...sentence,
       words: ctx.graph.sentenceUsesWord
@@ -435,7 +440,14 @@ const readingPassageOf = (ctx: Ctx, id: string): ReadingPassage | null => {
         .map((u) => ({ wordId: u.wordId as StudyItemId, start: u.spanStart, end: u.spanEnd }))
         .sort((a, b) => a.start - b.start),
     }));
-  return { id, title: passage.title, form: passage.form, sentences, attribution: attributionOf(ctx, [id, ...sentences.map((s) => s.id)]) };
+  return {
+    id,
+    title: passage.title,
+    form: passage.form,
+    questions: passage.comprehensionQuestions,
+    sentences,
+    attribution: attributionOf(ctx, [id, ...sentences.map((s) => s.id)]),
+  };
 };
 
 /** The pure reads over a set of rows. The fake runs it over its whole graph; Postgres over the rows a read loaded. */

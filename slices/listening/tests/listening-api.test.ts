@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createAuthGuards, createFakeSessionResolver } from "@mojibun/auth";
 import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@mojibun/content-graph/testing";
 import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { createListeningApi } from "../server/api.ts";
+import { createFakeJobs } from "@mojibun/jobs";
+import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
+import { createListeningApi } from "../server/listening-api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}`;
 const SENTENCE_CLIP = ID(10);
@@ -58,6 +59,9 @@ const setup = async () => {
     contentGraph: createFakeContentGraph(buildGraph()),
     progress,
     learners,
+    texts: createFakeTexts(),
+    jobs: createFakeJobs(),
+    practiceLimit: 5,
     guards: createAuthGuards(sessions),
     now: () => new Date("2026-03-01T10:00:00Z"),
     random: () => 0,
@@ -77,6 +81,10 @@ describe("listening practice API", () => {
   it("refuses a request without a session", async () => {
     expect((await t.get("/clips?level=N5", new Headers())).status).toBe(401);
     expect((await t.post(`/clips/${SENTENCE_CLIP}/answer`, {}, new Headers())).status).toBe(401);
+  });
+
+  it("has no clip to serve for an id it does not know", async () => {
+    expect((await t.get(`/clips/${ID(99)}`)).status).toBe(404);
   });
 
   it("lists the clips of the chosen level", async () => {

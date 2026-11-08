@@ -1,24 +1,16 @@
 import { Hono } from "hono";
 import type { z } from "zod";
-import type { AuthEnv, createAuthGuards } from "@mojibun/auth";
+import type { AuthEnv } from "@mojibun/auth";
 import { normalise, type ContentGraph, type Example } from "@mojibun/content-graph";
-import type { Learners } from "@mojibun/learner";
-import type { Progress } from "@mojibun/progress";
 import { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
 import { AnswerRequest, type AnswerResponse, type ClipList } from "../contract.ts";
+import { createPracticeApi, type PracticeDeps } from "../practice/server/practice.ts";
 import { gradingOf, nextExample, playable, transcriptOf, viewOf, type Playable } from "./clip.ts";
 
 type AnswerBody = z.output<typeof AnswerRequest>;
 
-export type ListeningDeps = {
-  contentGraph: ContentGraph;
-  progress: Progress;
-  learners: Learners;
-  guards: ReturnType<typeof createAuthGuards>;
-  now: () => Date;
-  /** [0, 1), for shuffling a comprehension question's options. */
-  random: () => number;
-};
+/** Free practice and Practice Text dialogues share their core modules. */
+export type ListeningDeps = PracticeDeps;
 
 const notFound = { message: "no such clip" };
 
@@ -26,7 +18,8 @@ const notFound = { message: "no such clip" };
  * Free Listening practice (listening.md#wiring): pick a level, hear its clips, answer. Every graded answer
  * is logged as a `cram` Review, so it never moves the schedule. The server grades, so a forged pass is never stored.
  */
-export const createListeningApi = ({ contentGraph, progress, learners, guards, now, random }: ListeningDeps) => {
+export const createListeningApi = (deps: ListeningDeps) => {
+  const { contentGraph, progress, learners, guards, now, random } = deps;
   type Graded = { facet: string; outcome: "pass" | "fail" } & Omit<AnswerBody, "exampleId">;
   const record = async (learnerId: LearnerId, clip: Playable, example: Example, g: Graded) => {
     const { examMode } = await learners.preferences(learnerId);
@@ -49,6 +42,7 @@ export const createListeningApi = ({ contentGraph, progress, learners, guards, n
   const clipOf = async (id: string): Promise<Playable | null> => playable(await contentGraph.studyItem(StudyItemId.parse(id)));
 
   return new Hono<AuthEnv>()
+    .route("/practice", createPracticeApi(deps))
     .use(guards.requireLearner())
 
     .get("/clips", async (c) => {
