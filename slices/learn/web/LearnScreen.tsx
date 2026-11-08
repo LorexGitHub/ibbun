@@ -83,6 +83,11 @@ const LearnNow = ({ id, api, onFinished }: { id: string; api: LearnApi; onFinish
   return <Session batch={batch} api={api} now onFinished={onFinished} />;
 };
 
+type Asked = { ids: string[]; enqueued: boolean } | null;
+
+/** The batch to read about once a quiz is passed: only a passed batch whose text was requested. */
+const readingFor = (learned: number, asked: Asked) => (learned > 0 && asked?.enqueued ? { ids: asked.ids } : null);
+
 /** The Learn screen: choose Active Tracks, take a batch, learn it, pass the quiz. */
 export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: LearnApi; nowId?: string | null }) => {
   const [now, setNow] = useState(nowId);
@@ -91,7 +96,7 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
   const [started, setStarted] = useState(false);
   /** The batch whose Batch Text the reading screen waits for, once its quiz has passed. */
   const [reading, setReading] = useState<{ ids: string[] } | null>(null);
-  const [asked, setAsked] = useState<{ ids: string[]; enqueued: boolean } | null>(null);
+  const [asked, setAsked] = useState<Asked>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const load = useCallback(
     () => Promise.all([api.state(), api.batch()]).then(([state, batch]) => setLoaded({ state, batch }), (e: Error) => setFailed(e.message)),
@@ -105,7 +110,7 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
     setStarted(false);
     const wasNow = now !== null;
     setNow(null);
-    if (!wasNow && n > 0 && asked?.enqueued) setReading({ ids: asked.ids });
+    if (!wasNow) setReading(readingFor(n, asked));
     void load();
   };
   const start = (batch: Batch) => {
