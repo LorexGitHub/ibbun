@@ -21,3 +21,13 @@ test("a Learner picks a level and meets a clip, or is told there are none", asyn
     await expect(page.getByRole("button", { name: "Next clip" })).toBeVisible();
   }
 });
+
+// A fresh Learner has no Cleared Level, so the stack's seed decides which of the two states shows.
+test("a Learner sees how to unlock practice dialogues, or the Generate form for a Cleared Level", async ({ page }) => {
+  await page.goto("/listening");
+  await expect(page.getByRole("heading", { name: "Practice dialogues" })).toBeVisible();
+
+  const locked = page.getByText(/Know every Kanji of a level/);
+  const generate = page.getByRole("button", { name: "Generate a dialogue" });
+  await expect(locked.or(generate)).toBeVisible();
+});

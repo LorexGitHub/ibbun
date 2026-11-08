@@ -12,6 +12,19 @@ Free Listening practice (`slices/listening`, issue #66): a Learner picks a level
 - **Exam Mode** (Learner preference `examMode`): the question is shown before the audio, "Play" works once ("Played once" afterwards), there is no Replay and no slow checkbox. The Review logs `listening: {replays: 0, slow: false, examMode: true}`.
 - **Logging**: `GET /api/listening/clips?level=`, `GET /api/listening/clips/:id`, `POST /api/listening/clips/:id/answer`. The answer is recorded with `kind: "cram"`, the clip as the Study Item, the Example asked, and `listening: {replays, slow, examMode}`.
 
+## Practice dialogues (issue #95)
+
+A second card on `/listening`, "Practice dialogues": a Learner at a Cleared Level generates their own dialogue and answers its 2 questions. Slice code is in `slices/listening/practice`.
+
+- **Cleared Level**: every non-suspended Kanji of the level is Known. A Learner with none sees "Know every Kanji of a level to unlock dialogues at that level." and no form.
+- **Generate form**: Level (Cleared only), Question type (Any, 課題理解, ポイント理解, plus 概要理解 from N3), Length (Short, Medium, Exam length), Topic (a fixed list). No free text. "N left today." shows the rolling 24 h allowance (`PRACTICE_TEXT_LIMIT`, default 5); at 0 it says "Try again tomorrow." and shows no form.
+- **Waiting**: "Making your dialogue…" for up to 20 s, polling. If it is not approved and voiced by then: "It will appear in your library when it is ready."
+- **Library** ("Your dialogues"): one row per dialogue, "Listen" once ready, "Being made…" before.
+- **Playing**: the same card as a clip (Play, question, answer, transcript), but answers go to `POST /api/listening/practice/:id/answer`. Each answer is a `cram` Review whose Study Item is the passage and whose `exampleId` is `<passageId>:<question>`. "Next question" rotates between the 2 questions.
+- **API**: `GET /api/listening/practice/options`, `GET /api/listening/practice` (library), `POST /api/listening/practice` (202 `{id}`, 400 outside the choices, 403 not cleared, 429 at the limit), `GET /api/listening/practice/:id` (202 `{status:"pending"}` until ready), `POST .../:id/answer`. Another Learner's id is a 404.
+
+Driving it: the Learner needs every Kanji of N5 Known (log `manual` Reviews for them), then `/listening`, fill the form, "Generate a dialogue". Generation needs the worker, the `practice.generate` handler and an LLM; without them the dialogue stays "Being made…", which the page handles. The spec checks only the locked-or-form state. Gotchas: the dialogue's text is never sent before the answer; the library does not refresh while the page sits open.
+
 ## How to get to it (user POV)
 
 Sign in, then "Listening" in the nav (`/listening`). Choose a level, press Play, answer.

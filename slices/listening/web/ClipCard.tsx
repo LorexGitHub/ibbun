@@ -31,7 +31,7 @@ const Answer = ({ question, onSubmit }: { question: ClipView["question"]; onSubm
   );
 };
 
-const Result = ({ done, onNext }: { done: Done; onNext: () => void }) => (
+const Result = ({ done, nextLabel, onNext }: { done: Done; nextLabel: string; onNext: () => void }) => (
   <Card>
     <Pill ink={done.outcome === "pass"}>{done.outcome === "pass" ? "Correct" : "Not quite"}</Pill>
     {done.correctChoice && (
@@ -50,13 +50,21 @@ const Result = ({ done, onNext }: { done: Done; onNext: () => void }) => (
       ))}
     </ol>
     <Button variant="primary" onClick={onNext}>
-      Next clip
+      {nextLabel}
     </Button>
   </Card>
 );
 
 /** One clip: hear it, answer, then read the transcript. Text stays hidden until the Learner has answered. */
-export const ClipCard = ({ view, onNext }: { view: ClipView; onNext: () => void }) => {
+type Props = {
+  view: ClipView;
+  onNext: () => void;
+  /** Where the answer goes: free practice by default, a Practice Text's own route otherwise. */
+  answerWith?: typeof answerClip;
+  nextLabel?: string;
+};
+
+export const ClipCard = ({ view, onNext, answerWith = answerClip, nextLabel = "Next clip" }: Props) => {
   const [plays, setPlays] = useState(0);
   const slowUsed = useRef(false);
   const startedAt = useRef(Date.now());
@@ -64,7 +72,7 @@ export const ClipCard = ({ view, onNext }: { view: ClipView; onNext: () => void 
   const [done, setDone] = useState<Done | null>(null);
 
   const submit = async (value: string, revealed = false) => {
-    const answer = await answerClip(view.clipId, {
+    const answer = await answerWith(view.clipId, {
       exampleId: view.exampleId,
       input: value,
       attempts,
@@ -77,7 +85,7 @@ export const ClipCard = ({ view, onNext }: { view: ClipView; onNext: () => void 
     setAttempts([...attempts, value]);
   };
 
-  if (done) return <Result done={done} onNext={onNext} />;
+  if (done) return <Result done={done} nextLabel={nextLabel} onNext={onNext} />;
   const asking = view.examMode || plays > 0;
   return (
     <Card>
