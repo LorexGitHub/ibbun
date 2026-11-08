@@ -1,7 +1,7 @@
 import type { Rec } from "../src/drafts.ts";
 
 /** The content kinds that are sampled; each has its own sample rate, calibration and error rate. */
-export const SAMPLE_KINDS = ["example", "japanese-explanation", "listening-clip"] as const;
+export const SAMPLE_KINDS = ["example", "japanese-explanation", "grammar-fields", "listening-clip"] as const;
 export type SampleKind = (typeof SAMPLE_KINDS)[number];
 
 /**

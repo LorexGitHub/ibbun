@@ -1,3 +1,4 @@
+import type { JlptLevel } from "@mojibun/shared";
 import type { Licence, Token } from "../../schema.ts";
 
 /** One JMdict entry, keyed by `ent_seq`. Forms and readings in upstream order. */
@@ -22,17 +23,65 @@ export type KanjiRecord = {
   strokes: string[];
 };
 
+/**
+ * KanjiVG stroke data for one character, keyed by its code point as KanjiVG writes it (five lowercase hex digits, `098df`).
+ * `strokes` are the SVG path `d` strings in stroke order. They land on the KANJIDIC2 Kanji of the same character.
+ */
+export type KanjiStrokesRecord = { key: string; strokes: string[] };
+
+/**
+ * One Sentence-uses-Word link as the source states it: a JMdict `entry` when it knows one (`jpn_indices`), else the
+ * dictionary `form` and `reading`. `sense` is the 1-based sense number, when known. Resolved to a Word when applied.
+ */
+export type SentenceLink = { entry: string | null; form: string; reading: string | null; sense: number | null; start: number; end: number };
+
 /** One Tatoeba Sentence, keyed by sentence id, with the translation the fixed rule chose and its rebuilt tokens. */
 export type SentenceRecord = {
   key: string;
   text: string;
   translationEn: string;
   tokens: Token[];
+  /** Sentence-uses-Word links; the source has already chosen between `jpn_indices` and Sudachi. */
+  links?: SentenceLink[];
   author: string | null;
   licence: Extract<Licence, "cc-by-2.0-fr" | "cc0">;
 };
 
-export type Records = { jmdict: WordRecord; kanjidic: KanjiRecord; tatoeba: SentenceRecord };
+/**
+ * The List level the Tanos kanji lists give one Kanji, keyed by its literal. A Kanji listed at several levels has
+ * already been reduced to its easiest by the parser (jlpt-levels.md#collisions-and-misses-in-the-tanos-lists).
+ */
+export type KanjiLevelRecord = { key: string; level: JlptLevel };
+
+/**
+ * One ja Wiktionary gloss, keyed by page title, entry number and gloss number on that page. `title` is the headword page
+ * (a kanji spelling, or a kana spelling when the Word has no kanji form); the rule finds the JLPT Word it belongs to.
+ */
+export type WiktionaryRecord = { key: string; title: string; text: string };
+
+/**
+ * The List level yomitan-jlpt-vocab gives one JMdict Word, keyed by `ent_seq`. A Word listed at several levels has
+ * already been reduced to its easiest by the parser (jlpt-levels.md#collisions-and-misses-in-the-tanos-lists).
+ */
+export type WordLevelRecord = { key: string; level: JlptLevel };
+
+/**
+ * UniDic's accent for one dictionary-form lexeme: `form` is its orthographic base and `reading` its kana base in hiragana, keyed
+ * `form\treading`. `pitchAccent` is the `aType` values, the more common first; 0 is heiban. The rule lands them on the JMdict
+ * reading that has this form and reading. A Word UniDic splits into several tokens has no lexeme, so it gets none.
+ */
+export type UnidicRecord = { key: string; form: string; reading: string; pitchAccent: number[] };
+
+export type Records = {
+  jmdict: WordRecord;
+  kanjidic: KanjiRecord;
+  kanjivg: KanjiStrokesRecord;
+  tatoeba: SentenceRecord;
+  tanos: KanjiLevelRecord;
+  yomitan: WordLevelRecord;
+  "wiktionary-ja": WiktionaryRecord;
+  unidic: UnidicRecord;
+};
 export type Dataset = keyof Records;
 
 export type Run = { upstreamVersion: string; checksum: string };
@@ -77,4 +126,6 @@ export type SnapshotReport = {
   status: "applied" | "breaker tripped" | "unchanged";
   counts: Counts;
   tripped: string[];
+  /** Records the run skipped, one line each: for tanos, every Kanji that is not in KANJIDIC2; for yomitan, every `ent_seq` that is not a JMdict Word. */
+  notes?: string[];
 };

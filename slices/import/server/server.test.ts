@@ -4,14 +4,18 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createFakeSessionResolver } from "@mojibun/auth";
+import { createAuthoring } from "@mojibun/content-graph/authoring";
 import { migrateContentGraph } from "@mojibun/content-graph/testing";
-import { collectMigrations, createDb, migrate, type Db } from "@mojibun/db";
+import { collectMigrations, createDb, migrate, transaction, type Db } from "@mojibun/db";
 import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
 import { createFakeJobs } from "@mojibun/jobs";
+import type { Nlp } from "@mojibun/nlp";
 import { LearnerId } from "@mojibun/shared";
 import { checkSlices } from "@mojibun/slice";
 import slice from "../register.ts";
 import { createImportServer } from "./import-server.ts";
+import type { GrammarSources } from "../sources/grammar-seed/download.ts";
+import type { GrammarSeedDeps } from "../sources/grammar-seed/index.ts";
 import type { Refresh } from "./jobs.ts";
 
 describe("the import slice, registered", () => {
@@ -64,5 +68,36 @@ describe("the import slice, registered", () => {
     const supervisor = sessions.signIn({ learnerId: LearnerId.parse(randomUUID()), role: "supervisor" });
     const { runs } = (await (await part.api!.request("/runs", { headers: supervisor })).json()) as { runs: { status: string; upstreamVersion: string; counts: { added: number } }[] };
     expect(runs).toMatchObject([{ status: "applied", upstreamVersion: "3.6.2+1", counts: { added: 1 } }]);
+  });
+
+  it("runs the one-time Grammar Point seed as a job with no schedule, into Postgres, and a second run adds nothing", async () => {
+    const nlp: Nlp = { tokenize: async (text) => [{ surface: text, lemma: text, reading: text, partOfSpeech: ["名詞"], conjugation: null }] };
+    const sources: GrammarSources = {
+      hanabiraCommit: "abc",
+      tanosSnapshot: "2020",
+      hanabira: [{ key: "N5:0", level: "N5", title: "ます", meaning: "polite", notes: "long", formation: ["V-ます"], examples: [{ text: "食べます。", translationEn: "I eat." }] }],
+      tanos: [{ key: "1", level: "N5", title: "ます" }],
+    };
+    const deps: GrammarSeedDeps = {
+      nlp,
+      jobs: createFakeJobs(),
+      authoring: createAuthoring(db),
+      transact: (work) => transaction(db, (tx) => work(createAuthoring(tx))),
+      download: async () => sources,
+    };
+    const part = createImportServer({ db, sessions: createFakeSessionResolver() }, { rawDir: dir, refreshes: [], grammarSeed: () => deps });
+    expect(part.jobs?.map((j) => [j.contract.name, j.schedule])).toEqual([["import.staleness", expect.anything()], ["import.grammar-seed", undefined]]);
+
+    const jobs = createFakeJobs();
+    await jobs.work(part.jobs!);
+    await jobs.enqueue(part.jobs![1]!.contract, {});
+    await jobs.enqueue(part.jobs![1]!.contract, {});
+    await jobs.drain();
+
+    const auth = createAuthoring(db);
+    expect((await auth.rows("grammarPoint")).map((p) => p.title)).toEqual(["ます", "ます"]);
+    expect(await auth.rows("sentence")).toHaveLength(1);
+    expect(await auth.rows("sentenceDemonstratesGrammar")).toMatchObject([{ approval: "draft", spanStart: 0, spanEnd: 5 }]);
+    expect(await auth.rows("generationRequest")).toMatchObject([{ kind: "merge_proposal", status: "open" }]);
   });
 });

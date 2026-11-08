@@ -1,9 +1,11 @@
-import { BatchTextGenerate, ContentGenerate } from "@mojibun/content-graph/jobs";
+import { BatchTextGenerate, ContentGenerate, ListeningSynthesise, PracticeGenerate } from "@mojibun/content-graph/jobs";
 import { createAuthoring } from "@mojibun/content-graph/authoring";
 import { createDb } from "@mojibun/db";
 import { createPgBossJobs, handler } from "@mojibun/jobs";
 import { createAnthropicLlm, loadLlmConfig } from "@mojibun/llm";
 import { createProgress, createTexts } from "@mojibun/progress";
+import { createVoicevoxTts } from "@mojibun/tts";
+import { createDirectoryAudioStore, loadSynthesisConfig, synthesise, type SynthesiseDeps } from "../kinds/synthesise/index.ts";
 import { loadGenerationConfig } from "./config.ts";
 import { contentGeneration, type ContentGeneration } from "./generate.ts";
 
@@ -29,7 +31,21 @@ const connected = () =>
     throw error;
   }));
 
+// Same lazy connection for the TTS handler: it needs VOICEVOX_URL, AUDIO_DIR and VOICE_ALLOW_LIST only when a job runs.
+let synthesis: SynthesiseDeps | undefined;
+const synthesisDeps = (): SynthesiseDeps => {
+  const config = loadSynthesisConfig(process.env);
+  return (synthesis ??= {
+    auth: createAuthoring(createDb(config.databaseUrl)),
+    tts: createVoicevoxTts({ url: config.voicevoxUrl }),
+    store: createDirectoryAudioStore(config.audioDir),
+    voices: config.voices,
+  });
+};
+
 export const jobs = [
   handler(ContentGenerate, async (payload) => (await connected()).generate(payload)),
   handler(BatchTextGenerate, async (payload) => (await connected()).requestBatchText(payload)),
+  handler(PracticeGenerate, async (payload) => (await connected()).requestPracticeText(payload)),
+  handler(ListeningSynthesise, ({ target }) => synthesise(synthesisDeps(), target)),
 ];

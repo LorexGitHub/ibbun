@@ -10,6 +10,7 @@ Decided in [#23](https://github.com/LorexGitHub/mojibun/issues/23). Terms follow
 | Tatoeba sentences, translations, `jpn_indices` | `downloads.tatoeba.org/exports` (Saturday 06:30 UTC) | Weekly, after the export | Sentence corrections and author credits |
 | KanjiVG | GitHub release tag | Checked weekly, applied only on a new tag | Irregular releases |
 | yomitan-jlpt-vocab (Tanos Words → JMdict) | GitHub release | Checked weekly, applied only on a new release | Word Level Candidates ([jlpt-levels.md](jlpt-levels.md)) |
+| Tanos kanji lists | Wayback Machine snapshot `20200117222855` (tanos.co.uk is gone) | Once: tried daily until KANJIDIC2 is in, then never again | Kanji Level Candidates ([jlpt-levels.md](jlpt-levels.md)) |
 
 Refreshes run as scheduled `worker` jobs (pg-boss) owned by the `import` slice. No human starts them.
 

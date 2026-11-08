@@ -125,7 +125,7 @@ const Actions = (props: { prompt: ReviewPrompt; preferences: Preferences; busy: 
 };
 
 /** One Review. The first graded submission is final: there is no Undo. */
-export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferences; submit: Submit; onDone: () => void }) => {
+export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferences; submit: Submit; onDone: (result: SubmitResponse) => void }) => {
   const { prompt, preferences, submit, onDone } = props;
   const a = useAnswering(prompt, preferences, submit);
   const shown = shownByDefault(preferences.explanations);
@@ -152,7 +152,7 @@ export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferenc
       {a.result && (
         <>
           <Info prompt={prompt} result={a.result} />
-          <Button variant="primary" onClick={onDone}>
+          <Button variant="primary" onClick={() => onDone(a.result!)}>
             Next
           </Button>
         </>

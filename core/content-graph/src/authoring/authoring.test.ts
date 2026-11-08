@@ -66,6 +66,50 @@ const contract = (make: () => Promise<Harness>) => {
       await a.insert("sentence", [{ ...provenance!, id, text: "水を飲む。", approval: "draft" }]);
       expect((await a.rows("sentence", { id }))[0]?.text).toBe("水を飲む。");
     });
+
+    it("keeps the speaker of each dialogue line, and none on prose", async () => {
+      const { a, sentence } = await given();
+      const { provenanceId } = (await a.rows("sentence", { id: sentence }))[0]!;
+      const life = { approval: "draft", retired: false, provenanceId } as const;
+      const passageId = randomUUID();
+      await a.insert("readingPassage", [{ id: passageId, title: "会話", form: "dialogue", comprehensionQuestions: [], ...life }]);
+      await a.insert("passageContainsSentence", [
+        { id: randomUUID(), passageId, sentenceId: sentence, position: 0, speaker: "男", ...life },
+        { id: randomUUID(), passageId, sentenceId: sentence, position: 1, speaker: null, ...life },
+      ]);
+      const lines = (await a.rows("passageContainsSentence", { passageId })).sort((x, y) => x.position - y.position);
+      expect(lines.map((l) => l.speaker)).toEqual(["男", null]);
+    });
+  });
+
+  describe("derived links", () => {
+    const link = (item: string, provenanceId: string) => ({ id: randomUUID(), retiredWordId: item, wordId: item, approval: "approved" as const, retired: false, provenanceId });
+
+    it("hard-deletes derived links by id and leaves the rest", async () => {
+      const w = world();
+      const derived = randomUUID();
+      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+      const [gone, kept] = [link(w.item, derived), link(w.item, derived)];
+      w.graph.wordSupersededBy.push(gone, kept);
+      await h.seed(w.graph);
+      await h.authoring.removeDerivedLinks("wordSupersededBy", [gone.id]);
+      expect((await h.authoring.rows("wordSupersededBy", { provenanceId: derived })).map((r) => r.id)).toEqual([kept.id]);
+    });
+
+    it("refuses to delete a link that is not derived, and deletes nothing", async () => {
+      const w = world();
+      const derived = randomUUID();
+      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+      const [fine, authored] = [link(w.item, derived), link(w.item, w.graph.provenance[0]!.id)];
+      w.graph.wordSupersededBy.push(fine, authored);
+      await h.seed(w.graph);
+      await expect(h.authoring.removeDerivedLinks("wordSupersededBy", [fine.id, authored.id])).rejects.toThrow(/not a derived link/);
+      expect(await h.authoring.rows("wordSupersededBy", { id: fine.id })).toHaveLength(1);
+    });
+
+    it("refuses a table that holds no derived links", async () => {
+      await expect(h.authoring.removeDerivedLinks("example" as never, [])).rejects.toThrow(/not a derived link table/);
+    });
   });
 
   describe("Approval Decisions", () => {

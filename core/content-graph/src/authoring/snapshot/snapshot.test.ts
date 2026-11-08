@@ -6,6 +6,7 @@ import { getTableName } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import { emptyGraph, tables } from "../../graph.ts";
 import { createFakeAuthoring, migrateContentGraph } from "../../testing.ts";
+import { currentLevel } from "../../levels/levels.ts";
 import { createAuthoring, type Authoring, type Clock } from "../index.ts";
 import type { Dataset, Records, SentenceRecord, SnapshotOptions, WordRecord } from "./types.ts";
 
@@ -91,11 +92,160 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await apply("jmdict", [taberu, nomu])).counts).toMatchObject({ added: 0, changed: 0 });
     });
 
+    describe("Sentence uses Word links", () => {
+      const link = (over: Partial<NonNullable<SentenceRecord["links"]>[number]> = {}) => ({
+        entry: null, form: "食べる", reading: null, sense: null, start: 3, end: 6, ...over,
+      });
+      const withLinks = (links: NonNullable<SentenceRecord["links"]>, text = "パンを食べる。") => ({ ...sentence("10", text), links });
+      const linksOf = async () => h.a.rows("sentenceUsesWord", { sentenceId: await idOf("tatoeba", "10") });
+
+      it("links by JMdict entry, picking the numbered sense and the form it was written in", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        await apply("tatoeba", [withLinks([link({ entry: "1", sense: 2 })])]);
+        const [row] = await linksOf();
+        expect(row).toMatchObject({ wordId: await idOf("jmdict", "1"), spanStart: 3, spanEnd: 6, approval: "draft" });
+        expect(row!.senseId).toBe((await senses(await idOf("jmdict", "1")))[1]!.id);
+        expect(row!.formId).not.toBeNull();
+      });
+
+      it("falls back to the form when there is no entry, and leaves an unknown form unlinked", async () => {
+        await apply("jmdict", [taberu]);
+        await apply("tatoeba", [withLinks([link(), link({ form: "走る", start: 0, end: 1 })])]);
+        expect(await linksOf()).toHaveLength(1);
+      });
+
+      it("replaces the links when they change and keeps them when they do not", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        await apply("tatoeba", [withLinks([link()])]);
+        const [first] = await linksOf();
+        await apply("tatoeba", [withLinks([link()])]);
+        expect((await linksOf())[0]!.id).toBe(first!.id);
+        await apply("tatoeba", [withLinks([link({ form: "飲む", start: 0, end: 2 })])]);
+        const rows = await linksOf();
+        expect(rows).toHaveLength(1);
+        expect(rows[0]!.wordId).toBe(await idOf("jmdict", "2"));
+      });
+    });
+
     it("adds Tatoeba Sentences as Draft, credited to their author", async () => {
       await apply("tatoeba", [sentence("10", "パンを食べる。")]);
       const [row] = await h.a.rows("sentence", { id: await idOf("tatoeba", "10") });
       expect(row).toMatchObject({ approval: "draft", translationEn: "I eat bread." });
       expect((await h.a.rows("provenance", { id: row!.provenanceId }))[0]).toMatchObject({ author: "ann", licence: "cc-by-2.0-fr", sourceUrl: "https://tatoeba.org/sentences/show/10" });
+    });
+
+    describe("ja Wiktionary glosses", () => {
+      const gloss = (key: string, title: string, text = "食物を口に入れて、かみ砕いて飲み込むこと。") => ({ key, title, text });
+      const levelled = async (wordKey: string) => {
+        const wordId = await idOf("jmdict", wordKey);
+        const provenanceId = randomUUID();
+        await h.a.insert("provenance", [{ id: provenanceId, source: { kind: "authored", by: "t" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] }]);
+        await h.a.insert("levelCandidate", [{ id: randomUUID(), studyItemId: wordId, level: "N5", kind: "editorial", approval: "approved", retired: false, provenanceId }]);
+        return wordId;
+      };
+
+      it("adds a gloss of a JLPT Word as a Draft on its first sense, with CC BY-SA 4.0 and a link to the page, and asks for alignment", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        const wordId = await levelled("1");
+        const report = await apply("wiktionary-ja", [gloss("食べる#0.0", "食べる"), gloss("飲む#0.0", "飲む"), gloss("犬#0.0", "犬")]);
+        expect(report.counts).toMatchObject({ added: 1 });
+        const [row] = await h.a.rows("japaneseExplanation", { id: await idOf("wiktionary-ja", "食べる#0.0") });
+        expect(row).toMatchObject({ approval: "draft", retired: false, wordSenseId: (await senses(wordId))[0]!.id, grammarPointId: null });
+        expect((await h.a.rows("provenance", { id: row!.provenanceId }))[0]).toMatchObject({
+          licence: "cc-by-sa-4.0",
+          sourceUrl: `https://ja.wiktionary.org/wiki/${encodeURIComponent("食べる")}`,
+          source: { kind: "import", importRunId: report.importRunId },
+        });
+        expect(await h.a.rows("generationRequest", { targetId: wordId, kind: "sense_alignment" })).toHaveLength(1);
+      });
+
+      it("matches a kana page to a Word with no kanji form, and leaves a page that could be two Words alone", async () => {
+        await apply("jmdict", [word("3", [], ["いちばん"], [[["adv"], ["best"]]]), word("4", ["雨"], ["あめ"], [[["n"], ["rain"]]]), word("5", ["飴"], ["あめ"], [[["n"], ["candy"]]]), word("6", [], ["あめ"], [[["n"], ["sweet"]]])]);
+        for (const key of ["3", "4", "5", "6"]) await levelled(key);
+        const report = await apply("wiktionary-ja", [gloss("いちばん#0.0", "いちばん"), gloss("あめ#0.0", "あめ")]);
+        expect(report.counts).toMatchObject({ added: 2 });
+      });
+
+      it("waits for a Word that has no live sense, then takes the gloss on a later run", async () => {
+        await apply("jmdict", [nomu]);
+        const wordId = await levelled("2");
+        await h.a.update("wordSense", { wordId }, { retired: true });
+        expect((await apply("wiktionary-ja", [gloss("飲む#0.0", "飲む")])).counts).toMatchObject({ added: 0 });
+        expect(await h.a.rows("generationRequest", { targetId: wordId })).toEqual([]);
+        await h.a.update("wordSense", { wordId }, { retired: false });
+        expect((await apply("wiktionary-ja", [gloss("飲む#0.0", "飲む")])).counts).toMatchObject({ added: 1 });
+      });
+
+      it("returns a changed gloss to Draft, retires one that left the page, and ignores one still unmatched on a rerun", async () => {
+        await apply("jmdict", [taberu]);
+        await levelled("1");
+        await apply("wiktionary-ja", [gloss("食べる#0.0", "食べる"), gloss("犬#0.0", "犬")]);
+        const id = await idOf("wiktionary-ja", "食べる#0.0");
+        await h.a.update("japaneseExplanation", { id }, { approval: "approved" });
+        expect((await apply("wiktionary-ja", [gloss("食べる#0.0", "食べる"), gloss("犬#0.0", "犬")])).counts).toMatchObject({ added: 0, changed: 0 });
+        expect((await apply("wiktionary-ja", [gloss("食べる#0.0", "食べる", "新しい説明。")])).counts).toMatchObject({ changed: 1 });
+        expect((await h.a.rows("japaneseExplanation", { id }))[0]).toMatchObject({ text: "新しい説明。", approval: "draft" });
+        expect((await apply("wiktionary-ja", [])).counts).toMatchObject({ retired: 1 });
+        expect((await h.a.rows("japaneseExplanation", { id }))[0]!.retired).toBe(true);
+      });
+    });
+
+    describe("UniDic pitch accent", () => {
+      const accent = (form: string, reading: string, pitchAccent: number[]) => ({ key: `${form}\t${reading}`, form, reading, pitchAccent });
+      const readingOf = async (wordKey: string) => (await h.a.rows("wordReading", { wordId: await idOf("jmdict", wordKey) }))[0]!;
+
+      it("gives a reading the accent of the UniDic lexeme with its form and reading, credited to NINJAL under the BSD licence", async () => {
+        await apply("jmdict", [taberu, nomu]);
+        const report = await apply("unidic", [accent("食べる", "たべる", [2]), accent("走る", "はしる", [1])]);
+        expect(report.counts).toMatchObject({ added: 1 });
+        const row = await readingOf("1");
+        expect(row.pitchAccent).toEqual([2]);
+        expect((await h.a.rows("provenance", { id: row.provenanceId }))[0]).toMatchObject({
+          licence: "bsd-3-clause",
+          author: "National Institute for Japanese Language and Linguistics",
+          source: { kind: "import", importRunId: report.importRunId },
+        });
+        expect((await readingOf("2")).pitchAccent).toBeNull();
+      });
+
+      it("matches a katakana reading by its hiragana, and a Word with no form by its reading", async () => {
+        await apply("jmdict", [word("3", [], ["コーヒー"], [[["n"], ["coffee"]]]), word("4", [], ["いちばん"], [[["adv"], ["best"]]])]);
+        await apply("unidic", [accent("コーヒー", "こーひー", [3]), accent("いちばん", "いちばん", [3, 0])]);
+        expect((await readingOf("3")).pitchAccent).toEqual([3]);
+        expect((await readingOf("4")).pitchAccent).toEqual([3, 0]);
+      });
+
+      it("leaves a lexeme that could be two readings alone, then takes it once JMdict has one", async () => {
+        await apply("jmdict", [word("5", ["雨"], ["あめ"], [[["n"], ["rain"]]]), word("6", ["雨"], ["あめ"], [[["n"], ["rain"]]])]);
+        const report = await apply("unidic", [accent("雨", "あめ", [1])]);
+        expect(report.counts).toMatchObject({ added: 0 });
+        expect(report.notes).toEqual(["雨 (あめ) matches 2 JMdict readings: skipped"]);
+        await apply("jmdict", [word("5", ["雨"], ["あめ"], [[["n"], ["rain"]]])]);
+        expect((await apply("unidic", [accent("雨", "あめ", [1])])).counts).toMatchObject({ added: 1 });
+      });
+
+      it("keeps the accent and its credit when JMdict refreshes, and counts nothing as changed", async () => {
+        await apply("jmdict", [taberu]);
+        await apply("unidic", [accent("食べる", "たべる", [2])]);
+        const before = await readingOf("1");
+        const report = await apply("jmdict", [{ ...taberu, senses: [{ partsOfSpeech: ["v1"], glosses: ["to eat"] }, taberu.senses[1]!] }, ]);
+        expect(report.counts).toMatchObject({ changed: 0 });
+        expect(await readingOf("1")).toMatchObject({ pitchAccent: [2], provenanceId: before.provenanceId });
+        await apply("jmdict", [{ ...taberu, priorityTags: ["ichi1"] }]);
+        expect(await readingOf("1")).toMatchObject({ pitchAccent: [2], provenanceId: before.provenanceId });
+      });
+
+      it("changes a changed accent, ignores an unchanged one, and takes the accent away when the lexeme leaves UniDic", async () => {
+        await apply("jmdict", [taberu]);
+        await apply("unidic", [accent("食べる", "たべる", [2])]);
+        expect((await apply("unidic", [accent("食べる", "たべる", [2])])).counts).toMatchObject({ changed: 0 });
+        expect((await apply("unidic", [accent("食べる", "たべる", [0, 2])])).counts).toMatchObject({ changed: 1 });
+        expect((await readingOf("1")).pitchAccent).toEqual([0, 2]);
+        expect((await apply("unidic", [])).counts).toMatchObject({ retired: 1 });
+        const row = await readingOf("1");
+        expect(row.pitchAccent).toBeNull();
+        expect((await h.a.rows("provenance", { id: row.provenanceId }))[0]).toMatchObject({ licence: "edrdg" });
+      });
     });
 
     it("adds, changes and retires KANJIDIC2 characters", async () => {
@@ -106,6 +256,98 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await h.a.rows("kanji", { studyItemId: id }))[0]).toMatchObject({ literal: "食", meanings: ["eat", "food"] });
       expect((await apply("kanjidic", [])).counts.retired).toBe(1);
       expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(true);
+    });
+    it("leaves KanjiVG strokes alone when KANJIDIC2 refreshes, and does not count the Kanji as changed", async () => {
+      const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      await apply("kanjidic", [kanji]);
+      await apply("kanjivg", [{ key: "098df", strokes: ["M1,2"] }]);
+      expect((await apply("kanjidic", [kanji])).counts).toMatchObject({ changed: 0 });
+      expect((await apply("kanjidic", [{ ...kanji, meanings: ["eat", "food"] }])).counts).toMatchObject({ changed: 1 });
+      expect((await h.a.rows("kanji", { studyItemId: await idOf("kanjidic", "食") }))[0]).toMatchObject({ meanings: ["eat", "food"], strokes: ["M1,2"] });
+    });
+
+    it("sets KanjiVG strokes on the KANJIDIC2 Kanji of the same code point, and skips code points KANJIDIC2 lacks", async () => {
+      const kanji = { key: "食", meanings: ["eat"], onReadings: [], kunReadings: [], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      await apply("kanjidic", [kanji]);
+      const id = await idOf("kanjidic", "食");
+      const stray = { key: "04e80", strokes: ["M1,1"] };
+      const report = await apply("kanjivg", [{ key: "098df", strokes: ["M1,2", "M3,4"] }, stray]);
+      expect(report.counts).toMatchObject({ added: 1, changed: 0 });
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual(["M1,2", "M3,4"]);
+      expect(await idOf("kanjivg", "098df")).toBe(id);
+
+      expect((await apply("kanjivg", [{ key: "098df", strokes: ["M1,2", "M5,6"] }])).counts).toMatchObject({ added: 0, changed: 1, retired: 0 });
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual(["M1,2", "M5,6"]);
+
+      expect((await apply("kanjivg", [])).counts.retired).toBe(1);
+      expect((await h.a.rows("kanji", { studyItemId: id }))[0]!.strokes).toEqual([]);
+      expect((await h.a.rows("studyItem", { id }))[0]!.retired).toBe(false);
+    });
+
+    describe("Tanos Kanji levels", () => {
+      const shoku = { key: "食", meanings: ["eat"], onReadings: ["ショク"], kunReadings: ["た.べる"], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
+      const candidates = async (literal: string) => h.a.rows("levelCandidate", { studyItemId: await idOf("kanjidic", literal) });
+      const levelOf = async (literal: string) => currentLevel(await candidates(literal));
+
+      it("adds an Approved List candidate to each listed Kanji, credited to Waller under CC BY", async () => {
+        await apply("kanjidic", [shoku]);
+        const report = await apply("tanos", [{ key: "食", level: "N4" }]);
+        const [candidate] = await candidates("食");
+        expect(candidate).toMatchObject({ level: "N4", kind: "list", approval: "approved", retired: false });
+        expect(await levelOf("食")).toBe("N4");
+        expect(report.counts).toMatchObject({ added: 1, levelsChanged: 1 });
+        const [provenance] = await h.a.rows("provenance", { id: candidate!.provenanceId });
+        expect(provenance).toMatchObject({
+          licence: "cc-by",
+          author: "Jonathan Waller",
+          sourceUrl: "https://web.archive.org/web/20200117222855/http://www.tanos.co.uk/jlpt/",
+          source: { kind: "import", importRunId: report.importRunId },
+        });
+      });
+
+      it("skips a Kanji KANJIDIC2 does not have and says so in the report", async () => {
+        await apply("kanjidic", [shoku]);
+        const report = await apply("tanos", [{ key: "食", level: "N4" }, { key: "仮", level: "N1" }]);
+        expect(report.notes).toEqual(["仮 is not in KANJIDIC2: skipped"]);
+        expect(report.counts.added).toBe(1);
+        expect(await h.a.rows("sourceKey", { dataset: "tanos", upstreamKey: "仮" })).toEqual([]);
+      });
+
+      it("fails, writing nothing, when KANJIDIC2 has not been imported yet", async () => {
+        await expect(apply("tanos", [{ key: "食", level: "N4" }])).rejects.toThrow(/import KANJIDIC2 first/);
+        expect(await h.a.rows("importRun", { dataset: "tanos" })).toEqual([]);
+        expect(await h.a.rows("levelCandidate", {})).toEqual([]);
+      });
+
+      it("rewrites only its own candidate when the list changes, and never an Editorial one", async () => {
+        await apply("kanjidic", [shoku]);
+        await apply("tanos", [{ key: "食", level: "N4" }]);
+        const [list] = await candidates("食");
+        const editorial = randomUUID();
+        await h.a.insert("levelCandidate", [{ id: editorial, studyItemId: list!.studyItemId, level: "N2", kind: "editorial", approval: "approved", retired: false, provenanceId: list!.provenanceId }]);
+
+        expect((await apply("tanos", [{ key: "食", level: "N3" }])).counts.changed).toBe(1);
+        expect((await h.a.rows("levelCandidate", { id: list!.id }))[0]).toMatchObject({ level: "N3", retired: false });
+        expect((await h.a.rows("levelCandidate", { id: editorial }))[0]).toMatchObject({ level: "N2" });
+        expect(await levelOf("食")).toBe("N2");
+        expect((await apply("tanos", [{ key: "食", level: "N3" }])).counts).toMatchObject({ changed: 0, levelsChanged: 0 });
+      });
+
+      it("Retires the List candidate when the list drops the Kanji, leaving the Kanji itself alone", async () => {
+        await apply("kanjidic", [shoku]);
+        await apply("tanos", [{ key: "食", level: "N4" }]);
+        expect((await apply("tanos", [])).counts).toMatchObject({ retired: 1, levelsChanged: 1 });
+        expect(await levelOf("食")).toBeNull();
+        expect((await h.a.rows("studyItem", { id: await idOf("kanjidic", "食") }))[0]!.retired).toBe(false);
+      });
+
+      it("revives a Retired candidate that the list brings back", async () => {
+        await apply("kanjidic", [shoku]);
+        await apply("tanos", [{ key: "食", level: "N4" }]);
+        await apply("tanos", []);
+        expect((await apply("tanos", [{ key: "食", level: "N4" }])).counts).toMatchObject({ changed: 1, levelsChanged: 1 });
+        expect(await levelOf("食")).toBe("N4");
+      });
     });
   });
 
@@ -236,6 +478,66 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await apply("tatoeba", [])).counts).toMatchObject({ retired: 1, suspended: 1 });
       expect((await h.a.rows("example", { id }))[0]!.retired).toBe(true);
       expect(await h.a.isSuspended(item)).toBe(true);
+    });
+  });
+
+  describe("Word Level Candidates from yomitan-jlpt-vocab", () => {
+    const listed = (key: string, level: Records["yomitan"]["level"]) => ({ key, level });
+    const candidates = async (key: string) => h.a.rows("levelCandidate", { studyItemId: await idOf("jmdict", key) });
+
+    it("lists a List candidate on each JMdict Word by ent_seq, credited to Waller and stephenmk, and a rerun changes nothing", async () => {
+      await apply("jmdict", [taberu, nomu]);
+      const report = await apply("yomitan", [listed("1", "N5")]);
+      expect(report).toMatchObject({ status: "applied", counts: { added: 1, levelsChanged: 1 }, notes: [] });
+      const [candidate] = await candidates("1");
+      expect(candidate).toMatchObject({ level: "N5", kind: "list", approval: "approved", retired: false });
+      expect((await h.a.rows("provenance", { id: candidate!.provenanceId }))[0]).toMatchObject({
+        licence: "cc-by-sa-4.0",
+        source: { kind: "import", importRunId: report.importRunId },
+        author: "Jonathan Waller, via stephenmk",
+        sourceUrl: "https://github.com/stephenmk/yomitan-jlpt-vocab",
+      });
+      expect(await candidates("2")).toEqual([]);
+      expect((await apply("yomitan", [listed("1", "N5")])).counts).toMatchObject({ added: 0, changed: 0, levelsChanged: 0 });
+      expect(await candidates("1")).toHaveLength(1);
+    });
+
+    it("skips an ent_seq with no JMdict Word, names it in the report, and lists it once the Word arrives", async () => {
+      await apply("jmdict", [taberu]);
+      const report = await apply("yomitan", [listed("1", "N5"), listed("99", "N3")]);
+      expect(report).toMatchObject({ counts: { added: 1 }, notes: ["ent_seq 99 is not in JMdict: skipped"] });
+      await apply("jmdict", [taberu, word("99", ["猫"], ["ねこ"], [[["n"], ["cat"]]])]);
+      const again = await apply("yomitan", [listed("1", "N5"), listed("99", "N3")]);
+      expect(again).toMatchObject({ counts: { added: 1 }, notes: [] });
+      expect((await candidates("99"))[0]).toMatchObject({ level: "N3", kind: "list" });
+    });
+
+    it("changes the level in place, and retires the candidate when the list drops the Word", async () => {
+      await apply("jmdict", [taberu]);
+      await apply("yomitan", [listed("1", "N4")]);
+      const [before] = await candidates("1");
+      expect((await apply("yomitan", [listed("1", "N5")])).counts).toMatchObject({ changed: 1, levelsChanged: 1 });
+      expect((await candidates("1"))[0]).toMatchObject({ id: before!.id, level: "N5", retired: false });
+      expect((await apply("yomitan", [])).counts).toMatchObject({ retired: 1, levelsChanged: 1, retiredLevelledWithoutSuccessor: 0 });
+      expect((await candidates("1"))[0]).toMatchObject({ retired: true });
+      expect((await h.a.rows("studyItem", { id: await idOf("jmdict", "1") }))[0]!.retired).toBe(false);
+    });
+
+    it("never changes the current level while an Editorial candidate wins", async () => {
+      await apply("jmdict", [taberu]);
+      const id = await idOf("jmdict", "1");
+      const { life } = await exampleOn(id);
+      await h.a.insert("levelCandidate", [{ id: randomUUID(), studyItemId: id, level: "N2", kind: "editorial", ...life }]);
+      expect((await apply("yomitan", [listed("1", "N5")])).counts).toMatchObject({ added: 1, levelsChanged: 0 });
+      expect((await candidates("1")).find((c) => c.kind === "editorial")).toMatchObject({ level: "N2", retired: false });
+    });
+
+    it("trips the breaker when a run would change the current level of too many Words", async () => {
+      await apply("jmdict", [taberu, nomu]);
+      const strict = { maxChangedShare: 1, maxExamplesRedrafted: 0, maxLevelChanges: 1 };
+      const report = await apply("yomitan", [listed("1", "N5"), listed("2", "N5")], { breaker: strict });
+      expect(report).toMatchObject({ status: "breaker tripped", tripped: ["level changes"] });
+      expect(await candidates("1")).toEqual([]);
     });
   });
 

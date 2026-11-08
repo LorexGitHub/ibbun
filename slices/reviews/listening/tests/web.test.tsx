@@ -35,10 +35,11 @@ const transcript = [{ speaker: "女" as const, text: "パンを食べる。", tr
 const passed: ClipAnswerResponse = { outcome: "pass", transcript };
 
 const sent: ClipAnswerRequest[] = [];
+const finished = vi.fn();
 const mount = (clips: ClipReview[], replies: ClipAnswerResponse[] = [passed]) => {
   const queue = [...replies];
   const answer = vi.fn(async (request: ClipAnswerRequest) => (sent.push(request), queue.shift()!));
-  render(<ListeningReviews load={async () => ({ clips })} answer={answer} empty={<p>No Reviews are due.</p>} />);
+  render(<ListeningReviews load={async () => ({ clips })} answer={answer} onFinish={finished} />);
   return answer;
 };
 const play = () => fireEvent.click(screen.getByRole("button", { name: "Play" }));
@@ -47,6 +48,7 @@ const press = (name: string | RegExp) => fireEvent.click(screen.getByRole("butto
 beforeEach(() => {
   plays.length = 0;
   sent.length = 0;
+  finished.mockClear();
   vi.stubGlobal("Audio", FakeAudio);
 });
 afterEach(() => {
@@ -57,11 +59,11 @@ afterEach(() => {
 describe("scheduled Listening Clip Reviews", () => {
   it("shows the empty state when no clip is due", async () => {
     mount([]);
-    expect(await screen.findByText("No Reviews are due.")).toBeTruthy();
+    await waitFor(() => expect(finished).toHaveBeenCalledTimes(1));
   });
 
   it("shows an error when the due clips cannot be loaded", async () => {
-    render(<ListeningReviews load={() => Promise.reject(new Error("log in first"))} empty={null} />);
+    render(<ListeningReviews load={() => Promise.reject(new Error("log in first"))} onFinish={finished} />);
     expect((await screen.findByRole("alert")).textContent).toBe("log in first");
   });
 
@@ -177,7 +179,7 @@ describe("scheduled Listening Clip Reviews", () => {
     expect(await screen.findByText("2 of 2")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Show answer" }));
     fireEvent.click(await screen.findByRole("button", { name: "Next" }));
-    expect(await screen.findByText("No Reviews are due.")).toBeTruthy();
+    await waitFor(() => expect(finished).toHaveBeenCalledTimes(1));
   });
 
   it("sends how long the Learner took", async () => {

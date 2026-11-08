@@ -127,7 +127,7 @@ const run = async (w: World, answer: (call: FakeLlmCall) => unknown = approving(
 };
 
 const explanationVerdicts = () => ({
-  verdicts: ["accurate", "natural", "level", "distinct"].map((criterion) => ({ criterion, pass: true, note: "ok" })),
+  verdicts: ["accurate", "natural", "level", "distinct", "reference"].map((criterion) => ({ criterion, pass: true, note: "ok" })),
   confidence: 0.9,
   bothReadingsAcceptable: false,
 });
@@ -181,7 +181,7 @@ describe("content.review", () => {
     expect(llm.calls()).toHaveLength(1);
     expect(llm.calls()[0]!.prompt).toContain("Reading disagreements between the generator and Sudachi:\nnone");
     const [decision] = await w.a.decisions(w.example);
-    expect(decision).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", model: "claude-opus-5-5", rubricVersion: "example/v1" } });
+    expect(decision).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", model: "claude-opus-5-5", rubricVersion: "example/v2" } });
     expect(decision!.verdicts.map((v) => v.criterion)).toEqual(PASS);
   });
 
@@ -274,7 +274,7 @@ describe("content.review", () => {
     expect((await bad.a.decisions(bad.graph.japaneseExplanation[0]!.id))[0]!.reason).toMatch(/latin[\s\S]*headword/);
     await run(clean, explanationVerdicts);
     expect(clean.graph.japaneseExplanation[0]!.approval).toBe("approved");
-    expect((await clean.a.decisions(clean.graph.japaneseExplanation[0]!.id))[0]!.decider).toMatchObject({ rubricVersion: "japanese-explanation/v1" });
+    expect((await clean.a.decisions(clean.graph.japaneseExplanation[0]!.id))[0]!.decider).toMatchObject({ rubricVersion: "explanation/v1" });
   });
 
   it("checks a Grammar Point Example with its Matcher Rule: one match at the claimed span", async () => {
@@ -398,6 +398,29 @@ describe("content.review", () => {
     const { llm } = await run(w, explanationVerdicts);
     expect(llm.calls()[0]!.prompt).toContain("JLPT Level of the target: Unlevelled");
     expect(llm.calls()[0]!.prompt).toContain("Known meaning (English): water");
+  });
+
+  it("shows the reviewer the ja Wiktionary entry for the target as reference, and nothing else", async () => {
+    const w = await world({ kind: "japanese_explanation", explanation: "のむことができる、いろのないもの。" });
+    const sense = w.graph.japaneseExplanation[0]!.wordSenseId;
+    const importRunId = randomUUID();
+    const wikt = randomUUID();
+    const unrelated = randomUUID();
+    w.graph.importRun.push({ id: importRunId, dataset: "wiktionary-ja", upstreamVersion: "1", checksum: "x", status: "applied", counts: {}, appliedAt: null });
+    w.graph.provenance.push({ id: wikt, source: { kind: "import", importRunId }, licence: "cc-by-sa-4.0", author: null, sourceUrl: null, inputs: [] });
+    w.graph.provenance.push({ id: unrelated, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+    const entry = (text: string, provenanceId: string) => ({ id: randomUUID(), wordSenseId: sense, grammarPointId: null, text, approval: "approved" as const, retired: false, provenanceId });
+    w.graph.japaneseExplanation.push(entry("水の説明", wikt), entry("別の説明", unrelated));
+    const { llm } = await run(w, explanationVerdicts);
+    const prompt = llm.calls()[0]!.prompt;
+    expect(prompt).toContain("- 水の説明");
+    expect(prompt).not.toContain("別の説明");
+  });
+
+  it("tells the reviewer there is no reference when Wiktionary has none", async () => {
+    const w = await world({ kind: "japanese_explanation", explanation: "のむことができる、いろのないもの。" });
+    const { llm } = await run(w, explanationVerdicts);
+    expect(llm.calls()[0]!.prompt).toContain("ja Wiktionary reference for the same target:\nnone");
   });
 
   it("cannot check an explanation whose Word sense or Grammar Point is gone, or that explains nothing", async () => {

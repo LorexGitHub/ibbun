@@ -4,6 +4,8 @@ import type { Llm } from "@mojibun/llm";
 import { z } from "zod";
 import type { ExampleCheck, ExplanationCheck } from "./checks.ts";
 import type { ExampleDraft, ExplanationDraft } from "./drafts.ts";
+import type { GrammarFieldsDraft } from "../rubrics/grammar-fields/index.ts";
+import { grammarFieldsValues, type GrammarFieldsCheck } from "../rubrics/grammar-fields/index.ts";
 import { fill, rubricFor, type Rubric } from "./rubrics.ts";
 
 /** What the reviewer agent answers: one verdict per criterion, how sure it is, and whether two readings both stand. */
@@ -38,7 +40,11 @@ const answerLines = (draft: ExampleDraft): string =>
   draft.answers.map((x) => `- ${x.kind}: ${x.written}${x.reading ? ` (${x.reading})` : ""}${x.message ? ` — ${x.message}` : ""}`).join("\n") || "none";
 
 /** The rubric for the draft and the values its template needs. */
-const promptFor = (draft: ExampleDraft | ExplanationDraft, check: ExampleCheck | ExplanationCheck) => {
+const promptFor = (draft: ExampleDraft | ExplanationDraft | GrammarFieldsDraft, check: ExampleCheck | ExplanationCheck | GrammarFieldsCheck) => {
+  if (draft.kind === "grammar-fields") {
+    const rubric = rubricFor("grammar-fields");
+    return { rubric, prompt: fill(rubric.template, grammarFieldsValues(draft, check as GrammarFieldsCheck)) };
+  }
   if (draft.kind === "example") {
     const { example, sentence } = draft;
     const c = check as ExampleCheck;
@@ -60,7 +66,7 @@ const promptFor = (draft: ExampleDraft | ExplanationDraft, check: ExampleCheck |
     };
   }
   const c = check as ExplanationCheck;
-  const rubric = rubricFor("japanese-explanation");
+  const rubric = rubricFor("explanation");
   return {
     rubric,
     prompt: fill(rubric.template, {
@@ -68,6 +74,7 @@ const promptFor = (draft: ExampleDraft | ExplanationDraft, check: ExampleCheck |
       level: c.level === null ? "Unlevelled" : c.level,
       meaning: c.meaning,
       text: draft.explanation.text,
+      references: c.references.length ? c.references.map((r) => `- ${r}`).join("\n") : "none",
     }),
   };
 };
@@ -78,8 +85,8 @@ export type Review = { judgement: Judgement; verdicts: Verdict[]; model: string;
 export const review = async (
   llm: Llm,
   minConfidence: number,
-  draft: ExampleDraft | ExplanationDraft,
-  check: ExampleCheck | ExplanationCheck,
+  draft: ExampleDraft | ExplanationDraft | GrammarFieldsDraft,
+  check: ExampleCheck | ExplanationCheck | GrammarFieldsCheck,
 ): Promise<Review> => {
   const { rubric, prompt } = promptFor(draft, check);
   const result = await llm.review({

@@ -216,12 +216,31 @@ describe("the reviews screen", () => {
   const due = (reviews: ReviewPrompt[]): DueResponse => ({ preferences: prefs(), reviews });
 
   it("says so when nothing is due", async () => {
-    render(<ReviewsScreen load={async () => due([])} loadClips={noClips} />);
+    render(<ReviewsScreen load={async () => due([])} clips={noClips} />);
     expect(await screen.findByText(/No Reviews are due/)).toBeTruthy();
   });
 
+  it("asks the due Listening Clips after the Reviews, before the session completes", async () => {
+    const clip = {
+      clipId: StudyItemId.parse("00000000-0000-4000-8000-000000000009"),
+      exampleId: "clip-ex",
+      audio: [{ src: "/audio/a.ogg", speaker: null }],
+      question: { kind: "dictation" as const },
+      examMode: false,
+      slowAudio: false,
+    };
+    render(<ReviewsScreen load={async () => due([cloze])} submit={async () => PASS} ghosts={async () => due([])} clips={async () => ({ clips: [clip] })} />);
+    await screen.findByText("1 of 1");
+    type("Answer", "みず");
+    press("Check");
+    await screen.findByRole("status");
+    press("Next");
+    expect(await screen.findByRole("heading", { name: "Listening" })).toBeTruthy();
+    expect(screen.queryByText("Session complete.")).toBeNull();
+  });
+
   it("walks through the due Reviews one by one", async () => {
-    render(<ReviewsScreen load={async () => due([cloze, { ...cloze, exampleId: "ex-2" }])} submit={async () => PASS} loadClips={noClips} />);
+    render(<ReviewsScreen load={async () => due([cloze, { ...cloze, exampleId: "ex-2" }])} submit={async () => PASS} ghosts={async () => due([])} clips={noClips} />);
     expect(await screen.findByText("1 of 2")).toBeTruthy();
     type("Answer", "みず");
     press("Check");
@@ -231,7 +250,7 @@ describe("the reviews screen", () => {
   });
 
   it("shows why it could not load", async () => {
-    render(<ReviewsScreen load={async () => Promise.reject(new Error("log in first"))} />);
+    render(<ReviewsScreen load={async () => Promise.reject(new Error("log in first"))} clips={noClips} />);
     expect((await screen.findByRole("alert")).textContent).toBe("log in first");
   });
 });

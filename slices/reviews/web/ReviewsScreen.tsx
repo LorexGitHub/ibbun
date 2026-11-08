@@ -1,34 +1,97 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@mojibun/ui";
-import { DueResponse, SubmitResponse, type SubmitRequest } from "../contract.ts";
+import { StudyItemId } from "@mojibun/shared";
+import { DueResponse, SubmitResponse, type AnswerKind, type ReviewPrompt, type SubmitRequest } from "../contract.ts";
+import { loadDueClips, type LoadClips } from "../listening/web/clip-reviews-client.ts";
 import { ListeningReviews } from "../listening/web/ListeningReviews.tsx";
-import type { LoadClips } from "../listening/web/clip-reviews-client.ts";
+import { WrapUp, type LoadWrapUp, type Miss } from "../wrap-up/WrapUp.tsx";
 import { call, postJson, useLoaded } from "./http.ts";
-import { ReviewCard, type Submit } from "./ReviewCard.tsx";
+import type { Submit } from "./ReviewCard.tsx";
+import { Run } from "./Run.tsx";
 
 export const loadDue = async (): Promise<DueResponse> => DueResponse.parse(await call("/due"));
+
+export const loadGhosts = async (): Promise<DueResponse> => DueResponse.parse(await call("/ghosts"));
+
+export const loadWrapUp: LoadWrapUp = async (studyItemId, asked) =>
+  DueResponse.parse(await call(`/wrap-up/${studyItemId}?${new URLSearchParams(asked.map((a) => ["asked", a]))}`));
 
 export const submitAnswer: Submit = async (request: SubmitRequest) =>
   SubmitResponse.parse(await postJson("/answer", request));
 
-type Props = { load?: () => Promise<DueResponse>; submit?: Submit; loadClips?: LoadClips };
+/** The same submit, recording every answer as this kind of Review. */
+const asKind = (submit: Submit, kind: AnswerKind): Submit => (request) => submit({ ...request, kind });
 
-/** The review session: due Reviews one after another, then the due Listening Clips. */
-export const ReviewsScreen = ({ load = loadDue, submit = submitAnswer, loadClips }: Props) => {
-  const { data: due, failed } = useLoaded(load);
-  const [at, setAt] = useState(0);
+type Phase = "reviews" | "listening" | "wrap-up" | "ghosts" | "done";
+
+/** Ghosts: the exact Examples missed in an earlier session, asked once more. They never change Mastery. */
+const Ghosts = ({ load, submit, onFinish }: { load: () => Promise<DueResponse>; submit: Submit; onFinish: () => void }) => {
+  const [ghosts, setGhosts] = useState<DueResponse | null>(null);
+  useEffect(() => {
+    load().then(
+      (loaded) => (loaded.reviews.length ? setGhosts(loaded) : onFinish()),
+      () => onFinish(),
+    );
+  }, [load]);
+  if (!ghosts) return null;
+  return (
+    <section aria-label="Ghosts">
+      <h2>Ghosts</h2>
+      <Card>Missed in an earlier session. These do not change your Mastery.</Card>
+      <Run prompts={ghosts.reviews} preferences={ghosts.preferences} submit={asKind(submit, "ghost")} onFinish={onFinish} />
+    </section>
+  );
+};
+
+type Loaders = {
+  load?: () => Promise<DueResponse>;
+  submit?: Submit;
+  wrapUp?: LoadWrapUp;
+  ghosts?: () => Promise<DueResponse>;
+  clips?: LoadClips;
+};
+
+const LIVE = { load: loadDue, submit: submitAnswer, wrapUp: loadWrapUp, ghosts: loadGhosts, clips: loadDueClips };
+
+const missOf = (prompt: ReviewPrompt): Miss => ({ studyItemId: StudyItemId.parse(prompt.studyItemId), asked: [prompt.exampleId] });
+
+/** The scheduled Reviews. With none due, Ghosts are the only thing left to offer. */
+const Scheduled = (props: { due: DueResponse; loaders: Required<Loaders>; onMiss: (miss: Miss) => void; onFinish: (to: Phase) => void }) => {
+  const { due, loaders, onMiss, onFinish } = props;
+  const none = due.reviews.length === 0;
+  return (
+    <>
+      {none && <Card>No Reviews are due. Come back later.</Card>}
+      <Run
+        prompts={due.reviews}
+        preferences={due.preferences}
+        submit={asKind(loaders.submit, "srs")}
+        onResult={(prompt, result) => result.passed || onMiss(missOf(prompt))}
+        onFinish={() => onFinish("listening")}
+      />
+      {none && <Ghosts load={loaders.ghosts} submit={loaders.submit} onFinish={() => onFinish("done")} />}
+    </>
+  );
+};
+
+/** The review session: due Reviews, then the due Listening Clips, then a Wrap-Up of every miss, then any Ghosts. */
+export const ReviewsScreen = (props: Loaders) => {
+  const loaders = { ...LIVE, ...props };
+  const { data: due, failed } = useLoaded(loaders.load);
+  const [phase, setPhase] = useState<Phase>("reviews");
+  const [misses, setMisses] = useState<Miss[]>([]);
 
   if (failed) return <p role="alert">{failed}</p>;
   if (!due) return <p>Loading…</p>;
-  const prompt = due.reviews[at];
-  if (!prompt) return <ListeningReviews load={loadClips} empty={<Card>No Reviews are due. Come back later.</Card>} />;
+  const next = (to: Phase) => () => setPhase(to);
   return (
     <section>
       <h1>Reviews</h1>
-      <p>
-        {at + 1} of {due.reviews.length}
-      </p>
-      <ReviewCard key={prompt.exampleId + at} prompt={prompt} preferences={due.preferences} submit={submit} onDone={() => setAt(at + 1)} />
+      {phase === "reviews" && <Scheduled due={due} loaders={loaders} onMiss={(miss) => setMisses((now) => [...now, miss])} onFinish={setPhase} />}
+      {phase === "listening" && <ListeningReviews load={loaders.clips} onFinish={next("wrap-up")} />}
+      {phase === "wrap-up" && <WrapUp misses={misses} load={loaders.wrapUp} submit={asKind(loaders.submit, "wrap-up")} onFinish={next("ghosts")} />}
+      {phase === "ghosts" && <Ghosts load={loaders.ghosts} submit={loaders.submit} onFinish={next("done")} />}
+      {phase === "done" && <Card>Session complete.</Card>}
     </section>
   );
 };
