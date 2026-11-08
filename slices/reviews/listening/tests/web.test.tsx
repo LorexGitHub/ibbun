@@ -223,7 +223,7 @@ describe("the listening Review client", () => {
   });
 
   it("throws when the server refuses", async () => {
-    respond({}, false);
-    await expect(loadDueClips()).rejects.toThrow("listening /due: 500");
+    respond({ message: "boom" }, false);
+    await expect(loadDueClips()).rejects.toThrow("boom");
   });
 });
