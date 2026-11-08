@@ -6,6 +6,7 @@ import type { Progress } from "@mojibun/progress";
 import { StudyItemId, type LearnerId } from "@mojibun/shared";
 import { DueResponse, SubmitRequest } from "../contract.ts";
 import { explanationOf, facetsOf, isReviewable, pickExample, promptOf } from "./prompt.ts";
+import { createClipReviewsApi } from "../listening/server/api.ts";
 import { coversFacets, detailOf, regrade, responseOf, storedFacets } from "./regrade.ts";
 
 export type ReviewsDeps = {
@@ -14,6 +15,8 @@ export type ReviewsDeps = {
   progress: Progress;
   learners: Learners;
   now: () => Date;
+  /** [0, 1), for shuffling a listening question's options. */
+  random?: () => number;
 };
 
 /** The most Reviews one request hands out. */
@@ -28,8 +31,9 @@ const wordsOf = async (graph: ContentGraph, page: StudyItemPage): Promise<Word[]
   return pages.flatMap((p) => (p?.item.type === "word" ? [p.item] : []));
 };
 
-export const createReviewsApi = ({ sessions, contentGraph, progress, learners, now }: ReviewsDeps) => {
-  const { requireLearner } = createAuthGuards(sessions);
+export const createReviewsApi = ({ sessions, contentGraph, progress, learners, now, random = Math.random }: ReviewsDeps) => {
+  const guards = createAuthGuards(sessions);
+  const { requireLearner } = guards;
 
   const prompt = async (learnerId: LearnerId, id: StudyItemId) => {
     const page = await contentGraph.studyItem(id);
@@ -49,6 +53,7 @@ export const createReviewsApi = ({ sessions, contentGraph, progress, learners, n
 
   return new Hono<AuthEnv>()
     .use(requireLearner())
+    .route("/listening", createClipReviewsApi({ contentGraph, progress, learners, guards, now, random }))
     .get("/due", async (c) => {
       const { learnerId } = c.get("learner");
       const due = (await progress.due(learnerId, now())).slice(0, DUE_LIMIT);

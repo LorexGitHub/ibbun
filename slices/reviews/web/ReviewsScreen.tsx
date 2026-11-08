@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Card } from "@mojibun/ui";
 import { DueResponse, SubmitResponse, type SubmitRequest } from "../contract.ts";
+import { ListeningReviews } from "../listening/web/ListeningReviews.tsx";
+import type { LoadClips } from "../listening/web/api.ts";
 import { ReviewCard, type Submit } from "./ReviewCard.tsx";
 
 const BASE = "/api/reviews";
@@ -18,8 +20,10 @@ export const submitAnswer: Submit = async (request: SubmitRequest) =>
     await call("/answer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request) }),
   );
 
-/** The review session: due Reviews one after another. */
-export const ReviewsScreen = ({ load = loadDue, submit = submitAnswer }: { load?: () => Promise<DueResponse>; submit?: Submit }) => {
+type Props = { load?: () => Promise<DueResponse>; submit?: Submit; loadClips?: LoadClips };
+
+/** The review session: due Reviews one after another, then the due Listening Clips. */
+export const ReviewsScreen = ({ load = loadDue, submit = submitAnswer, loadClips }: Props) => {
   const [due, setDue] = useState<DueResponse | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [at, setAt] = useState(0);
@@ -30,7 +34,7 @@ export const ReviewsScreen = ({ load = loadDue, submit = submitAnswer }: { load?
   if (failed) return <p role="alert">{failed}</p>;
   if (!due) return <p>Loading…</p>;
   const prompt = due.reviews[at];
-  if (!prompt) return <Card>No Reviews are due. Come back later.</Card>;
+  if (!prompt) return <ListeningReviews load={loadClips} empty={<Card>No Reviews are due. Come back later.</Card>} />;
   return (
     <section>
       <h1>Reviews</h1>

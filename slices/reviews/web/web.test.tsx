@@ -43,6 +43,7 @@ const kanji: ReviewPrompt = {
   ],
 };
 
+const noClips = async () => ({ clips: [] });
 const PASS: SubmitResponse = { passed: true, facets: [{ facet: "cloze", outcome: "pass" }] };
 const prefs = (over: Partial<DueResponse["preferences"]> = {}): DueResponse["preferences"] => ({ convertRomaji: true, explanations: "english", ...over });
 
@@ -215,12 +216,12 @@ describe("the reviews screen", () => {
   const due = (reviews: ReviewPrompt[]): DueResponse => ({ preferences: prefs(), reviews });
 
   it("says so when nothing is due", async () => {
-    render(<ReviewsScreen load={async () => due([])} />);
+    render(<ReviewsScreen load={async () => due([])} loadClips={noClips} />);
     expect(await screen.findByText(/No Reviews are due/)).toBeTruthy();
   });
 
   it("walks through the due Reviews one by one", async () => {
-    render(<ReviewsScreen load={async () => due([cloze, { ...cloze, exampleId: "ex-2" }])} submit={async () => PASS} />);
+    render(<ReviewsScreen load={async () => due([cloze, { ...cloze, exampleId: "ex-2" }])} submit={async () => PASS} loadClips={noClips} />);
     expect(await screen.findByText("1 of 2")).toBeTruthy();
     type("Answer", "みず");
     press("Check");

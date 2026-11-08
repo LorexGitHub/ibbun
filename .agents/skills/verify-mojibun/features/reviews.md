@@ -1,6 +1,6 @@
 # reviews
 
-The `reviews` slice (`slices/reviews`): the review session. It lists the Study Items due in `progress`, asks each through one approved Example, re-grades the answer in the API and appends a Review of `kind` `srs`. Listening Clips are not asked here yet.
+The `reviews` slice (`slices/reviews`): the review session. It lists the Study Items due in `progress`, asks each through one approved Example, re-grades the answer in the API and appends a Review of `kind` `srs`. Listening Clips are asked after the other due Reviews (`slices/reviews/listening`, issue #109).
 
 ## Sub-features
 
@@ -12,11 +12,17 @@ The `reviews` slice (`slices/reviews`): the review session. It lists the Study I
 - `reviews-no-undo` treats the first graded submission as final: the field locks and only Next is left. An empty try, a try with leftover Latin letters, and a try that matches an alternate (its nudge shows) are not graded; they are kept in `attempts[]` and the field clears.
 - `reviews-reveal` makes Hint, Translation and Japanese Explanation open on demand without touching the grade; **Show answer** records a fail.
 - `reviews-record` appends the Review with `exampleId`, per-facet `rawInput`, `normalisedInput`, `outcome` and `matchedAnswerId`, `attempts[]`, `hintsOpened`, `revealed` and `timeToAnswerMs`. `POST /api/reviews/answer` grades again; a try that is not an answer gets 422 and stores nothing.
+- `reviews-listening` asks the due Listening Clips after the other Reviews, under a "Listening" heading with its own "n of m" counter. `GET /api/reviews/listening/due` returns them as audio plus the question, never the text; `POST /api/reviews/listening/answer` grades again and logs an `srs` Review with `listening: {replays, slow, examMode}`.
+  - **Playback.** "Play" plays the lines in order and then reads "Replay"; replays are unlimited and counted. "Slow (0.75×)" plays at `playbackRate` 0.75 (ticked when the `slowAudio` preference is on). The text stays hidden until the Learner answers; **Show answer** records a fail.
+  - **Questions.** A Sentence clip asks dictation (`What did you hear?`); a dialogue asks comprehension (four shuffled choices, shown after the first play). Each Review rotates to the next Example, so a dialogue alternates between its two questions.
+  - **Exam Mode.** With the `examMode` preference on, a comprehension question and its choices show before the audio, "Play" works once ("Played once" afterwards), and there is no Replay and no slow checkbox. The Review logs `listening: {replays: 0, slow: false, examMode: true}`.
+  - **Dictation diff.** A failed dictation lists every Sudachi token as correct, wrong (with what was typed) or missing, with its surface form and reading, and any extra text after the last token (`aria-label="Dictation diff"`, each row has `data-status`). Grading stays all or nothing.
+  - **Transcript.** After the answer: speaker, text, collapsible translation, per-line audio, "Correct" or "Not quite" and the right option for a comprehension question. "Next" moves on.
 
 ## How to get to it (user POV)
 
 - Log in, pick **Reviews** in the nav, or open `http://localhost:5173/reviews`.
-- A Study Item is due after Learn (or Placement, "I know this") and once its interval has passed.
+- A Study Item (a Listening Clip too) is due after Learn (or Placement, "I know this") and once its interval has passed.
 
 ## Driving it with Playwright
 
@@ -31,9 +37,11 @@ Preconditions:
 - **Answer.** Type the right answer and press **Check**: the status reads "Correct", the field is locked, and `select kind, passed, detail->>'exampleId' from progress.reviews order by seq desc limit 1` shows `srs | t | <example id>`.
 - **Show answer.** On the next Review press **Show answer**: the accepted answer appears and the new row has `passed = f` and `detail->>'revealed' = 'true'`.
 - **Kanji.** A Kanji Review highlights the Word (`<mark>`) and shows two fields. Fill only the reading and press **Check**: nothing is submitted.
+- **Listening.** With a due clip, after the other Reviews: `getByRole("button", {name: "Play", exact: true})`, click it, answer (`What did you hear?` + **Check**, or a choice button). A wrong dictation shows the `Dictation diff` list. `select kind, detail->'listening' from progress.reviews order by seq desc limit 1` shows `srs | {"replays":…,"slow":…,"examMode":…}`.
 - **Spec.** `pnpm exec playwright test --project=learner slices/reviews` passes once the `learner` project exists.
 
 ## Gotchas
 
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
-- Listening Clips are skipped, so a Learner whose only due items are clips sees "No Reviews are due".
+- A due Listening Clip appears only once the cloze and Kanji Reviews are done; with none due the screen still says "No Reviews are due". The clip needs approved audio (`/audio/<key>`) and a dictation or comprehension Example, or it is left out.
+- Playwright cannot hear audio: assert on buttons, the `Audio` requests and the Review row (`kind = 'srs'`, `detail->'listening'`).
