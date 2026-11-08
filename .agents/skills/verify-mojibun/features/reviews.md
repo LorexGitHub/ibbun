@@ -11,7 +11,8 @@ The `reviews` slice (`slices/reviews`): the review session. It lists the Study I
 - `reviews-input` keeps IME text as typed and converts romaji to kana as it is typed when *Convert romaji* is on. When it is off, Latin letters are refused with "switch to Japanese input". The English meaning is never converted.
 - `reviews-no-undo` treats the first graded submission as final: the field locks and only Next is left. An empty try, a try with leftover Latin letters, and a try that matches an alternate (its nudge shows) are not graded; they are kept in `attempts[]` and the field clears.
 - `reviews-reveal` makes Hint, Translation and Japanese Explanation open on demand without touching the grade; **Show answer** records a fail.
-- `reviews-record` appends the Review with `exampleId`, per-facet `rawInput`, `normalisedInput`, `outcome` and `matchedAnswerId`, `attempts[]`, `hintsOpened`, `revealed` and `timeToAnswerMs`. `POST /api/reviews/answer` grades again; a try that is not an answer gets 422 and stores nothing.
+- `reviews-record` appends the Review with `exampleId`, per-facet `rawInput`, `normalisedInput`, `outcome` and `matchedAnswerId`, `attempts[]`, `hintsOpened`, `revealed` and `timeToAnswerMs`. `POST /api/reviews/answer` grades again; a try that is not an answer gets 422 and stores nothing. The response carries `reviewId`, the id of the logged Review.
+- `reviews-flags` (`slices/reviews/flags`) adds **My answer was right** under a wrong, typed Cloze or Kanji-reading answer (not under a right answer, a Show answer, or a Kanji meaning). `POST /api/reviews/flag` with `{studyItemId, reviewId, facet}` reads the typed input from the Review log (never from the request) and queues an `answer flag` entry in Content Approval: `record_id` = the Example, `detail` = `{reviewId, facet, input}`. Flagging the same Review facet again queues nothing new. The Review is not regraded: the log gains no row.
 
 ## How to get to it (user POV)
 
@@ -31,6 +32,7 @@ Preconditions:
 - **Answer.** Type the right answer and press **Check**: the status reads "Correct", the field is locked, and `select kind, passed, detail->>'exampleId' from progress.reviews order by seq desc limit 1` shows `srs | t | <example id>`.
 - **Show answer.** On the next Review press **Show answer**: the accepted answer appears and the new row has `passed = f` and `detail->>'revealed' = 'true'`.
 - **Kanji.** A Kanji Review highlights the Word (`<mark>`) and shows two fields. Fill only the reading and press **Check**: nothing is submitted.
+- **Flag.** Give a wrong answer, press **My answer was right**: the status reads "Thanks, we will check your answer. This Review stays as graded.", `select reason, record_id, detail from content_graph.queue_entry where reason = 'answer flag' and not resolved` shows the Example and `{reviewId, facet, input}` with the wrong input, `progress.reviews` has no new row, and the same Review's `passed` is still `f`. Pressing it again (reload and re-flag via `curl`) leaves one entry. Supervisor view: the entry is listed at `/admin/content-approval` under `answer flag`.
 - **Spec.** `pnpm exec playwright test --project=learner slices/reviews` passes once the `learner` project exists.
 
 ## Gotchas

@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Button, Card, Input, KanaInput, Pill } from "@mojibun/ui";
 import type { DueResponse, Facet, Hint, ReviewPrompt, SubmitRequest, SubmitResponse } from "../contract.ts";
+import { FlagButton, flaggableFacet, type Flag } from "../flags/web.tsx";
 import { acceptedOf, isJapanese, notAnswers, shownByDefault, type PromptFacet } from "./check.ts";
 
 export type Submit = (request: SubmitRequest) => Promise<SubmitResponse>;
@@ -72,11 +73,13 @@ const useAnswering = (prompt: ReviewPrompt, preferences: Preferences, submit: Su
   const [opened, setOpened] = useState<Hint[]>([]);
   const [result, setResult] = useState<SubmitResponse | null>(null);
   const [busy, setBusy] = useState(false);
+  const [revealed, setRevealed] = useState(false);
 
-  const send = async (revealed: boolean) => {
+  const send = async (reveal: boolean) => {
     setBusy(true);
+    setRevealed(reveal);
     const facets = prompt.facets.map((f) => ({ facet: f.facet, input: inputs[f.facet] ?? "", attempts: attempts.current[f.facet] ?? [] }));
-    setResult(await submit({ studyItemId: prompt.studyItemId, exampleId: prompt.exampleId, facets, hintsOpened: opened, revealed, timeToAnswerMs: Date.now() - started.current }));
+    setResult(await submit({ studyItemId: prompt.studyItemId, exampleId: prompt.exampleId, facets, hintsOpened: opened, revealed: reveal, timeToAnswerMs: Date.now() - started.current }));
   };
 
   /** Not an answer, or an alternate's nudge: the try is kept in attempts[], never graded, and the field is cleared to try again. */
@@ -98,6 +101,7 @@ const useAnswering = (prompt: ReviewPrompt, preferences: Preferences, submit: Su
     notes,
     opened,
     result,
+    revealed,
     busy,
     check,
     reveal: () => void send(true),
@@ -125,10 +129,11 @@ const Actions = (props: { prompt: ReviewPrompt; preferences: Preferences; busy: 
 };
 
 /** One Review. The first graded submission is final: there is no Undo. */
-export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferences; submit: Submit; onDone: () => void }) => {
-  const { prompt, preferences, submit, onDone } = props;
+export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferences; submit: Submit; flag: Flag; onDone: () => void }) => {
+  const { prompt, preferences, submit, flag, onDone } = props;
   const a = useAnswering(prompt, preferences, submit);
   const shown = shownByDefault(preferences.explanations);
+  const flagged = a.result && flaggableFacet(a.result, a.revealed);
   return (
     <Card>
       <form onSubmit={a.check}>
@@ -152,6 +157,7 @@ export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferenc
       {a.result && (
         <>
           <Info prompt={prompt} result={a.result} />
+          {flagged && <FlagButton request={{ studyItemId: prompt.studyItemId, reviewId: a.result.reviewId, facet: flagged }} flag={flag} />}
           <Button variant="primary" onClick={onDone}>
             Next
           </Button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@mojibun/ui";
 import { DueResponse, SubmitResponse, type SubmitRequest } from "../contract.ts";
+import type { Flag } from "../flags/web.tsx";
 import { ReviewCard, type Submit } from "./ReviewCard.tsx";
 
 const BASE = "/api/reviews";
@@ -18,8 +19,12 @@ export const submitAnswer: Submit = async (request: SubmitRequest) =>
     await call("/answer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request) }),
   );
 
+export const flagAnswer: Flag = async (request) => {
+  await call("/flag", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request) });
+};
+
 /** The review session: due Reviews one after another. */
-export const ReviewsScreen = ({ load = loadDue, submit = submitAnswer }: { load?: () => Promise<DueResponse>; submit?: Submit }) => {
+export const ReviewsScreen = ({ load = loadDue, submit = submitAnswer, flag = flagAnswer }: { load?: () => Promise<DueResponse>; submit?: Submit; flag?: Flag }) => {
   const [due, setDue] = useState<DueResponse | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [at, setAt] = useState(0);
@@ -37,7 +42,7 @@ export const ReviewsScreen = ({ load = loadDue, submit = submitAnswer }: { load?
       <p>
         {at + 1} of {due.reviews.length}
       </p>
-      <ReviewCard key={prompt.exampleId + at} prompt={prompt} preferences={due.preferences} submit={submit} onDone={() => setAt(at + 1)} />
+      <ReviewCard key={prompt.exampleId + at} prompt={prompt} preferences={due.preferences} submit={submit} flag={flag} onDone={() => setAt(at + 1)} />
     </section>
   );
 };

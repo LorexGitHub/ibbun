@@ -63,6 +63,8 @@ export type SubmitRequest = z.input<typeof SubmitRequest>;
 export type Submission = z.output<typeof SubmitRequest>;
 
 export const SubmitResponse = z.object({
+  /** The Review as logged, which a "my answer was right" flag points at. */
+  reviewId: z.string(),
   passed: z.boolean(),
   facets: z.array(
     z.object({ facet: Facet, outcome: z.enum(["pass", "fail"]), matchedAnswerId: z.string().optional(), message: z.string().optional() }),

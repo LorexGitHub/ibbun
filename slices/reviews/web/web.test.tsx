@@ -43,13 +43,13 @@ const kanji: ReviewPrompt = {
   ],
 };
 
-const PASS: SubmitResponse = { passed: true, facets: [{ facet: "cloze", outcome: "pass" }] };
+const PASS: SubmitResponse = { reviewId: "r-1", passed: true, facets: [{ facet: "cloze", outcome: "pass" }] };
 const prefs = (over: Partial<DueResponse["preferences"]> = {}): DueResponse["preferences"] => ({ convertRomaji: true, explanations: "english", ...over });
 
 const mount = (prompt = cloze, preferences = prefs(), result: SubmitResponse = PASS) => {
   const submit = vi.fn(async (_: SubmitRequest) => result);
   const onDone = vi.fn();
-  render(<ReviewCard prompt={prompt} preferences={preferences} submit={submit} onDone={onDone} />);
+  render(<ReviewCard prompt={prompt} preferences={preferences} submit={submit} flag={async () => undefined} onDone={onDone} />);
   return { submit, onDone };
 };
 const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
@@ -130,7 +130,7 @@ describe("a cloze Review", () => {
   });
 
   it("Show answer submits as revealed and shows the accepted answer", async () => {
-    const { submit } = mount(cloze, prefs(), { passed: false, facets: [{ facet: "cloze", outcome: "fail" }] });
+    const { submit } = mount(cloze, prefs(), { reviewId: "r-1", passed: false, facets: [{ facet: "cloze", outcome: "fail" }] });
     press("Show answer");
     await waitFor(() => expect(submit).toHaveBeenCalledOnce());
     expect(lastRequest(submit)).toMatchObject({ revealed: true });
@@ -147,7 +147,7 @@ describe("a cloze Review", () => {
 
 describe("a Kanji Review", () => {
   it("highlights the Word and asks both facets", async () => {
-    const { submit } = mount(kanji, prefs(), { passed: true, facets: [{ facet: "reading", outcome: "pass" }, { facet: "meaning", outcome: "pass" }] });
+    const { submit } = mount(kanji, prefs(), { reviewId: "r-2", passed: true, facets: [{ facet: "reading", outcome: "pass" }, { facet: "meaning", outcome: "pass" }] });
     expect(screen.getByText("水").tagName).toBe("MARK");
     type("Reading in this sentence", "みず");
     type("Meaning of the kanji", "water");
