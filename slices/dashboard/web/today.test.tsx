@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { onGoTo } from "@mojibun/ui";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Today } from "../contract.ts";
 import slice from "../register.ts";
@@ -32,39 +33,48 @@ const figText = (fig: Element | undefined) => {
 const answer = (status: number, body?: unknown) => vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(body), { status })));
 
 describe("TodayHero", () => {
-  it("greets the Learner and says what is waiting, as the mock's Today screen does", () => {
+  const heading = () => figText(screen.getByRole("heading", { level: 1 }));
+  const accent = () => document.querySelector(".btn--primary");
+
+  it("greets the Learner, shows the streak and how many Reviews are waiting", () => {
     render(<TodayHero today={today} hour={19} />);
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Good evening. 18 reviews are waiting.");
+    expect(screen.getByText("Good evening · 42 days in a row")).toBeTruthy();
+    expect(heading()).toBe("18 reviews due");
+    expect(screen.getByText("reviews wait for you.")).toBeTruthy();
     expect(screen.getByText("11 kanji, 5 words and 2 grammar points.")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Start reviews" }).getAttribute("href")).toBe("/reviews");
   });
 
-  it("makes Learn new the pear button once nothing is due", () => {
-    const pear = () => document.querySelector(".btn--primary")?.textContent;
+  it("makes Start reviews the accent button while anything is due, and Learn once nothing is", () => {
     render(<TodayHero today={today} hour={19} />);
-    expect(pear()).toBe("Start reviews");
+    expect(accent()?.getAttribute("href")).toBe("/reviews");
     cleanup();
     render(<TodayHero today={{ ...today, due: { total: 0, kanji: 0, word: 0, grammarPoint: 0 } }} hour={19} />);
-    expect(pear()).toBe("Learn new");
-  });
-
-  it("shows the due count and the streak as figures", () => {
-    render(<TodayHero today={today} hour={19} />);
-    const figures = document.querySelectorAll(".fig");
-    expect(Array.from(figures, figText)).toEqual(["18dueby tonight", "42daysin a row"]);
+    expect(accent()?.getAttribute("href")).toBe("/learn");
+    expect(screen.getByRole("link", { name: "Start reviews" }).getAttribute("href")).toBe("/reviews");
   });
 
   it("says nothing is due when nothing is", () => {
     render(<TodayHero today={{ ...today, due: { total: 0, kanji: 0, word: 0, grammarPoint: 0 }, streakDays: 1 }} hour={8} />);
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Good morning. Nothing is due.");
+    expect(screen.getByText("Good morning · 1 day in a row")).toBeTruthy();
+    expect(screen.getByText("Nothing waits for you today.")).toBeTruthy();
     expect(screen.getByText("You're all caught up.")).toBeTruthy();
-    expect(figText(document.querySelectorAll(".fig")[1])).toBe("1dayin a row");
   });
 
-  it("leaves out the types with nothing due and uses the singular", () => {
-    render(<TodayHero today={{ ...today, due: { total: 1, kanji: 0, word: 1, grammarPoint: 0 } }} hour={13} />);
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Good afternoon. 1 review is waiting.");
+  it("leaves out the types with nothing due, uses the singular, and drops a zero streak", () => {
+    render(<TodayHero today={{ ...today, due: { total: 1, kanji: 0, word: 1, grammarPoint: 0 }, streakDays: 0 }} hour={13} />);
+    expect(screen.getByText("Good afternoon")).toBeTruthy();
+    expect(heading()).toBe("1 review due");
+    expect(screen.getByText("review waits for you.")).toBeTruthy();
     expect(screen.getByText("1 word.")).toBeTruthy();
+  });
+
+  it("opens the command menu from Where to?", () => {
+    const open = vi.fn();
+    const stop = onGoTo(open);
+    render(<TodayHero today={today} hour={9} />);
+    fireEvent.click(screen.getByRole("button", { name: /Where to\?/ }));
+    stop();
+    expect(open).toHaveBeenCalledOnce();
   });
 });
 
@@ -83,7 +93,7 @@ describe("TodayWidget", () => {
   it("loads Today from the API and shows it", async () => {
     answer(200, today);
     render(<TodayWidget />);
-    expect((await screen.findByRole("heading", { level: 1 })).textContent).toMatch(/18 reviews are waiting\.$/);
+    expect(figText(await screen.findByRole("heading", { level: 1 }))).toBe("18 reviews due");
     expect(fetch).toHaveBeenCalledWith("/api/dashboard/today", { credentials: "same-origin" });
   });
 

@@ -54,7 +54,7 @@
   --border: var(--color-rule);
   --input: var(--color-rule);
   --ring: var(--color-focus);
-  --radius: var(--radius-stock);
+  --radius: 12px;
 }
 
 /* The part of preflight shadcn parts rely on, kept to them */

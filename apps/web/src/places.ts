@@ -3,14 +3,14 @@ import type { NavEntry, Place } from "@mojibun/slice";
 
 export type Who = { state: "loading" } | { state: "out" } | { state: "in"; learner: CurrentLearner };
 
-/** The app's map. Key order is the order places appear in the bar and the menus. */
-export const PLACES: Record<Place, { heading: string; inBar: boolean; onToday: boolean }> = {
-  home: { heading: "Today", inBar: true, onToday: false },
-  study: { heading: "Study", inBar: false, onToday: true },
-  practice: { heading: "Practice", inBar: true, onToday: true },
-  library: { heading: "Library", inBar: true, onToday: true },
-  account: { heading: "Account", inBar: false, onToday: false },
-  supervisor: { heading: "Supervisor", inBar: false, onToday: false },
+/** The app's map. Key order is the order places appear in the dock and the menus. */
+export const PLACES: Record<Place, { heading: string; inDock: boolean; onWelcome: boolean }> = {
+  home: { heading: "Today", inDock: true, onWelcome: false },
+  study: { heading: "Study", inDock: true, onWelcome: true },
+  practice: { heading: "Practice", inDock: true, onWelcome: true },
+  library: { heading: "Library", inDock: true, onWelcome: true },
+  account: { heading: "Account", inDock: false, onWelcome: false },
+  supervisor: { heading: "Supervisor", inDock: false, onWelcome: false },
 };
 
 const ORDER = Object.keys(PLACES) as Place[];
@@ -25,9 +25,9 @@ export const visibleTo = (nav: NavEntry[], who: Who): NavEntry[] =>
     .filter((n) => n.place !== "supervisor" || (who.state === "in" && who.learner.role === "supervisor"))
     .sort(byPlace);
 
-export const barEntries = (nav: NavEntry[]) => nav.filter((n) => PLACES[n.place].inBar);
+export const dockEntries = (nav: NavEntry[]) => nav.filter((n) => PLACES[n.place].inDock);
 
-export const todayEntries = (nav: NavEntry[]) => nav.filter((n) => PLACES[n.place].onToday);
+export const welcomeEntries = (nav: NavEntry[]) => nav.filter((n) => PLACES[n.place].onWelcome);
 
 export const entriesAt = (nav: NavEntry[], place: Place) => nav.filter((n) => n.place === place);
 

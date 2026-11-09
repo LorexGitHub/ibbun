@@ -1,6 +1,6 @@
 import type { NavEntry } from "@mojibun/slice";
 import { describe, expect, it } from "vitest";
-import { barEntries, groups, sessionAt, todayEntries, visibleTo, type Who } from "./places.ts";
+import { dockEntries, groups, sessionAt, visibleTo, welcomeEntries, type Who } from "./places.ts";
 
 const entry = (label: string, place: NavEntry["place"], extra: Partial<NavEntry> = {}): NavEntry => ({
   label,
@@ -35,12 +35,12 @@ describe("the app's map", () => {
     expect(labels(visibleTo(nav, supervisor))).toEqual(["Today", "Reviews", "Cram", "Listening", "Library", "Settings", "Approval"]);
   });
 
-  it("keeps the bar to Today, practice and the Library", () => {
-    expect(labels(barEntries(visibleTo(nav, learner)))).toEqual(["Today", "Listening", "Library"]);
+  it("puts Today, study, practice and the Library in the dock, but not the account or Supervisor screens", () => {
+    expect(labels(dockEntries(visibleTo(nav, supervisor)))).toEqual(["Today", "Reviews", "Cram", "Listening", "Library"]);
   });
 
-  it("puts study, practice and the Library on Today, but not Today itself or the account", () => {
-    expect(labels(todayEntries(visibleTo(nav, learner)))).toEqual(["Reviews", "Cram", "Listening", "Library"]);
+  it("shows a visitor study, practice and the Library, but not Today or the account", () => {
+    expect(labels(welcomeEntries(visibleTo(nav, { state: "out" })))).toEqual(["Reviews", "Cram", "Listening", "Library"]);
   });
 
   it("groups entries under their place's heading and leaves out empty places", () => {

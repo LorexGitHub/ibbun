@@ -26,8 +26,7 @@ describe("web shell", () => {
       </StaticRouter>,
     );
     expect(html).toContain("sample screen");
-    expect(html).toContain('href="/sample"');
-    expect(html).toContain('class="pill pill--ink"');
+    expect(html).toContain('aria-label="Sample" aria-current="page" class="dock-link active" href="/sample"');
   });
 
   it("welcomes a visitor with a way to sign up and log in instead of an empty Today", async () => {
@@ -64,7 +63,7 @@ describe("web shell", () => {
     expect(html).toContain("Electronic Dictionary Research and Development Group");
   });
 
-  it("shows the home widgets only to a logged-in Learner, and nothing while the session is unknown", async () => {
+  it("shows the welcome only to a visitor, and nothing while the session is unknown", async () => {
     const shell = await buildShell(discoverSlices(modules));
     const home = (who: Who) =>
       renderToString(
@@ -73,9 +72,10 @@ describe("web shell", () => {
         </StaticRouter>,
       );
     const learner: Who = { state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } };
-    expect(home(learner)).toContain("Every way in");
-    expect(home({ state: "loading" })).not.toContain("Every way in");
+    expect(home({ state: "out" })).toContain("What&#x27;s inside");
+    expect(home(learner)).not.toContain("What&#x27;s inside");
     expect(home({ state: "loading" })).not.toContain("What&#x27;s inside");
+    expect(home({ state: "loading" })).not.toContain('href="/signup"');
   });
 
   it("renders the widgets a slice registered for a slot", async () => {

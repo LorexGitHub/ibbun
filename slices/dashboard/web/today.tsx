@@ -1,6 +1,6 @@
 import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
-import { buttonClass, Sheet } from "@mojibun/ui";
+import { buttonClass, openGoTo } from "@mojibun/ui";
 import { Today } from "../contract.ts";
 import { levelNote, pathRows } from "./path.ts";
 import "./today.css";
@@ -15,61 +15,67 @@ const dueBreakdown = ({ kanji, word, grammarPoint }: Today["due"]): string => {
   return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");
 };
 
+const nextSteps = (dueTotal: number) =>
+  dueTotal === 0
+    ? [{ href: "/learn", label: "Learn something new" }, { href: "/reviews", label: "Start reviews" }]
+    : [{ href: "/reviews", label: "Start reviews" }, { href: "/learn", label: "Learn new" }];
+
 export const TodayHero = ({ today, hour }: { today: Today; hour: number }) => {
   const { due, streakDays } = today;
+  // The accent button is the one next step: Reviews while any are due, new items once they're done
+  const [primary, secondary] = nextSteps(due.total);
   return (
-    <div className="hero">
-      <div>
-        <h1>{due.total === 0 ? `${greeting(hour)}. Nothing is due.` : `${greeting(hour)}. ${plural(due.total, "review")} ${due.total === 1 ? "is" : "are"} waiting.`}</h1>
-        <p className="lead">{due.total === 0 ? "You're all caught up." : `${dueBreakdown(due)}.`}</p>
-        <div className="actions">
-          {/* The pear button is the one next step: Reviews while any are due, new items once they're done */}
-          <a className={buttonClass({ variant: due.total === 0 ? undefined : "primary", big: true })} href="/reviews">
-            Start reviews
-          </a>
-          <a className={buttonClass({ variant: due.total === 0 ? "primary" : undefined, big: true })} href="/learn">
-            Learn new
-          </a>
-        </div>
+    <section className="today" aria-labelledby="today-count">
+      <p className="caps">
+        {greeting(hour)}
+        {streakDays > 0 && ` · ${plural(streakDays, "day")} in a row`}
+      </p>
+      <h1 id="today-count" className="today-count">
+        <NumberFlow value={due.total} />
+        <span className="visually-hidden"> {due.total === 1 ? "review" : "reviews"} due</span>
+      </h1>
+      <p className="today-line">{due.total === 0 ? "Nothing waits for you today." : due.total === 1 ? "review waits for you." : "reviews wait for you."}</p>
+      <p className="today-breakdown">{due.total === 0 ? "You're all caught up." : `${dueBreakdown(due)}.`}</p>
+      <div className="today-actions">
+        <a className={buttonClass({ variant: "primary", big: true })} href={primary!.href}>
+          {primary!.label} <span aria-hidden>→</span>
+        </a>
+        <a className={buttonClass({ big: true })} href={secondary!.href}>
+          {secondary!.label}
+        </a>
       </div>
-      <Sheet tear="sheet" fill="pear">
-        <div className="figs">
-          <div className="fig">
-            <strong>
-              <NumberFlow value={due.total} />
-            </strong>
-            <span>due</span>
-            <small>by tonight</small>
-          </div>
-          <div className="fig">
-            <strong>
-              <NumberFlow value={streakDays} />
-            </strong>
-            <span>{streakDays === 1 ? "day" : "days"}</span>
-            <small>in a row</small>
-          </div>
-        </div>
-      </Sheet>
-    </div>
+      <button type="button" className="today-search" onClick={openGoTo}>
+        <span lang="ja" aria-hidden>探</span>
+        Where to? Reviews, reading, the Library…
+        <kbd>Ctrl K</kbd>
+      </button>
+    </section>
   );
 };
 
 export const MasteryByLevel = ({ levels }: { levels: Today["levels"] }) => {
   const rows = pathRows(levels);
-  const now = rows.find((r) => r.stage === "now");
+  const nowIndex = rows.findIndex((r) => r.stage === "now");
+  const now = rows[nowIndex];
   const last = rows.at(-1)?.level;
+  const reached = now ? (nowIndex + now.percent / 100) / Math.max(1, rows.length - 1) : 1;
   return (
     <section className="path" aria-labelledby="path-heading">
       <h2 id="path-heading">Your way up to {last}</h2>
       <p>{now ? `You're ${now.percent}% through ${now.level}, and nothing is locked.` : "Every level is settled."}</p>
-      <ol className="levels">
-        {rows.map((row) => (
-          <li key={row.level} className={`level ${row.stage}`}>
-            <b>{row.level}</b>
-            <small>{levelNote(row)}</small>
-          </li>
-        ))}
-      </ol>
+      <div className="levels-track">
+        <span className="levels-line" aria-hidden />
+        <span className="levels-fill" aria-hidden style={{ width: `${Math.min(1, reached) * 100}%` }} />
+        <ol className="levels">
+          {rows.map((row) => (
+            <li key={row.level} className={`level ${row.stage}`}>
+              <span className="level-dot" aria-hidden />
+              <b>{row.level}</b>
+              <small>{levelNote(row)}</small>
+            </li>
+          ))}
+        </ol>
+      </div>
     </section>
   );
 };

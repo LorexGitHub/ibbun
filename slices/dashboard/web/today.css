@@ -1,30 +1,31 @@
-/* The Today screen, from docs/design/mojibun-mock.html. Tokens come from @mojibun/ui. */
-.hero { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--space-2xl); align-items: center; }
-.hero h1 { font-size: var(--text-display); }
-.hero .lead { font-size: var(--text-lead); color: var(--color-ink-2); margin: var(--space-lg) 0 var(--space-xl); max-width: 30ch; }
-.actions { display: flex; gap: 14px; flex-wrap: wrap; }
-.figs { display: grid; gap: 22px; padding: 16px 12px; }
-.fig { display: flex; align-items: baseline; gap: 12px; border-bottom: 1.5px dashed color-mix(in oklab, var(--color-ink) 22%, transparent); padding-bottom: 18px; }
-.fig:last-child { border: 0; padding: 0; }
-.fig strong { font-size: 76px; font-weight: 600; letter-spacing: var(--tracking-display); line-height: 1; }
-.fig span { font-size: var(--text-title); font-weight: 600; letter-spacing: -.02em; }
-.fig small { margin-left: auto; font-size: var(--text-sm); color: var(--color-ink-2); }
+/* The Today screen in the Ma look (ADR 0014): one number, one next step, the way up. Colours come from @mojibun/ui. */
+.today { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 4vh; }
+.today-count { margin-top: var(--space-lg); font-size: var(--text-hero); font-weight: 800; line-height: 0.9; }
+.today-line { margin-top: var(--space-md); font: 500 var(--text-title) var(--font-display); }
+.today-breakdown { margin-top: var(--space-xs); font-size: var(--text-sm); color: var(--color-muted); }
+.today-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: var(--space-xl); }
+.today-search { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 440px; margin-top: var(--space-xl); padding: 12px 4px; border: 0; border-bottom: 1px solid var(--color-ink-2); background: none; color: var(--color-ink-2); font: inherit; text-align: left; cursor: pointer; transition: color var(--dur-micro), border-color var(--dur-micro); }
+.today-search:hover { color: var(--color-ink); border-color: var(--color-ink); }
+.today-search [lang="ja"] { color: var(--color-accent); }
+.today-search kbd { margin-left: auto; font: 500 var(--text-xs) var(--font-body); color: var(--color-muted); }
 
-.path { margin-top: 96px; }
-.path h2 { font-size: var(--text-section); margin-bottom: var(--space-md); }
-.path > p { color: var(--color-ink-2); font-size: var(--text-lead); margin-bottom: var(--space-2xl); }
-.levels { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; align-items: end; }
-.level { border-radius: 28px 28px var(--radius-stock) var(--radius-stock); background: var(--grain), var(--fibre), var(--color-hill-1); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: inset 0 0 0 1px var(--color-rule); }
-.level b { font-size: 34px; font-weight: 600; letter-spacing: var(--tracking-display); }
-.level small { color: var(--color-muted); font-size: var(--text-sm); }
-.level.done { background: var(--grain), var(--fibre), var(--color-hill-2); height: 230px; }
-.level.now { background: var(--grain), var(--fibre), var(--color-mint); height: 190px; box-shadow: 0 5px 0 var(--color-mint-deep); }
-.level.next { height: 140px; }
-.level.far { height: 110px; opacity: .8; }
-.level.farther { height: 90px; opacity: .65; }
+.path { margin: var(--space-3xl) auto 0; max-width: 760px; text-align: center; }
+.path h2 { font-size: var(--text-section); }
+.path > p { margin-top: var(--space-xs); color: var(--color-ink-2); }
+.levels-track { position: relative; margin-top: var(--space-xl); }
+.levels-line, .levels-fill { position: absolute; top: 9px; left: 10px; height: 1px; background: var(--color-rule); }
+.levels-line { right: 10px; }
+.levels-fill { height: 3px; top: 8px; max-width: calc(100% - 20px); background: var(--color-accent); border-radius: 2px; }
+.levels { position: relative; list-style: none; margin: 0; padding: 0; display: flex; justify-content: space-between; }
+.level { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 20px; overflow: visible; }
+.level-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--color-edge); background: var(--color-paper); }
+.level.done .level-dot { border-color: var(--color-accent); background: var(--color-accent); }
+.level.now .level-dot { border-color: var(--color-accent); }
+.level b { font: 500 24px var(--font-display); color: var(--color-muted); }
+.level.now b { font-weight: 800; color: var(--color-ink); }
+.level small { color: var(--color-muted); font-size: var(--text-xs); white-space: nowrap; }
 
-@media (max-width: 760px) {
-  .hero { grid-template-columns: 1fr; }
-  .levels { grid-template-columns: repeat(5, 1fr); gap: 8px; }
-  .level { padding: 12px; }
+@media (max-width: 560px) {
+  .level b { font-size: 18px; }
+  .level small { font-size: 10px; }
 }

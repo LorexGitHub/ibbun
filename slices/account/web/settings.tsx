@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { Button } from "@mojibun/ui";
+import { Button, ThemePicker } from "@mojibun/ui";
 import type { ActiveSession, CurrentLearner } from "@mojibun/learner/client";
 import { useClient } from "./client.ts";
 import { Field, Form, Notice, Screen, useOutcome } from "./form.tsx";
@@ -106,7 +106,7 @@ const DeleteAccount = () => {
   );
 };
 
-/** Settings: email, password, sessions, preferences and account deletion. Sends a visitor without a session to log in. */
+/** Settings: appearance, email, password, sessions, preferences and account deletion. Sends a visitor without a session to log in. */
 export const Settings = () => {
   const client = useClient();
   const navigate = useNavigate();
@@ -117,6 +117,10 @@ export const Settings = () => {
   if (!learner) return null;
   return (
     <Screen title="Settings">
+      <Section title="Appearance">
+        <p>Pick a look and whether it's light or dark. It's saved on this device.</p>
+        <ThemePicker />
+      </Section>
       <Section title="Email">
         <p>
           Signed in as <strong>{learner.email}</strong>
