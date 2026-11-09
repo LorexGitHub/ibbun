@@ -51,4 +51,4 @@ The theme module ([`src/theme.tsx`](src/theme.tsx)) owns the choice: `applyTheme
 - `Attribution` renders a record's inline credits. Slices show it on the answer and result side, in Browse and in detail views, and never on a prompt.
 
 ## Motion
-Brisk and small: `--ease-snap` for movement, a 1–2px lift on hover, colour fades on theme change. Under reduced motion everything ends at once.
+Brisk and small: `--ease-snap` for movement, a 1–2px lift on hover. A theme change applies at once, with no colour fade, so nothing starts in the wrong colours. Under reduced motion everything ends at once.
