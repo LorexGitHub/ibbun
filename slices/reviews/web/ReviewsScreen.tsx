@@ -55,25 +55,6 @@ const LIVE = { load: loadDue, submit: submitAnswer, wrapUp: loadWrapUp, ghosts: 
 
 const missOf = (prompt: ReviewPrompt): Miss => ({ studyItemId: StudyItemId.parse(prompt.studyItemId), asked: [prompt.exampleId] });
 
-/** The scheduled Reviews. With none due, Ghosts are the only thing left to offer. */
-const Scheduled = (props: { due: DueResponse; loaders: Required<Loaders>; onMiss: (miss: Miss) => void; onFinish: (to: Phase) => void }) => {
-  const { due, loaders, onMiss, onFinish } = props;
-  const none = due.reviews.length === 0;
-  return (
-    <>
-      {none && <Card>No Reviews are due. Come back later.</Card>}
-      <Run
-        prompts={due.reviews}
-        preferences={due.preferences}
-        submit={asKind(loaders.submit, "srs")}
-        onResult={(prompt, result) => result.passed || onMiss(missOf(prompt))}
-        onFinish={() => onFinish("listening")}
-      />
-      {none && <Ghosts load={loaders.ghosts} submit={loaders.submit} onFinish={() => onFinish("done")} />}
-    </>
-  );
-};
-
 /** The review session: due Reviews, then the due Listening Clips, then a Wrap-Up of every miss, then any Ghosts. */
 export const ReviewsScreen = (props: Loaders) => {
   const loaders = { ...LIVE, ...props };
@@ -84,14 +65,25 @@ export const ReviewsScreen = (props: Loaders) => {
   if (failed) return <p role="alert">{failed}</p>;
   if (!due) return <p>Loading…</p>;
   const next = (to: Phase) => () => setPhase(to);
+  const none = due.reviews.length === 0;
+  const at = phase === "reviews" && none ? "listening" : phase;
   return (
     <section>
       <h1>Reviews</h1>
-      {phase === "reviews" && <Scheduled due={due} loaders={loaders} onMiss={(miss) => setMisses((now) => [...now, miss])} onFinish={setPhase} />}
-      {phase === "listening" && <ListeningReviews load={loaders.clips} onFinish={next("wrap-up")} />}
-      {phase === "wrap-up" && <WrapUp misses={misses} load={loaders.wrapUp} submit={asKind(loaders.submit, "wrap-up")} onFinish={next("ghosts")} />}
-      {phase === "ghosts" && <Ghosts load={loaders.ghosts} submit={loaders.submit} onFinish={next("done")} />}
-      {phase === "done" && <Card>Session complete.</Card>}
+      {none && <Card>No Reviews are due. Come back later.</Card>}
+      {at === "reviews" && (
+        <Run
+          prompts={due.reviews}
+          preferences={due.preferences}
+          submit={asKind(loaders.submit, "srs")}
+          onResult={(prompt, result) => result.passed || setMisses((now) => [...now, missOf(prompt)])}
+          onFinish={next("listening")}
+        />
+      )}
+      {at === "listening" && <ListeningReviews load={loaders.clips} onFinish={next("wrap-up")} />}
+      {at === "wrap-up" && <WrapUp misses={misses} load={loaders.wrapUp} submit={asKind(loaders.submit, "wrap-up")} onFinish={next("ghosts")} />}
+      {at === "ghosts" && <Ghosts load={loaders.ghosts} submit={loaders.submit} onFinish={next("done")} />}
+      {at === "done" && <Card>Session complete.</Card>}
     </section>
   );
 };
