@@ -14,7 +14,7 @@
     "./jobs": "./src/jobs/index.ts"
   },
   "scripts": {
-    "seed:fixture": "node src/fixture/fixture-cli.ts"
+    "seed:fixture": "node --env-file-if-exists=../../.env src/fixture/fixture-cli.ts"
   },
   "dependencies": {
     "@mojibun/db": "workspace:*",

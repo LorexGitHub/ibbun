@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {},
-  "scripts": { "dev": "node --watch src/main.ts", "start": "node src/main.ts" },
+  "scripts": { "dev": "node --env-file-if-exists=../../.env --watch src/main.ts", "start": "node --env-file-if-exists=../../.env src/main.ts" },
   "dependencies": {
     "@mojibun/db": "workspace:*",
     "@mojibun/jobs": "workspace:*",

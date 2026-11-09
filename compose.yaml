@@ -1,4 +1,4 @@
-# Local services. `docker compose up -d`, then `pnpm install && pnpm db:migrate && pnpm dev`.
+# Local services. `docker compose up -d`, then see the README. Compose reads POSTGRES_PORT from .env.
 services:
   postgres:
     image: postgres:17
@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: mojibun
       POSTGRES_PASSWORD: mojibun
       POSTGRES_DB: mojibun
-    ports: ["5432:5432"]
+    ports: ["${POSTGRES_PORT:-5432}:5432"]
     volumes: ["postgres-data:/var/lib/postgresql/data"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mojibun"]

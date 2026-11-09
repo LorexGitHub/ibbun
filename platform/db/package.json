@@ -8,7 +8,7 @@
     "./testing": "./src/testing.ts"
   },
   "scripts": {
-    "migrate": "node --experimental-strip-types src/cli.ts"
+    "migrate": "node --env-file-if-exists=../../.env --experimental-strip-types src/cli.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.44.0",
