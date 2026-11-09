@@ -37,7 +37,7 @@ describe("the import slice, registered", () => {
 
   it("is a slice named import with a nav entry for the report screen", () => {
     expect(checkSlices([slice]).map((s) => s.name)).toEqual(["import"]);
-    expect(slice.nav).toEqual({ label: "Import", path: "/admin/import" });
+    expect(slice.nav).toMatchObject({ label: "Import", path: "/admin/import", place: "supervisor" });
   });
 
   it("always runs the staleness check, and refreshes nothing when no source is given", () => {

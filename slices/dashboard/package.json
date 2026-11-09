@@ -12,6 +12,7 @@
     "@mojibun/shared": "workspace:*",
     "@mojibun/slice": "workspace:*",
     "@mojibun/ui": "workspace:*",
+    "@number-flow/react": "^0.6.2",
     "hono": "^4.9.0",
     "react": "^19.1.0",
     "zod": "^4.1.0"

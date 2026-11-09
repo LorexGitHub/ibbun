@@ -1,6 +1,11 @@
 // The dependency rules from docs/architecture.md#dependency-rules. CI runs
 // `pnpm depcruise`; scripts/gates/dependency-rules.test.ts proves each rule
 // fires on a fixture that breaks it. Paths are relative to the repo root.
+const { existsSync } = require("node:fs");
+
+// Resolves the "@/" paths shadcn's components in apps/web use. The rules test's fixture workspace has none.
+const TS_CONFIG = "tsconfig.depcruise.json";
+
 const PACKAGE = "^(apps|core|platform|slices)/([^/]+)/";
 const ADMIN_SLICES = "(import|content-generation|content-approval)";
 
@@ -93,6 +98,7 @@ module.exports = {
     doNotFollow: { path: "node_modules" },
     exclude: { path: "(^|/)(dist|target|coverage)/" },
     tsPreCompilationDeps: true,
+    ...(existsSync(TS_CONFIG) && { tsConfig: { fileName: TS_CONFIG } }),
     combinedDependencies: false,
     enhancedResolveOptions: {
       exportsFields: ["exports"],

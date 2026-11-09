@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // Learner's log, so the spec checks the screen holds together either way.
 test("the reviews screen shows a Review or says none are due", async ({ page }) => {
   await page.goto("/reviews");
-  await expect(page.getByRole("link", { name: "Reviews" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Done for now" })).toHaveAttribute("href", "/");
   const empty = page.getByText("No Reviews are due");
   const check = page.getByRole("button", { name: "Check" });
   const listen = page.getByRole("button", { name: "Play", exact: true });

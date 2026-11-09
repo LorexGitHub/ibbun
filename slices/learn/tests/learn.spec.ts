@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // Learner's log, so the spec checks the screen holds together either way.
 test("the learn screen shows the Active Track grid and a batch, or says why there is none", async ({ page }) => {
   await page.goto("/learn");
-  await expect(page.getByRole("link", { name: "Learn" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Done for now" })).toHaveAttribute("href", "/");
   await expect(page.getByRole("heading", { name: "Learn" })).toBeVisible();
   await expect(page.getByLabel("N5 Words")).toBeVisible();
 
