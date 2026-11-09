@@ -220,6 +220,20 @@ describe("the reviews screen", () => {
     expect(await screen.findByText(/No Reviews are due/)).toBeTruthy();
   });
 
+  it("still asks the due Listening Clips when no Reviews are due", async () => {
+    const clip = {
+      clipId: StudyItemId.parse("00000000-0000-4000-8000-000000000009"),
+      exampleId: "clip-ex",
+      audio: [{ src: "/audio/a.ogg", speaker: null }],
+      question: { kind: "dictation" as const },
+      examMode: false,
+      slowAudio: false,
+    };
+    render(<ReviewsScreen load={async () => due([])} ghosts={async () => due([])} clips={async () => ({ clips: [clip] })} />);
+    expect(await screen.findByRole("heading", { name: "Listening" })).toBeTruthy();
+    expect(screen.getByText(/No Reviews are due/)).toBeTruthy();
+  });
+
   it("asks the due Listening Clips after the Reviews, before the session completes", async () => {
     const clip = {
       clipId: StudyItemId.parse("00000000-0000-4000-8000-000000000009"),

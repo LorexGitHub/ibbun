@@ -14,7 +14,25 @@ mojibun teaches **Kanji, Words, Grammar Points and Listening** through real exam
 
 It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLPT-style reading passages that get longer as you progress and tell a continuing story. The suggested order is a guide, not a gate: you can always start any item you're curious about.
 
-> **Status:** early. The monorepo skeleton is in place and features are being built slice by slice. This is a side project and showcase, not a released product.
+> **Status:** every issue in the [build plan](docs/build-plan.md) (M1 to M3) is merged. This is a side project and showcase, not a released product.
+
+## What's in it
+
+| Screen      | What it does                                                                                   |
+| ----------- | ---------------------------------------------------------------------------------------------- |
+| Today       | Reviews due, new items waiting and your streak.                                                |
+| Learn       | Batches of new Study Items: a lesson, a quiz, a Batch Text to read, and Listening Clip lessons. You can also learn any item now. |
+| Reviews     | Your due Reviews, then due Listening Clips, a Wrap-Up of what you missed, and Ghosts from earlier sessions. You can flag an answer you think was right. |
+| Reading     | Reading Passages, Batch Text episodes and Practice Texts.                                      |
+| Listening   | Free listening practice and Practice Text dialogues.                                           |
+| Cram        | Extra practice on any items you pick. Cram never changes your schedule.                        |
+| Placement   | A test that finds your starting JLPT Level.                                                    |
+| Browse      | Every Kanji, Word and Grammar Point, with their links.                                         |
+| Settings    | Your account and preferences.                                                                  |
+| Approval    | Supervisor only: the Content Approval queue for generated content.                             |
+| Import      | Supervisor only: reports on Import Runs from the open datasets.                                |
+
+The worker imports the open datasets (JMdict, KANJIDIC2, KanjiVG, Tatoeba, JLPT level lists, UniDic pitch accent, ja Wiktionary, the Grammar Point seed) on a schedule. It also generates content with Claude, which an LLM reviewer then checks.
 
 ## What it will look like
 
@@ -26,19 +44,30 @@ This is the Today screen from the design mock, the screen you land on when you o
 
 ## Run it locally
 
-You need **Node 24+** and **Docker**.
+You need **Node 24+** and **Docker**. On Windows, run these commands in Git Bash.
 
 ```sh
 corepack enable
 pnpm install
 
 cp .env.example .env
-set -a; . ./.env; set +a      # load the env vars into your shell
+set -a; . ./.env; set +a      # load the env vars into your shell (repeat in every new shell)
 
 docker compose up -d          # Postgres, Sudachi, VOICEVOX and Mailpit
 pnpm db:migrate
+pnpm --filter @mojibun/learner seed               # the two dev accounts
+pnpm --filter @mojibun/content-graph seed:fixture # a small N5 content graph to study
 pnpm dev
 ```
+
+The first `docker compose up` builds the Sudachi image and downloads VOICEVOX, so it takes a few minutes. The seed commands are safe to run again.
+
+Log in with one of the dev accounts. The passwords come from `.env`:
+
+| Account                   | Password              | Role                                        |
+| ------------------------- | --------------------- | ------------------------------------------- |
+| `learner@mojibun.test`    | `learner-password`    | Learner                                     |
+| `supervisor@mojibun.test` | `supervisor-password` | Supervisor: also sees Approval and Import   |
 
 Then open:
 
@@ -50,13 +79,34 @@ Then open:
 
 The background worker starts with `pnpm dev` too.
 
+### Optional settings
+
+| Variable                                     | What it does                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `ANTHROPIC_API_KEY`                          | Turns on content generation and approval (an `ant auth login` profile works too). Without it, those jobs fail, but you can still study the seeded content. |
+| `LLM_GENERATOR_MODEL`, `LLM_REVIEWER_MODEL`  | Override the defaults, `claude-sonnet-5-5` and `claude-opus-5-5`.                                |
+| `DAILY_TOKEN_BUDGET`                         | The daily token cap for generation. The default is 2,000,000.                                    |
+| `SUPERVISOR_EMAIL`                           | `seed` makes this account a Supervisor.                                                          |
+
+### If port 5432 is taken
+
+If you already run PostgreSQL locally, it answers on port 5432 instead of the container, and `pnpm db:migrate` fails with `role "mojibun" does not exist`. You can stop your local server, or map the container to another port with a `compose.override.yaml`:
+
+```yaml
+services:
+  postgres:
+    ports: !override ["5433:5432"]
+```
+
+Then set `DATABASE_URL=postgres://mojibun:mojibun@localhost:5433/mojibun` in `.env`.
+
 ## Everyday commands
 
 | Command          | What it does                                                        |
 | ---------------- | ------------------------------------------------------------------- |
 | `pnpm test`      | Runs every test. Database tests use in-process PGlite, so no Docker. |
 | `pnpm typecheck` | Type-checks the whole repo.                                         |
-| `pnpm e2e`       | Runs the Playwright end-to-end tests.                               |
+| `pnpm e2e`       | Runs the Playwright end-to-end tests. Needs Postgres up, migrated and seeded. |
 | `pnpm depcruise` | Checks that nothing breaks the import rules between packages.       |
 
 ## How the code is organised
