@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Card } from "@mojibun/ui";
 import { StudyItemId } from "@mojibun/shared";
 import { DueResponse, SubmitResponse, type AnswerKind, type ReviewPrompt, type SubmitRequest } from "../contract.ts";
@@ -67,23 +67,26 @@ export const ReviewsScreen = (props: Loaders) => {
   const next = (to: Phase) => () => setPhase(to);
   const none = due.reviews.length === 0;
   const at = phase === "reviews" && none ? "listening" : phase;
+  const steps: Record<Phase, ReactNode> = {
+    reviews: (
+      <Run
+        prompts={due.reviews}
+        preferences={due.preferences}
+        submit={asKind(loaders.submit, "srs")}
+        onResult={(prompt, result) => result.passed || setMisses((now) => [...now, missOf(prompt)])}
+        onFinish={next("listening")}
+      />
+    ),
+    listening: <ListeningReviews load={loaders.clips} onFinish={next("wrap-up")} />,
+    "wrap-up": <WrapUp misses={misses} load={loaders.wrapUp} submit={asKind(loaders.submit, "wrap-up")} onFinish={next("ghosts")} />,
+    ghosts: <Ghosts load={loaders.ghosts} submit={loaders.submit} onFinish={next("done")} />,
+    done: <Card>Session complete.</Card>,
+  };
   return (
     <section>
       <h1>Reviews</h1>
       {none && <Card>No Reviews are due. Come back later.</Card>}
-      {at === "reviews" && (
-        <Run
-          prompts={due.reviews}
-          preferences={due.preferences}
-          submit={asKind(loaders.submit, "srs")}
-          onResult={(prompt, result) => result.passed || setMisses((now) => [...now, missOf(prompt)])}
-          onFinish={next("listening")}
-        />
-      )}
-      {at === "listening" && <ListeningReviews load={loaders.clips} onFinish={next("wrap-up")} />}
-      {at === "wrap-up" && <WrapUp misses={misses} load={loaders.wrapUp} submit={asKind(loaders.submit, "wrap-up")} onFinish={next("ghosts")} />}
-      {at === "ghosts" && <Ghosts load={loaders.ghosts} submit={loaders.submit} onFinish={next("done")} />}
-      {at === "done" && <Card>Session complete.</Card>}
+      {steps[at]}
     </section>
   );
 };
