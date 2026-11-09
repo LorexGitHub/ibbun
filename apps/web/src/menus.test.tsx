@@ -4,7 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountMenu } from "./AccountMenu.tsx";
-import { CommandMenu, useCommandKey } from "./CommandMenu.tsx";
+import { CommandMenu, matchScore, useCommandKey } from "./CommandMenu.tsx";
 import type { Who } from "./places.ts";
 
 afterEach(cleanup);
@@ -93,5 +93,15 @@ describe("the command menu", () => {
     );
     expect(screen.getByRole("option", { name: "Log in" })).toBeTruthy();
     expect(screen.getByRole("option", { name: "Sign up" })).toBeTruthy();
+  });
+});
+
+describe("the command menu's matching", () => {
+  it("ranks a name match over a description match, and never matches scattered letters", () => {
+    expect(matchScore("Reading", "read", ["Short texts built from what you already know."])).toBe(1);
+    expect(matchScore("Library", "kanji", ["Look up any kanji, word or grammar point."])).toBe(0.5);
+    expect(matchScore("Today", "read", ["What's due, your streak and your way up."])).toBe(0);
+    expect(matchScore("Placement", "read", ["Mark what you already know at a JLPT level."])).toBe(0);
+    expect(matchScore("Today", "", [])).toBe(1);
   });
 });

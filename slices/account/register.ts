@@ -2,6 +2,6 @@ import { defineSlice } from "@mojibun/slice";
 
 export default defineSlice({
   name: "account",
-  nav: { label: "Settings", path: "/settings", place: "account", blurb: "Email, password, furigana and where you are logged in." },
+  nav: { label: "Settings", path: "/settings", place: "account", blurb: "Appearance, email, password, furigana and where you are logged in.", glyph: "設" },
   web: () => import("./web/index.ts"),
 });

@@ -7,6 +7,17 @@ import { groups, type Who } from "./places.ts";
 
 const onMac = () => typeof navigator !== "undefined" && /Mac|iP(hone|ad)/.test(navigator.userAgent);
 
+/**
+ * A screen matches by its name, or by a word in its description that starts with the search.
+ * No fuzzy or mid-word matching: "read" must find Reading, not Today or "already".
+ */
+export const matchScore = (value: string, search: string, keywords: string[] = []) => {
+  const q = search.trim().toLowerCase();
+  if (!q || value.toLowerCase().includes(q)) return 1;
+  const words = keywords.join(" ").toLowerCase().split(/[^\p{L}\p{N}]+/u);
+  return words.some((w) => w.startsWith(q)) ? 0.5 : 0;
+};
+
 const typing = (target: EventTarget | null) =>
   target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
 
@@ -63,7 +74,7 @@ export const CommandMenu = ({
       description="Jump to any screen in mojibun."
       className="cmd zoom-in-100 zoom-out-100 sm:max-w-xl"
     >
-      <Command>
+      <Command filter={matchScore}>
         <CommandInput placeholder="Where to? Try “listen” or “kanji”" />
         <CommandList className="max-h-[min(60vh,28rem)]">
           <CommandEmpty>Nothing goes by that name.</CommandEmpty>
