@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountMenu } from "./AccountMenu.tsx";
+import { AppDock } from "./AppDock.tsx";
 import { CommandMenu, matchScore, useCommandKey } from "./CommandMenu.tsx";
 import type { Who } from "./places.ts";
 
@@ -103,5 +104,21 @@ describe("the command menu's matching", () => {
     expect(matchScore("Today", "read", ["What's due, your streak and your way up."])).toBe(0);
     expect(matchScore("Placement", "read", ["Mark what you already know at a JLPT level."])).toBe(0);
     expect(matchScore("Today", "", [])).toBe(1);
+  });
+});
+
+describe("the dock", () => {
+  it("lists every place as a named glyph link and follows the pointer without breaking", () => {
+    render(
+      <MemoryRouter initialEntries={["/reviews"]}>
+        <AppDock entries={nav.filter((e) => e.place !== "supervisor")} />
+      </MemoryRouter>,
+    );
+    const dock = screen.getByRole("navigation", { name: "Main" });
+    fireEvent.mouseMove(dock.firstElementChild!, { pageX: 40 });
+    fireEvent.mouseLeave(dock.firstElementChild!);
+    expect(screen.getByRole("link", { name: "Reviews" }).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("link", { name: "Reviews" }).textContent).toContain("復");
+    expect(screen.getByRole("link", { name: "Library" }).textContent).toContain("L");
   });
 });

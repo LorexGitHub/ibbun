@@ -34,7 +34,7 @@ The theme module ([`src/theme.tsx`](src/theme.tsx)) owns the choice: `applyTheme
 
 ## Frame and wayfinding
 - `Layout`: a quiet top line with the seal and the wordmark, an aside (Go to, account), the screen, the EDRDG footer, and the dock.
-- The dock holds Today and every study, practice and library place as a glyph (今 復 新 測 詰 聞 読 辞), the name on hover and focus, a dot under the current one. A slice joins it through its nav entry's `place` and `glyph`; `apps/web/src/places.ts` is the map.
+- The dock is for logged-in Learners only. It holds Today and every study, practice and library place as a glyph (今 復 新 測 詰 聞 読 辞), the name on hover and focus, a dot under the current one. A slice joins it through its nav entry's `place` and `glyph`; `apps/web/src/places.ts` is the map.
 - A session screen hides the dock and shows its glyph and name with "Done for now".
 - Any screen can open the ⌘K menu with `openGoTo()` from `@mojibun/ui`.
 

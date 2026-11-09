@@ -50,6 +50,9 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
     toast("Logged out. See you next time.");
   };
 
+  // The dock is a Learner's map: hidden from visitors, and during a session
+  const dock = who.state === "in" && !session ? <AppDock entries={dockEntries(nav)} /> : undefined;
+
   const sessionName = session && (
     <span className="session-name">
       <span className="jp" lang="ja" aria-hidden>
@@ -71,7 +74,7 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
 
   return (
     <MotionConfig reducedMotion="user">
-      <Layout nav={sessionName} aside={aside} dock={session ? undefined : <AppDock entries={dockEntries(nav)} />}>
+      <Layout nav={sessionName} aside={aside} dock={dock}>
         <Routes>
           {shell.routes.map((r) => (
             <Route key={r.path} path={r.path} element={<r.component />} />

@@ -22,7 +22,7 @@ describe("web shell", () => {
     const shell = await buildShell(discoverSlices(modules));
     const html = renderToString(
       <StaticRouter location="/sample">
-        <App shell={shell} />
+        <App shell={shell} initialWho={{ state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } }} />
       </StaticRouter>,
     );
     expect(html).toContain("sample screen");
@@ -39,6 +39,19 @@ describe("web shell", () => {
     expect(html).toContain('href="/signup"');
     expect(html).toContain('href="/login"');
     expect(html).toContain("What&#x27;s inside");
+  });
+
+  it("shows the dock only to a logged-in Learner", async () => {
+    const shell = await buildShell(discoverSlices(modules));
+    const at = (who: Who) =>
+      renderToString(
+        <StaticRouter location="/sample">
+          <App shell={shell} initialWho={who} />
+        </StaticRouter>,
+      );
+    expect(at({ state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } })).toContain("dock-link");
+    expect(at({ state: "out" })).not.toContain("dock-link");
+    expect(at({ state: "loading" })).not.toContain("dock-link");
   });
 
   it("swaps the map for a way back to Today inside a session", async () => {
