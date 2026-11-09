@@ -22,6 +22,13 @@ const today: Today = {
   ],
 };
 
+/** A figure's text without the stylesheet NumberFlow puts inside it. */
+const figText = (fig: Element | undefined) => {
+  const copy = fig?.cloneNode(true) as Element | undefined;
+  copy?.querySelectorAll("style").forEach((s) => s.remove());
+  return copy?.textContent;
+};
+
 const answer = (status: number, body?: unknown) => vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(body), { status })));
 
 describe("TodayHero", () => {
@@ -32,17 +39,26 @@ describe("TodayHero", () => {
     expect(screen.getByRole("link", { name: "Start reviews" }).getAttribute("href")).toBe("/reviews");
   });
 
+  it("makes Learn new the pear button once nothing is due", () => {
+    const pear = () => document.querySelector(".btn--primary")?.textContent;
+    render(<TodayHero today={today} hour={19} />);
+    expect(pear()).toBe("Start reviews");
+    cleanup();
+    render(<TodayHero today={{ ...today, due: { total: 0, kanji: 0, word: 0, grammarPoint: 0 } }} hour={19} />);
+    expect(pear()).toBe("Learn new");
+  });
+
   it("shows the due count and the streak as figures", () => {
     render(<TodayHero today={today} hour={19} />);
     const figures = document.querySelectorAll(".fig");
-    expect(Array.from(figures, (f) => f.textContent)).toEqual(["18dueby tonight", "42daysin a row"]);
+    expect(Array.from(figures, figText)).toEqual(["18dueby tonight", "42daysin a row"]);
   });
 
   it("says nothing is due when nothing is", () => {
     render(<TodayHero today={{ ...today, due: { total: 0, kanji: 0, word: 0, grammarPoint: 0 }, streakDays: 1 }} hour={8} />);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Good morning. Nothing is due.");
     expect(screen.getByText("You're all caught up.")).toBeTruthy();
-    expect(document.querySelectorAll(".fig")[1]?.textContent).toBe("1dayin a row");
+    expect(figText(document.querySelectorAll(".fig")[1])).toBe("1dayin a row");
   });
 
   it("leaves out the types with nothing due and uses the singular", () => {
@@ -93,7 +109,7 @@ describe("TodayWidget", () => {
 describe("register", () => {
   it("puts Today in the nav and offers the home screen its widget", async () => {
     expect(slice.name).toBe("dashboard");
-    expect(slice.nav).toEqual({ label: "Today", path: "/" });
+    expect(slice.nav).toMatchObject({ label: "Today", path: "/", place: "home" });
     const web = await slice.web!();
     expect(web.widgets?.map((w) => w.slot)).toEqual(["home"]);
     expect(web.routes).toBeUndefined();

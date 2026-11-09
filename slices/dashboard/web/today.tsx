@@ -1,3 +1,4 @@
+import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
 import { buttonClass, Sheet } from "@mojibun/ui";
 import { Today } from "../contract.ts";
@@ -22,10 +23,11 @@ export const TodayHero = ({ today, hour }: { today: Today; hour: number }) => {
         <h1>{due.total === 0 ? `${greeting(hour)}. Nothing is due.` : `${greeting(hour)}. ${plural(due.total, "review")} ${due.total === 1 ? "is" : "are"} waiting.`}</h1>
         <p className="lead">{due.total === 0 ? "You're all caught up." : `${dueBreakdown(due)}.`}</p>
         <div className="actions">
-          <a className={buttonClass({ variant: "primary", big: true })} href="/reviews">
+          {/* The pear button is the one next step: Reviews while any are due, new items once they're done */}
+          <a className={buttonClass({ variant: due.total === 0 ? undefined : "primary", big: true })} href="/reviews">
             Start reviews
           </a>
-          <a className={buttonClass({ big: true })} href="/learn">
+          <a className={buttonClass({ variant: due.total === 0 ? "primary" : undefined, big: true })} href="/learn">
             Learn new
           </a>
         </div>
@@ -33,12 +35,16 @@ export const TodayHero = ({ today, hour }: { today: Today; hour: number }) => {
       <Sheet tear="sheet" fill="pear">
         <div className="figs">
           <div className="fig">
-            <strong>{due.total}</strong>
+            <strong>
+              <NumberFlow value={due.total} />
+            </strong>
             <span>due</span>
             <small>by tonight</small>
           </div>
           <div className="fig">
-            <strong>{streakDays}</strong>
+            <strong>
+              <NumberFlow value={streakDays} />
+            </strong>
             <span>{streakDays === 1 ? "day" : "days"}</span>
             <small>in a row</small>
           </div>
