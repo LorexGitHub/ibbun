@@ -3,7 +3,7 @@ import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/vendor/ui/sonner";
 import { AccountMenu } from "./AccountMenu.tsx";
 import { AppDock } from "./AppDock.tsx";
 import { CommandMenu, CommandTrigger, useCommandKey } from "./CommandMenu.tsx";

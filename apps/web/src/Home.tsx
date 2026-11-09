@@ -1,7 +1,7 @@
 import { buttonClass } from "@mojibun/ui";
 import type { NavEntry } from "@mojibun/slice";
 import { Link } from "react-router";
-import { BlurFade } from "@/components/ui/blur-fade";
+import { BlurFade } from "@/vendor/ui/blur-fade";
 import { groups } from "./places.ts";
 
 /** What a visitor finds inside, one column per place. */

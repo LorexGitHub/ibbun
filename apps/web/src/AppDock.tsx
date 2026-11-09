@@ -1,6 +1,6 @@
 import type { NavEntry } from "@mojibun/slice";
 import { NavLink } from "react-router";
-import { Dock, DockIcon } from "@/components/ui/dock";
+import { Dock, DockIcon } from "@/vendor/ui/dock";
 
 /** The app's map along the bottom: one glyph per place, its name on hover and focus, a dot under the current one. */
 export const AppDock = ({ entries }: { entries: NavEntry[] }) => (

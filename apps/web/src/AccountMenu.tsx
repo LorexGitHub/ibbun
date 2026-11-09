@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/vendor/ui/dropdown-menu";
 import { entriesAt, type Who } from "./places.ts";
 
 const Entries = ({ heading, entries }: { heading?: string; entries: NavEntry[] }) => {

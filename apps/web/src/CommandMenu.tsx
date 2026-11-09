@@ -1,8 +1,8 @@
 import type { NavEntry } from "@mojibun/slice";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Kbd } from "@/components/ui/kbd";
+import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/vendor/ui/command";
+import { Kbd } from "@/vendor/ui/kbd";
 import { groups, type Who } from "./places.ts";
 
 const onMac = () => typeof navigator !== "undefined" && /Mac|iP(hone|ad)/.test(navigator.userAgent);
