@@ -1,76 +1,98 @@
-/* The Hum kit's rules, ported from docs/design/mojibun-mock.html. Screens add layout; the kit holds the material. */
+/* The Ma kit (ADR 0014): lots of space, Mincho for what matters, one accent. Screens add layout; the kit holds the material. */
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { overflow-x: clip; }
-html { background: var(--grain), var(--fibre), var(--color-paper); color: var(--color-ink); scrollbar-color: var(--color-muted) var(--color-paper); }
-body { margin: 0; font: 500 var(--text-md)/1.5 var(--font-body); -webkit-font-smoothing: antialiased; caret-color: var(--color-accent-2); }
-::selection { background: color-mix(in oklab, var(--color-accent) 45%, transparent); color: var(--color-ink); }
-:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
-h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--tracking-display); line-height: 1.04; text-wrap: balance; overflow-wrap: break-word; }
-p { margin: 0; text-wrap: pretty; }
-button, input { font: inherit; }
-a { color: var(--color-accent-2); text-underline-offset: 0.16em; }
-mark { background: color-mix(in oklab, var(--color-accent) 55%, transparent); color: inherit; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: 0 .12em; border-radius: 4px; }
+html { background: var(--color-paper); color: var(--color-ink); accent-color: var(--color-accent); scrollbar-color: var(--color-muted) var(--color-paper); transition: background-color var(--dur-short), color var(--dur-short); }
+body { margin: 0; font: 400 var(--text-md)/1.55 var(--font-body); -webkit-font-smoothing: antialiased; caret-color: var(--color-accent); }
+::selection { background: color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-ink); }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+/* Element defaults sit in the base layer so Tailwind utilities on shadcn parts can override them */
+@layer base {
+  h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--tracking-display); line-height: 1.1; text-wrap: balance; overflow-wrap: break-word; }
+  p { margin: 0; text-wrap: pretty; }
+  button, input { font: inherit; }
+  a { color: var(--color-accent); text-underline-offset: 0.18em; }
+  mark { background: color-mix(in oklab, var(--color-accent) 22%, transparent); color: inherit; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: 0 .12em; border-radius: 3px; }
+}
 .jp, [lang="ja"] { font-family: var(--font-jp); letter-spacing: 0; }
 .muted { color: var(--color-muted); }
 .small { font-size: var(--text-sm); }
+.caps { text-transform: uppercase; letter-spacing: var(--tracking-caps); font-size: var(--text-sm); color: var(--color-muted); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.wrap { width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: var(--gutter); }
+.wrap { width: 100%; max-width: 1080px; margin-inline: auto; padding-inline: var(--gutter); }
 
 /* Furigana */
 ruby { ruby-position: over; }
 rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
 
-/* Card stock: a solid edge below that presses down */
-.btn { --edge: 5px; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-xs); border: 0; border-radius: var(--radius-stock); min-height: 54px; padding: 0 var(--space-lg); font: 600 var(--text-md) var(--font-body); color: var(--color-ink); cursor: pointer; text-decoration: none;
-  background: var(--grain), var(--fibre), var(--color-card); box-shadow: inset 0 1px 0 var(--color-lit), inset 0 0 0 1px var(--color-rule), 0 var(--edge) 0 0 var(--color-edge);
-  transition: translate var(--dur-micro) var(--ease-snap), box-shadow var(--dur-micro) var(--ease-snap); }
-.btn--primary { background: var(--grain), var(--fibre), var(--color-accent); color: var(--color-accent-ink);
-  box-shadow: inset 0 1px 0 var(--color-lit-accent), 0 var(--edge) 0 0 var(--color-accent-deep), 2px calc(var(--edge) + 4px) 10px -3px color-mix(in oklab, var(--color-ink) 32%, transparent); transition-timing-function: var(--ease-spring); }
-.btn--loud { box-shadow: inset 0 1px 0 var(--color-lit), inset 0 0 0 1px var(--color-rule), 0 var(--edge) 0 0 var(--color-accent-3); }
-.btn--big { min-height: 64px; padding: 0 var(--space-xl); font-size: var(--text-lead); }
-.btn:hover { --edge: 7px; translate: 0 -2px; }
-.btn:active { --edge: 1px; translate: 0 4px; }
-.btn:disabled { cursor: not-allowed; color: var(--color-muted); --edge: 2px; translate: 0 3px; }
-.btn[aria-pressed="true"] { --edge: 1px; translate: 0 4px; }
+/* Buttons: a pill. Primary is the accent with its own soft shadow; secondary is a hairline outline. */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-xs); border: 1px solid var(--color-rule); border-radius: var(--radius-stock); min-height: 48px; padding: 0 var(--space-lg); font: 500 var(--text-md) var(--font-body); color: var(--color-ink); background: transparent; cursor: pointer; text-decoration: none;
+  transition: translate var(--dur-micro) var(--ease-snap), background-color var(--dur-micro), border-color var(--dur-micro), box-shadow var(--dur-micro); }
+.btn:hover { border-color: var(--color-muted); translate: 0 -1px; }
+.btn:active { translate: 0 1px; }
+.btn--primary { background: var(--color-accent); color: var(--color-accent-ink); border-color: transparent; box-shadow: var(--shadow-accent); }
+.btn--primary:hover { border-color: transparent; translate: 0 -2px; }
+.btn--loud { border-color: var(--color-accent); color: var(--color-accent); }
+.btn--big { min-height: 60px; padding: 0 var(--space-xl); font-size: var(--text-lead); }
+.btn:disabled { cursor: not-allowed; opacity: 0.45; translate: none; }
+.btn[aria-pressed="true"] { background: var(--color-paper-3); }
 
-.card { background: var(--grain), var(--fibre), var(--color-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card), inset 0 0 0 1px var(--color-rule); }
-.pill { display: inline-flex; align-items: center; min-height: 36px; padding: 0 var(--space-md); border-radius: var(--radius-pill); background: var(--color-paper-2); box-shadow: inset 0 0 0 1px var(--color-rule); color: var(--color-ink); font-size: var(--text-sm); text-decoration: none; }
-.pill--ink { background: var(--color-ink); color: var(--color-paper); box-shadow: none; }
+.card { background: var(--color-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card), inset 0 0 0 1px var(--color-rule); }
+.pill { display: inline-flex; align-items: center; min-height: 34px; padding: 0 var(--space-md); border-radius: var(--radius-pill); background: transparent; box-shadow: inset 0 0 0 1px var(--color-rule); color: var(--color-ink); font-size: var(--text-sm); text-decoration: none; }
+.pill--p-ink { background: var(--color-ink); color: var(--color-paper); box-shadow: none; }
 
-.input { min-height: 52px; width: 100%; padding: 0 var(--space-md); border: 1px solid var(--color-muted); border-radius: var(--radius-input); background: var(--color-card); color: var(--color-ink); font-size: var(--text-lead); }
+.input { min-height: 50px; width: 100%; padding: 0 var(--space-md); border: 1px solid var(--color-rule); border-radius: var(--radius-input); background: var(--color-card); color: var(--color-ink); font-size: var(--text-lead); }
 .input:disabled { cursor: not-allowed; background: var(--color-paper-2); color: var(--color-muted); }
-.input:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 1px; border-color: var(--color-focus); }
+.input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; border-color: var(--color-focus); }
 
-/* Torn paper: a sheet clipped to a seeded edge, with its pale fibre core one pixel proud beneath */
-.sheet-wrap { position: relative; display: flex; flex-direction: column; filter: var(--shadow-paper); }
-.sheet-wrap > .fringe { position: absolute; inset: 0; background: var(--color-fringe); translate: 1px 2px; }
-.sheet-wrap > .torn { position: relative; flex: 1; }
-.sheet-wrap[data-tear="nav"] > * { clip-path: var(--tear-nav); }
-.sheet-wrap[data-tear="band"] > * { clip-path: var(--tear-band); }
-.sheet-wrap[data-tear="sheet"] > * { clip-path: var(--tear-sheet); }
-.torn[data-fill="paper"] { background: var(--grain), var(--fibre), var(--color-paper-2); }
-.torn[data-fill="kraft"] { background: var(--grain), var(--fibre), var(--color-kraft); color: var(--color-fringe); }
-.torn[data-fill="pear"] { background: var(--grain), var(--fibre), var(--color-accent); color: var(--color-accent-ink); }
+/* Sheets were torn paper in Hum; in Ma they are a quiet panel */
+.sheet-wrap { position: relative; display: flex; flex-direction: column; }
+.sheet-wrap > .fringe { display: none; }
+.sheet-wrap > .torn { position: relative; flex: 1; border-radius: var(--radius-card); }
+.torn[data-fill="paper"] { background: var(--color-paper-2); }
+.torn[data-fill="kraft"] { background: var(--color-paper-3); }
+.torn[data-fill="pear"] { background: var(--color-accent); color: var(--color-accent-ink); }
+
+/* The logo: 文 on an accent seal */
+.mark { flex: none; }
 
 /* The frame every screen shares */
 .app { min-height: 100vh; display: flex; flex-direction: column; }
-.app-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); padding-block: var(--space-md) var(--space-lg); }
-.brand { display: flex; align-items: center; gap: var(--space-sm); font-weight: 600; font-size: 22px; letter-spacing: var(--tracking-display); color: var(--color-ink); text-decoration: none; }
-.nav-links { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
-.nav-links .pill { min-height: 40px; }
+.app-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); padding-block: var(--space-lg); }
+.brand { display: flex; align-items: center; gap: 10px; font: 500 var(--text-sm) var(--font-body); text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--color-ink); text-decoration: none; }
+.nav-links { display: flex; flex-wrap: wrap; gap: var(--space-xs); justify-content: center; }
 .nav-aside { display: flex; gap: var(--space-xs); align-items: center; }
-.app-main { flex: 1; padding-block: var(--space-2xl); }
+.app-main { flex: 1; padding-block: var(--space-xl) var(--space-3xl); }
 
-.app-footer { padding-block: var(--space-xl); border-top: 1.5px dashed var(--color-rule); color: var(--color-muted); font-size: var(--text-sm); }
+.app-footer { padding-block: var(--space-xl) calc(var(--space-3xl) + var(--space-xl)); border-top: 1px solid var(--color-rule); color: var(--color-muted); font-size: var(--text-xs); }
 .app-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-md); }
 .app-footer p { max-width: 72ch; }
+.app-footer a { color: inherit; }
 .attribution { color: var(--color-muted); font-size: var(--text-sm); }
 
 .audio { display: inline-flex; }
 
-@media (max-width: 900px) {
+@media (max-width: 720px) {
   .app-nav { flex-wrap: wrap; }
-  .nav-links { order: 3; width: 100%; }
+  .nav-links { order: 3; width: 100%; justify-content: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
+
+/* Settings → Appearance */
+.theme-picker { display: grid; gap: var(--space-lg); }
+.theme-looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--space-md); }
+.theme-look { display: grid; gap: 6px; padding: 10px 10px 14px; text-align: left; border: 1px solid var(--color-rule); border-radius: var(--radius-card); background: transparent; color: var(--color-ink); cursor: pointer; transition: border-color var(--dur-micro), translate var(--dur-micro) var(--ease-snap); }
+.theme-look:hover { translate: 0 -1px; border-color: var(--color-muted); }
+.theme-look[aria-checked="true"] { border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+.theme-look-name { font-weight: 600; padding-inline: 4px; }
+.theme-look-note { font-size: var(--text-xs); color: var(--color-muted); padding-inline: 4px; }
+.swatch { display: flex; align-items: center; gap: 10px; height: 72px; padding: 0 14px; border-radius: 12px; background: var(--p-bg); color: var(--p-ink); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--p-ink) 12%, transparent); }
+.swatch-seal { display: grid; place-items: center; width: 30px; height: 30px; border-radius: var(--radius-seal); background: var(--p-accent); color: var(--p-on-accent); font-family: var(--font-jp); font-size: 17px; }
+.swatch-lines { flex: 1; height: 26px; background: linear-gradient(var(--p-ink) 0 0) 0 4px / 70% 3px no-repeat, linear-gradient(var(--p-quiet) 0 0) 0 13px / 45% 3px no-repeat, linear-gradient(var(--p-quiet) 0 0) 0 22px / 55% 3px no-repeat; opacity: 0.9; }
+.theme-modes { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: var(--radius-pill); box-shadow: inset 0 0 0 1px var(--color-rule); width: fit-content; }
+.theme-mode { border: 0; border-radius: var(--radius-pill); padding: 8px 16px; background: transparent; color: var(--color-ink); cursor: pointer; font-size: var(--text-sm); }
+.theme-mode[aria-checked="true"] { background: var(--color-ink); color: var(--color-paper); }
+
+/* The dock: the app's map along the bottom of the screen */
+.app-dock { position: fixed; inset-inline: 0; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 40; display: flex; justify-content: center; pointer-events: none; }
+.app-dock > * { pointer-events: auto; }

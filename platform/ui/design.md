@@ -1,63 +1,54 @@
 # Design: mojibun
 
-The locked system. Every Hallmark run reads this first and pages share it. Change it on purpose; the file is the rule. The visual target is [`docs/design/mojibun-mock.html`](../../docs/design/mojibun-mock.html) ([ADR 0011](../../docs/adr/0011-hum-visual-design.md)): when a screen and the mock disagree, the mock wins.
+The locked system. Every screen shares it; change it on purpose. The reasoning is in [ADR 0014](../../docs/adr/0014-ma-visual-design.md), which supersedes the Hum look of ADR 0011.
 
 ## System
-- Genre: playful
-- Shape of the first page: app screen
-- Theme: Hum (by request)
-- Axes: light/rounded-sans/chromatic-yellow · posture: full-palette
+- Name: **Ma** (間, the space between). One thing on screen at a time, lots of room, Japanese editorial type.
+- Five looks, each light and dark: Shu 朱 (default), Ai 藍, Matcha 抹茶, Sakura 桜, Shiro / Kuro 白黒. The Learner picks one in Settings → Appearance.
 
-## Tokens
-[`src/tokens.css`](src/tokens.css) is the source of truth, copied from the mock's `:root` (a test fails if they drift). The roles:
-```css
-:root {
-  --color-paper: oklch(97% 0.012 95);  --color-paper-2: oklch(94.5% 0.018 95);  --color-paper-3: oklch(91% 0.022 95);
-  --color-ink: oklch(20% 0.014 255);  --color-ink-2: oklch(29% 0.014 255);  --color-muted: oklch(47% 0.014 255);  --color-rule: oklch(87% 0.016 95);
-  --color-accent: oklch(87% 0.175 96);  --color-accent-ink: oklch(20% 0.014 255);  --color-focus: oklch(50% 0.17 250);
-  --font-display: "Chillax", "Zen Maru Gothic", ui-rounded, ui-sans-serif, sans-serif;  --font-body: var(--font-display);  --font-jp: "Zen Maru Gothic", …;
-  --radius-card: 24px;  --radius-pill: 999px;  --rule-hair: 1px;  --shadow-card: 0 1px 2px …, 0 12px 28px -14px …;
-}
-```
-The spacing and type scales, the easings, the durations, the grain and fibre textures and the three torn edges (`--tear-nav`, `--tear-band`, `--tear-sheet`) live in `tokens.css`.
+## Colour
+[`src/palettes.css`](src/palettes.css) sets six roles per look and mode on `<html data-palette data-mode>`:
+
+| Role | What it is |
+| --- | --- |
+| `--p-bg` | The page |
+| `--p-ink` | Text and lines |
+| `--p-accent` | The one strong colour: the primary button, the seal, links, focus, the path so far |
+| `--p-on-accent` | Text on the accent |
+| `--p-quiet` | Unreached dots and quiet edges |
+| `--p-glass` | The dock's glass |
+
+[`src/tokens.css`](src/tokens.css) derives every `--color-*` token from those six (paper steps, card, ink steps, rule, accent and its deep and ink). **Screens use the `--color-*` tokens, never a fixed colour,** so they follow every look in both modes. Growth (`--color-mint*`) and a wrong answer (`--color-error`) keep their hue in every look, because they carry meaning.
+
+The theme module ([`src/theme.tsx`](src/theme.tsx)) owns the choice: `applyTheme()` runs before the first render, `ThemePicker` is the Settings control, and "Match my device" follows `prefers-color-scheme` live. The choice is saved per device in `localStorage` under `mojibun.theme`.
 
 ## Type
-- Chillax 500 and 600 (Fontshare) for all Latin text. Zen Maru Gothic 500 and 700 (Google Fonts) for Japanese: anything with `lang="ja"` or `.jp`. Chillax has no kana or kanji.
+- Shippori Mincho B1 (`--font-display`, `--font-jp`) for headings, big numbers and anything Japanese (`lang="ja"` or `.jp`).
+- Instrument Sans (`--font-body`) for everything else. Small caps labels use `.caps`.
 - Furigana is `<ruby>` with `<rt>` at half size in `--color-ink-2`. Whether readings show is the furigana rule in `progress`; the kit only draws.
 
-## Accents
-- Pear (`--color-accent`): the primary action, one per screen. Blue (`--color-accent-2`): links and focus. Coral (`--color-accent-3`): the one loud press, such as Forgot. Mint: growth, a correct answer, Known.
-- A wrong answer uses `--color-error`, never coral. Never a gradient between two accents.
-
 ## Controls
-- Primary: pear card stock · `--radius-stock` 16px · 54px, 64px big · a 5px `--color-accent-deep` edge that rises to 7px on hover and presses to 1px.
-- Secondary: cream card stock · same radius and height · a 5px `--color-edge`.
-- Inputs: 52px · `--radius-input` 14px · 1px `--color-muted` border · the blue focus ring. Answers in Japanese use `KanaInput`, which turns romaji into kana with wanakana.
-- Selected pill: ink fill, paper text.
+- Buttons are pills (`.btn`). `btn--primary` fills with the accent and casts a soft accent shadow; one per screen. The default is a hairline outline. `btn--loud` is an accent outline.
+- Inputs: 50px, `--radius-input` 12px, a hairline border, the accent focus ring. Answers in Japanese use `KanaInput`.
+- Cards are quiet: a lifted surface with a hairline, `--radius-card` 20px.
 
-## Where Hum yields to app scope
-- Kept from Hum: the palette, the faces, the radii, grain and fibre, and 54px pressable card stock, because pressing is the job in a Review.
-- Torn edges: the nav sheet on every screen, and at most two bands or sheets per screen (the Today figures and progress band). No hills, soil or page curls.
+## Frame and wayfinding
+- `Layout`: a quiet top line with the seal and the wordmark, an aside (Go to, account), the screen, the EDRDG footer, and the dock.
+- The dock holds Today and every study, practice and library place as a glyph (今 復 新 測 詰 聞 読 辞), the name on hover and focus, a dot under the current one. A slice joins it through its nav entry's `place` and `glyph`; `apps/web/src/places.ts` is the map.
+- A session screen hides the dock and shows its glyph and name with "Done for now".
+- Any screen can open the ⌘K menu with `openGoTo()` from `@mojibun/ui`.
 
-## Wayfinding
-- The bar holds Today, the practice screens and the Library, as in the mock. Study screens (Reviews, Learn, Placement, Cram) are reached from Today and the command menu. Settings and the Supervisor screens sit in the account menu. A slice says where it belongs through its nav entry's `place`; `apps/web/src/places.ts` is the map.
-- A session screen swaps the pills for its glyph and name and a "Done for now" button, like the mock's Review screen.
-- Destinations carry a Japanese glyph (復 新 読 聞 辞 …) instead of an icon.
+## Logo
+文 in four strokes on an accent seal (`Mark`), rounded like a name stamp. It takes the current look. [`assets/icon.svg`](../../assets/icon.svg) and the favicon are the Shu seal.
 
 ## Base components
-- shadcn (radix base) lives in `apps/web/src/components/ui`, generated by the shadcn CLI. `apps/web/src/index.css` maps every shadcn variable to a token here: `--radius` is `--radius-stock`, the font is Chillax, the colours are the Hum roles. Tailwind's preflight is left out so slice screens keep the kit's base rules.
-- Override shadcn defaults that break Hum at the call site: `zoom-in-100 zoom-out-100` on menus and dialogs (never `scale()`), and the Lucide icons shadcn draws are hidden or left out (Hum uses no stock icons).
-- Toasts: sonner, mounted once by the shell as a card-stock slip. Numbers that change: NumberFlow. The command menu: cmdk through shadcn's `Command`. Entrance motion: Magic UI's Blur Fade, under motion's `MotionConfig reducedMotion="user"`.
+- shadcn (radix base) lives in `apps/web/src/components/ui`, generated by the CLI. `apps/web/src/index.css` maps shadcn's variables onto the kit's tokens, with its own 12px radius. Tailwind's preflight is left out; the kit's element rules sit in `@layer base` so utilities can override them.
+- Menus and dialogs never scale in (`zoom-in-100 zoom-out-100`). Lucide icons shadcn draws are hidden where the design uses glyphs.
+- Toasts: sonner. Changing numbers: NumberFlow. The command menu: cmdk. The dock: Magic UI's Dock. Entrance motion: Magic UI's Blur Fade, cut down, under `MotionConfig reducedMotion="user"`.
 
 ## Attribution
-- `Layout` renders the EDRDG footer on every screen: EDRDG's sample wording and a link to Credits ([licensing.md](../../docs/licensing.md#where-attribution-appears)).
-- `Attribution` renders a record's inline credits, as computed by `content-graph`. Slices show it on the answer and result side, in Browse and in detail views, and never on a prompt.
+- `Layout` renders the EDRDG footer on every screen ([licensing.md](../../docs/licensing.md#where-attribution-appears)).
+- `Attribution` renders a record's inline credits. Slices show it on the answer and result side, in Browse and in detail views, and never on a prompt.
 
 ## Motion
-- Character: brisk; `--ease-spring` on the primary button only, `--ease-snap` elsewhere, never `scale()`; under reduced motion everything ends at once.
-
-## Lint
-`pnpm --filter @mojibun/ui lint:hallmark` runs Hallmark's `sloplint` (Nutlope/hallmark @ `407fa68`, cloned next to the repo as `../hallmark`, or at `$HALLMARK`) over `src` with `--genre playful --scope app`. It must report 0 FAIL and 0 REFLEX.
-
-## Exports
-`src/tokens.css` in this package, loaded through `@mojibun/ui/styles.css`.
+Brisk and small: `--ease-snap` for movement, a 1–2px lift on hover, colour fades on theme change. Under reduced motion everything ends at once.

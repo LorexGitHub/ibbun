@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, Pill, pillClass, Sheet } from "./index.ts";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, openGoTo, onGoTo, Pill, pillClass, Sheet, ThemePicker } from "./index.ts";
 
 afterEach(cleanup);
 
@@ -17,6 +17,56 @@ describe("Layout", () => {
     expect(screen.getByText("N4")).toBeTruthy();
     expect(screen.getByRole("main").textContent).toBe("Today");
     expect(screen.getByRole("contentinfo").textContent).toContain("Electronic Dictionary Research and Development Group");
+  });
+});
+
+describe("Layout's dock", () => {
+  it("puts the dock after the screen, and leaves the nav out when there is none", () => {
+    render(
+      <Layout dock={<nav aria-label="Dock">Today</nav>}>
+        <h1>Today</h1>
+      </Layout>,
+    );
+    expect(screen.queryByRole("navigation", { name: "Main" })).toBeNull();
+    expect(screen.getByRole("navigation", { name: "Dock" }).textContent).toBe("Today");
+  });
+});
+
+describe("ThemePicker", () => {
+  const saved = new Map<string, string>();
+  beforeEach(() => {
+    saved.clear();
+    vi.stubGlobal("localStorage", { getItem: (k: string) => saved.get(k) ?? null, setItem: (k: string, v: string) => saved.set(k, v) });
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("puts the chosen look and mode on <html> and saves them on the device", () => {
+    render(<ThemePicker />);
+    fireEvent.click(screen.getByRole("radio", { name: /^Ai/ }));
+    fireEvent.click(screen.getByRole("radio", { name: "Dark" }));
+    expect(document.documentElement.dataset.palette).toBe("ai");
+    expect(document.documentElement.dataset.mode).toBe("dark");
+    expect(JSON.parse(localStorage.getItem("mojibun.theme")!)).toEqual({ palette: "ai", mode: "dark" });
+    expect(screen.getByRole("radio", { name: /^Ai/ }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: /^Shu/ }).getAttribute("aria-checked")).toBe("false");
+  });
+
+  it("follows the device's light or dark setting when asked to", () => {
+    render(<ThemePicker />);
+    fireEvent.click(screen.getByRole("radio", { name: "Match my device" }));
+    expect(["light", "dark"]).toContain(document.documentElement.dataset.mode);
+    expect(JSON.parse(localStorage.getItem("mojibun.theme")!).mode).toBe("system");
+  });
+});
+
+describe("openGoTo", () => {
+  it("reaches whoever listens, until they stop", () => {
+    const open = vi.fn();
+    const stop = onGoTo(open);
+    openGoTo();
+    stop();
+    openGoTo();
+    expect(open).toHaveBeenCalledOnce();
   });
 });
 
