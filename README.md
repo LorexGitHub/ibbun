@@ -44,14 +44,11 @@ This is the Today screen from the design mock, the screen you land on when you o
 
 ## Run it locally
 
-You need **Node 24+** and **Docker**. On Windows, run these commands in Git Bash.
+You need **Node 24+**, **pnpm 12** and **Docker**. If you don't have pnpm, run `npm install -g pnpm@12` (Node 25 and later no longer include `corepack`). The commands work the same in PowerShell, bash and zsh.
 
 ```sh
-corepack enable
 pnpm install
-
-cp .env.example .env
-set -a; . ./.env; set +a      # load the env vars into your shell (repeat in every new shell)
+cp .env.example .env          # every script reads it; no need to load it into your shell
 
 docker compose up -d          # Postgres, Sudachi, VOICEVOX and Mailpit
 pnpm db:migrate
@@ -90,15 +87,14 @@ The background worker starts with `pnpm dev` too.
 
 ### If port 5432 is taken
 
-If you already run PostgreSQL locally, it answers on port 5432 instead of the container, and `pnpm db:migrate` fails with `role "mojibun" does not exist`. You can stop your local server, or map the container to another port with a `compose.override.yaml`:
+If you already run PostgreSQL locally, it answers on port 5432 instead of the container, and `pnpm db:migrate` fails with `role "mojibun" does not exist`. Move the container to another port by changing these two lines in `.env`:
 
-```yaml
-services:
-  postgres:
-    ports: !override ["5433:5432"]
+```sh
+POSTGRES_PORT=5433
+DATABASE_URL=postgres://mojibun:mojibun@localhost:5433/mojibun
 ```
 
-Then set `DATABASE_URL=postgres://mojibun:mojibun@localhost:5433/mojibun` in `.env`.
+Then run `docker compose up -d` again to recreate the container on the new port.
 
 ## Everyday commands
 
