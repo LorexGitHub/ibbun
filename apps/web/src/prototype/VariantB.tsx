@@ -6,35 +6,38 @@ import { Link } from "react-router";
 import { Dock, DockIcon } from "@/components/ui/dock";
 import type { Who } from "../places.ts";
 import { breakdown, currentLevel, greeting, pct, type TodayData } from "./data.ts";
+import { paletteVars, type Mode } from "./palettes.ts";
 
-const SUMI = "oklch(22% 0.008 270)";
-const SHU = "oklch(58% 0.2 32)";
+const SHU = "var(--accent)";
 
-const theme = {
-  "--font-display": "'Shippori Mincho B1', serif",
-  "--font-body": "'Instrument Sans', sans-serif",
-  "--border": "oklch(86% 0.01 80)",
-  fontFamily: "'Instrument Sans', sans-serif",
-  background: "oklch(96.5% 0.012 85)",
-  color: SUMI,
-} as CSSProperties;
+const theme = (palette: string | null, mode: Mode) =>
+  ({
+    ...paletteVars(palette, mode),
+    "--font-display": "'Shippori Mincho B1', serif",
+    "--font-body": "'Instrument Sans', sans-serif",
+    fontFamily: "'Instrument Sans', sans-serif",
+    background: "var(--bg)",
+    color: "var(--ink)",
+    colorScheme: mode,
+    transition: "background-color 300ms, color 300ms",
+  }) as CSSProperties;
 
 const mincho = { fontFamily: "'Shippori Mincho B1', serif" };
 
-export const VariantB = ({ today, nav, openMenu }: { today: TodayData; nav: NavEntry[]; who: Who; openMenu: () => void }) => {
+export const VariantB = ({ today, nav, openMenu, palette = null, mode = "light" }: { today: TodayData; nav: NavEntry[]; who: Who; openMenu: () => void; palette?: string | null; mode?: Mode }) => {
   const level = currentLevel(today.levels);
   const dock = nav.filter((n) => n.place !== "supervisor" && n.glyph);
   const next = today.due.total ? { to: "/reviews", label: "Begin reviews" } : { to: "/learn", label: "Learn something new" };
   return (
-    <div style={theme} className="relative min-h-screen overflow-hidden">
+    <div style={theme(palette, mode)} className="relative min-h-screen overflow-hidden">
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Shippori+Mincho+B1:wght@500;700;800&display=swap" />
-      <span aria-hidden lang="ja" className="pointer-events-none absolute -right-24 top-10 select-none text-[34rem] leading-none opacity-[0.05]" style={mincho}>
+      <span aria-hidden lang="ja" className="pointer-events-none absolute -right-24 top-10 select-none text-[34rem] leading-none opacity-[0.06]" style={mincho}>
         文
       </span>
 
       <header className="mx-auto flex max-w-3xl items-center justify-between px-6 pt-8 text-sm">
         <span className="flex items-center gap-2 tracking-[0.3em] uppercase">
-          <span className="grid size-6 place-items-center rounded-sm text-xs text-white" style={{ background: SHU, ...mincho }} lang="ja">文</span>
+          <span className="grid size-6 place-items-center rounded-sm text-xs" style={{ background: SHU, color: "var(--on-accent)", ...mincho }} lang="ja">文</span>
           mojibun
         </span>
         <span className="opacity-60">{today.streakDays}日 連続 · {today.streakDays} day streak</span>
@@ -54,8 +57,8 @@ export const VariantB = ({ today, nav, openMenu }: { today: TodayData; nav: NavE
 
         <Link
           to={next.to}
-          className="mt-12 inline-flex items-center gap-3 rounded-full px-10 py-4 text-lg font-medium text-white no-underline shadow-[0_10px_30px_-10px] transition-transform hover:-translate-y-0.5"
-          style={{ background: SHU, boxShadow: `0 14px 30px -12px ${SHU}` }}
+          className="mt-12 inline-flex items-center gap-3 rounded-full px-10 py-4 text-lg font-medium no-underline transition-transform hover:-translate-y-0.5"
+          style={{ background: SHU, color: "var(--on-accent)", boxShadow: "0 14px 30px -12px color-mix(in oklab, var(--accent) 70%, transparent)" }}
         >
           {next.label} <span aria-hidden>→</span>
         </Link>
@@ -75,7 +78,7 @@ export const VariantB = ({ today, nav, openMenu }: { today: TodayData; nav: NavE
               const now = l === level;
               return (
                 <div key={l.level} className="relative flex flex-col items-center gap-3">
-                  <span className="size-5 rounded-full border-2" style={{ borderColor: done || now ? SHU : "oklch(80% 0.01 80)", background: done ? SHU : "oklch(96.5% 0.012 85)" }} />
+                  <span className="size-5 rounded-full border-2" style={{ borderColor: done || now ? SHU : "var(--quiet)", background: done ? SHU : "var(--bg)" }} />
                   <span className={`text-2xl ${now ? "font-extrabold" : "opacity-50"}`} style={mincho}>{l.level}</span>
                   <span className="text-xs opacity-60">{pct(l)}%</span>
                 </div>
@@ -86,10 +89,10 @@ export const VariantB = ({ today, nav, openMenu }: { today: TodayData; nav: NavE
       </main>
 
       <div className="fixed inset-x-0 bottom-20 z-40 flex justify-center">
-        <Dock iconMagnification={64} iconDistance={120} className="mt-0 border-black/10 bg-white/70 shadow-[0_10px_40px_-15px_rgba(0,0,0,.3)]">
+        <Dock iconMagnification={64} iconDistance={120} className="mt-0 border-[color-mix(in_oklab,var(--ink)_12%,transparent)] bg-[var(--glass)] shadow-[0_10px_40px_-15px_rgba(0,0,0,.35)]">
           {dock.map((e) => (
             <DockIcon key={e.path} className="bg-transparent">
-              <Link to={e.path} title={`${e.label}: ${e.blurb}`} className="grid size-full place-items-center rounded-full text-xl no-underline" style={{ ...mincho, color: SUMI }} lang="ja">
+              <Link to={e.path} title={`${e.label}: ${e.blurb}`} className="grid size-full place-items-center rounded-full text-xl no-underline" style={{ ...mincho, color: "var(--ink)" }} lang="ja">
                 {e.glyph}
               </Link>
             </DockIcon>
