@@ -20,27 +20,30 @@ It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLP
 
 | Screen      | What it does                                                                                   |
 | ----------- | ---------------------------------------------------------------------------------------------- |
-| Today       | Reviews due, new items waiting and your streak.                                                |
+| Today       | How many Reviews are due, the next step, your streak and your way up from N5 to N1.            |
 | Learn       | Batches of new Study Items: a lesson, a quiz, a Batch Text to read, and Listening Clip lessons. You can also learn any item now. |
 | Reviews     | Your due Reviews, then due Listening Clips, a Wrap-Up of what you missed, and Ghosts from earlier sessions. You can flag an answer you think was right. |
 | Reading     | Reading Passages, Batch Text episodes and Practice Texts.                                      |
 | Listening   | Free listening practice and Practice Text dialogues.                                           |
 | Cram        | Extra practice on any items you pick. Cram never changes your schedule.                        |
-| Placement   | A test that finds your starting JLPT Level.                                                    |
-| Browse      | Every Kanji, Word and Grammar Point, with their links.                                         |
-| Settings    | Your account and preferences.                                                                  |
+| Placement   | Mark what you already know at a JLPT Level, so it skips your Reviews.                          |
+| Library     | Every Kanji, Word and Grammar Point, with their links.                                         |
+| Settings    | Appearance (five looks, light or dark), your account and your study preferences.               |
 | Approval    | Supervisor only: the Content Approval queue for generated content.                             |
 | Import      | Supervisor only: reports on Import Runs from the open datasets.                                |
 
 The worker imports the open datasets (JMdict, KANJIDIC2, KanjiVG, Tatoeba, JLPT level lists, UniDic pitch accent, ja Wiktionary, the Grammar Point seed) on a schedule. It also generates content with Claude, which an LLM reviewer then checks.
 
-## What it will look like
+## What it looks like
 
 <p align="center">
-  <img src="assets/screenshot-today.jpg" alt="The mojibun Today screen: a greeting with 18 reviews waiting, Start reviews and Learn 6 new buttons, and a yellow note showing 18 due, 6 new and a 42-day streak">
+  <img src="assets/screenshot-today.png" width="49%" alt="The mojibun Today screen in the Shu look, light: a large 0 in Mincho type, Nothing waits for you today, a vermilion Learn something new button, a Where to? search, and the way up from N5 to N1">
+  <img src="assets/screenshot-today-dark.png" width="49%" alt="The same Today screen in the Ai look, dark: navy page, pale ink and a light blue button">
 </p>
 
-This is the Today screen from the design mock, the screen you land on when you open the app. The full mock is at [docs/design/mojibun-mock.html](docs/design/mojibun-mock.html), and the reasoning behind the Hum design is in [ADR 0011](docs/adr/0011-hum-visual-design.md).
+The design is called **Ma** (間, the space between): one thing on screen at a time, Shippori Mincho for headings and Japanese, and a dock of glyphs along the bottom for getting around (今 Today, 復 Reviews, 新 Learn, 読 Reading, 聞 Listening, 辞 Library and more). ⌘K or Ctrl K jumps anywhere.
+
+It comes in five looks, each in light and dark: **Shu 朱** (vermilion on washi, the default), **Ai 藍** (indigo), **Matcha 抹茶**, **Sakura 桜** and **Shiro / Kuro 白黒** (pure white and black). Pick one in Settings → Appearance, or let it follow your device. The reasoning is in [ADR 0014](docs/adr/0014-ma-visual-design.md), and the rules every screen follows are in [platform/ui/design.md](platform/ui/design.md).
 
 ## Run it locally
 

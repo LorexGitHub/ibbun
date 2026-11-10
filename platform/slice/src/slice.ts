@@ -4,7 +4,26 @@ import type { SessionResolver } from "@mojibun/auth";
 import type { Db } from "@mojibun/db";
 import type { JobHandler } from "@mojibun/jobs";
 
-export type NavEntry = { label: string; path: string };
+/**
+ * Where a destination sits on the app's map, which decides how a Learner finds it:
+ * `home`, `library` and `practice` are in the top bar; `study` is reached from Today;
+ * `account` and `supervisor` sit in the account menu. Every place is in the command menu.
+ */
+export type Place = "home" | "study" | "practice" | "library" | "account" | "supervisor";
+
+export type NavEntry = {
+  label: string;
+  path: string;
+  place: Place;
+  /** One line on what the Learner does there, shown on Today and in the command menu. */
+  blurb: string;
+  /** Lower comes first within its place. Entries without one follow, by slice name. */
+  rank?: number;
+  /** A Japanese character that stands for the destination, in place of an icon. */
+  glyph?: string;
+  /** A focused session (a Review, a lesson): the bar swaps the map for a way back to Today. */
+  session?: boolean;
+};
 export type WebRoute = { path: string; component: ComponentType };
 /** A piece of UI a slice offers to a screen that another slice (or the shell) owns, such as the dashboard. */
 export type Widget = { slot: string; component: ComponentType };

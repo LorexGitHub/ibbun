@@ -15,7 +15,7 @@ A visitor signs up with an email and password, verifies the address through a ma
 
 ## How to get to it (user POV)
 
-- Open `http://localhost:5173/signup`, `/login`, `/forgot-password` or `/settings`. The nav has a Settings link.
+- Open `http://localhost:5173/signup`, `/login`, `/forgot-password` or `/settings`. The account menu (the initial at the top right) has a Settings link.
 - Verification and reset links arrive in Mailpit at `http://localhost:8025`.
 - Without a session, `/settings` sends the visitor to `/login`.
 
@@ -33,7 +33,7 @@ Preconditions:
 - **Enumeration-safe login.** Log in as `nobody@mojibun.test`, then as `learner@mojibun.test` with a wrong password. Both show exactly "email or password is wrong".
 - **Link works once.** Open the verify link of `v1` a second time; expect an error, not a session.
 - **Password reset.** Open `/forgot-password`, enter `learner@mojibun.test`, then `nobody@mojibun.test`. Both show "If that address has an account, we sent a link."; Mailpit has one reset mail, for the first. Open its link, choose a new password, expect `/login?reset=1`; log in with the new password. Open the link again; expect "invalid token". Run `verify.sh shot /login account/reset-login`.
-- **Settings.** Log in as `learner@mojibun.test`, open `/settings`. Expect the email, a session marked "(this device)" and the preference controls. `verify.sh shot /settings account/settings`.
+- **Settings.** Log in as `learner@mojibun.test`, open `/settings`. Expect Appearance first (five looks with live swatches, then Light, Dark and Match my device), then the email, a session marked "(this device)" and the preference controls. `verify.sh shot /settings account/settings`.
 - **Preferences and the toggle rule.** On `/settings` the English translation box is checked and disabled while Japanese is off. Check "Show the Japanese Explanation": "Saved." appears and English becomes enabled. Reload: Japanese is still checked (read-only view: `select explanations from learner.preferences`). Uncheck English: Japanese becomes disabled. No click can leave both off.
 - **Sessions.** Log in from two contexts as the same Learner. In one, `/settings` lists two sessions; "End session" on the other; reload the other context and expect `/login`.
 - **Log out everywhere.** With two contexts logged in, press "Log out everywhere" in one. Expect `/login` there and, after reload, in the other.

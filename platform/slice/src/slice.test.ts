@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkSlices, defineSlice, loadServerParts, type ServerContext } from "./index.ts";
+import { checkSlices, defineSlice, loadServerParts, type ServerContext } from "./slice.ts";
 
 const ctx = {} as ServerContext;
 

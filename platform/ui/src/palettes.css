@@ -1,0 +1,42 @@
+/* The five looks (ADR 0014). Each sets the same six roles in a light and a dark mode; tokens.css derives every other colour from them.
+ * <html data-palette data-mode> picks one; the theme module sets both. With no attributes the page is Shu, light or dark by the system. */
+
+:root, [data-palette="shu"][data-mode="light"] {
+  --p-bg: oklch(96.5% 0.012 85); --p-ink: oklch(22% 0.008 270); --p-accent: oklch(58% 0.2 32); --p-on-accent: oklch(99% 0 0); --p-quiet: oklch(80% 0.01 80); --p-glass: oklch(100% 0 0 / 0.7);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode]) {
+    --p-bg: oklch(17% 0.008 60); --p-ink: oklch(93% 0.015 85); --p-accent: oklch(65% 0.19 34); --p-on-accent: oklch(15% 0.01 60); --p-quiet: oklch(35% 0.01 60); --p-glass: oklch(25% 0.01 60 / 0.75);
+  }
+}
+[data-palette="shu"][data-mode="dark"] {
+  --p-bg: oklch(17% 0.008 60); --p-ink: oklch(93% 0.015 85); --p-accent: oklch(65% 0.19 34); --p-on-accent: oklch(15% 0.01 60); --p-quiet: oklch(35% 0.01 60); --p-glass: oklch(25% 0.01 60 / 0.75);
+}
+
+[data-palette="ai"][data-mode="light"] {
+  --p-bg: oklch(97% 0.008 250); --p-ink: oklch(25% 0.06 265); --p-accent: oklch(45% 0.16 265); --p-on-accent: oklch(99% 0 0); --p-quiet: oklch(82% 0.02 255); --p-glass: oklch(100% 0 0 / 0.7);
+}
+[data-palette="ai"][data-mode="dark"] {
+  --p-bg: oklch(19% 0.04 265); --p-ink: oklch(93% 0.02 250); --p-accent: oklch(72% 0.12 245); --p-on-accent: oklch(18% 0.04 265); --p-quiet: oklch(36% 0.05 265); --p-glass: oklch(27% 0.05 265 / 0.75);
+}
+
+[data-palette="matcha"][data-mode="light"] {
+  --p-bg: oklch(96.5% 0.02 115); --p-ink: oklch(26% 0.04 145); --p-accent: oklch(55% 0.12 140); --p-on-accent: oklch(99% 0 0); --p-quiet: oklch(83% 0.03 125); --p-glass: oklch(100% 0 0 / 0.65);
+}
+[data-palette="matcha"][data-mode="dark"] {
+  --p-bg: oklch(19% 0.025 145); --p-ink: oklch(93% 0.03 115); --p-accent: oklch(76% 0.14 130); --p-on-accent: oklch(18% 0.03 145); --p-quiet: oklch(36% 0.03 145); --p-glass: oklch(26% 0.03 145 / 0.75);
+}
+
+[data-palette="sakura"][data-mode="light"] {
+  --p-bg: oklch(97% 0.015 350); --p-ink: oklch(27% 0.05 340); --p-accent: oklch(62% 0.17 355); --p-on-accent: oklch(99% 0 0); --p-quiet: oklch(85% 0.03 350); --p-glass: oklch(100% 0 0 / 0.7);
+}
+[data-palette="sakura"][data-mode="dark"] {
+  --p-bg: oklch(19% 0.035 340); --p-ink: oklch(94% 0.02 350); --p-accent: oklch(78% 0.12 355); --p-on-accent: oklch(19% 0.035 340); --p-quiet: oklch(37% 0.04 340); --p-glass: oklch(27% 0.04 340 / 0.75);
+}
+
+[data-palette="shiro-kuro"][data-mode="light"] {
+  --p-bg: oklch(100% 0 0); --p-ink: oklch(14% 0 0); --p-accent: oklch(14% 0 0); --p-on-accent: oklch(100% 0 0); --p-quiet: oklch(86% 0 0); --p-glass: oklch(97% 0 0 / 0.8);
+}
+[data-palette="shiro-kuro"][data-mode="dark"] {
+  --p-bg: oklch(8% 0 0); --p-ink: oklch(96% 0 0); --p-accent: oklch(96% 0 0); --p-on-accent: oklch(8% 0 0); --p-quiet: oklch(30% 0 0); --p-glass: oklch(18% 0 0 / 0.8);
+}

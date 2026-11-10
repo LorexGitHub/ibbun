@@ -131,7 +131,7 @@ describe("ItemScreen", () => {
 
 describe("register", () => {
   it("adds a Browse entry to the nav and mounts the Browse routes", async () => {
-    expect(slice.nav).toEqual({ label: "Browse", path: "/browse" });
+    expect(slice.nav).toMatchObject({ label: "Library", path: "/browse", place: "library" });
     const web = await slice.web!();
     expect(web.routes?.map((r) => r.path)).toEqual(["/browse", "/browse/items/:id"]);
   });

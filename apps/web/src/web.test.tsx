@@ -3,6 +3,7 @@ import { StaticRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 import type { Slice } from "@mojibun/slice";
 import { App, Slot } from "./App.tsx";
+import type { Who } from "./places.ts";
 import { buildShell, discoverSlices } from "./slices.ts";
 
 const modules = import.meta.glob<{ default: Slice }>("../../../scripts/fixtures/root/slices/*/register.ts", {
@@ -12,7 +13,7 @@ const modules = import.meta.glob<{ default: Slice }>("../../../scripts/fixtures/
 describe("web shell", () => {
   it("discovers slices with a glob import and builds nav, routes and widgets from them", async () => {
     const shell = await buildShell(discoverSlices(modules));
-    expect(shell.nav).toEqual([{ label: "Sample", path: "/sample" }]);
+    expect(shell.nav).toEqual([{ label: "Sample", path: "/sample", place: "practice", blurb: "A sample screen." }]);
     expect(shell.routes.map((r) => r.path)).toEqual(["/sample"]);
     expect(shell.widgets.map((w) => w.slot)).toEqual(["dashboard"]);
   });
@@ -21,12 +22,48 @@ describe("web shell", () => {
     const shell = await buildShell(discoverSlices(modules));
     const html = renderToString(
       <StaticRouter location="/sample">
-        <App shell={shell} />
+        <App shell={shell} initialWho={{ state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } }} />
       </StaticRouter>,
     );
     expect(html).toContain("sample screen");
-    expect(html).toContain('href="/sample"');
-    expect(html).toContain('class="pill pill--ink"');
+    expect(html).toContain('aria-label="Sample" aria-current="page" class="dock-link active" href="/sample"');
+  });
+
+  it("welcomes a visitor with a way to sign up and log in instead of an empty Today", async () => {
+    const shell = await buildShell(discoverSlices(modules));
+    const html = renderToString(
+      <StaticRouter location="/">
+        <App shell={shell} initialWho={{ state: "out" }} />
+      </StaticRouter>,
+    );
+    expect(html).toContain('href="/signup"');
+    expect(html).toContain('href="/login"');
+    expect(html).toContain("What&#x27;s inside");
+  });
+
+  it("shows the dock only to a logged-in Learner", async () => {
+    const shell = await buildShell(discoverSlices(modules));
+    const at = (who: Who) =>
+      renderToString(
+        <StaticRouter location="/sample">
+          <App shell={shell} initialWho={who} />
+        </StaticRouter>,
+      );
+    expect(at({ state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } })).toContain("dock-link");
+    expect(at({ state: "out" })).not.toContain("dock-link");
+    expect(at({ state: "loading" })).not.toContain("dock-link");
+  });
+
+  it("swaps the map for a way back to Today inside a session", async () => {
+    const session: Slice = { name: "drill", nav: { label: "Drill", path: "/drill", place: "study", blurb: "Drill.", session: true } };
+    const shell = await buildShell(discoverSlices({ ...modules, drill: { default: session } }));
+    const html = renderToString(
+      <StaticRouter location="/drill">
+        <App shell={shell} initialWho={{ state: "out" }} />
+      </StaticRouter>,
+    );
+    expect(html).toContain("Done for now");
+    expect(html).not.toContain('href="/sample"');
   });
 
   it("frames every screen with the EDRDG footer", async () => {
@@ -37,6 +74,21 @@ describe("web shell", () => {
       </StaticRouter>,
     );
     expect(html).toContain("Electronic Dictionary Research and Development Group");
+  });
+
+  it("shows the welcome only to a visitor, and nothing while the session is unknown", async () => {
+    const shell = await buildShell(discoverSlices(modules));
+    const home = (who: Who) =>
+      renderToString(
+        <StaticRouter location="/">
+          <App shell={shell} initialWho={who} />
+        </StaticRouter>,
+      );
+    const learner: Who = { state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } };
+    expect(home({ state: "out" })).toContain("What&#x27;s inside");
+    expect(home(learner)).not.toContain("What&#x27;s inside");
+    expect(home({ state: "loading" })).not.toContain("What&#x27;s inside");
+    expect(home({ state: "loading" })).not.toContain('href="/signup"');
   });
 
   it("renders the widgets a slice registered for a slot", async () => {

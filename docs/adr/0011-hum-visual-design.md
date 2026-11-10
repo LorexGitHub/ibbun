@@ -1,6 +1,6 @@
 # ADR 0011: Hum visual design, with a static mock as the target
 
-- Status: Accepted
+- Status: Superseded by [ADR 0014](0014-ma-visual-design.md)
 - Date: 2026-11-05
 
 ## Context
