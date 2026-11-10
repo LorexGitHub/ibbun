@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, openGoTo, onGoTo, Pill, pillClass, Sheet, ThemePicker } from "./index.ts";
+import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, openGoTo, onGoTo, Pill, pillClass, setTheme, Sheet, ThemePicker, useSystemModeSync } from "./index.ts";
 
 afterEach(cleanup);
 
@@ -56,6 +56,42 @@ describe("ThemePicker", () => {
     fireEvent.click(screen.getByRole("radio", { name: "Match my device" }));
     expect(["light", "dark"]).toContain(document.documentElement.dataset.mode);
     expect(JSON.parse(localStorage.getItem("mojibun.theme")!).mode).toBe("system");
+  });
+});
+
+describe("useSystemModeSync", () => {
+  /** A device whose light or dark setting the test flips. */
+  const device = () => {
+    const listeners = new Set<() => void>();
+    const media = {
+      matches: false,
+      addEventListener: (_: string, l: () => void) => listeners.add(l),
+      removeEventListener: (_: string, l: () => void) => listeners.delete(l),
+    };
+    vi.stubGlobal("matchMedia", () => media);
+    vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => {} });
+    return { flip: (dark: boolean) => ((media.matches = dark), listeners.forEach((l) => l())), listeners };
+  };
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("follows the device while the Learner chose Match my device, and lets go on unmount", () => {
+    const { flip, listeners } = device();
+    setTheme({ palette: "ai", mode: "system" });
+    const { unmount } = renderHook(() => useSystemModeSync());
+    flip(true);
+    expect(document.documentElement.dataset.mode).toBe("dark");
+    flip(false);
+    expect(document.documentElement.dataset.mode).toBe("light");
+    unmount();
+    expect(listeners.size).toBe(0);
+  });
+
+  it("ignores the device once the Learner picked Light or Dark", () => {
+    const { flip } = device();
+    setTheme({ palette: "ai", mode: "light" });
+    renderHook(() => useSystemModeSync());
+    flip(true);
+    expect(document.documentElement.dataset.mode).toBe("light");
   });
 });
 

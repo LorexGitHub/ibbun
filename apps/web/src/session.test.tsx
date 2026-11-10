@@ -1,0 +1,96 @@
+// @vitest-environment happy-dom
+import type { Slice } from "@mojibun/slice";
+import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
+import { toast } from "sonner";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { App } from "./App.tsx";
+import { buildShell, discoverSlices } from "./slices.ts";
+import { client, useWho } from "./who.ts";
+
+// happy-dom's Web Animations reject when the dock's animations are cancelled on unmount; motion falls back to its own timer without them
+beforeAll(() => {
+  Reflect.deleteProperty(Element.prototype, "animate");
+});
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+const learner = { learnerId: "l", email: "learner@x.test", role: "learner" as const };
+const modules = import.meta.glob<{ default: Slice }>("../../../scripts/fixtures/root/slices/*/register.ts", { eager: true });
+
+/** A promise the test settles by hand, to put two answers in a chosen order. */
+const deferred = <T,>() => {
+  let settle!: (value: T) => void;
+  const promise = new Promise<T>((resolve) => (settle = resolve));
+  return { promise, settle };
+};
+
+describe("useWho", () => {
+  it("knows a logged-in Learner, a visitor, and a failed check as a visitor", async () => {
+    const session = vi.spyOn(client, "session");
+    session.mockResolvedValueOnce({ ok: true, data: learner });
+    const { result, rerender } = renderHook(({ path }) => useWho(path)[0], { initialProps: { path: "/" } });
+    expect(result.current).toEqual({ state: "loading" });
+    await waitFor(() => expect(result.current).toEqual({ state: "in", learner }));
+
+    session.mockResolvedValueOnce({ ok: true, data: null });
+    rerender({ path: "/login" });
+    await waitFor(() => expect(result.current).toEqual({ state: "out" }));
+
+    session.mockRejectedValueOnce(new Error("offline"));
+    rerender({ path: "/signup" });
+    session.mockResolvedValueOnce({ ok: false, status: 500, message: "down" });
+    rerender({ path: "/settings" });
+    await waitFor(() => expect(session).toHaveBeenCalledTimes(4));
+    expect(result.current).toEqual({ state: "out" });
+  });
+
+  it("ignores an answer that arrives after the Learner has moved on", async () => {
+    const slow = deferred<Awaited<ReturnType<typeof client.session>>>();
+    const fast = deferred<Awaited<ReturnType<typeof client.session>>>();
+    vi.spyOn(client, "session").mockReturnValueOnce(slow.promise).mockReturnValueOnce(fast.promise);
+    const { result, rerender } = renderHook(({ path }) => useWho(path)[0], { initialProps: { path: "/" } });
+    rerender({ path: "/login" });
+    await act(async () => fast.settle({ ok: true, data: null }));
+    await act(async () => slow.settle({ ok: true, data: learner }));
+    expect(result.current).toEqual({ state: "out" });
+  });
+});
+
+describe("logging out from the account menu", () => {
+  let loggedIn = true;
+  const logOut = async () => {
+    loggedIn = true;
+    vi.spyOn(client, "session").mockImplementation(async () => ({ ok: true, data: loggedIn ? learner : null }));
+    const shell = await buildShell(discoverSlices(modules));
+    render(
+      <MemoryRouter initialEntries={["/sample"]}>
+        <App shell={shell} />
+      </MemoryRouter>,
+    );
+    fireEvent.keyDown(await screen.findByRole("button", { name: /Account/ }), { key: "Enter" });
+    await act(async () => fireEvent.click(screen.getByRole("menuitem", { name: "Log out" })));
+  };
+
+  it("logs the Learner out and shows the welcome", async () => {
+    vi.spyOn(client, "signOut").mockImplementation(async () => {
+      loggedIn = false;
+      return { ok: true, data: null };
+    });
+    const error = vi.spyOn(toast, "error");
+    await logOut();
+    expect((await screen.findByRole("link", { name: /Sign up/ })).getAttribute("href")).toBe("/signup");
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("keeps the Learner logged in and says why when logging out fails", async () => {
+    vi.spyOn(client, "signOut").mockResolvedValue({ ok: false, status: 500, message: "server down" });
+    const error = vi.spyOn(toast, "error");
+    await logOut();
+    expect(error).toHaveBeenCalledWith("You're still logged in.", { description: "server down" });
+    expect(screen.queryByRole("link", { name: "Log in" })).toBeNull();
+  });
+});
