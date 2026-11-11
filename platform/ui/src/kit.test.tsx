@@ -1,19 +1,22 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, openGoTo, onGoTo, Pill, pillClass, setTheme, Sheet, ThemePicker, useSystemModeSync } from "./index.ts";
+import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, openGoTo, onGoTo, Pill, pillClass, SessionCount, SessionCountSlot, setTheme, Sheet, ThemePicker, useSystemModeSync } from "./index.ts";
 
 afterEach(cleanup);
 
 describe("Layout", () => {
-  it("frames a screen with the brand, the nav it is given, the screen and the EDRDG footer", () => {
-    render(
+  it("frames a screen with the seal alone as the way home, what it is given for the top line, the screen and the EDRDG footer", () => {
+    const { container } = render(
       <Layout nav={<a href="/reviews">Reviews</a>} aside={<span>N4</span>}>
         <h1>Today</h1>
       </Layout>,
     );
-    expect(screen.getByRole("link", { name: "mojibun" }).getAttribute("href")).toBe("/");
-    expect(screen.getByRole("navigation", { name: "Main" }).textContent).toBe("Reviews");
+    const home = screen.getByRole("link", { name: "mojibun" });
+    expect(home.getAttribute("href")).toBe("/");
+    expect(home.textContent).toBe("");
+    expect(container.querySelector(".nav-links")!.textContent).toBe("Reviews");
+    expect(container.querySelector(".app-kanji")).toBeNull();
     expect(screen.getByText("N4")).toBeTruthy();
     expect(screen.getByRole("main").textContent).toBe("Today");
     expect(screen.getByRole("contentinfo").textContent).toContain("Electronic Dictionary Research and Development Group");
@@ -21,14 +24,55 @@ describe("Layout", () => {
 });
 
 describe("Layout's dock", () => {
-  it("puts the dock after the screen, and leaves the nav out when there is none", () => {
-    render(
+  it("puts the dock after the screen, and leaves the middle of the top line out when there is nothing for it", () => {
+    const { container } = render(
       <Layout dock={<nav aria-label="Dock">Today</nav>}>
         <h1>Today</h1>
       </Layout>,
     );
-    expect(screen.queryByRole("navigation", { name: "Main" })).toBeNull();
+    expect(container.querySelector(".nav-links")).toBeNull();
     expect(screen.getByRole("navigation", { name: "Dock" }).textContent).toBe("Today");
+  });
+});
+
+describe("Layout's background kanji", () => {
+  it("stands the screen's kanji behind it, in Japanese and hidden from a screen reader", () => {
+    const { container } = render(
+      <Layout kanji="復">
+        <h1>Reviews</h1>
+      </Layout>,
+    );
+    const kanji = container.querySelector(".app-kanji")!;
+    expect(kanji.textContent).toBe("復");
+    expect(kanji.getAttribute("lang")).toBe("ja");
+    expect(kanji.getAttribute("aria-hidden")).toBe("true");
+    expect(screen.getByRole("main").textContent).toBe("Reviews");
+  });
+});
+
+describe("SessionCount", () => {
+  it("shows how far the session is in the frame's header when the frame has a place for it", () => {
+    render(
+      <>
+        <header>
+          <SessionCountSlot />
+        </header>
+        <main>
+          <SessionCount at={2} of={5} />
+        </main>
+      </>,
+    );
+    expect(screen.getByRole("banner").textContent).toBe("2 / 5");
+    expect(screen.getByRole("main").textContent).toBe("");
+  });
+
+  it("shows where it is rendered when no frame is around it", () => {
+    render(
+      <main>
+        <SessionCount at={1} of={5} />
+      </main>,
+    );
+    expect(screen.getByRole("main").textContent).toBe("1 / 5");
   });
 });
 
