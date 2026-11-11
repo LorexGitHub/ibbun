@@ -1,6 +1,6 @@
 import type { NavEntry } from "@mojibun/slice";
 import { describe, expect, it } from "vitest";
-import { dockEntries, groups, sessionAt, visibleTo, welcomeEntries, type Who } from "./places.ts";
+import { dockEntries, doorPath, groups, kanjiAt, levelAt, levelPath, LEVELS, sessionAt, visibleTo, welcomeEntries, type Who } from "./places.ts";
 
 const entry = (label: string, place: NavEntry["place"], extra: Partial<NavEntry> = {}): NavEntry => ({
   label,
@@ -52,5 +52,34 @@ describe("the app's map", () => {
     expect(sessionAt(nav, "/reviews/42")?.label).toBe("Reviews");
     expect(sessionAt(nav, "/reviewsish")).toBeUndefined();
     expect(sessionAt(nav, "/listening")).toBeUndefined();
+  });
+
+  it("gives each of the five levels its own address, easiest first", () => {
+    expect(LEVELS.map(levelPath)).toEqual(["/level/n5", "/level/n4", "/level/n3", "/level/n2", "/level/n1"]);
+    expect(levelAt("/level/n3")?.name).toBe("N3");
+    expect(levelAt("/level/n3/kanji")?.name).toBe("N3");
+    expect(levelAt("/level/n30")).toBeUndefined();
+    expect(levelAt("/reviews")).toBeUndefined();
+  });
+
+  it("stands the screen's glyph behind it, the level's numeral on a level page, and 文 everywhere else", () => {
+    const glyphs = [entry("Reviews", "study", { glyph: "復" }), entry("Library", "library"), { ...entry("Today", "home", { glyph: "今" }), path: "/" }];
+    expect(kanjiAt(glyphs, "/reviews")).toBe("復");
+    expect(kanjiAt(glyphs, "/reviews/42")).toBe("復");
+    expect(kanjiAt(glyphs, "/level/n2")).toBe("二");
+    expect(kanjiAt(glyphs, "/library")).toBe("文");
+    expect(kanjiAt(glyphs, "/")).toBe("文");
+    expect(kanjiAt(glyphs, "/nowhere")).toBe("文");
+  });
+
+  it("opens a study or practice door for one level, and leaves every other door as it is", () => {
+    const n3 = LEVELS[2];
+    expect(doorPath(entry("Reviews", "study"), n3)).toBe("/reviews?level=n3");
+    expect(doorPath(entry("Listening", "practice"), n3)).toBe("/listening?level=n3");
+    expect(doorPath(entry("Reviews", "study"))).toBe("/reviews");
+    expect(doorPath(entry("Library", "library"), n3)).toBe("/library");
+    expect(doorPath(entry("Settings", "account"), n3)).toBe("/settings");
+    expect(doorPath(entry("Approval", "supervisor"), n3)).toBe("/approval");
+    expect(doorPath({ ...entry("Today", "home"), path: "/" }, n3)).toBe("/");
   });
 });

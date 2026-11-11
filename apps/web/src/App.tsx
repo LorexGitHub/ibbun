@@ -1,4 +1,4 @@
-import { buttonClass, Layout, onGoTo, useSystemModeSync } from "@mojibun/ui";
+import { buttonClass, Layout, onGoTo, SessionCountSlot, useSystemModeSync } from "@mojibun/ui";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router";
@@ -8,7 +8,8 @@ import { AccountMenu } from "./AccountMenu.tsx";
 import { AppDock } from "./AppDock.tsx";
 import { CommandMenu, CommandTrigger, useCommandKey } from "./CommandMenu.tsx";
 import { Welcome } from "./Home.tsx";
-import { dockEntries, sessionAt, visibleTo, welcomeEntries, type Who } from "./places.ts";
+import { LevelLinks } from "./LevelLinks.tsx";
+import { dockEntries, kanjiAt, sessionAt, visibleTo, welcomeEntries, type Who } from "./places.ts";
 import type { Shell } from "./slices.ts";
 import { client, useWho } from "./who.ts";
 
@@ -50,8 +51,10 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
     toast("Logged out. See you next time.");
   };
 
-  // The dock is a Learner's map: hidden from visitors, and during a session
-  const dock = who.state === "in" && !session ? <AppDock entries={dockEntries(nav)} /> : undefined;
+  // The dock and the levels are a Learner's map: hidden from visitors, and during a session
+  const map = who.state === "in" && !session;
+  const dock = map ? <AppDock entries={dockEntries(nav)} /> : undefined;
+  const levels = map ? <LevelLinks /> : undefined;
 
   const sessionName = session && (
     <span className="session-name">
@@ -59,6 +62,7 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
         {session.glyph}
       </span>
       {session.label}
+      <SessionCountSlot />
     </span>
   );
   const aside = session ? (
@@ -74,7 +78,7 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
 
   return (
     <MotionConfig reducedMotion="user">
-      <Layout nav={sessionName} aside={aside} dock={dock}>
+      <Layout nav={sessionName || levels} aside={aside} dock={dock} kanji={kanjiAt(nav, pathname)}>
         <Routes>
           {shell.routes.map((r) => (
             <Route key={r.path} path={r.path} element={<r.component />} />
