@@ -4,13 +4,15 @@ The shell is the web app every slice mounts into: the slice routes, a home scree
 
 ## Sub-features
 
-- `shell-home` renders the layout with its `<nav>` landmark at `/`.
+- `shell-home` renders the layout at `/`.
 - `shell-fallback` renders the home screen for any unknown route.
 - `shell-dock` is the `navigation` landmark "Main" along the bottom, shown only to a logged-in Learner outside a session: one glyph link per place (今 Today, 復 Reviews, 新 Learn, 測 Placement, 詰 Cram, 聞 Listening, 読 Reading, 辞 Library), each named by `aria-label`, the name shown on hover and focus, `aria-current="page"` on the current one.
-- `shell-top` is the quiet top line: the 文 seal and wordmark, **Go to** (⌘K or Ctrl K) and the account button. Logged out, the account button is a **Log in** pill.
+- `shell-top` is the quiet top line: the 文 seal alone on the left, a link named "mojibun" to `/`; the wide **Where to?** field (⌘K or Ctrl K) and the account button on the right. Logged out, the account button is a **Log in** pill.
+- `shell-levels` is the `navigation` landmark "Levels" beside the seal, shown only to a logged-in Learner outside a session: N5, N4, N3, N2 and N1, each a link to `/level/n5` … `/level/n1`, with `aria-current="page"` on the level the Learner is on.
+- `shell-kanji` is the screen's kanji, large and faint at the bottom right, behind everything and hidden from assistive technology (`.app-kanji`): a level's numeral on its level page (四 on `/level/n4`), the screen's glyph on a screen that has one (復 on `/reviews`), and 文 everywhere else, Today included.
 - `shell-account-menu` opens from the initial in the top line: the email, Settings, the Supervisor screens (Approval, Import) for a Supervisor only, and **Log out**, which shows a toast.
-- `shell-command-menu` opens on ⌘K, Ctrl K or `/` (not while typing). It lists every place the Learner can reach, grouped, and filters by label and blurb ("kanji" finds Learn, Placement and Library).
-- `shell-session` replaces the pills with the session's glyph and name and a **Done for now** button to `/` on a session screen (Reviews, Learn, Cram, Placement).
+- `shell-command-menu` opens on ⌘K, Ctrl K or `/` (not while typing). It has two panes. The right one lists every place the Learner can reach, grouped, and filters by label and blurb ("kanji" finds Learn, Placement and Library). The left one, for a logged-in Learner, is the `radiogroup` "Level": All, N5, N4, N3, N2, N1. With a level chosen, a first option "N3 level page" goes to `/level/n3`, and the Study and Practice doors open for that level (`/reviews?level=n3`); Library and Account doors do not change. The level is not remembered: the menu opens on All.
+- `shell-session` replaces the levels with the session's glyph and name, and the field and account button with a **Done for now** button to `/`, on a session screen (Reviews, Learn, Cram, Placement). A session screen that renders `SessionCount` shows how far it is, as "2 / 5", after the name (`#session-count`).
 - `shell-welcome`: logged out, `/` shows a welcome with **Sign up** and **Log in**, and Study, Practice and Library under "What's inside".
 - `shell-theme` applies the saved look before the first paint: `<html>` carries `data-palette` and `data-mode`, read from `localStorage` key `mojibun.theme`; "Match my device" follows `prefers-color-scheme`.
 - `shell-health` answers `GET /api/health` with `{"ok":true}`, directly and through the web proxy.
@@ -19,7 +21,7 @@ The shell is the web app every slice mounts into: the slice routes, a home scree
 
 - Open `http://localhost:5173/`.
 - Open any path no slice registers, such as `http://localhost:5173/nowhere`.
-- Press Ctrl K anywhere, or click **Go to**.
+- Press Ctrl K anywhere, or click **Where to?**.
 - Click the initial at the right of the top line.
 - Hover any glyph in the dock to see its name.
 
@@ -29,19 +31,22 @@ Preconditions:
 
 - `verify.sh doctor` reports every line `ok`.
 
-- **Home.** Open `/`. Run `verify.sh shot / shell/home`. `home.aria.txt` contains a `navigation` landmark.
+- **Home.** Logged in as the Learner, open `/`. Run `verify.sh shot / shell/home`. `home.aria.txt` contains the `navigation` landmarks "Levels" and "Main", and a link "mojibun". No text "mojibun" shows in the top line.
+- **Levels.** Click **N3** in the top line. The URL is `/level/n3`, the N3 link is current, and `.app-kanji` reads 三.
+- **Background kanji.** Open `/browse`: `.app-kanji` reads 辞. Open `/`: it reads 文. Shoot both, and one level page, in a light and a dark look and check the kanji stays a watermark behind the text.
 - **Fallback.** Open `/nowhere`. Run `verify.sh shot /nowhere shell/fallback`. The page renders the same layout as Home, with no error.
 - **Health.** Run `curl -s http://localhost:5173/api/health` and `curl -s http://localhost:3000/api/health`. Both print `{"ok":true}`.
 - **Dock.** Logged in as the Learner, open `/`. The `navigation` landmark "Main" holds exactly Today, Reviews, Learn, Placement, Cram, Listening, Reading and Library, with Today marked current. Approval and Import appear nowhere. Logged in as the Supervisor, the account menu lists them under "Supervisor".
-- **Command menu.** Press Ctrl K. A dialog named "Go to" opens. Type `kanji`: the options are Learn, Placement and Library. Press Enter: the URL is `/learn`.
-- **Session.** On `/learn` or `/reviews` there is no dock; the top line shows the session's glyph and name, and a **Done for now** link points to `/`.
+- **Command menu.** Press Ctrl K. A dialog named "Where to?" opens with the search field focused. Type `kanji`: the options are Learn, Placement and Library. Press Enter: the URL is `/learn`. Open it again, click **N3** in the "Level" group, then **Reviews**: the URL is `/reviews?level=n3`. Open it again: **All** is checked.
+- **Session.** On `/learn` or `/reviews` there is no dock, no "Levels" and no **Where to?**; the top line shows the session's glyph and name, and a **Done for now** link points to `/`.
 - **Theme.** In Settings → Appearance pick Ai and Dark. `document.documentElement.dataset` is `{palette: "ai", mode: "dark"}`, the page background turns navy, and a reload keeps it. `verify.sh shot / shell/ai-dark`.
 - **Logged out.** In a fresh context open `/`. The page shows **Sign up** (`/signup`) and **Log in** (`/login`) and "What's inside", and no dock: there is no `navigation` landmark.
 - **Harness spec.** Run `pnpm exec playwright test --project=anonymous`. `e2e/shell.spec.ts` passes.
 
 ## Gotchas
 
-- Until a slice registers a nav entry, the `<nav>` is empty: assert it is attached, not visible.
+- `/level/n5` … `/level/n1` show Today until the dashboard slice registers the level page.
+- A level chosen in the command menu only adds `?level=` to the address; a door narrows to that level once its slice reads it.
 - The shell reads the session again on every navigation, so the top line catches up after the Login screen navigates to `/`.
 - If login says "email or password is wrong" for a seeded account, or sign-up fails with a 500, check that `DATABASE_URL` reaches the container: a local PostgreSQL on 5432 answers first and has no `mojibun` role. `/api/health` does not touch the database, so it stays green.
 - Better Auth only trusts the configured web origin. A second Vite on another port can log in but gets 403 on **Log out**.
