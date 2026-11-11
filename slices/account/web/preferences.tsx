@@ -69,7 +69,6 @@ export const PreferencesSection = () => {
       <Check label="Listening in exam mode" checked={prefs.examMode} onChange={(examMode) => void save({ examMode })} />
       <Check label="Play Listening audio slowly" checked={prefs.slowAudio} onChange={(slowAudio) => void save({ slowAudio })} />
       <Count label="Study Items per Learn batch" value={prefs.batchSize} min={1} max={20} save={(batchSize) => void save({ batchSize })} />
-      <Count label="New Study Items per day" value={prefs.dailyBudget} min={0} max={200} save={(dailyBudget) => void save({ dailyBudget })} />
       <Notice outcome={outcome} />
     </fieldset>
   );

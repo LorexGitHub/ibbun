@@ -52,12 +52,12 @@ const comprehension: ClipLesson = {
   question: { kind: "comprehension", prompt: "女の人は何をしますか。", choices: ["買い物", "勉強"] },
 };
 
-const batchOf = (clip: ClipLesson): Batch => ({ preferences: { convertRomaji: true, explanations: "english" }, remaining: 5, items: [{ clip }] });
+const batchOf = (clip: ClipLesson): Batch => ({ preferences: { convertRomaji: true, explanations: "english" }, items: [{ clip }] });
 
 const apiOf = (clip: ClipLesson, verdicts: ClipVerdict[] = [{ outcome: "pass" }]): LearnApi => {
   const queue = [...verdicts];
   return {
-    state: vi.fn(async () => ({ activeTracks: [], batchSize: 5, dailyBudget: 15, learnedToday: 0 })),
+    state: vi.fn(async () => ({ activeTracks: [], batchSize: 5 })),
     batch: vi.fn(async () => batchOf(clip)),
     now: vi.fn(async () => batchOf(clip)),
     saveTracks: vi.fn(),
@@ -73,8 +73,8 @@ const apiOf = (clip: ClipLesson, verdicts: ClipVerdict[] = [{ outcome: "pass" }]
 const press = (name: string | RegExp) => fireEvent.click(screen.getByRole("button", { name }));
 const start = async (api: LearnApi) => {
   render(<LearnScreen api={api} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Start batch" }));
-  await screen.findByText("Lesson 1 of 1");
+  fireEvent.click(await screen.findByRole("button", { name: "Start" }));
+  await screen.findByText("1 / 1");
 };
 const play = async (n: number) => {
   press(/^(Play|Replay)$/);
@@ -118,7 +118,7 @@ describe("a Listening Clip lesson", () => {
     await play(2);
     fireEvent.change(screen.getByLabelText("What did you hear?"), { target: { value: "パンをたべる" } });
     press("Check");
-    await screen.findByText("1 new items are in your Reviews.");
+    await screen.findByRole("heading", { name: "1 learned" });
     expect(api.answerClip).toHaveBeenCalledWith(
       expect.objectContaining({ studyItemId: id, exampleId: "e1", input: "パンをたべる", attempts: [], replays: 0, slow: false }),
     );
@@ -135,7 +135,7 @@ describe("a Listening Clip lesson", () => {
     press("Try again");
     await play(4);
     press("買い物");
-    await screen.findByText("1 new items are in your Reviews.");
+    await screen.findByRole("heading", { name: "1 learned" });
     expect(api.answerClip).toHaveBeenLastCalledWith(expect.objectContaining({ input: "買い物", attempts: ["勉強"] }));
   });
 
@@ -148,7 +148,7 @@ describe("a Listening Clip lesson", () => {
     await screen.findByRole("status");
     fireEvent.change(screen.getByLabelText("What did you hear?"), { target: { value: "パン" } });
     press("Check");
-    await screen.findByText("1 new items are in your Reviews.");
+    await screen.findByRole("heading", { name: "1 learned" });
     expect(api.answerClip).toHaveBeenLastCalledWith(expect.objectContaining({ attempts: [""] }));
   });
 
@@ -208,8 +208,8 @@ describe("a Listening Clip lesson", () => {
       { speaker: "女" as const, text: "はい。", translationEn: "Yes.", src: "/audio/b.ogg" },
     ];
     const { container } = render(<LearnScreen api={apiOf({ ...dictation, lines, links: [] })} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Start batch" }));
-    await screen.findByText("Lesson 1 of 1");
+    fireEvent.click(await screen.findByRole("button", { name: "Start" }));
+    await screen.findByText("1 / 1");
     press("Read it");
     expect([...container.querySelectorAll("b")].map((b) => b.textContent)).toEqual(["女 "]);
     expect(container.querySelectorAll("details")).toHaveLength(1);
@@ -228,7 +228,7 @@ describe("a Listening Clip lesson", () => {
     fireEvent.change(screen.getByLabelText("What did you hear?"), { target: { value: "パン" } });
     now.mockReturnValue(4500);
     press("Check");
-    await screen.findByText("1 new items are in your Reviews.");
+    await screen.findByRole("heading", { name: "1 learned" });
     expect(api.answerClip).toHaveBeenCalledWith(expect.objectContaining({ replays: 1, timeToAnswerMs: 3500 }));
   });
 
@@ -275,7 +275,7 @@ describe("a batch with more than one lesson", () => {
   const openWith = async (items: Batch["items"]) => {
     const api = { ...apiOf(dictation), batch: vi.fn(async () => ({ ...batchOf(dictation), items })), complete: vi.fn(async () => 1) };
     render(<LearnScreen api={api} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Start batch" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Start" }));
     return api;
   };
   const passClip = async () => {
@@ -289,34 +289,36 @@ describe("a batch with more than one lesson", () => {
 
   it("goes on to the next clip, and finishes after the last one with the number learned", async () => {
     await openWith([{ clip: dictation }, { clip: second }]);
-    await screen.findByText("Lesson 1 of 2");
+    await screen.findByText("1 / 2");
     await passClip();
-    await screen.findByText("Lesson 2 of 2");
+    await screen.findByText("2 / 2");
     await passClip();
-    await screen.findByText("2 new items are in your Reviews.");
+    await screen.findByRole("heading", { name: "2 learned" });
   });
 
   it("asks the batch quiz for the other items after the clip, and counts both", async () => {
     const api = await openWith([{ clip: dictation }, { lesson, prompt }]);
-    await screen.findByText("Lesson 1 of 2");
+    await screen.findByText("1 / 2");
     await passClip();
-    await screen.findByText("Lesson 2 of 2");
+    await screen.findByText("2 / 2");
+    press("Not yet");
     press("Start quiz");
     fireEvent.change(screen.getByLabelText("Answer"), { target: { value: "みず" } });
     press("Check");
     await screen.findByText("Correct");
     press("Next");
-    await screen.findByText("2 new items are in your Reviews.");
+    await screen.findByRole("heading", { name: "2 learned" });
     expect(api.complete).toHaveBeenCalledOnce();
   });
 
-  it("finishes at once when the only item left after \"I know this\" is a clip already passed", async () => {
+  it("finishes at once when the only item left after Mark as Known is a clip already passed", async () => {
     const api = await openWith([{ clip: dictation }, { lesson, prompt }]);
-    await screen.findByText("Lesson 1 of 2");
+    await screen.findByText("1 / 2");
     await passClip();
-    await screen.findByText("Lesson 2 of 2");
+    await screen.findByText("2 / 2");
     press("I know this");
-    await screen.findByText("1 new items are in your Reviews.");
+    press("Mark as Known");
+    await screen.findByRole("heading", { name: "1 learned" });
     expect(api.skip).toHaveBeenCalledWith(prompt.studyItemId, false);
   });
 });

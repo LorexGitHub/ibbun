@@ -6,7 +6,7 @@ import { createFakeLearningPath } from "@mojibun/learning-path/testing";
 import { createFakeJobs } from "@mojibun/jobs";
 import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
 import { StudyItemId, type LearnerId } from "@mojibun/shared";
-import type { Batch, CompleteRequest, QuizPrompt, State } from "../contract.ts";
+import type { Batch, CompleteRequest, QuizPrompt } from "../contract.ts";
 import { createLearnApi } from "../server/learn-api.ts";
 
 /** The N5 fixture has no Listening Clip, so every item has a lesson and a question. */
@@ -80,22 +80,6 @@ describe("Learn now", () => {
     expect((await t.api.request("/now/x")).status).toBe(401);
   });
 
-  it("is offered with the budget used up, and passing it does not use any of the budget", async () => {
-    const t = await setup();
-    const id = await lockedItem(t);
-    await t.learners.changePreferences(t.learner, { batchSize: 1, dailyBudget: 1 });
-    const first = (await t.get<TaughtBatch>("/batch")).items;
-    await t.send("POST", "/complete", { answers: first.map((i) => correct(i.prompt)) });
-    expect(await t.get<TaughtBatch>("/batch")).toMatchObject({ remaining: 0, items: [] });
-    const learnedBefore = (await t.get<State>("/state")).learnedToday;
-
-    const batch = await t.get<TaughtBatch>(`/now/${id}`);
-    expect(batch.items.length).toBeGreaterThan(0);
-    const response = await t.send("POST", "/complete", { now: true, answers: batch.items.map((i) => correct(i.prompt)) });
-    expect(response.status).toBe(200);
-    expect((await t.get<State>("/state")).learnedToday).toBe(learnedBefore);
-  });
-
   it("counts a passed item as introduced, so its Track skips it", async () => {
     const t = await setup();
     const id = await lockedItem(t);
@@ -106,11 +90,10 @@ describe("Learn now", () => {
     expect(offered).not.toContain(id);
   });
 
-  it("records I know this as introduced, without using the budget", async () => {
+  it("records I know this as introduced", async () => {
     const t = await setup();
     const id = await lockedItem(t);
     expect((await t.send("POST", "/skip", { studyItemId: id, now: true })).status).toBe(200);
     expect(await t.progress.item(t.learner, id!)).toMatchObject({ known: true, introduced: true });
-    expect((await t.get<State>("/state")).learnedToday).toBe(0);
   });
 });

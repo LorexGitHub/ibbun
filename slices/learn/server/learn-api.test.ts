@@ -67,7 +67,7 @@ describe("the learn API", () => {
   });
 
   describe("the Active Track grid", () => {
-    it("starts as the N5 Tracks, with the Learner's batch size and budget and nothing learned today", async () => {
+    it("starts as the N5 Tracks, with the Learner's batch size and no daily limit", async () => {
       expect(await t.state()).toEqual({
         activeTracks: [
           { level: "N5", type: "kanji" },
@@ -75,8 +75,6 @@ describe("the learn API", () => {
           { level: "N5", type: "grammar_point" },
         ],
         batchSize: 5,
-        dailyBudget: 15,
-        learnedToday: 0,
       });
     });
 
@@ -105,33 +103,19 @@ describe("the learn API", () => {
       expect(items.map((i) => i.lesson.studyItemId)).toEqual(next);
     });
 
-    it("is cut to what is left of today's budget", async () => {
-      await t.prefer({ batchSize: 5, dailyBudget: 7 });
-      const first = await t.batch();
-      await t.send("POST", "/complete", { answers: first.items.map((i) => correct(i.prompt)) });
-      const second = await t.batch();
-      expect(second.remaining).toBe(7 - (await t.state()).learnedToday);
-      expect(second.remaining).toBeLessThan(5);
-      expect(second.items.map((i) => i.lesson.studyItemId)).toEqual(await t.learningPath.next(t.learner, second.remaining));
-    });
-
-    it("is empty once the budget is used up, and says nothing is left", async () => {
-      await t.prefer({ batchSize: 2, dailyBudget: 2 });
-      const { items } = await t.batch();
-      await t.send("POST", "/complete", { answers: items.map((i) => correct(i.prompt)) });
-      expect(await t.batch()).toMatchObject({ remaining: 0, items: [] });
-    });
-
-    it("does not count yesterday against today's budget", async () => {
-      await t.prefer({ batchSize: 1, dailyBudget: 1 });
-      const { items } = await t.batch();
-      const at = new Date(NOW.getTime() - DAY_MS).toISOString();
-      await t.progress.record({ learnerId: t.learner, studyItemId: items[0]!.lesson.studyItemId, kind: "learn", passed: true, at });
-      expect((await t.batch()).items).toHaveLength(1);
+    it("is followed by a full batch however many were learned today", async () => {
+      await t.prefer({ batchSize: 2 });
+      for (const _ of [1, 2, 3]) {
+        const { items } = await t.batch();
+        expect(items.map((i) => i.lesson.studyItemId)).toEqual(await t.learningPath.next(t.learner, 2));
+        expect(items.length).toBeGreaterThanOrEqual(2);
+        await t.send("POST", "/complete", { answers: items.map((i) => correct(i.prompt)) });
+      }
+      expect(await t.batch()).not.toHaveProperty("remaining");
     });
 
     it("teaches a Kanji, a Word and a Grammar Point, each with an Example", async () => {
-      await t.prefer({ batchSize: 20, dailyBudget: 200 });
+      await t.prefer({ batchSize: 20 });
       const { items } = await t.batch();
       const lessonOf = (type: string) => items.find((i) => i.lesson.type === type)!.lesson;
       expect(lessonOf("kanji").reading).toBeNull();
@@ -147,7 +131,7 @@ describe("the learn API", () => {
     });
 
     it("quizzes a Kanji on its reading and meaning, a Word and a Grammar Point as a cloze", async () => {
-      await t.prefer({ batchSize: 20, dailyBudget: 200 });
+      await t.prefer({ batchSize: 20 });
       const { items } = await t.batch();
       for (const { prompt } of items) {
         expect(prompt.facets.map((f) => f.facet)).toEqual(prompt.type === "kanji" ? ["reading", "meaning"] : ["cloze"]);
@@ -176,7 +160,7 @@ describe("the learn API", () => {
         bareId = StudyItemId.parse(graph.studyItem.find((s) => s.type === "kanji")!.id);
         graph.example = graph.example.filter((e) => e.studyItemId !== bareId);
       });
-      await bare.prefer({ batchSize: 20, dailyBudget: 200 });
+      await bare.prefer({ batchSize: 20 });
       expect((await bare.batch()).items.map((i) => i.lesson.studyItemId)).not.toContain(bareId);
     });
   });
@@ -231,7 +215,7 @@ describe("the learn API", () => {
     });
 
     it("passes a Kanji only when both facets are right, and refuses an answer that leaves one out", async () => {
-      await t.prefer({ batchSize: 20, dailyBudget: 200 });
+      await t.prefer({ batchSize: 20 });
       const kanji = (await t.batch()).items.find((i) => i.prompt.type === "kanji")!.prompt;
       const wrong = correct(kanji);
       wrong.facets[1]!.input = "zzzzzz";
@@ -258,13 +242,6 @@ describe("the learn API", () => {
       expect((await t.send("POST", "/skip", { studyItemId: id })).status).toBe(200);
       expect((await t.progress.log(t.learner, id)).at(-1)).toMatchObject({ kind: "manual", passed: true, source: "learn-skip", at: NOW.toISOString() });
       expect(await t.progress.item(t.learner, id)).toMatchObject({ known: true, introduced: true });
-    });
-
-    it("uses up a place in today's budget", async () => {
-      await t.prefer({ dailyBudget: 4 });
-      await t.send("POST", "/skip", { studyItemId: await first() });
-      expect((await t.state()).learnedToday).toBe(1);
-      expect((await t.batch()).remaining).toBe(3);
     });
 
     it("refuses a Study Item that does not exist, and a malformed body", async () => {

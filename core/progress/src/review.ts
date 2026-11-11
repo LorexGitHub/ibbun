@@ -27,7 +27,7 @@ export const ListeningDetail = z.object({
 
 /**
  * Who made a Review that needs saying. `placement` and `learn-skip` mark a `manual` Review (Placement, or "I know this"
- * in Learn). `learn-now` marks a Review Learn now made, which the daily budget does not count.
+ * in Learn). `learn-now` marks a Review Learn now made.
  */
 export const ManualSource = z.enum(["placement", "learn-skip", "learn-now"]);
 

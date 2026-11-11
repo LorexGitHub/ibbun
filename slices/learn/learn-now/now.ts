@@ -3,7 +3,7 @@ import { StudyItemId } from "@mojibun/shared";
 import type { Refusal } from "../server/actions.ts";
 import type { Teacher } from "../server/teach.ts";
 
-/** Learn now: the item and its pulled-in dependencies from `forItem()`, locked or not and whatever the budget says. */
+/** Learn now: the item and its pulled-in dependencies from `forItem()`, locked or not. */
 export const createNowIds =
   ({ teacher, learningPath }: { teacher: Teacher; learningPath: LearningPath }) =>
   async (learnerId: Parameters<LearningPath["forItem"]>[0], raw: string): Promise<StudyItemId[] | { refusal: Refusal }> => {

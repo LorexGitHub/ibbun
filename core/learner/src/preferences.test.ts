@@ -30,8 +30,7 @@ describe("changePreferences", () => {
     [{ batchSize: 0 }],
     [{ batchSize: 21 }],
     [{ batchSize: 2.5 }],
-    [{ dailyBudget: -1 }],
-    [{ dailyBudget: 201 }],
+    [{ dailyBudget: 15 }],
     [{ convertRomaji: "yes" }],
     [{ theme: "dark" }],
   ])("refuses %j", (change) => {
@@ -41,8 +40,6 @@ describe("changePreferences", () => {
   it.each([
     [{ batchSize: 1 }],
     [{ batchSize: 20 }],
-    [{ dailyBudget: 0 }],
-    [{ dailyBudget: 200 }],
     [{ explanations: "japanese" }],
     [{ explanations: "both" }],
     [{ furigana: "off" }],

@@ -1,0 +1,130 @@
+/* The Learn screens: the start page, a lesson card with two sides, and the Tally. */
+
+.learn-start,
+.learn-session,
+.tally {
+  display: grid;
+  gap: var(--space-lg);
+  justify-items: start;
+}
+
+.source {
+  display: grid;
+  gap: var(--space-xs);
+}
+.source fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.source-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.face-list,
+.tally-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.face-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+.face {
+  display: grid;
+  gap: var(--space-xs);
+  justify-items: center;
+  min-width: 6rem;
+  padding: var(--space-sm) var(--space-md);
+}
+.face strong {
+  font-family: var(--font-jp);
+  font-size: var(--text-title);
+  font-weight: 400;
+}
+
+.session-count:empty {
+  display: none;
+}
+
+.lesson-card {
+  display: grid;
+  gap: var(--space-md);
+  justify-self: stretch;
+  padding: var(--space-xl);
+}
+.lesson-card h2 {
+  margin: 0;
+  font-size: var(--text-hero);
+  font-weight: 400;
+  line-height: 1.2;
+}
+.lesson-card h2.in-sentence {
+  font-size: var(--text-display);
+  line-height: 1.8;
+}
+.lesson-card ul,
+.lesson-card dl,
+.lesson-card p {
+  margin: 0;
+}
+.lesson-card ul {
+  padding-left: var(--space-lg);
+}
+.lesson-card dl div {
+  display: flex;
+  gap: var(--space-md);
+}
+.lesson-card dt {
+  color: var(--color-muted);
+}
+.lesson-card dd {
+  margin: 0;
+}
+.lesson-card mark {
+  background: none;
+  color: var(--color-accent);
+}
+.lesson-actions,
+.tally-doors {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.tally h1 {
+  margin: 0;
+  font-weight: 400;
+}
+.tally-count {
+  font-family: var(--font-display);
+  font-size: calc(var(--text-hero) * 2);
+  font-weight: 400;
+  line-height: 1;
+}
+.tally-list {
+  display: grid;
+  gap: var(--space-xs);
+  justify-self: stretch;
+}
+.tally-list li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  padding-block: var(--space-xs);
+  border-bottom: 1px solid var(--color-rule);
+}
+.tally-list .jp {
+  font-size: var(--text-lead);
+}
+.tally-list .pill {
+  margin-left: auto;
+}
