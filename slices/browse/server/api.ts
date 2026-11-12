@@ -26,11 +26,11 @@ export const createBrowseApi = ({ contentGraph, learningPath, progress, sessions
       if (!level.success) return c.json({ message: "unknown JLPT Level" }, 404);
       const [met, ...lists] = await Promise.all([progress.items(c.get("learner").learnerId), ...TYPES.map((type) => contentGraph.levelList(level.data, type))]);
       const mastery = new Map(met.map((p) => [p.studyItemId, p.mastery]));
-      const body: LevelList = { level: level.data, items: lists.flat().map((item) => ({ ...summaryOf(item), mastery: mastery.get(item.id) ?? "new" })) };
+      const body: LevelList = { level: level.data, items: lists.flat().map((item) => ({ ...summaryOf(item), mastery: mastery.get(item.id) || "new" })) };
       return c.json(body);
     })
     .get("/search", requireLearner(), async (c) => {
-      const query = c.req.query("q")?.trim() ?? "";
+      const query = c.req.query("q")?.trim() || "";
       const body: SearchResults = { query, items: (await contentGraph.search(query)).map(summaryOf) };
       return c.json(body);
     })

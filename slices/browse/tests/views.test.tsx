@@ -150,6 +150,56 @@ describe("ItemView details", () => {
     expect(html).toContain("Use with strangers.");
   });
 
+  it("shows Components for a single component", () => {
+    expect(item({ detail: kanji({ components: ["一"] }) })).toContain("Components");
+  });
+
+  it("heads a Word with nothing when it has neither a written form nor a reading", () => {
+    expect(item({ detail: { type: "word", forms: [], readings: [], senses: [] } })).toContain('<h1 id="item-title" lang="ja"></h1>');
+  });
+
+  it("marks the level and type as plain pills and Locked as the ink one", () => {
+    const html = item({ locked: true });
+    expect(html).toContain('<span class="pill">N5</span>');
+    expect(html).toContain('<span class="pill">word</span>');
+    expect(html).toContain('<span class="pill pill--ink">Locked</span>');
+  });
+
+  const bare = (over: Partial<ItemPage> = {}) => item({ detail: { type: "word", forms: ["日本"], readings: [], senses: [] }, examples: [], related: [], ...over });
+  const sense = (partsOfSpeech: string[], japaneseExplanation: string | null) => bare({ detail: { type: "word", forms: ["日本"], readings: [], senses: [{ partsOfSpeech, glosses: ["Japan"], japaneseExplanation }] } });
+
+  it("sets a single part of speech in small print and the Japanese Explanation in its own paragraph", () => {
+    const html = sense(["n"], "アジアの国。");
+    expect(html).toMatch(/<small>n(<!-- -->)? <\/small>/);
+    expect(html).toContain('<p lang="ja">アジアの国。</p>');
+  });
+
+  it("leaves no empty small print or paragraph for a sense without parts of speech or explanation", () => {
+    const html = sense([], null);
+    expect(html).not.toContain("<small");
+    expect(html).not.toContain("<p lang");
+  });
+
+  it("sets a Grammar Point's Japanese Explanation and notes in paragraphs, and leaves none when it has neither", () => {
+    const grammar = (japaneseExplanation: string | null, notes: string | null) =>
+      bare({ detail: { type: "grammar_point", title: "〜ます", forms: [], formation: [], register: "polite", meaning: "polite ending", japaneseExplanation, notes } });
+    const full = grammar("ていねいな言い方。", "Use with strangers.");
+    expect(full).toContain('<p lang="ja">ていねいな言い方。</p>');
+    expect(full).toContain("<p>Use with strangers.</p>");
+    const none = grammar(null, null);
+    expect(none).not.toContain('<p lang="ja">');
+    expect(none).not.toContain("<p></p>");
+  });
+
+  it("sets a link's note and an Example's translation in small print, and nothing when they are missing", () => {
+    const related = (note: string | null) => [{ heading: "Related grammar", items: [{ summary: summary(), note }] }];
+    const examples = (translation: string | null) => [{ id: "e1", text: "日本に行きたい。", translation, credits: [] }];
+    expect(bare({ related: related("casual form") })).toMatch(/<small> (<!-- -->)?casual form<\/small>/);
+    expect(bare({ related: related(null) })).not.toContain("<small");
+    expect(bare({ examples: examples("I want to go.") })).toMatch(/<small> (<!-- -->)?I want to go\.<\/small>/);
+    expect(bare({ examples: examples(null) })).not.toContain("<small");
+  });
+
   it("shows a link's note, a page's own credit, and no Examples card when there are none", () => {
     const html = item({ examples: [], credits: [{ text: "Wiktionary", href: "https://ja.wiktionary.org" }], related: [{ heading: "Related grammar", items: [{ summary: summary({ type: "grammar_point" }), note: "casual form" }] }] });
     expect(html).toContain("casual form");

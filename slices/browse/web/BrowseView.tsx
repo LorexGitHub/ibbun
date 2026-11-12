@@ -21,7 +21,7 @@ export const MASTERIES: { value: Mastery; label: string }[] = [
 const masteryName = (mastery: Mastery) => MASTERIES.find((m) => m.value === mastery)!.label;
 
 /** A plain level label, with no marker saying it is an estimate (docs/jlpt-levels.md#what-learners-see). */
-export const levelLabel = (level: JlptLevel | null) => level ?? "Unlevelled";
+export const levelLabel = (level: JlptLevel | null) => level || "Unlevelled";
 
 export const itemPath = (id: string) => `/browse/items/${id}`;
 
