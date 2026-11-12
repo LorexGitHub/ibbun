@@ -37,6 +37,19 @@ test.describe("a visitor", () => {
     await expect(page).not.toHaveURL(/\/login/);
   });
 
+  test("meets the sign-up split first, tries one Review and is led back to the form", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByText("一文ずつ。")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign up" })).toBeVisible();
+    await page.getByRole("link", { name: "Try one Review first" }).click();
+    await page.getByLabel("What does 水 mean?").fill("water");
+    await page.getByRole("button", { name: "Check" }).click();
+    await expect(page.getByRole("status")).toHaveText("Correct. 水 (みず) means water.");
+    await page.getByRole("link", { name: "Sign up to keep going" }).click();
+    await expect(page).toHaveURL(/\/signup$/);
+    await expect(page.getByRole("link", { name: "Log in" }).last()).toBeVisible();
+  });
+
   test("gets the same login failure for an unknown address", async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel("Email").fill("nobody@mojibun.test");
@@ -50,7 +63,8 @@ test("settings shows the Learner, their session and their preferences", async ({
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByText("learner@mojibun.test")).toBeVisible();
-  await expect(page.getByText("(this device)")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Devices" }).getByText("(this device)")).toBeVisible();
+  for (const name of ["Look", "Study", "Account"]) await expect(page.getByRole("region", { name })).toBeVisible();
 
   // The boxes are saved at once and redraw from the server's answer, so click and then expect (no check()/uncheck()).
   const english = page.getByLabel("Show the English translation");

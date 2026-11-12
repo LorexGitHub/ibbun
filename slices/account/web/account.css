@@ -1,11 +1,44 @@
 .account-screen { display: grid; gap: var(--space-lg); max-width: 640px; margin-inline: auto; }
 .account-card { display: grid; gap: var(--space-xl); padding: var(--space-xl); }
-.account-form { display: grid; gap: var(--space-md); }
+.account-form { display: grid; gap: var(--space-md); min-width: 0; margin: 0; padding: 0; border: 0; }
 .account-form .btn { justify-self: start; }
 .field { display: grid; gap: var(--space-xs); font-weight: 600; }
 .notice { margin: 0; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-input); background: var(--color-paper-2); }
 .notice--error { color: var(--color-error); }
 .account-links { display: flex; flex-wrap: wrap; gap: var(--space-md); }
 .choice { display: flex; align-items: center; gap: var(--space-sm); }
-.session-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm); }
-.session-list { display: grid; gap: var(--space-sm); padding: 0; margin: 0; list-style: none; }
+.session-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm); padding-block: var(--space-sm); border-top: 1px solid var(--color-rule); }
+.session-list { display: grid; padding: 0; margin: 0; list-style: none; }
+
+/* Visitors: the line upright on the accent, the form beside it */
+.account-split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); max-width: 920px; margin-inline: auto; border-radius: var(--radius-card); overflow: hidden; box-shadow: inset 0 0 0 1px var(--color-rule); }
+.account-panel { display: grid; justify-items: center; align-content: center; gap: var(--space-lg); min-height: 460px; padding: var(--space-xl); background: var(--color-accent); color: var(--color-accent-ink); }
+.account-panel p { margin: 0; }
+.account-line { white-space: nowrap; writing-mode: vertical-rl; font: 500 var(--text-display) var(--font-jp); letter-spacing: 0.12em; }
+.account-side { display: grid; align-content: center; gap: var(--space-lg); min-width: 0; padding: var(--space-2xl) var(--space-xl); }
+.account-side h1 { font-size: var(--text-section); }
+.try-sentence { margin: 0; font: 500 var(--text-section) var(--font-jp); }
+
+/* Settings: three columns and the Devices pane */
+.settings { display: grid; gap: var(--space-xl); }
+.settings-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.15fr); gap: var(--space-lg); align-items: start; }
+.settings-column { display: grid; gap: var(--space-lg); min-width: 0; padding-top: var(--space-md); border-top: 1px solid var(--color-rule); }
+.settings-column h2, .settings-devices h2 { font-size: var(--text-title); }
+.settings-column > .btn { justify-self: start; }
+.settings-column h3 { font: 700 var(--text-md) var(--font-display); }
+.settings-column .theme-looks { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+.settings-devices { position: sticky; top: var(--space-xl); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-md); min-width: 0; max-height: min(560px, 70vh); padding: var(--space-md); border-radius: var(--radius-card); background: var(--color-paper-2); }
+.settings-devices .session-list { overflow-y: auto; align-content: start; }
+.settings-devices .btn { justify-self: start; }
+
+@media (max-width: 1100px) {
+  .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .settings-grid { grid-template-columns: minmax(0, 1fr); }
+  .settings-devices { position: static; }
+  .account-split { grid-template-columns: minmax(0, 1fr); }
+  .account-panel { min-height: 0; grid-auto-flow: column; justify-content: center; align-items: center; padding: var(--space-lg); }
+  .account-line { writing-mode: horizontal-tb; font-size: var(--text-section); }
+  .account-side { padding: var(--space-xl) var(--space-lg); }
+}

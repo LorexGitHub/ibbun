@@ -55,6 +55,22 @@ export const Form = ({
   );
 };
 
+/** What a visitor meets: the line set upright in Japanese on the accent, and the form beside it. */
+export const Split = ({ title, children }: { title: string; children: ReactNode }) => (
+  <section className="account-split">
+    <div className="account-panel">
+      <p className="account-line" lang="ja">
+        一文ずつ。
+      </p>
+      <p>One sentence at a time.</p>
+    </div>
+    <div className="account-side">
+      <h1>{title}</h1>
+      {children}
+    </div>
+  </section>
+);
+
 /** One screen: a heading over a card of forms. */
 export const Screen = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="account-screen">

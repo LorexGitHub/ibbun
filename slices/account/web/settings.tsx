@@ -3,15 +3,31 @@ import { useNavigate } from "react-router";
 import { Button, ThemePicker } from "@mojibun/ui";
 import type { ActiveSession, CurrentLearner } from "@mojibun/learner/client";
 import { useClient } from "./client.ts";
-import { Field, Form, Notice, Screen, useOutcome } from "./form.tsx";
+import { Field, Form, Notice, useOutcome } from "./form.tsx";
 import { PreferencesSection } from "./preferences.tsx";
 
-const Section = ({ title, children }: { title: string; children: ReactNode }) => (
-  <section className="account-form" aria-label={title}>
+/** One of the three columns that sit side by side. */
+const Column = ({ title, children }: { title: string; children: ReactNode }) => (
+  <section className="settings-column" aria-label={title}>
     <h2>{title}</h2>
     {children}
   </section>
 );
+
+const Group = ({ title, children }: { title: string; children: ReactNode }) => (
+  <div className="account-form">
+    <h3>{title}</h3>
+    {children}
+  </div>
+);
+
+/** Ends the session, here or everywhere, and goes to log in once that worked. */
+const useLeave = () => {
+  const navigate = useNavigate();
+  return async (action: Promise<{ ok: boolean }>) => {
+    if ((await action).ok) navigate("/login");
+  };
+};
 
 const ChangeEmail = () => {
   const client = useClient();
@@ -52,9 +68,10 @@ const SessionRow = ({ session, onEnd }: { session: ActiveSession; onEnd: () => v
   </li>
 );
 
-const Sessions = () => {
+/** The pane on the right: every device the Learner is logged in on. The list scrolls by itself. */
+const Devices = () => {
   const client = useClient();
-  const navigate = useNavigate();
+  const leave = useLeave();
   const { outcome, run } = useOutcome();
   const [sessions, setSessions] = useState<ActiveSession[]>([]);
   const load = async () => {
@@ -68,23 +85,24 @@ const Sessions = () => {
     await run(client.endSession(id), "Session ended.");
     await load();
   };
-  const leave = async (action: Promise<{ ok: boolean }>) => {
-    if ((await action).ok) navigate("/login");
-  };
   return (
-    <Section title="Sessions">
+    <aside className="settings-devices" aria-label="Devices">
+      <h2>Devices</h2>
       <ul className="session-list">
         {sessions.map((s) => (
           <SessionRow key={s.id} session={s} onEnd={() => void end(s.id)} />
         ))}
       </ul>
       <Notice outcome={outcome} />
-      <div className="account-links">
-        <Button onClick={() => void leave(client.signOut())}>Log out</Button>
-        <Button onClick={() => void leave(client.signOutEverywhere())}>Log out everywhere</Button>
-      </div>
-    </Section>
+      <Button onClick={() => void leave(client.signOutEverywhere())}>Log out everywhere</Button>
+    </aside>
   );
+};
+
+const LogOut = () => {
+  const client = useClient();
+  const leave = useLeave();
+  return <Button onClick={() => void leave(client.signOut())}>Log out</Button>;
 };
 
 const DeleteAccount = () => {
@@ -96,17 +114,17 @@ const DeleteAccount = () => {
     if (await run(client.deleteAccount(password), "Account deleted.")) navigate("/signup");
   };
   return (
-    <Section title="Delete account">
+    <Group title="Delete account">
       <p>This deletes your account and everything you studied. It can't be undone.</p>
       <Form submit="Delete my account" onSubmit={submit}>
         <Field label="Password to confirm" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         <Notice outcome={outcome} />
       </Form>
-    </Section>
+    </Group>
   );
 };
 
-/** Settings: appearance, email, password, sessions, preferences and account deletion. Sends a visitor without a session to log in. */
+/** Settings across the width: Look, Study and Account side by side, Devices in a pane. Sends a visitor without a session to log in. */
 export const Settings = () => {
   const client = useClient();
   const navigate = useNavigate();
@@ -116,21 +134,31 @@ export const Settings = () => {
   }, [client]);
   if (!learner) return null;
   return (
-    <Screen title="Settings">
-      <Section title="Appearance">
-        <p>Pick a look and whether it's light or dark. It's saved on this device.</p>
-        <ThemePicker />
-      </Section>
-      <Section title="Email">
-        <p>
-          Signed in as <strong>{learner.email}</strong>
-        </p>
-        <ChangeEmail />
-      </Section>
-      <ChangePassword />
-      <Sessions />
-      <PreferencesSection />
-      <DeleteAccount />
-    </Screen>
+    <section className="settings">
+      <h1>Settings</h1>
+      <div className="settings-grid">
+        <Column title="Look">
+          <p>Pick a look and whether it's light or dark. It's saved on this device.</p>
+          <ThemePicker />
+        </Column>
+        <Column title="Study">
+          <PreferencesSection />
+        </Column>
+        <Column title="Account">
+          <Group title="Email">
+            <p>
+              Signed in as <strong>{learner.email}</strong>
+            </p>
+            <ChangeEmail />
+          </Group>
+          <Group title="Password">
+            <ChangePassword />
+          </Group>
+          <LogOut />
+          <DeleteAccount />
+        </Column>
+        <Devices />
+      </div>
+    </section>
   );
 };
