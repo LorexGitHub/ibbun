@@ -22,8 +22,6 @@ export const Preferences = z.object({
   slowAudio: z.boolean(),
   /** Study Items per Learn batch. */
   batchSize: z.number().int().min(1).max(20),
-  /** New Study Items Learn offers per day. */
-  dailyBudget: z.number().int().min(0).max(200),
 });
 export type Preferences = z.infer<typeof Preferences>;
 
@@ -38,7 +36,6 @@ export const DEFAULT_PREFERENCES: Preferences = {
   examMode: false,
   slowAudio: false,
   batchSize: 5,
-  dailyBudget: 15,
 };
 
 /** The preferences after `change`. Throws when the change is not valid. */

@@ -15,7 +15,7 @@ The passage lives in the Content Graph like any Reading Passage. Which Learner i
 
 ## Consequences
 
-- One LLM generation and one reviewer-agent call per batch, plus up to 2 retries. The daily new-item budget bounds the cost.
+- One LLM generation and one reviewer-agent call per batch, plus up to 2 retries. The limit of 5 Batch Texts per Learner in any rolling 24 h ([ADR 0012](0012-open-sign-up-bounded-by-token-quotas.md)) bounds the cost. Learn has no daily limit on New Study Items.
 - A Batch Text may be late. The Learner waits up to 20 s, then reads it later from `reading`. A batch whose text fails 3 times has none.
 - A job contract can now live in core, so a Learner-facing slice (`learn`) can enqueue work that an admin slice (`content-generation`) handles.
 - Generated Sentences pile up in the Content Graph. They are approved content and can become Examples, but only through their own approval.

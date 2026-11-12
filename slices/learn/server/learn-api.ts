@@ -21,7 +21,6 @@ import { ClipAnswer } from "../listening/contract.ts";
 import { answerClip } from "../listening/server/answer.ts";
 import { createClipTeacher } from "../listening/server/clip-teach.ts";
 import { createNowIds } from "../learn-now/now.ts";
-import { learnedToday, remainingOf } from "./learn-budget.ts";
 import { createActions, type Refusal } from "./actions.ts";
 import { batchLevel, lookupView, sameItems, textView } from "./reading.ts";
 import { createTeacher } from "./teach.ts";
@@ -45,27 +44,18 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
   const clips = createClipTeacher(contentGraph, random);
 
   const state = async (learnerId: LearnerId): Promise<State> => {
-    const [tracks, { batchSize, dailyBudget }, log] = await Promise.all([
-      learningPath.activeTracks(learnerId),
-      learners.preferences(learnerId),
-      progress.log(learnerId),
-    ]);
-    return {
-      activeTracks: tracks.flatMap((t) => (t.type === "listening_clip" ? [] : [{ ...t, type: t.type }])),
-      batchSize,
-      dailyBudget,
-      learnedToday: learnedToday(log, now()),
-    };
+    const [tracks, { batchSize }] = await Promise.all([learningPath.activeTracks(learnerId), learners.preferences(learnerId)]);
+    return { activeTracks: tracks.flatMap((t) => (t.type === "listening_clip" ? [] : [{ ...t, type: t.type }])), batchSize };
   };
 
-  const batchOf = async (learnerId: LearnerId, ids: StudyItemId[], remaining: number): Promise<Batch> => {
+  const batchOf = async (learnerId: LearnerId, ids: StudyItemId[]): Promise<Batch> => {
     const { convertRomaji, explanations, examMode, slowAudio } = await learners.preferences(learnerId);
     const teach = async (id: StudyItemId): Promise<BatchItem | null> => {
       const clip = await clips.teach(id, { examMode, slowAudio });
       return clip ? { clip } : teacher.teach(id);
     };
     const taught = await Promise.all(ids.map(teach));
-    return { preferences: { convertRomaji, explanations }, remaining, items: taught.flatMap((t) => (t ? [t] : [])) };
+    return { preferences: { convertRomaji, explanations }, items: taught.flatMap((t) => (t ? [t] : [])) };
   };
 
   /** The Learner's Batch Text for exactly this batch, once generation has written it. */
@@ -73,16 +63,14 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
     (await texts.batchTexts(learnerId)).find((t) => sameItems(t.studyItemIds, ids));
 
   const batch = async (learnerId: LearnerId): Promise<Batch> => {
-    const current = await state(learnerId);
-    const remaining = remainingOf(current);
-    const size = Math.min(current.batchSize, remaining);
-    return batchOf(learnerId, size > 0 ? await learningPath.next(learnerId, size) : [], remaining);
+    const { batchSize } = await learners.preferences(learnerId);
+    return batchOf(learnerId, await learningPath.next(learnerId, batchSize));
   };
 
   const nowIds = createNowIds({ teacher, learningPath });
   const batchNow = async (learnerId: LearnerId, raw: string): Promise<Batch | { refusal: Refusal }> => {
     const ids = await nowIds(learnerId, raw);
-    return "refusal" in ids ? ids : batchOf(learnerId, ids, remainingOf(await state(learnerId)));
+    return "refusal" in ids ? ids : batchOf(learnerId, ids);
   };
 
   const { skip, complete } = createActions({ teacher, progress, now });

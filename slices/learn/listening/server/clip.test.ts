@@ -81,7 +81,7 @@ describe("a Listening Clip lesson in a batch", () => {
   let t: Awaited<ReturnType<typeof setup>>;
   beforeEach(async () => {
     t = await setup();
-    await t.learners.changePreferences(t.learner, { dailyBudget: 50, batchSize: 20 });
+    await t.learners.changePreferences(t.learner, { batchSize: 20 });
   });
 
   it("teaches a Sentence clip with its audio, transcript and a dictation quiz", async () => {
@@ -113,7 +113,7 @@ describe("answering a Listening Clip quiz", () => {
   let t: Awaited<ReturnType<typeof setup>>;
   beforeEach(async () => {
     t = await setup();
-    await t.learners.changePreferences(t.learner, { dailyBudget: 50, batchSize: 20 });
+    await t.learners.changePreferences(t.learner, { batchSize: 20 });
   });
   const find = async (id: string) => (await t.clips()).find((c) => c.studyItemId === id)!;
 

@@ -11,12 +11,10 @@ export type Track = z.infer<typeof Track>;
 
 export const TrackChange = z.object({ tracks: z.array(Track) });
 
-/** The Active Tracks and what is left of today's budget for New Study Items. */
+/** The Active Tracks and the size of a batch. Learn has no daily limit. */
 export const State = z.object({
   activeTracks: z.array(Track),
   batchSize: z.number().int(),
-  dailyBudget: z.number().int(),
-  learnedToday: z.number().int(),
 });
 export type State = z.infer<typeof State>;
 
@@ -73,8 +71,6 @@ export const Batch = z.object({
     convertRomaji: z.boolean(),
     explanations: z.enum(["english", "japanese", "both"]),
   }),
-  /** New Study Items today's budget still allows; 0 explains an empty batch. */
-  remaining: z.number().int(),
   /** A Listening Clip is taught whole, quiz included (`clip`); every other item has a lesson and a question in the batch quiz. */
   items: z.array(z.union([z.object({ lesson: Lesson, prompt: QuizPrompt }), z.object({ clip: ClipLesson })])),
 });
@@ -92,7 +88,7 @@ export type QuizAnswer = z.input<typeof QuizAnswer>;
 /** A quiz answer after parsing: every facet has its `attempts`. */
 export type CheckedAnswer = z.output<typeof QuizAnswer>;
 
-/** `now` marks a Learn now session, whose Reviews the daily budget does not count. */
+/** `now` marks a Learn now session: its Reviews are recorded with `source: learn-now`. */
 export const CompleteRequest = z.object({ answers: z.array(QuizAnswer).min(1), now: z.boolean().optional() });
 export type CompleteRequest = z.input<typeof CompleteRequest>;
 export const CompleteResponse = z.object({ recorded: z.number().int() });

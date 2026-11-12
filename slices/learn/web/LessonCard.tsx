@@ -1,12 +1,25 @@
-import { Button, Card } from "@mojibun/ui";
-import type { Lesson } from "../contract.ts";
+import { useState } from "react";
+import { Button, Card, Furigana } from "@mojibun/ui";
+import type { Lesson, QuizPrompt } from "../contract.ts";
+import { readingIn } from "./batch-view.ts";
 
-/** What Learn teaches about one Study Item, with "I know this" to skip it. */
-export const LessonCard = ({ lesson, last, onNext, onKnown }: { lesson: Lesson; last: boolean; onNext: () => void; onKnown: () => void }) => (
-  <Card>
-    <h2 className="jp" lang="ja">
-      {lesson.title}
-    </h2>
+type Said = "known" | "not yet";
+
+/** The Example with the Study Item marked in it. Its reading shows once the card is turned. */
+const InSentence = ({ prompt, turned }: { prompt: QuizPrompt; turned: Said | null }) => {
+  const { before, target, after } = prompt.sentence;
+  const reading = turned ? readingIn(prompt) : undefined;
+  return (
+    <>
+      {before}
+      <mark>{reading ? <Furigana segments={[{ text: target, reading }]} /> : target}</mark>
+      {after}
+    </>
+  );
+};
+
+const Facts = ({ lesson }: { lesson: Lesson }) => (
+  <>
     {lesson.reading && (
       <p className="jp" lang="ja">
         {lesson.reading}
@@ -32,13 +45,72 @@ export const LessonCard = ({ lesson, last, onNext, onKnown }: { lesson: Lesson; 
         {lesson.japaneseExplanation}
       </p>
     )}
+  </>
+);
+
+const Example = ({ lesson }: { lesson: Lesson }) => (
+  <>
     <p className="jp" lang="ja">
       {lesson.example.japanese}
     </p>
     {lesson.example.translationEn && <p lang="en">{lesson.example.translationEn}</p>}
-    <Button variant="primary" onClick={onNext}>
-      {last ? "Start quiz" : "Next"}
-    </Button>
-    <Button onClick={onKnown}>I know this</Button>
-  </Card>
+  </>
 );
+
+/** The taught side. A card that led with the Example has shown it already, so it adds only the translation. */
+const Back = ({ lesson, prompt, inSentence }: { lesson: Lesson; prompt: QuizPrompt; inSentence: boolean }) =>
+  inSentence ? (
+    <>
+      {prompt.translationEn && <p lang="en">{prompt.translationEn}</p>}
+      <Facts lesson={lesson} />
+    </>
+  ) : (
+    <>
+      <Facts lesson={lesson} />
+      <Example lesson={lesson} />
+    </>
+  );
+
+type Props = {
+  lesson: Lesson;
+  prompt: QuizPrompt;
+  /** Show the item marked inside its Example first, instead of alone. */
+  inSentence: boolean;
+  last: boolean;
+  onNext: () => void;
+  onKnown: () => void;
+};
+
+/**
+ * One Study Item as a card with two sides. The front asks whether the Learner knows it. The back teaches it and
+ * says which way they answered. The answer changes nothing: only "Mark as Known" keeps the item out of the quiz.
+ */
+export const LessonCard = ({ lesson, prompt, inSentence, last, onNext, onKnown }: Props) => {
+  const [said, setSaid] = useState<Said | null>(null);
+  return (
+    <Card className="lesson-card">
+      <h2 className={inSentence ? "jp in-sentence" : "jp"} lang="ja">
+        {inSentence ? <InSentence prompt={prompt} turned={said} /> : lesson.title}
+      </h2>
+      {said ? (
+        <>
+          <p className="muted small">You said: {said === "known" ? "I know this" : "not yet"}</p>
+          <Back lesson={lesson} prompt={prompt} inSentence={inSentence} />
+          <div className="lesson-actions">
+            <Button onClick={onKnown}>Mark as Known</Button>
+            <Button variant="primary" onClick={onNext}>
+              {last ? "Start quiz" : "Next"}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="lesson-actions">
+          <Button onClick={() => setSaid("not yet")}>Not yet</Button>
+          <Button variant="primary" onClick={() => setSaid("known")}>
+            I know this
+          </Button>
+        </div>
+      )}
+    </Card>
+  );
+};

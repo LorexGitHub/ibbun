@@ -31,7 +31,7 @@ A Learn batch takes items from the active Tracks in rounds:
 - A Track with no unlocked items left drops out of the rotation.
 - Pulled-in dependencies (below) come on top of the batch size.
 
-Batch size and the single daily budget for New items belong to the `learn` slice and the Learner's preferences, not to the Learning Path.
+Batch size belongs to the `learn` slice and the Learner's preferences, not to the Learning Path. Learn has no daily limit: a Learner takes as many batches as they like.
 
 ## Order within a Track
 
@@ -70,7 +70,6 @@ A Learner can start any item early on purpose: a locked one, one from an inactiv
 
 - Browse shows a **Locked** badge and a **Learn now** button. It shows no position number, because each Learner's order is different.
 - Learn now runs the normal Learn flow (lesson, then the quiz that must be fully correct) and pulls in the item's dependencies.
-- It does not use up the daily budget. The budget only limits what Learn offers on its own.
 - The item counts as introduced. When its Track reaches it, it is skipped.
 
 Locked items can always be read in Browse and practised in Cram.

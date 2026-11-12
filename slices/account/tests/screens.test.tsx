@@ -17,7 +17,6 @@ const PREFS: Preferences = {
   examMode: false,
   slowAudio: false,
   batchSize: 5,
-  dailyBudget: 15,
 };
 const SESSIONS: ActiveSession[] = [
   { id: "mine", ipAddress: null, userAgent: "Firefox", createdAt: "c", lastUsedAt: "2026-11-05T10:00:00Z", current: true },
@@ -261,17 +260,15 @@ describe("preferences", () => {
     expect(client.changePreferences).toHaveBeenCalledWith({ slowAudio: true });
   });
 
-  it("saves the numbers, and ignores an emptied field", async () => {
+  it("saves the batch size, ignores an emptied field, and offers no daily limit", async () => {
     const client = open("/settings");
     const batch = (await screen.findByLabelText("Study Items per Learn batch")) as HTMLInputElement;
-    const daily = screen.getByLabelText("New Study Items per day") as HTMLInputElement;
-    expect([batch.min, batch.max, daily.min, daily.max]).toEqual(["1", "20", "0", "200"]);
+    expect([batch.min, batch.max]).toEqual(["1", "20"]);
+    expect(screen.queryByLabelText(/per day/)).toBeNull();
     type("Study Items per Learn batch", "8");
-    type("New Study Items per day", "0");
-    await waitFor(() => expect(client.changePreferences).toHaveBeenCalledWith({ dailyBudget: 0 }));
-    expect(client.changePreferences).toHaveBeenCalledWith({ batchSize: 8 });
+    await waitFor(() => expect(client.changePreferences).toHaveBeenCalledWith({ batchSize: 8 }));
     type("Study Items per Learn batch", "");
-    expect(client.changePreferences).toHaveBeenCalledTimes(2);
+    expect(client.changePreferences).toHaveBeenCalledTimes(1);
   });
 
   it("never lets both explanations be off", async () => {

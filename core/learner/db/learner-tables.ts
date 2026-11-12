@@ -78,6 +78,5 @@ export const preferences = learner.table("preferences", {
   examMode: boolean("exam_mode").notNull(),
   slowAudio: boolean("slow_audio").notNull(),
   batchSize: integer("batch_size").notNull(),
-  dailyBudget: integer("daily_budget").notNull(),
   updatedAt: updatedAt(),
 });
