@@ -91,12 +91,17 @@ const headword = (d: Detail) => {
 /** Where Learn runs a Study Item early (docs/learning-path.md#learn-now). */
 export const learnNowHref = (id: string) => `/learn?now=${encodeURIComponent(id)}`;
 
-/** One Study Item's page. Locked items can always be read here; Learn now starts them early. */
-export const ItemView = ({ page }: { page: ItemPage }) => (
+/** Where Cram practises one Study Item, Locked or not. */
+export const cramHref = (id: string) => `/cram?items=${encodeURIComponent(id)}`;
+
+/** One Study Item, as its own page or as the sheet over the wall. Locked items can always be read here; Learn now starts them early. */
+export const ItemView = ({ page, sheet = false }: { page: ItemPage; sheet?: boolean }) => (
   <article aria-labelledby="item-title">
-    <p>
-      <Link to="/browse">Browse</Link>
-    </p>
+    {!sheet && (
+      <p>
+        <Link to="/browse">Library</Link>
+      </p>
+    )}
     <h1 id="item-title" lang="ja">
       {headword(page.detail)}
     </h1>
@@ -105,11 +110,16 @@ export const ItemView = ({ page }: { page: ItemPage }) => (
       <span className={pillClass(false)}>{page.detail.type.replace("_", " ")}</span>
       {page.locked && <span className={pillClass(true)}>Locked</span>}
     </p>
-    {!page.introduced && (
-      <a className={buttonClass({ variant: "primary" })} href={learnNowHref(page.id)}>
-        Learn now
+    <p className="item-actions">
+      {!page.introduced && (
+        <a className={buttonClass({ variant: "primary" })} href={learnNowHref(page.id)}>
+          Learn now
+        </a>
+      )}
+      <a className={buttonClass()} href={cramHref(page.id)}>
+        Cram this
       </a>
-    )}
+    </p>
     <Card>
       <DetailView d={page.detail} />
     </Card>

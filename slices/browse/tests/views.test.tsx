@@ -3,17 +3,13 @@ import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
 import type { ItemPage, Summary } from "../contract.ts";
-import { BrowseView, type BrowseViewProps } from "../web/BrowseView.tsx";
-import { ItemView, learnNowHref } from "../web/ItemView.tsx";
+import { ItemView, cramHref, learnNowHref } from "../web/ItemView.tsx";
 
 const id = (n: number) => StudyItemId.parse(`00000058-0000-7000-8000-${n.toString().padStart(12, "0")}`);
 
 const summary = (over: Partial<Summary> = {}): Summary => ({ id: id(1), type: "kanji", level: "N5", label: "日", reading: "ニチ", meaning: "day", ...over });
 
 const inRouter = (node: React.ReactNode) => renderToString(<MemoryRouter>{node}</MemoryRouter>);
-
-const browse = (over: Partial<BrowseViewProps> = {}) =>
-  inRouter(<BrowseView query="" level="N5" items={[summary()]} message={null} onQuery={() => {}} onLevel={() => {}} {...over} />);
 
 const wordPage = (over: Partial<ItemPage> = {}): ItemPage => ({
   id: id(2),
@@ -29,41 +25,19 @@ const wordPage = (over: Partial<ItemPage> = {}): ItemPage => ({
 
 const item = (over: Partial<ItemPage> = {}) => inRouter(<ItemView page={wordPage(over)} />);
 
-describe("BrowseView", () => {
-  it("shows the five levels with the current one pressed", () => {
-    const html = browse({ level: "N4" });
-    for (const level of ["N5", "N4", "N3", "N2", "N1"]) expect(html).toContain(`>${level}</button>`);
-    expect(html).toMatch(/aria-pressed="true"[^>]*>N4</);
+describe("ItemView as a page or a sheet", () => {
+  it("links back to the Library from its own page, and not from the sheet", () => {
+    expect(item()).toContain('<a href="/browse" data-discover="true">Library</a>');
+    expect(inRouter(<ItemView page={wordPage()} sheet />)).not.toContain('href="/browse"');
   });
 
-  it("groups items under Kanji, Words and Grammar, skipping empty groups, each linking to its page", () => {
-    const html = browse({ items: [summary(), summary({ id: id(3), type: "word", label: "日本" })] });
-    expect(html).toContain("<h2>Kanji</h2>");
-    expect(html).toContain("<h2>Words</h2>");
-    expect(html).not.toContain("<h2>Grammar</h2>");
-    expect(html).toContain(`href="/browse/items/${id(1)}"`);
-  });
-
-  it("labels a level plainly and an Unlevelled item as Unlevelled, never as an estimate", () => {
-    const html = browse({ items: [summary({ level: "N3" }), summary({ id: id(4), level: null })] });
-    expect(html).toContain(">N3</span>");
-    expect(html).toContain(">Unlevelled</span>");
-    expect(html).not.toMatch(/estimate|approx|~|\*/i);
-  });
-
-  it("hides the level buttons while searching and says when nothing matches", () => {
-    const html = browse({ query: " zzz ", items: [] });
-    expect(html).not.toContain("aria-pressed");
-    expect(html).toContain("Nothing matches &quot;zzz&quot;.");
-  });
-
-  it("says when a level is empty, and while loading", () => {
-    expect(browse({ items: [] })).toContain("Nothing at N5 yet. Pick another level above.");
-    expect(browse({ items: null })).toContain("Loading…");
-  });
-
-  it("shows a load message as a status", () => {
-    expect(browse({ message: "Log in to browse." })).toContain('<p role="status">Log in to browse.</p>');
+  it("offers Cram this for any Study Item, introduced or not", () => {
+    expect(cramHref(id(2))).toBe(`/cram?items=${id(2)}`);
+    for (const introduced of [true, false]) {
+      const html = item({ introduced });
+      expect(html).toContain(`href="${cramHref(id(2))}"`);
+      expect(html).toContain(">Cram this</a>");
+    }
   });
 });
 
@@ -174,6 +148,56 @@ describe("ItemView details", () => {
     expect(html).toContain("<dd>polite</dd>");
     expect(html).toContain("ていねいな言い方。");
     expect(html).toContain("Use with strangers.");
+  });
+
+  it("shows Components for a single component", () => {
+    expect(item({ detail: kanji({ components: ["一"] }) })).toContain("Components");
+  });
+
+  it("heads a Word with nothing when it has neither a written form nor a reading", () => {
+    expect(item({ detail: { type: "word", forms: [], readings: [], senses: [] } })).toContain('<h1 id="item-title" lang="ja"></h1>');
+  });
+
+  it("marks the level and type as plain pills and Locked as the ink one", () => {
+    const html = item({ locked: true });
+    expect(html).toContain('<span class="pill">N5</span>');
+    expect(html).toContain('<span class="pill">word</span>');
+    expect(html).toContain('<span class="pill pill--ink">Locked</span>');
+  });
+
+  const bare = (over: Partial<ItemPage> = {}) => item({ detail: { type: "word", forms: ["日本"], readings: [], senses: [] }, examples: [], related: [], ...over });
+  const sense = (partsOfSpeech: string[], japaneseExplanation: string | null) => bare({ detail: { type: "word", forms: ["日本"], readings: [], senses: [{ partsOfSpeech, glosses: ["Japan"], japaneseExplanation }] } });
+
+  it("sets a single part of speech in small print and the Japanese Explanation in its own paragraph", () => {
+    const html = sense(["n"], "アジアの国。");
+    expect(html).toMatch(/<small>n(<!-- -->)? <\/small>/);
+    expect(html).toContain('<p lang="ja">アジアの国。</p>');
+  });
+
+  it("leaves no empty small print or paragraph for a sense without parts of speech or explanation", () => {
+    const html = sense([], null);
+    expect(html).not.toContain("<small");
+    expect(html).not.toContain("<p lang");
+  });
+
+  it("sets a Grammar Point's Japanese Explanation and notes in paragraphs, and leaves none when it has neither", () => {
+    const grammar = (japaneseExplanation: string | null, notes: string | null) =>
+      bare({ detail: { type: "grammar_point", title: "〜ます", forms: [], formation: [], register: "polite", meaning: "polite ending", japaneseExplanation, notes } });
+    const full = grammar("ていねいな言い方。", "Use with strangers.");
+    expect(full).toContain('<p lang="ja">ていねいな言い方。</p>');
+    expect(full).toContain("<p>Use with strangers.</p>");
+    const none = grammar(null, null);
+    expect(none).not.toContain('<p lang="ja">');
+    expect(none).not.toContain("<p></p>");
+  });
+
+  it("sets a link's note and an Example's translation in small print, and nothing when they are missing", () => {
+    const related = (note: string | null) => [{ heading: "Related grammar", items: [{ summary: summary(), note }] }];
+    const examples = (translation: string | null) => [{ id: "e1", text: "日本に行きたい。", translation, credits: [] }];
+    expect(bare({ related: related("casual form") })).toMatch(/<small> (<!-- -->)?casual form<\/small>/);
+    expect(bare({ related: related(null) })).not.toContain("<small");
+    expect(bare({ examples: examples("I want to go.") })).toMatch(/<small> (<!-- -->)?I want to go\.<\/small>/);
+    expect(bare({ examples: examples(null) })).not.toContain("<small");
   });
 
   it("shows a link's note, a page's own credit, and no Examples card when there are none", () => {
