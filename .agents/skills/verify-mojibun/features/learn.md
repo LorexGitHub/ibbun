@@ -21,7 +21,7 @@ The `learn` slice (`slices/learn`): the start page with its source chooser, a ba
 
 ## How to get to it (user POV)
 
-- Log in, pick **Learn** in the nav, or open `http://localhost:5173/learn`. The Today screen's **Learn new** button goes there too.
+- Log in, pick **Learn** in the nav, or open `http://localhost:5173/learn`. The Today screen's **Learn 5 new** button goes there too.
 
 ## Driving it with Playwright
 
