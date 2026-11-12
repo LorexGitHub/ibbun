@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { StudyItemSummary } from "@mojibun/content-graph";
+import type { StudyItemId } from "@mojibun/shared";
 import { Button, Card } from "@mojibun/ui";
 import type { Question } from "../contract.ts";
 import type { CramClient } from "./client.ts";
@@ -18,8 +18,11 @@ const Summary = ({ right, asked, skipped, onDone }: { right: number; asked: numb
   </Card>
 );
 
+/** What Practice needs of a Study Item: its id to ask with, and a label to name it when it has no Example. */
+export type PracticeItem = { id: StudyItemId; label: string };
+
 /** Works through the chosen Study Items in order, one question each, then shows how it went. */
-export const Practice = ({ items, client, onDone }: { items: StudyItemSummary[]; client: CramClient; onDone: () => void }) => {
+export const Practice = ({ items, client, onDone }: { items: PracticeItem[]; client: CramClient; onDone: () => void }) => {
   const [at, setAt] = useState(0);
   const [right, setRight] = useState(0);
   const [question, setQuestion] = useState<Question | null>(null);
