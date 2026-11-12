@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Button, KeyMark, keyRuns, useKey, type Press } from "./index.ts";
 
@@ -70,6 +71,19 @@ describe("useKey", () => {
     expect(fireEvent.keyDown(document.body, { key: "Enter" })).toBe(false);
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalledTimes(1);
+  });
+
+  it("listens from the moment its screen is on the page, before the browser gets to later work", async () => {
+    const act = vi.fn();
+    const Probe = () => (useKey("Enter", act), (<p>ready</p>));
+    const host = document.body.appendChild(document.createElement("div"));
+    const root = createRoot(host);
+    const shown = new Promise<void>((done) => new MutationObserver(() => done()).observe(host, { childList: true }));
+    root.render(<Probe />);
+    await shown;
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    root.unmount();
+    expect(act).toHaveBeenCalledTimes(1);
   });
 
   it("leaves other keys, and keys that may not run, to the browser", () => {
