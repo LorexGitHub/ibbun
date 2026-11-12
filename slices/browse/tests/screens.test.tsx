@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
 import type { ItemPage, Summary } from "../contract.ts";
 import slice from "../register.ts";
+import { BrowseView } from "../web/BrowseView.tsx";
 import { BrowseScreen, ItemScreen } from "../web/screens.tsx";
 
 afterEach(() => {
@@ -44,6 +45,30 @@ const itemAt = (itemId: string) =>
       </Routes>
     </MemoryRouter>,
   );
+
+describe("a search with no result", () => {
+  it("names what was searched and clears the search with one button", () => {
+    const onQuery = vi.fn();
+    render(
+      <MemoryRouter>
+        <BrowseView query=" zzz " level="N5" items={[]} message={null} onQuery={onQuery} onLevel={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Nothing matches "zzz".')).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Clear the search" }));
+    expect(onQuery).toHaveBeenCalledWith("");
+  });
+
+  it("has nothing to clear for a level that is empty", () => {
+    render(
+      <MemoryRouter>
+        <BrowseView query="" level="N1" items={[]} message={null} onQuery={() => {}} onLevel={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Nothing at N1 yet. Pick another level above.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Clear the search" })).toBeNull();
+  });
+});
 
 describe("BrowseScreen", () => {
   const browse = () =>

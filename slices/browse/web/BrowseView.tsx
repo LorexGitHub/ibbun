@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Card, pillClass } from "@mojibun/ui";
+import { Button, Card, pillClass } from "@mojibun/ui";
 import { JLPT_LEVELS } from "@mojibun/shared";
 import type { JlptLevel, Summary } from "../contract.ts";
 
@@ -79,11 +79,17 @@ export const BrowseView = ({ query, level, items, message, onQuery, onLevel }: B
       {message && <p role="status">{message}</p>}
       {items === null ? (
         <p>Loading…</p>
-      ) : items.length === 0 ? (
-        <p>{searching ? `Nothing matches "${query.trim()}".` : `Nothing at ${level} yet.`}</p>
-      ) : (
+      ) : items.length > 0 ? (
         <Groups items={items} />
+      ) : searching ? (
+        <>
+          <p>{`Nothing matches "${query.trim()}".`}</p>
+          <Button onClick={() => onQuery("")}>Clear the search</Button>
+        </>
+      ) : (
+        <p>{`Nothing at ${level} yet. Pick another level above.`}</p>
       )}
     </section>
   );
 };
+

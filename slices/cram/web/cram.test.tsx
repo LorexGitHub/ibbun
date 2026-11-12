@@ -117,7 +117,8 @@ describe("choosing items", () => {
     expect((await screen.findByRole("alert")).textContent).toBe("log in first");
     cleanup();
     render(<CramScreen client={fakeClient({ items: async () => ({ ok: true, data: [] }) })} />);
-    expect(await screen.findByText("Nothing found.")).toBeTruthy();
+    expect(await screen.findByText("Nothing matches. Try another level, type or search word, or look it up in the Library.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Open the Library" }).getAttribute("href")).toBe("/browse");
   });
 });
 

@@ -25,8 +25,8 @@ Preconditions:
 - Baseline, plus a verified Learner logged in (account slice) and the N5 fixture graph loaded: `DATABASE_URL=<verify db url> pnpm --filter @mojibun/content-graph seed:fixture`.
 - For the redirect journey, a Retired Word with a superseded-by link: in `psql`, mark one fixture Word's `content_graph.study_item` row `retired = true` and insert a `content_graph.word_superseded_by` row from it to another approved Word. Say so in the evidence.
 
-- **Level list.** Open `/browse`. `verify.sh shot /browse browse/level-list`. The N5 pill is pressed and the page lists 10 Kanji, 10 Words and 10 Grammar Points under their headings, each row showing an `N5` pill. Click **N1**: the page reads "Nothing at N1 yet."
-- **Search.** Type `moon` in **Search**. The level pills disappear and the list shows 月 (Kanji and Word). Type `zzzz`: "Nothing matches". Clear the box: the N5 list returns.
+- **Level list.** Open `/browse`. `verify.sh shot /browse browse/level-list`. The N5 pill is pressed and the page lists 10 Kanji, 10 Words and 10 Grammar Points under their headings, each row showing an `N5` pill. Click **N1**: the page reads "Nothing at N1 yet. Pick another level above."
+- **Search.** Type `moon` in **Search**. The level pills disappear and the list shows 月 (Kanji and Word). Type `zzzz`: 'Nothing matches "zzzz".' with the button **Clear the search**. Click it: the box empties and the N5 list returns.
 - **Page, locked.** Click a row, then read the badge. `verify.sh shot /browse/items/<id> browse/page-locked`. Cross-check with `psql`/the API: `curl -s -b <cookie> http://localhost:5173/api/browse/items/<id>` has `"locked": true` exactly when the page shows **Locked**. In the fixture with a new Learner, one item per Track is not locked and the rest are.
 - **Learn now.** On any page the Learner has not introduced, the **Learn now** link's `href` is `/learn?now=<that id>`. After placement marks the item Known (placement slice), reload: **Learn now** is gone and the badge is gone.
 - **No position numbers.** Read the text and ARIA snapshot of a locked page: no rank, order or "#N" appears.

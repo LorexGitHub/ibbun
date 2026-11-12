@@ -4,7 +4,7 @@ Reading Passages and Batch Text episodes (`slices/reading`, issue #94). A Learne
 
 ## Sub-features
 
-- **Episode list** (`/reading`): the Learner's own Batch Texts grouped per level (N5 to N1, then Unlevelled), episodes in order, each a link "Episode N: <title>". A text whose passage is not approved yet is left out. With none: "No stories yet."
+- **Episode list** (`/reading`): the Learner's own Batch Texts grouped per level (N5 to N1, then Unlevelled), episodes in order, each a link "Episode N: <title>". A text whose passage is not approved yet is left out. With none: "No stories yet. Finish a Learn batch and your first one arrives." and the accent link **Learn a batch** to `/learn`.
 - **Text screen** (`/reading/texts/:id`, `/reading/passages/:id`): title, "Episode N · level" for a Batch Text, Sentences in order with Words as buttons. Words of the Batch Text's batch carry `data-in-batch="true"`.
 - **Tap-to-translate**: each Sentence with a translation has a "Show translation" button; the English stays hidden until tapped.
 - **Lookup**: tapping a Word shows its form, reading and meanings in a status region and logs a `lookup` Review (`POST /api/reading/lookups`). It never introduces the Word or feeds the scheduler.
@@ -21,7 +21,7 @@ Sign in, then "Reading" in the nav (`/reading`). Pick an episode.
 Preconditions:
 
 - The Compose stack, API and web app are up (the `verify-mojibun` skill does this) and the browser has a Learner session.
-- A fresh Learner has no Batch Texts, so the page shows "No stories yet." To exercise the text screen, seed an approved Reading Passage (with Sentences, tokens and `sentence_uses_word` links) and a `progress` Batch Text row for the Learner pointing at it. `/reading/passages/<id>` needs only the passage.
+- A fresh Learner has no Batch Texts, so the page shows "No stories yet." with **Learn a batch**. To exercise the text screen, seed an approved Reading Passage (with Sentences, tokens and `sentence_uses_word` links) and a `progress` Batch Text row for the Learner pointing at it. `/reading/passages/<id>` needs only the passage.
 
 Steps:
 
