@@ -7,8 +7,10 @@ import type { CramClient } from "./client.ts";
 type Attempt = { facet: FacetName; input: string };
 type Graded = Extract<Verdict, { status: "graded" }>;
 
-const FacetInput = ({ facet, label, value, disabled, onChange }: { facet: FacetName; label: string; value: string; disabled: boolean; onChange: (value: string) => void }) => {
-  const props = { "aria-label": label, value, disabled, onChange: (e: { target: { value: string } }) => onChange(e.target.value) };
+type FacetInputProps = { facet: FacetName; label: string; value: string; disabled: boolean; autoFocus: boolean; onChange: (value: string) => void };
+
+const FacetInput = ({ facet, label, value, disabled, autoFocus, onChange }: FacetInputProps) => {
+  const props = { "aria-label": label, value, disabled, autoFocus, onChange: (e: { target: { value: string } }) => onChange(e.target.value) };
   return <p>{facet === "meaning" ? <Input {...props} /> : <KanaInput ime="hiragana" {...props} />}</p>;
 };
 
@@ -23,7 +25,7 @@ const Feedback = ({ question, verdict, onNext }: { question: Question; verdict: 
         </p>
       );
     })}
-    <Button variant="primary" onClick={onNext}>
+    <Button variant="primary" hotkey="Enter" onClick={onNext}>
       Next
     </Button>
   </div>
@@ -48,7 +50,7 @@ type Actions = { check: () => void; reveal: () => void; openHint?: () => void };
 
 const Controls = ({ check, reveal, openHint }: Actions) => (
   <p>
-    <Button variant="primary" onClick={check}>
+    <Button variant="primary" hotkey="Enter" onClick={check}>
       Check
     </Button>{" "}
     {openHint && <Button onClick={openHint}>Hint</Button>} <Button onClick={reveal}>Show answer</Button>
@@ -106,8 +108,8 @@ export const QuestionCard = ({ question, client, onNext }: { question: Question;
   return (
     <Card>
       <Prompt question={question} hintOpen={a.hintOpen} />
-      {question.facets.map(({ facet, label }) => (
-        <FacetInput key={facet} facet={facet} label={label} value={a.inputs[facet] ?? ""} disabled={a.verdict !== null} onChange={(value) => a.type(facet, value)} />
+      {question.facets.map(({ facet, label }, i) => (
+        <FacetInput key={facet} autoFocus={i === 0} facet={facet} label={label} value={a.inputs[facet] ?? ""} disabled={a.verdict !== null} onChange={(value) => a.type(facet, value)} />
       ))}
       {a.error && <p role="alert">{a.error}</p>}
       {a.verdict ? (

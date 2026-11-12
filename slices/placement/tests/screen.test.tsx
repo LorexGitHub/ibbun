@@ -2,6 +2,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PlacementScreen } from "../web/PlacementScreen.tsx";
+import { PlacementView } from "../web/PlacementView.tsx";
 
 const asked = () => vi.mocked(fetch).mock.calls.map(([url]) => url);
 
@@ -30,6 +31,26 @@ describe("the Placement screen", () => {
     await screen.findByText(/Tick what you already know/);
     expect(asked()).toEqual(["/api/placement/N2"]);
     expect(screen.queryByRole("group", { name: "JLPT Level" })).toBeNull();
+  });
+});
+
+describe("Placement by keyboard", () => {
+  const view = (ticked: string[], onSubmit: () => void) =>
+    render(<PlacementView level="N5" list={{ level: "N5", items: [] }} ticked={new Set(ticked)} message={null} onToggle={() => {}} onSubmit={onSubmit} />);
+
+  it("marks what is ticked as Known on Enter, and shows the key on the button", () => {
+    const onSubmit = vi.fn();
+    view(["a"], onSubmit);
+    expect(screen.getByRole("button", { name: "Mark 1 as Known" }).querySelector("kbd")?.textContent).toBe("↵");
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    expect(onSubmit).toHaveBeenCalledOnce();
+  });
+
+  it("does nothing on Enter while nothing is ticked", () => {
+    const onSubmit = vi.fn();
+    view([], onSubmit);
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });
 

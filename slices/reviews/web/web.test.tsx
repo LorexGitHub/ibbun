@@ -351,3 +351,40 @@ describe("the reviews screen", () => {
     expect((await screen.findByRole("alert")).textContent).toBe("log in first");
   });
 });
+
+describe("Reviews by keyboard", () => {
+  const key = (k: string, on: Element = document.body) => fireEvent.keyDown(on, { key: k });
+  const markOn = (name: string) => screen.getByRole("button", { name }).querySelector("kbd")?.textContent;
+
+  it("puts the cursor in the answer, checks on Enter, and moves on with Enter", async () => {
+    const { submit, onDone } = mount();
+    const field = screen.getByLabelText("Answer");
+    expect(document.activeElement).toBe(field);
+    expect(markOn("Check")).toBe("↵");
+    expect(markOn("Show answer")).toBeUndefined();
+
+    type("Answer", "みず");
+    key("Enter", field);
+    await screen.findByRole("status");
+    expect(submit).toHaveBeenCalledOnce();
+    expect(markOn("Next")).toBe("↵");
+    key("Enter");
+    expect(onDone).toHaveBeenCalledWith(PASS);
+  });
+
+  it("starts a Kanji in its first field and checks from the last", async () => {
+    const { submit } = mount(kanji);
+    expect(document.activeElement).toBe(screen.getByLabelText("Reading in this sentence"));
+    type("Reading in this sentence", "みず");
+    type("Meaning of the kanji", "water");
+    key("Enter", screen.getByLabelText("Meaning of the kanji"));
+    await waitFor(() => expect(submit).toHaveBeenCalledOnce());
+  });
+
+  it("leaves Enter on Hint to Hint, and a digit in the answer to the answer", () => {
+    const { submit } = mount();
+    expect(key("Enter", screen.getByRole("button", { name: "Hint" }))).toBe(true);
+    expect(key("1", screen.getByLabelText("Answer"))).toBe(true);
+    expect(submit).not.toHaveBeenCalled();
+  });
+});

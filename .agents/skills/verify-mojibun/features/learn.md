@@ -53,3 +53,9 @@ Preconditions:
 - A Word in the batch pulls its Kanji into the same batch, so a batch can be longer than `batchSize`.
 - The default Active Tracks already include `N5:listening_clip`, so a new Learner meets a clip in the batch as soon as the Content Graph holds an approved clip with audio at N5 (no screen changes Listening Tracks yet; a Learner who changed them can be reset with `learningPath.setActiveTracks`). The N5 fixture has no clips: seed one first, or the batch simply has none. A clip's linked Words and Kanji come first as plain lessons, ahead of the clip.
 - The clip lesson shows its text in the Read step; the quiz step's own text stays hidden until the Learner answers or asks again.
+
+## Keys
+
+- Lesson: **1** is Not yet, **2** is I know this, **Enter** is Next or Start quiz. Quiz: the first answer field has the cursor, **Enter** is Check and then Next. A Listening Clip lesson takes **Enter** for Read it and Start quiz; its comprehension choices are **1** to **4**. **Enter** is also Start on the start page and Keep going on the Tally.
+- A key never runs while the Learner types in a field (Enter excepted), while a dialog is open, or with Ctrl, Alt or ⌘ held. Each key shows as a small `kbd` mark on its button, hidden on touch screens, and the button carries `aria-keyshortcuts`.
+- Check: on a lesson card press 2, then Enter; the next card shows. In the quiz type the answer, press Enter twice; the next question shows with the cursor in its field.

@@ -26,7 +26,7 @@ export const TallyScreen = ({ tally, onMore, onStory }: Props) => (
     </ul>
     <div className="tally-doors">
       {onMore ? (
-        <Button variant="primary" big onClick={onMore}>
+        <Button variant="primary" big hotkey="Enter" onClick={onMore}>
           Keep going
         </Button>
       ) : (

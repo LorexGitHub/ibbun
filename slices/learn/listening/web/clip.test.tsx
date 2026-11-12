@@ -322,3 +322,45 @@ describe("a batch with more than one lesson", () => {
     expect(api.skip).toHaveBeenCalledWith(prompt.studyItemId, false);
   });
 });
+
+describe("a Listening Clip lesson by keyboard", () => {
+  const key = (k: string, on: Element = document.body) => fireEvent.keyDown(on, { key: k });
+  const markOn = (name: string) => screen.getByRole("button", { name }).querySelector("kbd")?.textContent;
+
+  it("moves from Listen to Read to the quiz on Enter, and checks a dictation on Enter in its field", async () => {
+    const api = apiOf(dictation);
+    await start(api);
+    expect(markOn("Read it")).toBe("↵");
+    key("Enter");
+    expect(markOn("Start quiz")).toBe("↵");
+    key("Enter");
+    await screen.findByRole("heading", { name: /Quiz/ });
+    await play(2);
+
+    const field = screen.getByLabelText("What did you hear?");
+    expect(document.activeElement).toBe(field);
+    expect(markOn("Check")).toBe("↵");
+    fireEvent.change(field, { target: { value: "パンをたべる" } });
+    key("Enter", field);
+    await screen.findByRole("heading", { name: "1 learned" });
+    expect(api.answerClip).toHaveBeenCalledTimes(1);
+  });
+
+  it("picks an option by its number, and tries again on Enter after a miss", async () => {
+    const api = apiOf(comprehension, [{ outcome: "fail", correctChoice: "買い物" }, { outcome: "pass" }]);
+    await start(api);
+    await toQuiz();
+    await play(2);
+    expect([markOn("買い物"), markOn("勉強")]).toEqual(["1", "2"]);
+    key("2");
+    await screen.findByText("Not quite");
+    expect(api.answerClip).toHaveBeenLastCalledWith(expect.objectContaining({ input: "勉強" }));
+
+    expect(markOn("Try again")).toBe("↵");
+    key("Enter");
+    await play(4);
+    key("1");
+    await screen.findByRole("heading", { name: "1 learned" });
+    expect(api.answerClip).toHaveBeenLastCalledWith(expect.objectContaining({ input: "買い物" }));
+  });
+});

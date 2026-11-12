@@ -1,5 +1,5 @@
 import type { NavEntry } from "@mojibun/slice";
-import { buttonClass, Layout, LevelFilter, onGoTo, SessionCountSlot, useLevelFilter, useSystemModeSync } from "@mojibun/ui";
+import { buttonClass, KeyMark, Layout, LevelFilter, onGoTo, SessionCountSlot, useKey, useLevelFilter, useSystemModeSync } from "@mojibun/ui";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router";
@@ -32,6 +32,18 @@ const Home = ({ shell, who }: { shell: Shell; who: Who }) => {
     return <Welcome entries={welcomeEntries(visibleTo(shell.nav, who))} door={door} />;
   }
   return <Slot shell={shell} name="home" />;
+};
+
+/** The way out of a session. Esc takes it too. */
+const DoneForNow = () => {
+  const navigate = useNavigate();
+  useKey("Escape", () => navigate("/"));
+  return (
+    <Link className={buttonClass()} to="/" aria-keyshortcuts="Escape">
+      Done for now
+      <KeyMark of="Escape" />
+    </Link>
+  );
 };
 
 const SessionName = ({ session }: { session: NavEntry }) => (
@@ -78,9 +90,7 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
   const levels = useLevels(nav, who, pathname, map);
   const sessionName = session && <SessionName session={session} />;
   const aside = session ? (
-    <Link className={buttonClass()} to="/">
-      Done for now
-    </Link>
+    <DoneForNow />
   ) : (
     <>
       <CommandTrigger onOpen={openMenu} />

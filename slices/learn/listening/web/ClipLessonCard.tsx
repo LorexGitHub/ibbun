@@ -34,7 +34,7 @@ const Read = ({ clip, onNext }: { clip: ClipLesson; onNext: () => void }) => (
         ))}
       </p>
     )}
-    <Button variant="primary" onClick={onNext}>
+    <Button variant="primary" hotkey="Enter" onClick={onNext}>
       Start quiz
     </Button>
   </>
@@ -52,7 +52,7 @@ export const ClipLessonCard = ({ clip, check, onPassed }: { clip: ClipLesson; ch
       {step === "listen" && (
         <>
           <ClipPlayer audio={clip.lines} once={false} slowAudio={clip.slowAudio} onPlay={() => undefined} />
-          <Button variant="primary" onClick={() => setStep("read")}>
+          <Button variant="primary" hotkey="Enter" onClick={() => setStep("read")}>
             Read it
           </Button>
         </>
