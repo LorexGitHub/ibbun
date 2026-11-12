@@ -1,35 +1,73 @@
 import { Link } from "react-router";
 import { buttonClass, Card } from "@mojibun/ui";
-import type { EpisodeLists } from "../contract.ts";
+import type { Episode, EpisodeLists, TextLevel } from "../contract.ts";
+import "./reading.css";
 
-/** The Learner's past Batch Texts, per level, as episodes to reread. */
-export const EpisodeList = ({ lists }: { lists: EpisodeLists }) => (
+export type Story = Episode & { level: TextLevel };
+
+export const levelName = (level: TextLevel) => (level === "unlevelled" ? "Unlevelled" : level);
+
+/** Every Batch Text of every level as one line of stories, the newest first. */
+export const newestFirst = (lists: EpisodeLists): Story[] =>
+  lists.levels.flatMap(({ level, episodes }) => episodes.map((episode) => ({ ...episode, level }))).sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+
+const storyPath = (story: Story) => `/reading/texts/${story.id}`;
+
+const Where = ({ story }: { story: Story }) => (
+  <span className="story-where">
+    Episode {story.episode} · {levelName(story.level)}
+  </span>
+);
+
+const Newest = ({ story }: { story: Story }) => (
   <Card>
-    <h1>Reading</h1>
-    <p>
-      <Link to="/reading/practice">Practice texts</Link>
-    </p>
-    {lists.levels.length === 0 && (
-      <>
-        <p>No stories yet. Finish a Learn batch and your first one arrives.</p>
-        <Link className={buttonClass({ variant: "primary" })} to="/learn">
-          Learn a batch
-        </Link>
-      </>
-    )}
-    {lists.levels.map(({ level, episodes }) => (
-      <section key={level}>
-        <h2>{level === "unlevelled" ? "Unlevelled" : level}</h2>
-        <ol>
-          {episodes.map((e) => (
-            <li key={e.id}>
-              <Link to={`/reading/texts/${e.id}`}>
-                Episode {e.episode}: <span lang="ja">{e.title}</span>
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </section>
-    ))}
+    <div className="story-newest">
+      <p className="caps">Your newest story</p>
+      <h2 lang="ja">{story.title}</h2>
+      <Where story={story} />
+      <Link className={buttonClass({ variant: "primary", big: true })} to={storyPath(story)}>
+        Read
+      </Link>
+    </div>
   </Card>
 );
+
+const Earlier = ({ stories }: { stories: Story[] }) => (
+  <section aria-labelledby="earlier-stories">
+    <h2 id="earlier-stories">Earlier stories</h2>
+    <ul className="story-list">
+      {stories.map((story) => (
+        <li key={story.id}>
+          <Link to={storyPath(story)} lang="ja">
+            {story.title}
+          </Link>
+          <Where story={story} />
+        </li>
+      ))}
+    </ul>
+  </section>
+);
+
+const NoStories = () => (
+  <Card>
+    <p>No stories yet. Finish a Learn batch and your first one arrives.</p>
+    <Link className={buttonClass({ variant: "primary" })} to="/learn">
+      Learn a batch
+    </Link>
+  </Card>
+);
+
+/** The Learner's Batch Texts: the newest one leads, the earlier ones are a plain list below it. */
+export const EpisodeList = ({ lists }: { lists: EpisodeLists }) => {
+  const [newest, ...earlier] = newestFirst(lists);
+  return (
+    <section aria-labelledby="reading-title" className="reading">
+      <h1 id="reading-title">Reading</h1>
+      {newest ? <Newest story={newest} /> : <NoStories />}
+      {earlier.length > 0 && <Earlier stories={earlier} />}
+      <p>
+        <Link to="/reading/practice">Practice Texts</Link>
+      </p>
+    </section>
+  );
+};
