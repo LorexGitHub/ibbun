@@ -1,7 +1,9 @@
 import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 import { buttonClass, openGoTo } from "@mojibun/ui";
 import { Today } from "../contract.ts";
+import { levelHref } from "./doors.ts";
 import { levelNote, pathRows } from "./path.ts";
 import "./today.css";
 
@@ -15,15 +17,16 @@ const dueBreakdown = ({ kanji, word, grammarPoint }: Today["due"]): string => {
   return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");
 };
 
-const nextSteps = (dueTotal: number) =>
-  dueTotal === 0
-    ? [{ href: "/learn", label: "Learn something new" }, { href: "/reviews", label: "Start reviews" }]
-    : [{ href: "/reviews", label: "Start reviews" }, { href: "/learn", label: "Learn new" }];
+const nextSteps = (dueTotal: number, batchSize: number) => {
+  const reviews = { href: "/reviews", label: "Start Reviews" };
+  const learn = { href: "/learn", label: `Learn ${batchSize} new` };
+  return dueTotal === 0 ? [learn, reviews] : [reviews, learn];
+};
 
 export const TodayHero = ({ today, hour }: { today: Today; hour: number }) => {
-  const { due, streakDays } = today;
+  const { due, streakDays, batchSize } = today;
   // The accent button is the one next step: Reviews while any are due, new items once they're done
-  const [primary, secondary] = nextSteps(due.total);
+  const [primary, secondary] = nextSteps(due.total, batchSize);
   return (
     <section className="today" aria-labelledby="today-count">
       <p className="caps">
@@ -69,9 +72,11 @@ export const MasteryByLevel = ({ levels }: { levels: Today["levels"] }) => {
         <ol className="levels">
           {rows.map((row) => (
             <li key={row.level} className={`level ${row.stage}`}>
-              <span className="level-dot" aria-hidden />
-              <b>{row.level}</b>
-              <small>{levelNote(row)}</small>
+              <Link to={levelHref(row.level)}>
+                <span className="level-dot" aria-hidden />
+                <b>{row.level}</b>
+                <small>{levelNote(row)}</small>
+              </Link>
             </li>
           ))}
         </ol>

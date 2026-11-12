@@ -19,7 +19,7 @@ const setup = () => {
   const progress = createFakeProgress();
   const pass = (studyItemId: string, at: string, kind: "srs" | "manual" | "learn" = "srs") =>
     progress.record({ learnerId: me, studyItemId: StudyItemId.parse(studyItemId), kind, passed: true, at });
-  const today = async () => Today.parse(await buildToday({ progress, contentGraph, learnerId: me, now: NOW }));
+  const today = async () => Today.parse(await buildToday({ progress, contentGraph, batchSize: async () => 7, learnerId: me, now: NOW }));
   return { progress, pass, today };
 };
 
@@ -32,6 +32,11 @@ describe("buildToday", () => {
     expect(t.levels.map((l) => l.level)).toEqual(["N5", "N4", "N3", "N2", "N1"]);
     expect(t.levels[0]).toEqual({ level: "N5", total: 30, known: 0 });
     expect(t.levels[1]).toEqual({ level: "N4", total: 0, known: 0 });
+  });
+
+  it("says how many new Study Items one Learn batch holds", async () => {
+    const { today } = setup();
+    expect((await today()).batchSize).toBe(7);
   });
 
   it("counts due Study Items by type", async () => {
@@ -83,7 +88,7 @@ describe("buildToday", () => {
     const { pass, progress } = setup();
     await pass(kanji[0]!, daysAgo(30));
     const other = LearnerId.parse("00000000-0000-7000-8000-0000000000bb");
-    const t = await buildToday({ progress, contentGraph, learnerId: other, now: NOW });
+    const t = await buildToday({ progress, contentGraph, batchSize: async () => 7, learnerId: other, now: NOW });
     expect(t.due.total).toBe(0);
     expect(t.streakDays).toBe(0);
   });
