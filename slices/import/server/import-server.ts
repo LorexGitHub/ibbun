@@ -11,7 +11,7 @@ import { directoryRawFiles } from "./raw-files.ts";
 import { postgresSnapshots } from "./snapshots.ts";
 
 /** Where raw upstream files of the last runs are kept: a Docker volume in Compose (import-pipeline.md#what-is-kept). */
-const DEFAULT_RAW_DIR = "./data/import-raw";
+export const DEFAULT_RAW_DIR = "./data/import-raw";
 
 /** Wires the slice to Postgres, the raw-file volume and the session check the report API needs. */
 export const createImportServer = ({ db, sessions }: ServerContext, options: { rawDir: string; refreshes: Refresh[]; grammarSeed?: () => GrammarSeedDeps; matcherRuns?: () => MatcherRunsDeps }): ServerPart => {

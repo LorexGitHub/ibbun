@@ -5,6 +5,7 @@ dist/
 .env
 .metrics/
 target/
+data/
 test-results/
 playwright-report/
 playwright/.auth/
