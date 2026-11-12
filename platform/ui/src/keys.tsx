@@ -42,6 +42,6 @@ const MARKS: Record<string, string> = { Enter: "↵", Escape: "Esc" };
 /** The small mark on a control that says which key presses it. Screen readers get `aria-keyshortcuts` instead. */
 export const KeyMark = ({ of }: { of: string }) => (
   <kbd className="key-mark" aria-hidden="true">
-    {MARKS[of] ?? of}
+    {MARKS[of] || of}
   </kbd>
 );
