@@ -5,6 +5,7 @@ import { defineJob, handler, type JobHandler, type Jobs } from "@mojibun/jobs";
 import type { Nlp } from "@mojibun/nlp";
 import { downloadGrammarSources, type GrammarSources } from "./download.ts";
 import { seedGrammar, type SeedExample, type SeedPoint } from "./seed.ts";
+import { mapLimited } from "../tatoeba/tokens.ts";
 import { withOffsets } from "./tokens.ts";
 
 export type GrammarSeedDeps = {
@@ -20,11 +21,14 @@ export type GrammarSeedDeps = {
 /** Started by a person, once. It has no schedule: hanabira is not refreshed (ADR 0006). */
 export const GrammarSeed = defineJob("import.grammar-seed", z.object({}));
 
+/** How many points are at the Sudachi sidecar at once. Every example of every point at once is more than it accepts. */
+const TOKENIZE_CONCURRENCY = 16;
+
 const tokenized = async (nlp: Nlp, text: string, translationEn: string): Promise<SeedExample> => ({ text, translationEn, tokens: withOffsets(await nlp.tokenize(text)) });
 
 const hanabiraPoint = async (nlp: Nlp, point: GrammarSources["hanabira"][number]): Promise<SeedPoint> => ({
   ...point,
-  examples: await Promise.all(point.examples.map((e) => tokenized(nlp, e.text, e.translationEn))),
+  examples: await mapLimited(point.examples, 1, (e) => tokenized(nlp, e.text, e.translationEn)),
 });
 
 const tanosPoint = ({ key, level, title }: GrammarSources["tanos"][number]): SeedPoint => ({ key, level, title, meaning: "", notes: null, formation: [], examples: [] });
@@ -40,7 +44,7 @@ const proposeMerges = async ({ authoring, jobs }: GrammarSeedDeps, hanabiraIds: 
 /** Downloads, parses, seeds and asks for merge proposals. Returns false when the seed already ran. */
 export const runGrammarSeed = async (deps: GrammarSeedDeps): Promise<boolean> => {
   const sources = await (deps.download ?? downloadGrammarSources)();
-  const hanabira = await Promise.all(sources.hanabira.map((point) => hanabiraPoint(deps.nlp, point)));
+  const hanabira = await mapLimited(sources.hanabira, TOKENIZE_CONCURRENCY, (point) => hanabiraPoint(deps.nlp, point));
   const tanos = sources.tanos.map(tanosPoint);
   const ids = await deps.transact((authoring) =>
     seedGrammar(authoring, { hanabira: { version: sources.hanabiraCommit, points: hanabira }, tanos: { version: sources.tanosSnapshot, points: tanos } }),

@@ -5,7 +5,8 @@ import type { Desired } from "./derive.ts";
 type Link<N extends DerivedLinkTable> = Row<N>;
 type Licence = Row<"provenance">["licence"];
 
-export type Process = { name: string; version: string; licence: Licence };
+/** `keeps` names the processes whose links in the same table a rebuild leaves alone. */
+export type Process = { name: string; version: string; licence: Licence; keeps?: string[] };
 export type Changes = { added: number; removed: number };
 
 const CHUNK = 1000;
@@ -28,20 +29,24 @@ const provenanceFor = async (authoring: Authoring, { name, version, licence }: P
   return id;
 };
 
+/** The Provenance of every link a rebuild of this process may replace: all derived ones but those of a process it keeps. */
+const ownedProvenance = async (authoring: Authoring, { keeps = [] }: Process) =>
+  new Set((await authoring.rows("provenance")).flatMap(({ id, source }) => (source.kind === "derived" && !keeps.includes(source.process) ? [id] : [])));
+
 /**
  * Makes the derived links of `table` equal `desired`. A derived link made by this process version that still
  * means something desired stays, so an unchanged input writes nothing (the incremental rebuild). Every other
- * derived link goes, including those of an older process version (the full rebuild). Links are replaced, never retired.
+ * derived link goes, including those of an older process version (the full rebuild), except the links of a process
+ * it `keeps`. Links are replaced, never retired.
  */
 export const replaceDerivedLinks = async <N extends DerivedLinkTable>(authoring: Authoring, table: N, process: Process, desired: Desired<Link<N>>[]): Promise<Changes> => {
   const provenanceId = await provenanceFor(authoring, process);
-  const derived = new Map((await authoring.rows("provenance")).flatMap((p) => (p.source.kind === "derived" ? [[p.id, p.source] as const] : [])));
+  const owned = await ownedProvenance(authoring, process);
   const wanted = new Map(desired.map((d) => [meaning(d), d]));
   const kept = new Set<string>();
   const stale: string[] = [];
   for (const link of (await authoring.rows(table)) as Link<N>[]) {
-    const source = derived.get(link.provenanceId);
-    if (!source) continue;
+    if (!owned.has(link.provenanceId)) continue;
     const current = link.provenanceId === provenanceId && wanted.has(meaning(link)) && !kept.has(meaning(link));
     if (current) kept.add(meaning(link));
     else stale.push(link.id);

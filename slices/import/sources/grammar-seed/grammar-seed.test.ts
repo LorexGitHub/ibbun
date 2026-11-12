@@ -93,6 +93,25 @@ const world = () => {
 };
 
 describe("runGrammarSeed", () => {
+  it("keeps at most 16 sentences at the tokenizer at once, however many points there are", async () => {
+    const w = world();
+    let inFlight = 0;
+    let most = 0;
+    w.deps.nlp = {
+      tokenize: async (text) => {
+        most = Math.max(most, ++inFlight);
+        await new Promise((done) => setTimeout(done, 1));
+        inFlight--;
+        return nlp.tokenize(text);
+      },
+    };
+    const points = Array.from({ length: 40 }, (_, i) => ({ ...sources.hanabira[0]!, key: `N5:${i}`, title: `点${i}`, examples: [{ text: `文${i}`, translationEn: "a" }, { text: `文${i}b`, translationEn: "b" }] }));
+    w.deps.download = async () => ({ ...sources, hanabira: points });
+    await runGrammarSeed(w.deps);
+    expect(most).toBe(16);
+    expect(w.graph.sentence.map((s) => s.text)).toEqual(points.flatMap((p) => p.examples.map((e) => e.text)));
+  });
+
   it("seeds every point from both lists as a draft Grammar Point with its list level", async () => {
     const w = world();
     expect(await runGrammarSeed(w.deps)).toBe(true);
@@ -198,6 +217,35 @@ describe("downloadGrammarSources", () => {
 
   it("fails when the commit lookup has no sha", async () => {
     await expect(downloadGrammarSources(async () => Response.json({}))).rejects.toThrow("no sha");
+  });
+
+  it("asks again when the Wayback Machine drops a request or answers 503", async () => {
+    const asked = new Map<string, number>();
+    const got = await downloadGrammarSources(async (input) => {
+      const url = String(input);
+      const nth = (asked.get(url) ?? 0) + 1;
+      asked.set(url, nth);
+      if (url.includes("jlpt5") && nth === 1) throw new TypeError("fetch failed");
+      if (url.includes("jlpt4") && nth < 3) return new Response("busy", { status: 503 });
+      return answer(url);
+    });
+    expect(got.tanos.map((e) => e.key)).toEqual(["5", "4", "3", "2", "1"]);
+    expect([...asked.values()].sort()).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3]);
+  });
+
+  it("gives up after the third try, with the last failure", async () => {
+    let tries = 0;
+    await expect(downloadGrammarSources(async () => (tries++, Promise.reject(new TypeError("fetch failed"))))).rejects.toThrow("fetch failed");
+    expect(tries).toBe(3);
+    tries = 0;
+    await expect(downloadGrammarSources(async () => (tries++, new Response("busy", { status: 503 })))).rejects.toThrow("503");
+    expect(tries).toBe(3);
+  });
+
+  it("does not ask again for a page that is not there", async () => {
+    let tries = 0;
+    await expect(downloadGrammarSources(async () => (tries++, new Response("", { status: 404 })))).rejects.toThrow("404");
+    expect(tries).toBe(1);
   });
 
   it("fails when a page is missing", async () => {

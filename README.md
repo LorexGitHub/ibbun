@@ -64,11 +64,13 @@ The first `docker compose up` builds the Sudachi image and downloads VOICEVOX, s
 
 ### The real content
 
-The fixture is a handful of items. To study the real thing, import every upstream dataset (JMdict, KANJIDIC2, KanjiVG, Tatoeba, the pitch and frequency dictionaries and the JLPT lists):
+The fixture is a handful of items. To study the real thing instead, skip `seed:fixture` and import every upstream dataset (JMdict, KANJIDIC2, KanjiVG, Tatoeba, the pitch and frequency dictionaries and the JLPT lists):
 
 ```sh
 pnpm content:import
 ```
+
+The fixture and the real content cannot share a database, because the fixture's Kanji and Words are the real ones under other ids. Run it on a database you did not seed the fixture into; the command refuses otherwise.
 
 It runs each import in order, then the grammar seed, the derived links, the levels and the matchers, and prints one line per step. It downloads a few hundred megabytes into `data/import-raw` and takes a while the first time. It is safe to run again: a dataset whose upstream version has not changed is skipped, and a run that stopped half way picks up where it left off.
 

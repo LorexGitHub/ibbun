@@ -8,6 +8,19 @@ export type Release = z.output<typeof Release>;
 
 export type Fetch = typeof fetch;
 
+const TRIES = 3;
+
+/** A fetch that asks up to three times: upstream hosts drop connections and answer 5xx under load, and one lost request would fail the whole import. */
+export const patient = (fetchImpl: Fetch): Fetch => async (input, init) => {
+  for (let left = TRIES - 1; ; left--) {
+    const response = await fetchImpl(input, init).catch((failure: unknown) => {
+      if (left === 0) throw failure;
+      return null;
+    });
+    if (response && (response.status < 500 || left === 0)) return response;
+  }
+};
+
 export const get = async (fetchImpl: Fetch, url: string, accept: string) => {
   const response = await fetchImpl(url, { headers: { accept, "user-agent": "mojibun-import" } });
   if (!response.ok) throw new Error(`${url} answered ${response.status}`);

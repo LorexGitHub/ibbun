@@ -28,3 +28,5 @@ try {
 } finally {
   await db.$client.end();
 }
+// The grammar seed and the matchers open a job queue on first use, and its connection would keep a finished import from exiting.
+process.exit(0);

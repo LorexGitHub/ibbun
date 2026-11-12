@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
 import { createFakeJobs } from "@mojibun/jobs";
 import { importJobs, refreshJob, refreshes, type Refresh } from "./jobs.ts";
@@ -84,6 +84,24 @@ describe("import jobs", () => {
     await w.jobs.fire("import.staleness");
     await w.jobs.drain();
     expect(await w.deps.authoring.queue({ reason: "staleness alarm" })).toHaveLength(1);
+  });
+
+  it("downloads for every source through the fetch it is given", async () => {
+    const asked: string[] = [];
+    const sources = refreshes({}, async (input) => (asked.push(new URL(String(input)).host), new Response("", { status: 404 })));
+    for (const { source } of sources) await source.latest().catch(() => undefined);
+    expect(asked).toEqual(["api.github.com", "api.github.com", "api.github.com", "downloads.tatoeba.org", "api.github.com", "kaikki.org", "clrd.ninjal.ac.jp"]);
+  });
+
+  it("asks an upstream that drops the connection three times before a refresh fails", async () => {
+    const fetch = vi.fn(async () => Promise.reject(new TypeError("fetch failed")));
+    vi.stubGlobal("fetch", fetch);
+    try {
+      await expect(refreshes()[0]!.source.latest()).rejects.toThrow("fetch failed");
+      expect(fetch).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("refreshes JMdict and KANJIDIC2 monthly, KanjiVG, Tatoeba, yomitan-jlpt-vocab, ja Wiktionary and UniDic weekly, and tries the one-time Tanos kanji import daily", () => {

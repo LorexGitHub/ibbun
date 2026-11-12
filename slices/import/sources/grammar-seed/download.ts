@@ -1,5 +1,5 @@
 import type { JlptLevel } from "@mojibun/shared";
-import { get, type Fetch } from "../release.ts";
+import { get, patient, type Fetch } from "../release.ts";
 import { parseHanabira, type HanabiraPoint } from "./hanabira.ts";
 import { parseTanos, type TanosEntry } from "./tanos.ts";
 
@@ -29,7 +29,8 @@ const latestCommit = async (fetchImpl: Fetch): Promise<string> => {
 };
 
 /** Downloads and parses the five hanabira level files at their latest commit and the five Tanos level lists. */
-export const downloadGrammarSources = async (fetchImpl: Fetch = fetch): Promise<GrammarSources> => {
+export const downloadGrammarSources = async (once: Fetch = fetch): Promise<GrammarSources> => {
+  const fetchImpl = patient(once);
   const hanabiraCommit = await latestCommit(fetchImpl);
   const raw = `https://raw.githubusercontent.com/${HANABIRA}/${hanabiraCommit}/`;
   const hanabira = await Promise.all(LEVELS.map(async (level) => parseHanabira(level, await text(fetchImpl, raw + hanabiraFile(level)))));
