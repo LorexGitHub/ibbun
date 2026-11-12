@@ -34,3 +34,10 @@ export const uncoveredForms = (snapshot: string): UncoveredForm[] => {
     .map(([, form, count]) => ({ source: source ? source[1]! : "?", form: form!, uncovered: Number(count) }))
     .filter((f) => f.uncovered > 0);
 };
+
+/**
+ * One package's LCOV with every file named from the repo root. Vitest names files from the package,
+ * so `server/api.ts` of two slices would be one file to crapper and mutator, and the last report read would win.
+ */
+export const rootedLcov = (lcov: string, dir: string): string =>
+  lcov.replace(/^SF:(.*)$/gm, (_, file: string) => `SF:${`${dir}/${file}`.replace(/\\/g, "/").replace(/^\.\//, "")}`);
