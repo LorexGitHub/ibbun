@@ -1,6 +1,6 @@
 # App shell
 
-The shell is the web app every slice mounts into: the slice routes, a home screen built from widgets slices register, and the wayfinding. Each slice's nav entry names a `place` (`home`, `study`, `practice`, `library`, `account`, `supervisor`), a one-line `blurb`, an optional `glyph` and `rank`, and whether it is a `session`. `apps/web/src/places.ts` turns those into the dock, the account menu, the ⌘K menu and the welcome's map. The look is Ma ([ADR 0014](../../../../docs/adr/0014-ma-visual-design.md)): five palettes, each light and dark, picked in Settings → Appearance. The API answers a health check, and the web app proxies `/api` to it.
+The shell is the web app every slice mounts into: the slice routes, a home screen built from widgets slices register, and the wayfinding. Each slice's nav entry names a `place` (`home`, `study`, `practice`, `library`, `account`, `supervisor`), a one-line `blurb`, an optional `glyph` and `rank`, and whether it is a `session`. `apps/web/src/places.ts` turns those into the dock, the account menu, the ⌘K menu and the welcome's map. The look is Ma ([ADR 0014](../../../../docs/adr/0014-ma-visual-design.md)): five palettes, each light and dark, picked in Settings → Look. The API answers a health check, and the web app proxies `/api` to it.
 
 ## Sub-features
 
@@ -13,7 +13,7 @@ The shell is the web app every slice mounts into: the slice routes, a home scree
 - `shell-account-menu` opens from the initial in the top line: the email, Settings, the Supervisor screens (Approval, Import) for a Supervisor only, and **Log out**, which shows a toast.
 - `shell-command-menu` opens on ⌘K, Ctrl K or `/` (not while typing). It has two panes. The right one lists every place the Learner can reach, grouped, and filters by label and blurb ("kanji" finds Learn, Placement and Library). The left one, for a logged-in Learner, is the `radiogroup` "Level": All, N5, N4, N3, N2, N1. With a level chosen, a first option "N3 level page" goes to `/level/n3`, and the Study and Practice doors open for that level (`/reviews?level=n3`); Library and Account doors do not change. The level is not remembered: the menu opens on All.
 - `shell-session` replaces the levels with the session's glyph and name, and the field and account button with a **Done for now** button to `/`, on a session screen (Reviews, Learn, Cram, Placement). A session screen that renders `SessionCount` shows how far it is, as "2 / 5", after the name (`#session-count`).
-- `shell-welcome`: logged out, `/` shows a welcome with **Sign up** and **Log in**, and Study, Practice and Library under "What's inside".
+- `shell-welcome`: logged out, `/` shows whatever a slice registered in the `welcome` slot (the account slice puts its sign-up split there, see [account.md](account.md)) and Study, Practice and Library under "What's inside". With no such widget the shell shows its own line with **Sign up** and **Log in**.
 - `shell-theme` applies the saved look before the first paint: `<html>` carries `data-palette` and `data-mode`, read from `localStorage` key `mojibun.theme`; "Match my device" follows `prefers-color-scheme`.
 - `shell-health` answers `GET /api/health` with `{"ok":true}`, directly and through the web proxy.
 
@@ -39,8 +39,8 @@ Preconditions:
 - **Dock.** Logged in as the Learner, open `/`. The `navigation` landmark "Main" holds exactly Today, Reviews, Learn, Placement, Cram, Listening, Reading and Library, with Today marked current. Approval and Import appear nowhere. Logged in as the Supervisor, the account menu lists them under "Supervisor".
 - **Command menu.** Press Ctrl K. A dialog named "Where to?" opens with the search field focused. Type `kanji`: the options are Learn, Placement and Library. Press Enter: the URL is `/learn`. Open it again, click **N3** in the "Level" group, then **Reviews**: the URL is `/reviews?level=n3`. Open it again: **All** is checked.
 - **Session.** On `/learn` or `/reviews` there is no dock, no "Levels" and no **Where to?**; the top line shows the session's glyph and name, and a **Done for now** link points to `/`.
-- **Theme.** In Settings → Appearance pick Ai and Dark. `document.documentElement.dataset` is `{palette: "ai", mode: "dark"}`, the page background turns navy, and a reload keeps it. `verify.sh shot / shell/ai-dark`.
-- **Logged out.** In a fresh context open `/`. The page shows **Sign up** (`/signup`) and **Log in** (`/login`) and "What's inside", and no dock: there is no `navigation` landmark.
+- **Theme.** In Settings → Look pick Ai and Dark. `document.documentElement.dataset` is `{palette: "ai", mode: "dark"}`, the page background turns navy, and a reload keeps it. `verify.sh shot / shell/ai-dark`.
+- **Logged out.** In a fresh context open `/`. The page shows the sign-up split with a **Sign up** button, **Log in** (`/login`) and "What's inside", and no dock: there is no `navigation` landmark.
 - **Harness spec.** Run `pnpm exec playwright test --project=anonymous`. `e2e/shell.spec.ts` passes.
 
 ## Gotchas
