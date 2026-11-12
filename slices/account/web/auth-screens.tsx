@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { buttonClass } from "@mojibun/ui";
 import { useClient } from "./client.ts";
-import { Field, Form, Notice, Screen, useOutcome } from "./form.tsx";
+import { Field, Form, Notice, Screen, Split, useOutcome } from "./form.tsx";
 
 const CHECK_YOUR_EMAIL = "Check your email. If the address can sign up, we sent a link to finish.";
 
@@ -14,7 +14,7 @@ export const SignUp = () => {
   const [sent, setSent] = useState(false);
   const submit = async () => setSent(await run(client.signUp(email, password), CHECK_YOUR_EMAIL));
   return (
-    <Screen title="Sign up">
+    <Split title="Sign up">
       <Form submit="Sign up" onSubmit={submit}>
         <Field label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <Field
@@ -38,7 +38,8 @@ export const SignUp = () => {
       <p>
         Already have an account? <Link to="/login">Log in</Link>
       </p>
-    </Screen>
+      <Link to="/try">Try one Review first</Link>
+    </Split>
   );
 };
 
@@ -53,7 +54,7 @@ export const Login = () => {
     if (await run(client.signIn(email, password), "Logged in.")) navigate("/");
   };
   return (
-    <Screen title="Log in">
+    <Split title="Log in">
       {params.get("verified") && <p role="status" className="notice">Email verified. You can log in now.</p>}
       {params.get("reset") && <p role="status" className="notice">Password changed. Log in with the new one.</p>}
       <Form submit="Log in" onSubmit={submit}>
@@ -72,7 +73,7 @@ export const Login = () => {
         <Link to="/forgot-password">Forgot your password?</Link>
         <Link to="/signup">Sign up</Link>
       </div>
-    </Screen>
+    </Split>
   );
 };
 

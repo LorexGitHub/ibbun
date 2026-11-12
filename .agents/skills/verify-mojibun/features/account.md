@@ -4,11 +4,13 @@ A visitor signs up with an email and password, verifies the address through a ma
 
 ## Sub-features
 
+- `account-welcome` a visitor at `/` meets the sign-up split: an accent panel with 一文ずつ。 set upright, the sign-up form beside it, "Log in" and "Try one Review first" under it, then "What's inside". `/login` uses the same split.
+- `account-try` `/try` is one Review for a visitor: 水を飲みます。 and "What does 水 mean?". "Check" answers "Correct." or "Not quite." with "水 (みず) means water." and the button "Sign up to keep going" leads to `/signup`. Nothing is saved.
 - `account-signup` `/signup` always answers "Check your email"; a new address gets a verify mail, an existing one gets "already registered"; the link works once and logs nobody in.
 - `account-login` `/login` gives one failure message, "email or password is wrong", for an unknown address, a wrong password and an unverified account.
 - `account-reset` `/forgot-password` always answers "If that address has an account, we sent a link"; `/reset-password?token=…` sets a new password and ends every session.
-- `account-settings` `/settings`: change email (mail to the new address first), change password (other sessions end), list and end sessions, log out, log out everywhere.
-- `account-preferences` the preference controls on `/settings`, saved at once; the last explanation toggle cannot be turned off.
+- `account-settings` `/settings` uses the width: the columns Look, Study and Account side by side and a Devices pane on the right whose list scrolls by itself. Under 1100px there are two columns, under 700px one. Change email (mail to the new address first), change password (other sessions end), list and end sessions, log out, log out everywhere.
+- `account-preferences` the preference controls in the Study column, saved at once with the notice "Saved." and no Save button; the last explanation toggle cannot be turned off.
 - `account-delete` "Delete my account" with the password hard-deletes the Learner.
 - `account-rate-limit` login is limited to 5 tries per 15 min per email and IP; sign-up, reset and resend to 3 per hour per IP; the blocked call is `429` with `Retry-After`.
 - `account-roles` the `learner` and `supervisor` seed accounts; `/admin` needs `supervisor`.
@@ -28,12 +30,13 @@ Preconditions:
 - Limit steps (`account-rate-limit`) use addresses and a client IP of their own; do them last, because they burn the 3-per-hour budget of that IP.
 
 - **Sign up and verify.** Open `/signup`, fill Email and Password (12+ characters), press "Sign up". Expect a status "Check your email". Follow the link from `curl -s "http://localhost:8025/api/v1/search?query=to:v1@mojibun.test"` then `GET /api/v1/message/<ID>`. Expect the URL `/login?verified=1` and "Email verified". Log in; expect to leave `/login`. Read-only view: `docker compose -p mojibun-verify exec postgres psql -U mojibun -c "select email, email_verified from learner.learners where email='v1@mojibun.test'"` shows verified.
+- **Welcome and one Review.** In a fresh context open `/`. Expect the accent panel with 一文ずつ。 upright on the left and the sign-up form on the right; at 400px wide the panel lies across the top. Click "Try one Review first", answer `water`, press "Check": the status reads "Correct. 水 (みず) means water.". Reload `/try`, answer `fire`: "Not quite. 水 (みず) means water.". "Sign up to keep going" opens `/signup`. The EDRDG line is in the footer of each of these screens. `verify.sh shot / account/welcome`.
 - **Unverified cannot log in.** Sign up `v2@mojibun.test`, do not open the link, log in. Expect the alert "email or password is wrong".
 - **Enumeration-safe sign-up.** Sign up `learner@mojibun.test` again. Expect the same status text as for a new address; Mailpit shows an "already registered" mail to it and no new row appears in `learner.learners`.
 - **Enumeration-safe login.** Log in as `nobody@mojibun.test`, then as `learner@mojibun.test` with a wrong password. Both show exactly "email or password is wrong".
 - **Link works once.** Open the verify link of `v1` a second time; expect an error, not a session.
 - **Password reset.** Open `/forgot-password`, enter `learner@mojibun.test`, then `nobody@mojibun.test`. Both show "If that address has an account, we sent a link."; Mailpit has one reset mail, for the first. Open its link, choose a new password, expect `/login?reset=1`; log in with the new password. Open the link again; expect "invalid token". Run `verify.sh shot /login account/reset-login`.
-- **Settings.** Log in as `learner@mojibun.test`, open `/settings`. Expect Appearance first (five looks with live swatches, then Light, Dark and Match my device), then the email, a session marked "(this device)" and the preference controls. `verify.sh shot /settings account/settings`.
+- **Settings.** Log in as `learner@mojibun.test`, open `/settings`. At 1280px wide expect four tops in one row: Look (five looks with live swatches, then Light, Dark and Match my device), Study (the preference controls), Account (the email, the two forms, "Log out", "Delete account") and the Devices pane with a session marked "(this device)" and "Log out everywhere". With more sessions than fit, the list scrolls inside the pane and the page does not grow. No screen width scrolls sideways. `verify.sh shot /settings account/settings`.
 - **Preferences and the toggle rule.** On `/settings` the English translation box is checked and disabled while Japanese is off. Check "Show the Japanese Explanation": "Saved." appears and English becomes enabled. Reload: Japanese is still checked (read-only view: `select explanations from learner.preferences`). Uncheck English: Japanese becomes disabled. No click can leave both off.
 - **Sessions.** Log in from two contexts as the same Learner. In one, `/settings` lists two sessions; "End session" on the other; reload the other context and expect `/login`.
 - **Log out everywhere.** With two contexts logged in, press "Log out everywhere" in one. Expect `/login` there and, after reload, in the other.

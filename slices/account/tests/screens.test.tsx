@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ActiveSession, LearnerClient, Preferences, Result } from "@mojibun/learner/client";
 import { ClientContext } from "../web/client.ts";
-import { routes } from "../web/index.ts";
+import { routes, widgets } from "../web/index.ts";
 
 afterEach(cleanup);
 
@@ -89,6 +89,57 @@ describe("sign up", () => {
   });
 });
 
+describe("the split", () => {
+  it("sets the line upright in Japanese beside the sign-up form, with Log in and one Review to try under it", () => {
+    open("/signup");
+    expect(screen.getByText("一文ずつ。").getAttribute("lang")).toBe("ja");
+    expect(screen.getByRole("heading", { level: 1, name: "Sign up" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Log in" }).getAttribute("href")).toBe("/login");
+    expect(screen.getByRole("link", { name: "Try one Review first" }).getAttribute("href")).toBe("/try");
+  });
+
+  it("is the same for log in", () => {
+    open("/login");
+    expect(screen.getByText("一文ずつ。")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "Log in" })).toBeTruthy();
+  });
+
+  it("is what the shell shows a visitor first", () => {
+    expect(widgets.map((w) => w.slot)).toEqual(["welcome"]);
+    const Welcome = widgets[0]!.component;
+    render(
+      <ClientContext.Provider value={fakeClient()}>
+        <MemoryRouter>
+          <Welcome />
+        </MemoryRouter>
+      </ClientContext.Provider>,
+    );
+    expect(screen.getByRole("button", { name: "Sign up" })).toBeTruthy();
+  });
+});
+
+describe("one Review to try", () => {
+  it("asks one question and marks a right answer, then leads back to sign-up", () => {
+    open("/try");
+    expect(screen.getByText("水を飲みます。").getAttribute("lang")).toBe("ja");
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.queryByRole("link", { name: /Sign up/ })).toBeNull();
+    type("What does 水 mean?", " Water ");
+    press("Check");
+    expect(screen.getByRole("status").textContent).toBe("Correct. 水 (みず) means water.");
+    expect(screen.getByRole("link", { name: "Sign up to keep going" }).getAttribute("href")).toBe("/signup");
+    expect(screen.queryByRole("button", { name: "Check" })).toBeNull();
+  });
+
+  it("shows the answer after a wrong one and still leads back", () => {
+    open("/try");
+    type("What does 水 mean?", "fire");
+    press("Check");
+    expect(screen.getByRole("status").textContent).toBe("Not quite. 水 (みず) means water.");
+    expect(screen.getByRole("link", { name: "Sign up to keep going" }).getAttribute("href")).toBe("/signup");
+  });
+});
+
 describe("log in", () => {
   it("goes home after a good login", async () => {
     const client = open("/login");
@@ -160,6 +211,22 @@ describe("settings", () => {
   it("sends a visitor without a session to log in", async () => {
     open("/settings", fakeClient({ session: vi.fn(async () => ok(null)) }));
     await waitFor(() => expect(where()).toBe("/login"));
+  });
+
+  it("lays Look, Study and Account side by side with Devices in a pane of its own, and no Save button", async () => {
+    open("/settings");
+    await screen.findByLabelText("Off");
+    const column = (name: string) => within(screen.getByRole("region", { name }));
+    expect(column("Look").getByText(/Pick a look/)).toBeTruthy();
+    expect(column("Study").getByLabelText("Show the English translation")).toBeTruthy();
+    expect(column("Account").getByRole("button", { name: "Change email" })).toBeTruthy();
+    expect(column("Account").getByRole("button", { name: "Log out" })).toBeTruthy();
+    expect(column("Account").getByRole("button", { name: "Delete my account" })).toBeTruthy();
+    const devices = within(screen.getByRole("complementary", { name: "Devices" }));
+    expect(await devices.findByText(/Firefox \(this device\)/)).toBeTruthy();
+    expect(devices.getByRole("button", { name: "Log out everywhere" })).toBeTruthy();
+    expect(devices.queryByRole("button", { name: "Log out" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Save/ })).toBeNull();
   });
 
   it("shows the email and changes it", async () => {

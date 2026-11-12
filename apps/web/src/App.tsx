@@ -26,7 +26,10 @@ export const Slot = ({ shell, name }: { shell: Shell; name: string }) => (
 
 const Home = ({ shell, who }: { shell: Shell; who: Who }) => {
   if (who.state === "loading") return null;
-  if (who.state === "out") return <Welcome entries={welcomeEntries(visibleTo(shell.nav, who))} />;
+  if (who.state === "out") {
+    const door = shell.widgets.some((w) => w.slot === "welcome") && <Slot shell={shell} name="welcome" />;
+    return <Welcome entries={welcomeEntries(visibleTo(shell.nav, who))} door={door} />;
+  }
   return <Slot shell={shell} name="home" />;
 };
 

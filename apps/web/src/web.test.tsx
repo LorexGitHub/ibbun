@@ -71,6 +71,32 @@ describe("web shell", () => {
     expect(html).toContain("What&#x27;s inside");
   });
 
+  it("gives a visitor the screen a slice registered as the welcome, in place of its own line", async () => {
+    const door: Slice = { name: "door", web: async () => ({ widgets: [{ slot: "welcome", component: () => <p>the way in</p> }] }) };
+    const shell = await buildShell(discoverSlices({ ...modules, door: { default: door } }));
+    const home = (who: Who) =>
+      renderToString(
+        <StaticRouter location="/">
+          <App shell={shell} initialWho={who} />
+        </StaticRouter>,
+      );
+    const visitor = home({ state: "out" });
+    expect(visitor).toContain("the way in");
+    expect(visitor).not.toContain("One sentence at a time.");
+    expect(visitor).toContain("What&#x27;s inside");
+    expect(home({ state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } })).not.toContain("the way in");
+  });
+
+  it("keeps its own line for a visitor when no slice registered a welcome", async () => {
+    const shell = await buildShell(discoverSlices(modules));
+    const html = renderToString(
+      <StaticRouter location="/">
+        <App shell={shell} initialWho={{ state: "out" }} />
+      </StaticRouter>,
+    );
+    expect(html).toContain("One sentence at a time.");
+  });
+
   it("shows the dock only to a logged-in Learner", async () => {
     const shell = await buildShell(discoverSlices(modules));
     const at = (who: Who) =>

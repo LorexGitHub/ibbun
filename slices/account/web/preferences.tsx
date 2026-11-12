@@ -53,8 +53,7 @@ export const PreferencesSection = () => {
   };
 
   return (
-    <fieldset className="account-form">
-      <legend>Preferences</legend>
+    <fieldset className="account-form" aria-label="Preferences">
       <div role="radiogroup" aria-label="Furigana">
         {FURIGANA.map(({ value, label }) => (
           <label className="choice" key={value}>
