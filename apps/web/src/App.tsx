@@ -1,3 +1,4 @@
+import type { NavEntry } from "@mojibun/slice";
 import { buttonClass, Layout, LevelFilter, onGoTo, SessionCountSlot, useLevelFilter, useSystemModeSync } from "@mojibun/ui";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
@@ -33,6 +34,23 @@ const Home = ({ shell, who }: { shell: Shell; who: Who }) => {
   return <Slot shell={shell} name="home" />;
 };
 
+const SessionName = ({ session }: { session: NavEntry }) => (
+  <span className="session-name">
+    <span className="jp" lang="ja" aria-hidden>
+      {session.glyph}
+    </span>
+    {session.label}
+    <SessionCountSlot />
+  </span>
+);
+
+/** What the header shows beside the seal: a door opened for one level keeps "All" and the levels, a session included. */
+const useLevels = (nav: NavEntry[], who: Who, pathname: string, map: boolean) => {
+  const filtered = useLevelFilter() !== undefined && who.state === "in" && takesLevel(nav, pathname);
+  if (filtered) return <LevelFilter />;
+  return map ? <LevelLinks /> : undefined;
+};
+
 export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -57,19 +75,8 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
   // The dock and the levels are a Learner's map: hidden from visitors, and during a session
   const map = who.state === "in" && !session;
   const dock = map ? <AppDock entries={dockEntries(nav)} /> : undefined;
-  // A door opened for one level keeps "All" and the levels in its header, a session included
-  const filtered = useLevelFilter() !== undefined && who.state === "in" && takesLevel(nav, pathname);
-  const levels = filtered ? <LevelFilter /> : map ? <LevelLinks /> : undefined;
-
-  const sessionName = session && (
-    <span className="session-name">
-      <span className="jp" lang="ja" aria-hidden>
-        {session.glyph}
-      </span>
-      {session.label}
-      <SessionCountSlot />
-    </span>
-  );
+  const levels = useLevels(nav, who, pathname, map);
+  const sessionName = session && <SessionName session={session} />;
   const aside = session ? (
     <Link className={buttonClass()} to="/">
       Done for now
