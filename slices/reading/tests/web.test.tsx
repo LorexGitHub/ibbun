@@ -207,6 +207,16 @@ describe("EpisodeList", () => {
     expect(within(earlier[0]!).getByRole("link").getAttribute("href")).toBe(`/reading/texts/${B2}`);
   });
 
+  it("makes Read the big primary button", () => {
+    show(lists);
+    expect(screen.getByRole("link", { name: "Read" }).className).toBe("btn btn--primary btn--big");
+  });
+
+  it("lists a single earlier story", () => {
+    show({ levels: [lists.levels[0]!] });
+    expect(within(screen.getByRole("region", { name: "Earlier stories" })).getAllByRole("listitem").map((li) => li.textContent)).toEqual(["朝ごはんEpisode 1 · N5"]);
+  });
+
   it("has no earlier stories to list when there is only one", () => {
     show({ levels: [lists.levels[1]!] });
     expect(screen.getByRole("link", { name: "Read" }).getAttribute("href")).toBe(`/reading/texts/${B2}`);
