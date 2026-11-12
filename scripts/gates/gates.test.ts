@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { packageOf, parseDuplicates, splitDuplicates, uncoveredForms } from "./gates.ts";
+import { packageOf, parseDuplicates, rootedLcov, splitDuplicates, uncoveredForms } from "./gates.ts";
 
 describe("packageOf", () => {
   it("names the workspace package of a path, or the root", () => {
@@ -64,5 +64,23 @@ describe("mutator snapshot", () => {
 
   it("lists nothing when every site is covered", () => {
     expect(uncoveredForms(SNAPSHOT.replace(":uncovered 1", ":uncovered 0"))).toEqual([]);
+  });
+});
+
+describe("rootedLcov", () => {
+  const report = (file: string) => `TN:\nSF:${file}\nDA:47,8\nend_of_record\n`;
+
+  it("names each file from the repo root, so two packages' server/api.ts stay apart", () => {
+    expect(rootedLcov(report("server/api.ts"), "slices/reviews")).toBe(report("slices/reviews/server/api.ts"));
+    expect(rootedLcov(report("server/api.ts"), "slices/cram")).toBe(report("slices/cram/server/api.ts"));
+  });
+
+  it("writes forward slashes whatever the machine wrote", () => {
+    expect(rootedLcov(report("server\\api.ts"), "slices/reviews")).toBe(report("slices/reviews/server/api.ts"));
+  });
+
+  it("leaves the root's own files as they are, and renames every record", () => {
+    expect(rootedLcov(report("scripts/gates/gates.ts"), ".")).toBe(report("scripts/gates/gates.ts"));
+    expect(rootedLcov(report("a.ts") + report("b.ts"), "core/x")).toBe(report("core/x/a.ts") + report("core/x/b.ts"));
   });
 });

@@ -3,7 +3,10 @@ import type { Progress } from "@mojibun/progress";
 import { JLPT_LEVELS, type LearnerId, type StudyItemId } from "@mojibun/shared";
 import type { Due, Today } from "../contract.ts";
 
-export type TodayDeps = { progress: Progress; contentGraph: ContentGraph; learnerId: LearnerId; now: Date };
+/** The size of one Learn batch, which is a Learner's own preference. */
+export type BatchSize = (learnerId: LearnerId) => Promise<number>;
+
+export type TodayDeps = { progress: Progress; contentGraph: ContentGraph; batchSize: BatchSize; learnerId: LearnerId; now: Date };
 
 const TYPES: BrowsableType[] = ["kanji", "word", "grammar_point"];
 const DAY_MS = 86_400_000;
@@ -39,12 +42,13 @@ const countByType = async (contentGraph: ContentGraph, known: Map<StudyItemId, S
 };
 
 /** What the Today screen shows one Learner at `now`. */
-export const buildToday = async ({ progress, contentGraph, learnerId, now }: TodayDeps): Promise<Today> => {
-  const [lists, knownIds, dueIds, log] = await Promise.all([
+export const buildToday = async ({ progress, contentGraph, batchSize, learnerId, now }: TodayDeps): Promise<Today> => {
+  const [lists, knownIds, dueIds, log, batch] = await Promise.all([
     levelLists(contentGraph),
     progress.known(learnerId),
     progress.due(learnerId, now),
     progress.log(learnerId),
+    batchSize(learnerId),
   ]);
   const known = new Set(knownIds);
   const byId = new Map(lists.flatMap((l) => l.items).map((item) => [item.id, item]));
@@ -53,5 +57,6 @@ export const buildToday = async ({ progress, contentGraph, learnerId, now }: Tod
     due: await countByType(contentGraph, byId, dueIds),
     streakDays: streakDays(practised, dayOf(now)),
     levels: lists.map(({ level, items }) => ({ level, total: items.length, known: items.filter((i) => known.has(i.id)).length })),
+    batchSize: batch,
   };
 };
