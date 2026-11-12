@@ -54,7 +54,7 @@ const ItemSheet = ({ id, onClose }: { id: string; onClose: () => void }) => {
 /** The wall starts at the level in the address, and follows it when the header's level filter moves. */
 const useLevel = () => {
   const inAddress = useLevelFilter();
-  const [level, setLevel] = useState<JlptLevel>(inAddress ?? "N5");
+  const [level, setLevel] = useState<JlptLevel>(inAddress || "N5");
   useEffect(() => {
     if (inAddress) setLevel(inAddress);
   }, [inAddress]);
@@ -85,4 +85,4 @@ export const BrowseScreen = () => {
   );
 };
 
-export const ItemScreen = () => <Item id={useParams().id ?? ""} />;
+export const ItemScreen = () => <Item id={useParams().id || ""} />;

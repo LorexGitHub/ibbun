@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { Link, MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
 import type { ItemPage, Tile } from "../contract.ts";
@@ -311,6 +311,33 @@ describe("ItemScreen", () => {
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("日本");
     expect(screen.getByText("Locked")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Learn now" }).getAttribute("href")).toBe(`/learn?now=${id(2)}`);
+  });
+
+  it("links back to the Library, as a page of its own does", async () => {
+    serve({ [`/api/browse/items/${id(2)}`]: [200, page] });
+    itemAt(id(2));
+    expect((await screen.findByRole("link", { name: "Library" })).getAttribute("href")).toBe("/browse");
+  });
+
+  it("keeps the Study Item it was last asked for when an earlier answer arrives late", async () => {
+    const late: ((answer: Response) => void)[] = [];
+    const json = (body: unknown) => new Response(JSON.stringify(body));
+    vi.stubGlobal("fetch", vi.fn((url: string) => (url.endsWith(id(9)) ? new Promise<Response>((answer) => late.push(answer)) : Promise.resolve(json(page)))));
+    render(
+      <MemoryRouter initialEntries={[`/browse/items/${id(9)}`]}>
+        <Link to={`/browse/items/${id(2)}`}>next</Link>
+        <Routes>
+          <Route path="/browse/items/:id" element={<ItemScreen />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "next" }));
+    await screen.findByRole("heading", { level: 1 });
+    await act(async () => {
+      late[0]!(json({ ...page, id: id(9) }));
+      await new Promise((settled) => setTimeout(settled, 20));
+    });
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("日本");
   });
 
   it("follows a Retired Word to its successor", async () => {
