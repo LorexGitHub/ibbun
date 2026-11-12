@@ -13,8 +13,8 @@ const Answer = ({ question, onSubmit }: { question: ClipReview["question"]; onSu
   if (question.kind === "dictation") {
     return (
       <form onSubmit={(e) => (e.preventDefault(), onSubmit(typed))}>
-        <KanaInput ime="hiragana" aria-label="What did you hear?" value={typed} onChange={(e) => setTyped(e.target.value)} />
-        <Button type="submit" variant="primary">
+        <KanaInput ime="hiragana" autoFocus aria-label="What did you hear?" value={typed} onChange={(e) => setTyped(e.target.value)} />
+        <Button type="submit" variant="primary" hotkey="Enter">
           Check
         </Button>
       </form>
@@ -23,8 +23,8 @@ const Answer = ({ question, onSubmit }: { question: ClipReview["question"]; onSu
   return (
     <fieldset>
       <legend lang="ja">{question.prompt}</legend>
-      {question.choices.map((choice) => (
-        <Button key={choice} onClick={() => onSubmit(choice)}>
+      {question.choices.map((choice, i) => (
+        <Button key={choice} hotkey={String(i + 1)} onClick={() => onSubmit(choice)}>
           <span lang="ja">{choice}</span>
         </Button>
       ))}
@@ -57,7 +57,7 @@ const Result = ({ done, onNext }: { done: Done; onNext: () => void }) => (
         </li>
       ))}
     </ol>
-    <Button variant="primary" onClick={onNext}>
+    <Button variant="primary" hotkey="Enter" onClick={onNext}>
       Next
     </Button>
   </Card>

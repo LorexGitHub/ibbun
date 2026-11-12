@@ -98,15 +98,15 @@ export const LessonCard = ({ lesson, prompt, inSentence, last, onNext, onKnown }
           <Back lesson={lesson} prompt={prompt} inSentence={inSentence} />
           <div className="lesson-actions">
             <Button onClick={onKnown}>Mark as Known</Button>
-            <Button variant="primary" onClick={onNext}>
+            <Button variant="primary" hotkey="Enter" onClick={onNext}>
               {last ? "Start quiz" : "Next"}
             </Button>
           </div>
         </>
       ) : (
         <div className="lesson-actions">
-          <Button onClick={() => setSaid("not yet")}>Not yet</Button>
-          <Button variant="primary" onClick={() => setSaid("known")}>
+          <Button hotkey="1" onClick={() => setSaid("not yet")}>Not yet</Button>
+          <Button variant="primary" hotkey="2" onClick={() => setSaid("known")}>
             I know this
           </Button>
         </div>

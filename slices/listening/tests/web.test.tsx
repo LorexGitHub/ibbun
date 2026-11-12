@@ -276,3 +276,36 @@ describe("Listening practice", () => {
     await waitFor(() => expect((screen.getByRole("button", { name: "Replay" }) as HTMLButtonElement).disabled).toBe(false));
   });
 });
+
+describe("Listening practice by keyboard", () => {
+  const key = (k: string, on: Element = document.body) => fireEvent.keyDown(on, { key: k });
+  const markOn = (name: string) => screen.getByRole("button", { name }).querySelector("kbd")?.textContent;
+
+  it("checks a dictation on Enter in its field, and takes the next clip on Enter", async () => {
+    stubServer(dictation);
+    await open();
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    const field = await screen.findByLabelText("What did you hear?");
+    expect(document.activeElement).toBe(field);
+    expect(markOn("Check")).toBe("↵");
+    fireEvent.change(field, { target: { value: "ぱんをたべる" } });
+    key("Enter", field);
+    await screen.findByText("Correct");
+    expect(answers).toHaveLength(1);
+
+    expect(markOn("Next clip")).toBe("↵");
+    key("Enter");
+    await waitFor(() => expect(screen.queryByText("Correct")).toBeNull());
+  });
+
+  it("picks an option with 1 to 4", async () => {
+    stubServer(comprehension);
+    await open();
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    await screen.findByRole("button", { name: "買い物" });
+    expect(["買い物", "勉強", "仕事", "料理"].map(markOn)).toEqual(["1", "2", "3", "4"]);
+    key("4");
+    await screen.findByText("Correct");
+    expect(answers).toEqual([expect.objectContaining({ input: "料理" })]);
+  });
+});

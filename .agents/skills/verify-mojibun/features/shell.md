@@ -53,3 +53,8 @@ Preconditions:
 - If login says "email or password is wrong" for a seeded account, or sign-up fails with a 500, check that `DATABASE_URL` reaches the container: a local PostgreSQL on 5432 answers first and has no `mojibun` role. `/api/health` does not touch the database, so it stays green.
 - Better Auth only trusts the configured web origin. A second Vite on another port can log in but gets 403 on **Log out**.
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
+
+## Keys
+
+- On a session screen **Esc** is **Done for now**: it goes to `/`. The link shows the Esc mark and carries `aria-keyshortcuts="Escape"`. Esc does nothing on other screens or while a dialog is open (the dialog closes instead).
+- The kit owns the keys: `useKey`, `KeyMark` and the `hotkey` prop of `Button` in `@mojibun/ui`.

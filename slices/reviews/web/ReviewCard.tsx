@@ -31,14 +31,14 @@ const Line = ({ text, show, lang }: { text: string | null; show: boolean; lang: 
     </p>
   ) : null;
 
-const FacetInput = (props: { facet: PromptFacet; value: string; convertRomaji: boolean; disabled: boolean; onChange: (value: string) => void }) => {
-  const { facet, value, convertRomaji, disabled, onChange } = props;
-  const common = { "aria-label": LABEL[facet.facet], value, disabled, onChange: (e: { target: { value: string } }) => onChange(e.target.value) };
+const FacetInput = (props: { facet: PromptFacet; value: string; convertRomaji: boolean; disabled: boolean; autoFocus: boolean; onChange: (value: string) => void }) => {
+  const { facet, value, convertRomaji, disabled, autoFocus, onChange } = props;
+  const common = { "aria-label": LABEL[facet.facet], value, disabled, autoFocus, onChange: (e: { target: { value: string } }) => onChange(e.target.value) };
   if (!isJapanese(facet)) return <Input {...common} lang="en" />;
   return convertRomaji ? <KanaInput ime="hiragana" {...common} /> : <Input {...common} lang="ja" />;
 };
 
-const FacetField = (props: { facet: PromptFacet; value: string; note?: string; convertRomaji: boolean; disabled: boolean; onChange: (value: string) => void }) => {
+const FacetField = (props: { facet: PromptFacet; value: string; note?: string; convertRomaji: boolean; disabled: boolean; autoFocus: boolean; onChange: (value: string) => void }) => {
   const { note, ...input } = props;
   return (
     <div>
@@ -114,7 +114,7 @@ const Actions = (props: { prompt: ReviewPrompt; preferences: Preferences; busy: 
   const shown = shownByDefault(preferences.explanations);
   return (
     <p className="review-actions">
-      <Button variant="primary" type="submit" disabled={busy}>
+      <Button variant="primary" type="submit" hotkey="Enter" disabled={busy}>
         Check
       </Button>
       {prompt.hint && <Button onClick={() => open("hint")}>Hint</Button>}
@@ -136,7 +136,7 @@ const Answered = ({ prompt, result, revealed, flag, onNext, onExplain }: Answere
     <>
       <Info prompt={prompt} result={result} />
       <div className="review-actions">
-        <Button variant="primary" onClick={onNext}>
+        <Button variant="primary" hotkey="Enter" onClick={onNext}>
           Next
         </Button>
         {prompt.japaneseExplanation && onExplain && <Button onClick={onExplain}>Explanation</Button>}
@@ -159,9 +159,10 @@ export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferenc
         <Line text={prompt.translationEn} show={shown.translation || a.opened.includes("translation") || a.result !== null} lang="en" />
         <Line text={prompt.japaneseExplanation} show={explained} lang="ja" />
         <Line text={prompt.hint} show={a.opened.includes("hint")} lang="en" />
-        {prompt.facets.map((facet) => (
+        {prompt.facets.map((facet, i) => (
           <FacetField
             key={facet.facet}
+            autoFocus={i === 0}
             facet={facet}
             value={a.inputs[facet.facet] ?? ""}
             note={a.notes[facet.facet]}

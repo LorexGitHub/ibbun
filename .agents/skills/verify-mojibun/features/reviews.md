@@ -58,3 +58,9 @@ Preconditions:
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
 - Listening Clips are skipped, so a Learner whose only due items are clips sees "No Reviews are due." at the end.
 - A Kanji Review blanks nothing, so its accepted answers are listed in the status after a miss. A cloze shows the answer only in the gap.
+
+## Keys
+
+- The first answer field has the cursor on every card. **Enter** is Check, and after the grade **Enter** is Next. A Listening Clip takes **1** to **4** for its choices, **Enter** for Check and Next.
+- A key never runs while the Learner types in a field (Enter excepted), while a dialog is open, or with Ctrl, Alt or ⌘ held. Each key shows as a small `kbd` mark on its button, hidden on touch screens, and the button carries `aria-keyshortcuts`.
+- Check: open `/reviews`, type an answer, press Enter twice. The next Review shows with the cursor in its field, with no click.

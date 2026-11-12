@@ -37,3 +37,8 @@ Preconditions:
 
 - A Study Item with no approved Example (or a Listening Clip) is skipped and named at the end.
 - Kanji ask two facets (reading in the Sentence, English meaning); both must pass.
+
+## Keys
+
+- The first answer field has the cursor. **Enter** is Check, then Next, and Choose more on the summary. Show answer has no key.
+- A key never runs while the Learner types in a field (Enter excepted), while a dialog is open, or with Ctrl, Alt or ⌘ held. Each key shows as a small `kbd` mark on its button, hidden on touch screens, and the button carries `aria-keyshortcuts`.

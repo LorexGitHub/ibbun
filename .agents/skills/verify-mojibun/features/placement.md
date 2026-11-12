@@ -35,3 +35,8 @@ Preconditions:
 - Untick is not offered for Known items: once Known, always Known (ADR 0001).
 - The `learner` Playwright project exists only once `slices/account/register.ts` does; until then drive the screen by hand.
 - Only the N5 fixture has content, so N4 to N1 are empty in dev.
+
+## Keys
+
+- **Enter** is **Mark N as Known**, off while nothing is ticked. A focused tick box keeps its own keys.
+- A key never runs while the Learner types in a field (Enter excepted), while a dialog is open, or with Ctrl, Alt or ⌘ held. Each key shows as a small `kbd` mark on its button, hidden on touch screens, and the button carries `aria-keyshortcuts`.

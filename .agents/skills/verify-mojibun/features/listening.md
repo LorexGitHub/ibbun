@@ -56,3 +56,8 @@ The spec is `slices/listening/tests/listening.spec.ts` (either a clip or the emp
 - Which Example of a clip is asked rotates with the number of Reviews already logged for it, so the same clip can show a different question on a second visit.
 - "Show answer" on a clip you were unsure of is logged as a fail, like a wrong answer.
 - Not built: per-token feedback on a wrong dictation, furigana in the transcript, remembering the Slow toggle.
+
+## Keys
+
+- The dictation field has the cursor. **Enter** is Check and then Next. Comprehension choices are **1** to **4**.
+- A key never runs while the Learner types in a field (Enter excepted), while a dialog is open, or with Ctrl, Alt or ⌘ held. Each key shows as a small `kbd` mark on its button, hidden on touch screens, and the button carries `aria-keyshortcuts`.

@@ -61,7 +61,7 @@ export const PlacementView = ({ level, list, ticked, message, onLevel, onToggle,
             </Card>
           );
         })}
-        <Button variant="primary" big disabled={ticked.size === 0} onClick={onSubmit}>
+        <Button variant="primary" big hotkey="Enter" disabled={ticked.size === 0} onClick={onSubmit}>
           Mark {ticked.size} as Known
         </Button>
       </>

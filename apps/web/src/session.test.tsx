@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import type { Slice } from "@mojibun/slice";
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, useLocation } from "react-router";
 import { toast } from "sonner";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { App } from "./App.tsx";
@@ -137,5 +137,35 @@ describe("a door opened for one level", () => {
     cleanup();
     await open("/sample?level=n3", { state: "out" });
     expect(filter()).toBeNull();
+  });
+});
+
+describe("Esc on a session screen", () => {
+  const drill: Slice = { name: "drill", nav: { label: "Drill", path: "/drill", place: "study", blurb: "Drill.", glyph: "練", session: true } };
+  const Where = () => <output aria-label="where">{useLocation().pathname}</output>;
+  const open = async (address: string) => {
+    const shell = await buildShell(discoverSlices({ ...modules, drill: { default: drill } }));
+    render(
+      <MemoryRouter initialEntries={[address]}>
+        <App shell={shell} initialWho={{ state: "in", learner }} />
+        <Where />
+      </MemoryRouter>,
+    );
+  };
+  const where = () => screen.getByLabelText("where").textContent;
+
+  it("is Done for now: it shows on the link and leaves for Today", async () => {
+    await open("/drill");
+    const done = screen.getByRole("link", { name: "Done for now" });
+    expect(done.querySelector("kbd")?.textContent).toBe("Esc");
+    expect(done.getAttribute("aria-keyshortcuts")).toBe("Escape");
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(where()).toBe("/");
+  });
+
+  it("goes nowhere from a screen that is no session", async () => {
+    await open("/sample");
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(where()).toBe("/sample");
   });
 });
