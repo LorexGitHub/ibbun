@@ -30,12 +30,11 @@ const ownTests = (file: string, vitest: string): string | undefined => {
  * (vitest-per-package.ts), and a mutant then costs one package's tests instead of the whole suite.
  */
 export const mutationRuns = (changed: string[], vitest: string): MutationRun[] => {
-  const runs = new Map<string, string[]>();
-  for (const file of changed) {
-    const testCommand = ownTests(file, vitest);
-    if (testCommand) runs.set(testCommand, [...(runs.get(testCommand) ?? []), file]);
-  }
-  return [...runs].map(([testCommand, files]) => ({ files, testCommand }));
+  const tested = changed.map((file) => ({ file, testCommand: ownTests(file, vitest) })).filter((t) => t.testCommand);
+  return [...new Set(tested.map((t) => t.testCommand!))].map((testCommand) => ({
+    files: tested.filter((t) => t.testCommand === testCommand).map((t) => t.file),
+    testCommand,
+  }));
 };
 
 export type Duplicate = { score: string; left: string; right: string };
