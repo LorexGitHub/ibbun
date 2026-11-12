@@ -40,6 +40,7 @@ Preconditions:
 - **Learn now.** Open a locked item in Browse (`/browse`) and press **Learn now**; the URL is `/learn?now=<id>` and the header reads "1 / N" with no start page. Pass the quiz: the Tally shows. Check: `psql "$DATABASE_URL" -c "select kind, passed, detail->>'source' from progress.reviews where learner_id = '<id>' order by seq"` shows `learn | t | learn-now` rows. `curl -s -b <cookie> http://localhost:3000/api/learn/now/<id>` returns the batch (404 for an unknown id, 400 for a malformed one).
 - **Batch Text hand-off.** Start a batch and read `select name from pgboss.job where name = 'batch-text.generate' order by created_on desc limit 1`: one job with the batch's `itemIds`. Pass the quiz and press **Read the story** on the Tally: the screen shows "Preparing your story…" and then the story once the worker has generated and approved it, or the "still being prepared" note after 20 s. Tap a Word: the lookup panel appears and `progress.reviews` gains a `lookup` row. Start a sixth batch within 24 h: no new job and no **Read the story**.
 - **Spec.** `pnpm exec playwright test --project=learner slices/learn/tests` passes.
+- **One level.** Open `/learn?level=n4`. The header shows the `navigation` "Level filter" with **N4** current. The batch holds only N4 items of the active Tracks (`GET /api/learn/batch?level=N4`), even while N5 is unfinished. Click **All**: the address loses `?level=` and the batch is the usual one.
 
 ## Gotchas
 

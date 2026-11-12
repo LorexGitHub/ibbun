@@ -1,4 +1,4 @@
-import { buttonClass, Layout, onGoTo, SessionCountSlot, useSystemModeSync } from "@mojibun/ui";
+import { buttonClass, Layout, LevelFilter, onGoTo, SessionCountSlot, useLevelFilter, useSystemModeSync } from "@mojibun/ui";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router";
@@ -9,7 +9,7 @@ import { AppDock } from "./AppDock.tsx";
 import { CommandMenu, CommandTrigger, useCommandKey } from "./CommandMenu.tsx";
 import { Welcome } from "./Home.tsx";
 import { LevelLinks } from "./LevelLinks.tsx";
-import { dockEntries, kanjiAt, sessionAt, visibleTo, welcomeEntries, type Who } from "./places.ts";
+import { dockEntries, kanjiAt, sessionAt, takesLevel, visibleTo, welcomeEntries, type Who } from "./places.ts";
 import type { Shell } from "./slices.ts";
 import { client, useWho } from "./who.ts";
 
@@ -57,7 +57,9 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
   // The dock and the levels are a Learner's map: hidden from visitors, and during a session
   const map = who.state === "in" && !session;
   const dock = map ? <AppDock entries={dockEntries(nav)} /> : undefined;
-  const levels = map ? <LevelLinks /> : undefined;
+  // A door opened for one level keeps "All" and the levels in its header, a session included
+  const filtered = useLevelFilter() !== undefined && who.state === "in" && takesLevel(nav, pathname);
+  const levels = filtered ? <LevelFilter /> : map ? <LevelLinks /> : undefined;
 
   const sessionName = session && (
     <span className="session-name">
@@ -81,7 +83,7 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
 
   return (
     <MotionConfig reducedMotion="user">
-      <Layout nav={sessionName || levels} aside={aside} dock={dock} kanji={kanjiAt(nav, pathname)}>
+      <Layout nav={(sessionName || levels) && <>{sessionName}{levels}</>} aside={aside} dock={dock} kanji={kanjiAt(nav, pathname)}>
         <Routes>
           {shell.routes.map((r) => (
             <Route key={r.path} path={r.path} element={<r.component />} />

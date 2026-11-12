@@ -93,6 +93,12 @@ describe("scheduled Listening Clip Reviews", () => {
     expect(raw).not.toContain("I eat");
   });
 
+  it("keeps to one JLPT Level when asked", async () => {
+    const at = async (level: string) => ((await (await t.get(`/due?level=${level}`)).json()) as { clips: ClipJson[] }).clips.map((c) => c.clipId).sort();
+    expect(await at("N5")).toEqual([SENTENCE_CLIP, DIALOGUE_CLIP].sort());
+    expect(await at("N4")).toEqual([]);
+  });
+
   it("lists nothing before a clip is learned", async () => {
     expect(await (await setup()).due()).toEqual([]);
   });

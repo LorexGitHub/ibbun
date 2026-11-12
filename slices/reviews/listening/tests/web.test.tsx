@@ -213,6 +213,8 @@ describe("the listening Review client", () => {
     respond({ clips: [dictation] });
     expect(await loadDueClips()).toEqual({ clips: [dictation] });
     expect(fetch).toHaveBeenCalledWith("/api/reviews/listening/due", expect.anything());
+    await loadDueClips("N3");
+    expect(fetch).toHaveBeenLastCalledWith("/api/reviews/listening/due?level=N3", expect.anything());
   });
 
   it("posts an answer as JSON and parses the response", async () => {

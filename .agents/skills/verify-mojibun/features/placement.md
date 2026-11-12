@@ -28,6 +28,7 @@ Preconditions:
 - **Not twice.** Tick the same item through the API again (`curl -X POST` with the session cookie): the answer is `{"recorded":0}` and the row count stays 1.
 - **Empty level.** Press `N1`. The list is empty and the submit button is disabled.
 - **Slice spec.** Run `pnpm exec playwright test --project=learner slices/placement`. It passes.
+- **One level.** Open `/placement?level=n4`: the N4 list loads, and the `group "JLPT Level"` is gone because the "Level filter" in the header holds the levels.
 
 ## Gotchas
 
