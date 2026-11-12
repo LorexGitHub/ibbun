@@ -405,8 +405,8 @@ describe("a Practice Text dialogue on the Listening screen", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Listen" }));
     await screen.findByRole("heading", { name: "Practice dialogue" });
     const free = screen.getByText("Listening", { selector: "h1" }).closest("section")!;
-    expect(free.hasAttribute("hidden")).toBe(true);
-    expect(screen.getAllByRole("button", { name: "Play" })).toHaveLength(1);
+    await waitFor(() => expect(free.hasAttribute("hidden")).toBe(true));
+    await waitFor(() => expect(screen.getAllByRole("button", { name: "Play" })).toHaveLength(1));
 
     press("Back to your dialogues");
     await waitFor(() => expect(free.hasAttribute("hidden")).toBe(false));
