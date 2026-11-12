@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 /** What a key press tells the kit: which key, where it landed, and what else was held. */
 export type Press = Pick<KeyboardEvent, "key" | "target" | "isComposing" | "repeat" | "ctrlKey" | "metaKey" | "altKey">;
@@ -18,11 +18,14 @@ const freeAt = (key: string, target: EventTarget | null) =>
 export const keyRuns = (press: Press): boolean =>
   !press.isComposing && !held(press) && !within(press.target, "[role=dialog]") && freeAt(press.key, press.target);
 
-/** Runs `act` when the Learner presses `key` anywhere on the screen. No key, no listening. */
+/**
+ * Runs `act` when the Learner presses `key` anywhere on the screen. No key, no listening.
+ * A layout effect, so the key listens as soon as its control is on the page: a plain effect waits for the browser to idle.
+ */
 export const useKey = (key: string | undefined, act: () => void) => {
   const latest = useRef(act);
   latest.current = act;
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!key) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== key || !keyRuns(event)) return;
@@ -39,6 +42,6 @@ const MARKS: Record<string, string> = { Enter: "↵", Escape: "Esc" };
 /** The small mark on a control that says which key presses it. Screen readers get `aria-keyshortcuts` instead. */
 export const KeyMark = ({ of }: { of: string }) => (
   <kbd className="key-mark" aria-hidden="true">
-    {MARKS[of] ?? of}
+    {MARKS[of] || of}
   </kbd>
 );
