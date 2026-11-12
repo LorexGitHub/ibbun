@@ -205,3 +205,38 @@ describe("POST /answers", () => {
     expect((await post("/answers", body)).status).toBe(404);
   });
 });
+
+describe("GET /items with the Learner's Mastery", () => {
+  type Listed = { id: string; mastery: string };
+  const list = async (query: string): Promise<Listed[]> => (await get(`/items?${query}`)).json();
+  const yama = ids.words["山"]!;
+  const learn = () => progress.record({ learnerId, studyItemId: yama, kind: "learn", passed: true, at: "2026-11-01T09:00:00.000Z" });
+
+  it("marks every item New for a Learner who has learned nothing", async () => {
+    expect(new Set((await list("level=N5")).map((i) => i.mastery))).toEqual(new Set(["new"]));
+  });
+
+  it("puts the Learner's own Mastery on what they have learned, in a level and in a search", async () => {
+    await learn();
+    const mine = (await progress.item(learnerId, yama)).mastery;
+    expect(mine).not.toBe("new");
+    expect((await list("level=N5")).find((i) => i.id === yama)!.mastery).toBe(mine);
+    expect((await list("q=mountain")).find((i) => i.id === yama)!.mastery).toBe(mine);
+    const other = sessions.signIn({ learnerId: LearnerId.parse("00000000-0000-4000-8000-0000000000b2"), role: "learner" });
+    const theirs: Listed[] = await (await get("/items?level=N5", other)).json();
+    expect(theirs.find((i) => i.id === yama)!.mastery).toBe("new");
+  });
+
+  it("narrows to one Mastery", async () => {
+    await learn();
+    const mine = (await progress.item(learnerId, yama)).mastery;
+    expect((await list(`level=N5&mastery=${mine}`)).map((i) => i.id)).toEqual([yama]);
+    const fresh = await list("level=N5&mastery=new");
+    expect(fresh.length).toBeGreaterThan(0);
+    expect(fresh.map((i) => i.id)).not.toContain(yama);
+  });
+
+  it("answers 400 for a Mastery it does not know", async () => {
+    expect((await get("/items?level=N5&mastery=expert")).status).toBe(400);
+  });
+});

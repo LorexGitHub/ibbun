@@ -1,18 +1,18 @@
 // @vitest-environment happy-dom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { StudyItemSummary } from "@mojibun/content-graph";
 import { StudyItemId } from "@mojibun/shared";
-import type { Question } from "../contract.ts";
+import type { CramItem, Question } from "../contract.ts";
 import type { CramClient } from "./client.ts";
 import { askedFor, CramScreen } from "./CramScreen.tsx";
+import { queryFor } from "./Picker.tsx";
 import { createCramClient } from "./client.ts";
 
 afterEach(cleanup);
 
 const ID_A = StudyItemId.parse("00000000-0000-4000-8000-0000000000a1");
 const ID_B = StudyItemId.parse("00000000-0000-4000-8000-0000000000a2");
-const summary = (id: typeof ID_A, label: string, meaning: string): StudyItemSummary => ({ id, type: "word", level: "N5", label, reading: null, meaning });
+const summary = (id: typeof ID_A, label: string, meaning: string): CramItem => ({ id, type: "word", level: "N5", label, reading: null, meaning, mastery: "new" });
 const YAMA = summary(ID_A, "山", "mountain");
 const KAWA = summary(ID_B, "川", "river");
 
@@ -86,71 +86,135 @@ describe("opened with Study Items in the address", () => {
 });
 
 describe("choosing items", () => {
-  it("lists the level's items, locked or not, and asks the API for N5 first", async () => {
-    const client = fakeClient();
+  afterEach(() => window.history.replaceState({}, "", "/cram"));
+  const find = (text: string) => {
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search" }), { target: { value: text } });
+    fireEvent.submit(screen.getByRole("search"));
+  };
+  const basket = () => within(screen.getByRole("complementary", { name: "Basket" }));
+
+  it("lists the level's items, locked or not, with the Mastery of each, and asks the API for N5 first", async () => {
+    const client = fakeClient({ items: vi.fn(async () => ({ ok: true as const, data: [YAMA, { ...KAWA, reading: "かわ", mastery: "young" as const }] })) });
     render(<CramScreen client={client} />);
-    expect(await screen.findByRole("checkbox", { name: /山/ })).toBeTruthy();
-    expect(client.items).toHaveBeenCalledWith({ level: "N5", type: undefined });
+    const rows = within(await screen.findByRole("list", { name: "Study Items" })).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent)).toEqual(["山mountainNew", "川かわ · riverYoung"]);
+    expect(client.items).toHaveBeenCalledWith({ level: "N5", type: undefined, mastery: undefined });
+    expect(screen.getByText("2 shown")).toBeTruthy();
   });
 
-  it("re-lists when the level or type changes", async () => {
+  it("starts at the level in the address, and follows the header's level filter", async () => {
+    window.history.replaceState({}, "", "/cram?level=n3");
+    const client = fakeClient();
+    render(<CramScreen client={client} />);
+    await waitFor(() => expect(client.items).toHaveBeenLastCalledWith({ level: "N3", type: undefined, mastery: undefined }));
+    expect((screen.getByLabelText("Level") as HTMLSelectElement).value).toBe("N3");
+    act(() => {
+      window.history.pushState({}, "", "/cram?level=n2");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    await waitFor(() => expect(client.items).toHaveBeenLastCalledWith({ level: "N2", type: undefined, mastery: undefined }));
+  });
+
+  it("re-lists at once when the level, type or Mastery changes", async () => {
     const client = fakeClient();
     render(<CramScreen client={client} />);
     await screen.findByRole("checkbox", { name: /山/ });
     fireEvent.change(screen.getByLabelText("Level"), { target: { value: "N3" } });
     fireEvent.change(screen.getByLabelText("Type"), { target: { value: "kanji" } });
-    await waitFor(() => expect(client.items).toHaveBeenLastCalledWith({ level: "N3", type: "kanji" }));
+    fireEvent.change(screen.getByLabelText("Mastery"), { target: { value: "relearning" } });
+    await waitFor(() => expect(client.items).toHaveBeenLastCalledWith({ level: "N3", type: "kanji", mastery: "relearning" }));
   });
 
-  it("searches when there is a search term, and lists the level again when it is cleared", async () => {
+  it("searches every level on Enter, and lists the level again when the search is cleared", async () => {
     const client = fakeClient();
     render(<CramScreen client={client} />);
     await screen.findByRole("checkbox", { name: /山/ });
-    fireEvent.change(screen.getByLabelText("Search"), { target: { value: " mountain " } });
-    fireEvent.click(screen.getByRole("button", { name: "Find" }));
-    await waitFor(() => expect(client.items).toHaveBeenLastCalledWith({ q: "mountain", type: undefined }));
-    fireEvent.change(screen.getByLabelText("Search"), { target: { value: " " } });
-    fireEvent.click(screen.getByRole("button", { name: "Find" }));
-    await waitFor(() => expect(client.items).toHaveBeenLastCalledWith({ level: "N5", type: undefined }));
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search" }), { target: { value: "mountain" } });
+    expect(client.items).toHaveBeenCalledTimes(1);
+    find(" mountain ");
+    await waitFor(() => expect(client.items).toHaveBeenLastCalledWith({ q: "mountain", type: undefined, mastery: undefined }));
+    find(" ");
+    await waitFor(() => expect(client.items).toHaveBeenLastCalledWith({ level: "N5", type: undefined, mastery: undefined }));
   });
 
-  it("keeps the choice across searches, and Practise starts disabled", async () => {
+  it("keeps the basket across lists, and Practise starts disabled", async () => {
     const client = fakeClient();
     render(<CramScreen client={client} />);
     const start = await screen.findByRole("button", { name: "Practise 0 items" });
     expect((start as HTMLButtonElement).disabled).toBe(true);
+    expect(basket().getByText(/Tick anything in the list/)).toBeTruthy();
     fireEvent.click(await screen.findByRole("checkbox", { name: /山/ }));
     expect(screen.getByRole("button", { name: "Practise 1 item" })).toBeTruthy();
     (client.items as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: true, data: [KAWA] });
-    fireEvent.click(screen.getByRole("button", { name: "Find" }));
-    await screen.findByRole("checkbox", { name: /川/ });
+    find("river");
+    await waitFor(() => expect(screen.queryByRole("checkbox", { name: /山/ })).toBeNull());
+    expect(basket().getByRole("list", { name: "Chosen" }).textContent).toBe("山×");
     expect(screen.getByRole("button", { name: "Practise 1 item" })).toBeTruthy();
+  });
+
+  it("shows the list that was asked for last, whichever answer comes first", async () => {
+    let answerN5 = (_: { ok: true; data: CramItem[] }) => {};
+    const items = vi.fn<CramClient["items"]>(async () => ({ ok: true, data: [KAWA] }));
+    items.mockImplementationOnce(() => new Promise((resolve) => (answerN5 = resolve)));
+    render(<CramScreen client={fakeClient({ items })} />);
+    fireEvent.change(screen.getByLabelText("Level"), { target: { value: "N4" } });
+    await screen.findByRole("checkbox", { name: /川/ });
+    await act(async () => answerN5({ ok: true, data: [YAMA] }));
+    expect(screen.queryByRole("checkbox", { name: /山/ })).toBeNull();
   });
 
   it("chooses everything shown, and clears", async () => {
     render(<CramScreen client={fakeClient()} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Choose all shown" }));
+    const all = await screen.findByRole("button", { name: "Choose all shown" });
+    await waitFor(() => expect((all as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(all);
     expect(screen.getByRole("button", { name: "Practise 2 items" })).toBeTruthy();
+    expect(basket().getByRole("heading").textContent).toBe("Basket 2");
     fireEvent.click(screen.getByRole("button", { name: "Clear" }));
     expect(screen.getByRole("button", { name: "Practise 0 items" })).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Clear" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("unchecking removes an item from the choice", async () => {
+  it("takes an item out of the basket by unticking it, or from the basket itself", async () => {
     render(<CramScreen client={fakeClient()} />);
-    const box = await screen.findByRole("checkbox", { name: /山/ });
+    const box = (await screen.findByRole("checkbox", { name: /山/ })) as HTMLInputElement;
     fireEvent.click(box);
     fireEvent.click(box);
     expect(screen.getByRole("button", { name: "Practise 0 items" })).toBeTruthy();
+    fireEvent.click(box);
+    fireEvent.click(basket().getByRole("button", { name: "Remove 山" }));
+    expect(screen.getByRole("button", { name: "Practise 0 items" })).toBeTruthy();
+    expect(box.checked).toBe(false);
   });
 
   it("shows why the list failed, and says when nothing matched", async () => {
     const failing = fakeClient({ items: async () => ({ ok: false, status: 401, message: "log in first" }) });
     render(<CramScreen client={failing} />);
     expect((await screen.findByRole("alert")).textContent).toBe("log in first");
+    expect(screen.queryByText(/Nothing matches/)).toBeNull();
+    expect((screen.getByRole("button", { name: "Choose all shown" }) as HTMLButtonElement).disabled).toBe(true);
     cleanup();
     render(<CramScreen client={fakeClient({ items: async () => ({ ok: true, data: [] }) })} />);
     expect(await screen.findByText("Nothing matches. Try another level, type or search word, or look it up in the Library.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Open the Library" }).getAttribute("href")).toBe("/browse");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("clears the error once a list arrives", async () => {
+    const items = vi.fn<CramClient["items"]>(async () => ({ ok: true, data: [YAMA] }));
+    items.mockResolvedValueOnce({ ok: false, status: 500, message: "try again" });
+    render(<CramScreen client={fakeClient({ items })} />);
+    await screen.findByRole("alert");
+    fireEvent.change(screen.getByLabelText("Level"), { target: { value: "N4" } });
+    await screen.findByRole("checkbox", { name: /山/ });
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+});
+
+describe("the query for a filter", () => {
+  it("is the level, or the search across every level, with the type and Mastery when chosen", () => {
+    expect(queryFor({ level: "N4", type: "", mastery: "", search: "" })).toEqual({ level: "N4", type: undefined, mastery: undefined });
+    expect(queryFor({ level: "N4", type: "word", mastery: "young", search: " 山 " })).toEqual({ q: "山", type: "word", mastery: "young" });
   });
 });
 
@@ -298,6 +362,8 @@ describe("the HTTP client", () => {
     const fetcher = respond([YAMA]);
     const result = await createCramClient(fetcher as never).items({ level: "N5", type: undefined });
     expect(result).toEqual({ ok: true, data: [YAMA] });
+    await createCramClient(fetcher as never).items({ q: "山", mastery: "young" });
+    expect(fetcher).toHaveBeenLastCalledWith("/api/cram/items?q=%E5%B1%B1&mastery=young", expect.anything());
     expect(fetcher).toHaveBeenCalledWith("/api/cram/items?level=N5", expect.objectContaining({ credentials: "same-origin" }));
   });
 

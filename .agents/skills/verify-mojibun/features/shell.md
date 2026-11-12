@@ -48,7 +48,7 @@ Preconditions:
 ## Gotchas
 
 - `/level/n5` … `/level/n1` show Today until the dashboard slice registers the level page.
-- A level in the address narrows Reviews, Learn, Reading, Listening and Placement. Cram shows the filter but does not read it yet.
+- A level in the address narrows Reviews, Learn, Reading, Listening and Placement, and sets the level of Cram's picker.
 - The shell reads the session again on every navigation, so the top line catches up after the Login screen navigates to `/`.
 - If login says "email or password is wrong" for a seeded account, or sign-up fails with a 500, check that `DATABASE_URL` reaches the container: a local PostgreSQL on 5432 answers first and has no `mojibun` role. `/api/health` does not touch the database, so it stays green.
 - Better Auth only trusts the configured web origin. A second Vite on another port can log in but gets 403 on **Log out**.

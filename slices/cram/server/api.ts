@@ -1,10 +1,10 @@
 import { Hono, type Context } from "hono";
 import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { ContentGraph, Example, StudyItem } from "@mojibun/content-graph";
+import type { ContentGraph, Example, StudyItem, StudyItemSummary } from "@mojibun/content-graph";
 import { grade, normalise, normaliseMeaning, type AnswerData } from "@mojibun/content-graph/grade";
 import type { Progress } from "@mojibun/progress";
 import { StudyItemId, type LearnerId } from "@mojibun/shared";
-import { CramType, ItemQuery, Submission, type FacetName, type FacetOutcome, type SubmissionData, type Verdict } from "../contract.ts";
+import { CramType, ItemQuery, Submission, type CramItem, type FacetName, type FacetOutcome, type SubmissionData, type Verdict } from "../contract.ts";
 import { answerDataFor, questionFor } from "./question.ts";
 
 export type CramDeps = { contentGraph: ContentGraph; progress: Progress; sessions: SessionResolver; now: () => Date };
@@ -45,10 +45,18 @@ const review = (parsed: SubmissionData, results: FacetOutcome[], learnerId: Lear
 });
 
 /** Study Items of the types Cram practises, chosen by a search or by level. Locked ones are included. */
-const itemsFor = (contentGraph: ContentGraph, { q, level, type }: ItemQuery) => {
+const summariesFor = (contentGraph: ContentGraph, { q, level, type }: ItemQuery): Promise<StudyItemSummary[]> => {
   if (q) return contentGraph.search(q).then((found) => found.filter((i) => !type || i.type === type));
   const types = type ? [type] : CramType.options;
   return Promise.all(types.map((t) => contentGraph.levelList(level!, t))).then((lists) => lists.flat());
+};
+
+/** The list with the Learner's Mastery on each item, narrowed to one Mastery when the query names it. */
+const itemsFor = async ({ contentGraph, progress }: CramDeps, learnerId: LearnerId, query: ItemQuery): Promise<CramItem[]> => {
+  const [found, met] = await Promise.all([summariesFor(contentGraph, query), progress.items(learnerId)]);
+  const mastery = new Map(met.map((p) => [p.studyItemId, p.mastery]));
+  const items = found.map((item) => ({ ...item, mastery: mastery.get(item.id) ?? ("new" as const) }));
+  return query.mastery ? items.filter((item) => item.mastery === query.mastery) : items;
 };
 
 const exampleOf = (examples: Example[], id: string) => examples.find((e) => e.id === id);
@@ -65,7 +73,7 @@ export const createCramApi = (deps: CramDeps) => {
     .use(requireLearner())
     .get("/items", async (c) => {
       const query = ItemQuery.safeParse(c.req.query());
-      return query.success ? c.json(await itemsFor(contentGraph, query.data)) : bad(c, query.error.message);
+      return query.success ? c.json(await itemsFor(deps, c.get("learner").learnerId, query.data)) : bad(c, query.error.message);
     })
     .get("/items/:id/question", async (c) => {
       const id = StudyItemId.safeParse(c.req.param("id"));
