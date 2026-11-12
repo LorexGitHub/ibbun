@@ -220,7 +220,8 @@ describe("Listening practice", () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ level: "N1", clipIds: [] }))));
     render(<ListeningPractice />);
     fireEvent.click(screen.getByRole("button", { name: "N1" }));
-    expect(await screen.findByText("No N1 clips yet.")).toBeTruthy();
+    expect(await screen.findByText("No N1 clips yet. Pick another level above, or read at your level instead.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Open Reading" }).getAttribute("href")).toBe("/reading");
   });
 
   it("walks the clips in order and starts over from the first when the level changes", async () => {

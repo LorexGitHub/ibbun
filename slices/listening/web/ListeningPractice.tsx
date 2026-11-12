@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
-import { Button, Card } from "@mojibun/ui";
+import { Button, buttonClass, Card } from "@mojibun/ui";
 import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
 import type { ClipView } from "../contract.ts";
 import { listClips, loadClip } from "./api.ts";
 import { PracticeTexts } from "../practice/web/PracticeTexts.tsx";
 import { ClipCard } from "./ClipCard.tsx";
+
+/** A level without clips: why, and Reading as the other way to practise at that level. */
+const NoClips = ({ level }: { level: JlptLevel }) => (
+  <>
+    <p>No {level} clips yet. Pick another level above, or read at your level instead.</p>
+    <a className={buttonClass()} href="/reading">
+      Open Reading
+    </a>
+  </>
+);
 
 /** Walks through the clips of a level, one at a time, and starts over at the end. */
 const Session = ({ level }: { level: JlptLevel }) => {
@@ -23,7 +33,7 @@ const Session = ({ level }: { level: JlptLevel }) => {
   }, [id, at]);
 
   if (clipIds === null) return <p>Loading…</p>;
-  if (clipIds.length === 0) return <p>No {level} clips yet.</p>;
+  if (clipIds.length === 0) return <NoClips level={level} />;
   return view ? <ClipCard key={`${at}`} view={view} onNext={() => setAt(at + 1)} /> : <p>Loading…</p>;
 };
 

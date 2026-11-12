@@ -1,4 +1,4 @@
-import { Button } from "@mojibun/ui";
+import { Button, buttonClass } from "@mojibun/ui";
 import type { Batch, State, Track } from "../contract.ts";
 import { faceOf } from "./batch-view.ts";
 import { SourceChooser } from "./SourceChooser.tsx";
@@ -27,7 +27,12 @@ export const StartPage = ({ state, batch, onTracks, onStart }: Props) => (
         </Button>
       </>
     ) : (
-      <p>Nothing new is left at this level. Choose another level or type above.</p>
+      <>
+        <p>Nothing new is left at this level. Choose another level or type above, or keep what you learned fresh.</p>
+        <a className={buttonClass()} href="/reviews">
+          Start Reviews
+        </a>
+      </>
     )}
   </section>
 );

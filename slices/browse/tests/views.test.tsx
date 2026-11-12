@@ -58,7 +58,7 @@ describe("BrowseView", () => {
   });
 
   it("says when a level is empty, and while loading", () => {
-    expect(browse({ items: [] })).toContain("Nothing at N5 yet.");
+    expect(browse({ items: [] })).toContain("Nothing at N5 yet. Pick another level above.");
     expect(browse({ items: null })).toContain("Loading…");
   });
 

@@ -88,8 +88,14 @@ describe("EpisodeList", () => {
     expect(screen.getByRole("link", { name: /Episode 1: 朝ごはん/ }).getAttribute("href")).toBe("/reading/texts/00000000-0000-7000-8000-0000000000b1");
   });
 
-  it("says so when there are no stories yet", () => {
+  it("says why there are no stories yet and opens Learn, where the first one comes from", () => {
     show({ levels: [] });
-    expect(screen.getByText(/No stories yet/)).toBeTruthy();
+    expect(screen.getByText("No stories yet. Finish a Learn batch and your first one arrives.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Learn a batch" }).getAttribute("href")).toBe("/learn");
+  });
+
+  it("offers no way to Learn once there are stories", () => {
+    show(lists);
+    expect(screen.queryByRole("link", { name: "Learn a batch" })).toBeNull();
   });
 });

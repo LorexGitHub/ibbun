@@ -271,7 +271,8 @@ describe("the Learn screen", () => {
 
   it("says nothing new is left for an empty batch, without sending the Learner away", async () => {
     await open(apiOf({ batch: vi.fn(async () => batchOf([])) }));
-    expect(screen.getByText(/Nothing new is left/)).toBeTruthy();
+    expect(screen.getByText("Nothing new is left at this level. Choose another level or type above, or keep what you learned fresh.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Start Reviews" }).getAttribute("href")).toBe("/reviews");
     expect(screen.queryByRole("button", { name: "Start" })).toBeNull();
     expect(screen.queryByRole("list", { name: "Next up" })).toBeNull();
     expect(screen.queryByText(/come back|tomorrow/i)).toBeNull();

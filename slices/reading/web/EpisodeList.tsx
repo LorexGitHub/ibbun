@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Card } from "@mojibun/ui";
+import { buttonClass, Card } from "@mojibun/ui";
 import type { EpisodeLists } from "../contract.ts";
 
 /** The Learner's past Batch Texts, per level, as episodes to reread. */
@@ -9,7 +9,14 @@ export const EpisodeList = ({ lists }: { lists: EpisodeLists }) => (
     <p>
       <Link to="/reading/practice">Practice texts</Link>
     </p>
-    {lists.levels.length === 0 && <p>No stories yet. Finish a Learn batch and your first one arrives.</p>}
+    {lists.levels.length === 0 && (
+      <>
+        <p>No stories yet. Finish a Learn batch and your first one arrives.</p>
+        <Link className={buttonClass({ variant: "primary" })} to="/learn">
+          Learn a batch
+        </Link>
+      </>
+    )}
     {lists.levels.map(({ level, episodes }) => (
       <section key={level}>
         <h2>{level === "unlevelled" ? "Unlevelled" : level}</h2>

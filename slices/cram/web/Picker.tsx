@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { StudyItemSummary } from "@mojibun/content-graph";
 import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
-import { Button, Card, Input } from "@mojibun/ui";
+import { Button, buttonClass, Card, Input } from "@mojibun/ui";
 import type { CramType } from "../contract.ts";
 import type { CramClient } from "./client.ts";
 
@@ -120,7 +120,14 @@ export const Picker = ({ client, onStart }: { client: CramClient; onStart: (item
         </Button>
       </p>
       <Choices shown={shown} chosen={chosen} toggle={toggle} />
-      {!shown.length && !error && <p className="muted">Nothing found.</p>}
+      {!shown.length && !error && (
+        <p className="muted">
+          Nothing matches. Try another level, type or search word, or look it up in the Library.{" "}
+          <a className={buttonClass()} href="/browse">
+            Open the Library
+          </a>
+        </p>
+      )}
       <Button variant="primary" big disabled={!chosen.size} onClick={() => onStart([...chosen.values()])}>
         Practise {chosen.size} {chosen.size === 1 ? "item" : "items"}
       </Button>
