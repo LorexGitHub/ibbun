@@ -29,7 +29,7 @@ export type PlacementViewProps = {
 /** One Study Item. A Known tile is pressed and locked: once Known, always Known. A Kanji is its glyph; the wider tiles add reading and meaning. */
 const Tile = ({ item, ticked, onToggle }: { item: PlacementItem; ticked: boolean; onToggle: (id: string) => void }) => (
   <li>
-    <button type="button" className="placement-tile" aria-pressed={item.known || ticked} disabled={item.known} data-known={item.known} title={item.meaning ?? undefined} onClick={() => onToggle(item.id)}>
+    <button type="button" className="placement-tile" aria-pressed={item.known || ticked} disabled={item.known} data-known={item.known} title={item.meaning || undefined} onClick={() => onToggle(item.id)}>
       <span lang="ja" className="placement-tile-label">{item.label}</span>
       {item.type !== "kanji" && item.reading && <span lang="ja" className="placement-tile-reading">{item.reading}</span>}
       {item.type !== "kanji" && item.meaning && <span className="placement-tile-meaning">{item.meaning}</span>}

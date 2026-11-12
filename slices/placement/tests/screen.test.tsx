@@ -72,6 +72,15 @@ describe("the Placement wall", () => {
     expect(screen.queryByRole("button", { name: /^All of/ })).toBeNull();
   });
 
+  it("presses the whole-level button when the one open tile of a Track is ticked", async () => {
+    serve();
+    await tile("日");
+    press("Words");
+    expect(pressed("All of N5 Words")).toBe("false");
+    fireEvent.click(await tile("日本"));
+    expect(pressed("All of N5 Words")).toBe("true");
+  });
+
   it("leaves out a reading or meaning a Word does not have", async () => {
     serve([200, { level: "N5", items: [{ ...list.items[3], reading: null, meaning: null }] }]);
     press("Words");

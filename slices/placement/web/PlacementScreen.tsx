@@ -14,7 +14,7 @@ const flipped = (ticked: ReadonlySet<string>, ids: string[]): ReadonlySet<string
 export const PlacementScreen = () => {
   const filter = useLevelFilter();
   const [picked, setLevel] = useState<JlptLevel>("N5");
-  const level = filter ?? picked;
+  const level = filter || picked;
   const [track, setTrack] = useState<Track>("kanji");
   const [list, setList] = useState<PlacementList | null>(null);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
