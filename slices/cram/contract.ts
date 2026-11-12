@@ -1,14 +1,22 @@
 import { z } from "zod";
 import { JlptLevel, StudyItemId } from "@mojibun/shared";
+import type { StudyItemSummary } from "@mojibun/content-graph";
 import type { AnswerData } from "@mojibun/content-graph/grade";
 
 /** The Study Item types Cram practises through Examples. Listening Clips are practised in the `listening` slice. */
 export const CramType = z.enum(["kanji", "word", "grammar_point"]);
 export type CramType = z.infer<typeof CramType>;
 
-/** `GET /items`: either a search, or a level (optionally narrowed to one type). Locked items are listed too. */
+/** Where the Learner stands with a Study Item. One they have not been taught is New. */
+export const CramMastery = z.enum(["new", "learning", "young", "mature", "relearning"]);
+export type CramMastery = z.infer<typeof CramMastery>;
+
+/** A Study Item in the picker's list, with the Learner's Mastery of it. */
+export type CramItem = StudyItemSummary & { mastery: CramMastery };
+
+/** `GET /items`: either a search, or a level, optionally narrowed to one type or one Mastery. Locked items are listed too. */
 export const ItemQuery = z
-  .object({ q: z.string().trim().min(1).optional(), level: JlptLevel.optional(), type: CramType.optional() })
+  .object({ q: z.string().trim().min(1).optional(), level: JlptLevel.optional(), type: CramType.optional(), mastery: CramMastery.optional() })
   .refine((query) => query.q || query.level, { message: "give q or level" });
 export type ItemQuery = z.infer<typeof ItemQuery>;
 

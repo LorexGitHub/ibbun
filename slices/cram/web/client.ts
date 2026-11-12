@@ -1,11 +1,10 @@
-import type { StudyItemSummary } from "@mojibun/content-graph";
-import type { ItemQuery, Question, Submission, Verdict } from "../contract.ts";
+import type { CramItem, ItemQuery, Question, Submission, Verdict } from "../contract.ts";
 
 export type Result<T> = { ok: true; data: T } | { ok: false; status: number; message: string };
 
 /** Cram's HTTP API, as the screen sees it. Tests hand the screen a fake. */
 export type CramClient = {
-  items(query: ItemQuery): Promise<Result<StudyItemSummary[]>>;
+  items(query: ItemQuery): Promise<Result<CramItem[]>>;
   question(studyItemId: string, after?: string): Promise<Result<Question>>;
   submit(submission: Submission): Promise<Result<Verdict>>;
 };
