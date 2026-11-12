@@ -124,6 +124,14 @@ class SidecarTest(unittest.TestCase):
                 status, answer, _ = self.ask(self.connect(), "POST", "/tokenize", body)
                 self.assertEqual((status, answer), (400, {"error": 'expected {"text": string}'}))
 
+    def test_refuses_a_request_that_states_no_length_without_waiting_for_a_body(self) -> None:
+        connection = http.client.HTTPConnection("127.0.0.1", self.httpd.server_address[1], timeout=2)
+        self.addCleanup(connection.close)
+        connection.putrequest("POST", "/tokenize")
+        connection.endheaders()
+        response = connection.getresponse()
+        self.assertEqual((response.status, json.loads(response.read())), (400, {"error": 'expected {"text": string}'}))
+
     def test_knows_only_tokenize_and_health(self) -> None:
         connection = self.connect()
         self.assertEqual(self.ask(connection, "GET", "/health")[:2], (200, {"ok": True}))
