@@ -115,7 +115,7 @@ jobs:
       - name: dryer (fails at 0.8 inside a package, reports across packages)
         run: pnpm gate:dryer
       - name: mutator --changed (fails on a surviving mutant or uncovered code)
-        run: pnpm gate:mutator --changed --use-existing-coverage --test-command "$PWD/node_modules/.bin/vitest run --passWithNoTests"
+        run: pnpm gate:mutator --changed --use-existing-coverage
 
   e2e:
     name: playwright

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { packageOf, parseDuplicates, rootedLcov, splitDuplicates, uncoveredForms } from "./gates.ts";
+import { changedFiles, mutationRuns, packageOf, parseDuplicates, rootedLcov, splitDuplicates, uncoveredForms } from "./gates.ts";
 
 describe("packageOf", () => {
   it("names the workspace package of a path, or the root", () => {
@@ -9,6 +9,43 @@ describe("packageOf", () => {
     expect(packageOf("platform/db/src/client.ts")).toBe("platform/db");
     expect(packageOf("scripts/gates/gates.ts")).toBe(".");
     expect(packageOf("vendor/core/progress/x.ts")).toBe(".");
+  });
+});
+
+describe("changedFiles", () => {
+  it("reads the added, edited and untracked paths out of git's NUL-separated status", () => {
+    expect(changedFiles("M  slices/cram/server/api.ts\0A  docs/a b.md\0?? scripts/new.ts\0")).toEqual([
+      "slices/cram/server/api.ts",
+      "docs/a b.md",
+      "scripts/new.ts",
+    ]);
+    expect(changedFiles("")).toEqual([]);
+  });
+});
+
+describe("mutationRuns", () => {
+  it("tests each package's mutants with that package's own tests", () => {
+    expect(mutationRuns(["slices/cram/web/Picker.tsx", "slices/cram/server/api.ts", "core/progress/src/record.ts"], "vitest")).toEqual([
+      { files: ["slices/cram/web/Picker.tsx", "slices/cram/server/api.ts"], testCommand: "vitest run --passWithNoTests slices/cram/" },
+      { files: ["core/progress/src/record.ts"], testCommand: "vitest run --passWithNoTests core/progress/" },
+    ]);
+  });
+
+  it("tests the root's mutants with the tests under scripts, as the coverage run does", () => {
+    expect(mutationRuns(["scripts/gates/gates.ts", "vitest.config.ts"], "vitest")).toEqual([
+      { files: ["scripts/gates/gates.ts", "vitest.config.ts"], testCommand: "vitest run --passWithNoTests scripts/" },
+    ]);
+  });
+
+  it("tests a Python file's mutants with the unittest files next to it", () => {
+    expect(mutationRuns(["docker/sudachi/server.py", "slices/import/server/jobs.ts"], "vitest")).toEqual([
+      { files: ["docker/sudachi/server.py"], testCommand: "python3 -m unittest discover -s docker/sudachi" },
+      { files: ["slices/import/server/jobs.ts"], testCommand: "vitest run --passWithNoTests slices/import/" },
+    ]);
+  });
+
+  it("leaves out files that hold no code to mutate", () => {
+    expect(mutationRuns(["README.md", "slices/cram/web/cram.css", ".github/workflows/ci.yml"], "vitest")).toEqual([]);
   });
 });
 
