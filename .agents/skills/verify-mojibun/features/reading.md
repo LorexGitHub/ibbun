@@ -33,6 +33,7 @@ Steps:
 5. For Practice Texts, seed Known progress for every unsuspended Kanji of N5 (otherwise the page shows the locked message), open `/reading/practice`, press Generate, and expect either the text screen or the library notice; after 5 texts expect "Try again tomorrow.".
 
 The specs are `slices/reading/tests/reading.spec.ts` (an episode or the empty state is accepted) and `slices/reading/tests/practice.spec.ts` (locked state or the form).
+- **One level.** Open `/reading?level=n5`: only the N5 episodes are listed (`GET /api/reading/episodes?level=N5`). Click **All** in the "Level filter": every level is listed again.
 
 ## Gotchas
 

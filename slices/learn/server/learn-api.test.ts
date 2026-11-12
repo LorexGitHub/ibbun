@@ -60,6 +60,19 @@ describe("the learn API", () => {
     t = await setup();
   });
 
+  it("draws the batch from one level when the door was opened for it, and from the active Tracks otherwise", async () => {
+    const levelled = await setup((graph) => {
+      const moved = graph.studyItem.find((i) => i.type === "kanji")!.id;
+      for (const c of graph.levelCandidate) if (c.studyItemId === moved) c.level = "N3";
+    });
+    const idsOf = async (path: string) => ((await (await levelled.get(path)).json()) as TaughtBatch).items.map((i) => i.lesson.studyItemId);
+    const n3 = await idsOf("/batch?level=N3");
+    expect(n3).toHaveLength(1);
+    expect(await idsOf("/batch")).not.toContain(n3[0]);
+    expect(await idsOf("/batch?level=N2")).toEqual([]);
+    expect(await idsOf("/batch?level=everything")).toEqual(await idsOf("/batch"));
+  });
+
   it("refuses a request with no session", async () => {
     for (const [method, path] of [["GET", "/state"], ["PUT", "/tracks"], ["GET", "/batch"], ["POST", "/skip"], ["POST", "/complete"]] as const) {
       expect((await t.send(method, path, {}, new Headers())).status, path).toBe(401);

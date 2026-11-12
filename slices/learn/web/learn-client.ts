@@ -1,3 +1,5 @@
+import type { JlptLevel } from "@mojibun/shared";
+import { levelQuery } from "@mojibun/ui";
 import { Batch, BatchTextStart, BatchTextStatus, CompleteResponse, LookupView, State, type CompleteRequest, type Track } from "../contract.ts";
 import { ClipVerdict, type ClipAnswer } from "../listening/contract.ts";
 
@@ -15,7 +17,8 @@ const send = (method: string, path: string, body: unknown) =>
 /** Everything the Learn screen asks of the API. */
 export type LearnApi = {
   state: () => Promise<State>;
-  batch: () => Promise<Batch>;
+  /** The next batch, from one level when the screen is filtered to it. */
+  batch: (level?: JlptLevel) => Promise<Batch>;
   /** The Learn now batch for one Study Item: it and its pulled-in dependencies. */
   now: (studyItemId: string) => Promise<Batch>;
   saveTracks: (tracks: Track[]) => Promise<State>;
@@ -31,7 +34,7 @@ export type LearnApi = {
 
 export const learnApi: LearnApi = {
   state: async () => State.parse(await call("/state")),
-  batch: async () => Batch.parse(await call("/batch")),
+  batch: async (level) => Batch.parse(await call(`/batch${levelQuery(level)}`)),
   now: async (studyItemId) => Batch.parse(await call(`/now/${encodeURIComponent(studyItemId)}`)),
   saveTracks: async (tracks) => State.parse(await send("PUT", "/tracks", { tracks })),
   skip: async (studyItemId, now) => void (await send("POST", "/skip", { studyItemId, now })),

@@ -47,6 +47,7 @@ Preconditions:
 - **Ending, after a session.** After the last step the heading reads "Session complete.", one line gives the count ("2 done, 1 right", scheduled Reviews only), and the `Where next` navigation holds three doors. With a failed Review in the session they are **Cram the Lapses** (`/cram?items=<the failed Study Item ids>`), **Learn** and **Reading**. With none they are **Learn**, **Reading** and **Listening**. Clicking the Cram door starts practice on exactly those items.
 - **Ending, nothing due.** With nothing due and no Ghosts or clips, the heading reads "No Reviews are due.", one line reads "Clear until 16:40" (the next due time in local time, with the day when it is not today, absent when nothing is scheduled), and the doors are **Learn**, **Reading** and **Listening**. `GET /api/reviews/due` carries the same moment as `nextDue`. The words "Come back later" appear nowhere.
 - **Spec.** `pnpm exec playwright test --project=learner slices/reviews` passes once the `learner` project exists.
+- **One level.** With Reviews due at N5, open `/reviews?level=n4`: the screen says no Reviews are due (`GET /api/reviews/due?level=N4` and `/api/reviews/listening/due?level=N4` are empty). Click **N5** in the "Level filter": the session starts again with the N5 Reviews. Ghosts are not filtered.
 
 ## Gotchas
 
@@ -57,3 +58,9 @@ Preconditions:
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
 - Listening Clips are skipped, so a Learner whose only due items are clips sees "No Reviews are due." at the end.
 - A Kanji Review blanks nothing, so its accepted answers are listed in the status after a miss. A cloze shows the answer only in the gap.
+
+## Keys
+
+- The first answer field has the cursor on every card. **Enter** is Check, and after the grade **Enter** is Next. A Listening Clip takes **1** to **4** for its choices, **Enter** for Check and Next.
+- A key never runs while the Learner types in a field (Enter excepted), while a dialog is open, or with Ctrl, Alt or ⌘ held. Each key shows as a small `kbd` mark on its button, hidden on touch screens, and the button carries `aria-keyshortcuts`.
+- Check: open `/reviews`, type an answer, press Enter twice. The next Review shows with the cursor in its field, with no click.

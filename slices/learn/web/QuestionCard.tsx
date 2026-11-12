@@ -22,9 +22,9 @@ const Sentence = ({ prompt, answered }: { prompt: QuizPrompt; answered: boolean 
   );
 };
 
-const FacetInput = (props: { facet: PromptFacet; value: string; convertRomaji: boolean; disabled: boolean; onChange: (value: string) => void }) => {
-  const { facet, value, convertRomaji, disabled, onChange } = props;
-  const common = { "aria-label": LABEL[facet.facet], value, disabled, onChange: (e: { target: { value: string } }) => onChange(e.target.value) };
+const FacetInput = (props: { facet: PromptFacet; value: string; convertRomaji: boolean; disabled: boolean; autoFocus: boolean; onChange: (value: string) => void }) => {
+  const { facet, value, convertRomaji, disabled, autoFocus, onChange } = props;
+  const common = { "aria-label": LABEL[facet.facet], value, disabled, autoFocus, onChange: (e: { target: { value: string } }) => onChange(e.target.value) };
   if (!isJapanese(facet)) return <Input {...common} lang="en" />;
   return convertRomaji ? <KanaInput ime="hiragana" {...common} /> : <Input {...common} lang="ja" />;
 };
@@ -112,9 +112,10 @@ export const QuestionCard = (props: { prompt: QuizPrompt; preferences: Preferenc
             {prompt.japaneseExplanation}
           </p>
         )}
-        {prompt.facets.map((facet) => (
+        {prompt.facets.map((facet, i) => (
           <div key={facet.facet}>
             <FacetInput
+              autoFocus={i === 0}
               facet={facet}
               value={q.inputs[facet.facet] ?? ""}
               convertRomaji={preferences.convertRomaji}
@@ -125,7 +126,7 @@ export const QuestionCard = (props: { prompt: QuizPrompt; preferences: Preferenc
           </div>
         ))}
         {q.marked === null && (
-          <Button variant="primary" type="submit">
+          <Button variant="primary" type="submit" hotkey="Enter">
             Check
           </Button>
         )}
@@ -133,7 +134,7 @@ export const QuestionCard = (props: { prompt: QuizPrompt; preferences: Preferenc
       {q.marked && (
         <>
           <Feedback prompt={prompt} marked={q.marked} />
-          <Button variant="primary" onClick={q.next}>
+          <Button variant="primary" hotkey="Enter" onClick={q.next}>
             Next
           </Button>
         </>

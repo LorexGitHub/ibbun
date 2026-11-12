@@ -1,6 +1,6 @@
 import type { NavEntry } from "@mojibun/slice";
 import { describe, expect, it } from "vitest";
-import { dockEntries, doorPath, groups, kanjiAt, levelAt, levelPath, LEVELS, sessionAt, visibleTo, welcomeEntries, type Who } from "./places.ts";
+import { dockEntries, doorPath, groups, kanjiAt, levelAt, levelPath, LEVELS, sessionAt, takesLevel, visibleTo, welcomeEntries, type Who } from "./places.ts";
 
 const entry = (label: string, place: NavEntry["place"], extra: Partial<NavEntry> = {}): NavEntry => ({
   label,
@@ -70,6 +70,15 @@ describe("the app's map", () => {
     expect(kanjiAt(glyphs, "/library")).toBe("文");
     expect(kanjiAt(glyphs, "/")).toBe("文");
     expect(kanjiAt(glyphs, "/nowhere")).toBe("文");
+  });
+
+  it("takes a level on a study or practice door and the paths below it, and nowhere else", () => {
+    expect(takesLevel(nav, "/reviews")).toBe(true);
+    expect(takesLevel(nav, "/listening/7")).toBe(true);
+    expect(takesLevel(nav, "/library")).toBe(false);
+    expect(takesLevel(nav, "/")).toBe(false);
+    expect(takesLevel([{ ...entry("Odd", "study"), path: "/" }], "/")).toBe(false);
+    expect(takesLevel(nav, "/nowhere")).toBe(false);
   });
 
   it("opens a study or practice door for one level, and leaves every other door as it is", () => {

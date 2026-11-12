@@ -36,6 +36,8 @@ rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
 .btn--big { min-height: 60px; padding: 0 var(--space-xl); font-size: var(--text-lead); }
 .btn:disabled { cursor: not-allowed; opacity: 0.45; translate: none; }
 .btn[aria-pressed="true"] { background: var(--color-paper-3); }
+.key-mark { min-width: 1.5em; padding: 0 0.35em; border: 1px solid currentColor; border-radius: var(--radius-stock); font: 500 var(--text-xs) var(--font-body); line-height: 1.5; text-align: center; opacity: 0.6; }
+@media (hover: none) { .key-mark { display: none; } }
 
 .card { background: var(--color-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card), inset 0 0 0 1px var(--color-rule); }
 .pill { display: inline-flex; align-items: center; min-height: 34px; padding: 0 var(--space-md); border-radius: var(--radius-pill); background: transparent; box-shadow: inset 0 0 0 1px var(--color-rule); color: var(--color-ink); font-size: var(--text-sm); text-decoration: none; }
@@ -99,3 +101,9 @@ rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
 /* The dock: the app's map along the bottom of the screen */
 .app-dock { position: fixed; inset-inline: 0; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 40; display: flex; justify-content: center; pointer-events: none; }
 .app-dock > * { pointer-events: auto; }
+
+/* The level filter of a door opened for one level: "All" and the five levels in the top line */
+.level-filter { display: flex; gap: 2px; margin-left: var(--space-sm); }
+.level-filter a { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: var(--radius-pill); color: var(--color-muted); font: 500 var(--text-sm) var(--font-body); letter-spacing: .04em; text-decoration: none; }
+.level-filter a:hover { color: var(--color-ink); }
+.level-filter a[aria-current] { color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-accent); }

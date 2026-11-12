@@ -324,3 +324,44 @@ describe("the HTTP client", () => {
     expect(await createCramClient(notJson as never).items({ level: "N5" })).toEqual({ ok: false, status: 502, message: "Bad Gateway" });
   });
 });
+
+describe("Cram by keyboard", () => {
+  const key = (k: string, on: Element = document.body) => fireEvent.keyDown(on, { key: k });
+  const markOn = (name: string) => screen.getByRole("button", { name }).querySelector("kbd")?.textContent;
+
+  it("puts the cursor in the answer, checks on Enter, moves on with Enter, and chooses more on Enter", async () => {
+    const client = fakeClient();
+    render(<CramScreen client={client} />);
+    await choose("山");
+    const field = await screen.findByRole("textbox", { name: "The missing Japanese" });
+    expect(document.activeElement).toBe(field);
+    expect(markOn("Check")).toBe("↵");
+    expect(markOn("Show answer")).toBeUndefined();
+
+    fireEvent.change(field, { target: { value: "やま" } });
+    key("Enter", field);
+    expect(await screen.findByText("Right.")).toBeTruthy();
+    expect(client.submit).toHaveBeenCalledOnce();
+    expect(markOn("Next")).toBe("↵");
+    key("Enter");
+
+    expect(await screen.findByText(/1 of 1 right/)).toBeTruthy();
+    expect(markOn("Choose more")).toBe("↵");
+    key("Enter");
+    expect(await screen.findByRole("heading", { name: "Cram" })).toBeTruthy();
+  });
+
+  it("starts a Kanji in its first field only", async () => {
+    const kanji = question(ID_A, {
+      itemType: "kanji",
+      facets: [
+        { facet: "japanese", label: "Reading", answerData: { facet: "japanese", accepted: [{ id: "a", written: "山", reading: "やま" }], alternates: [], knownWrong: [] } },
+        { facet: "meaning", label: "Meaning", answerData: { facet: "meaning", meanings: [{ id: "m", text: "mountain" }], knownWrong: [] } },
+      ],
+    });
+    render(<CramScreen client={fakeClient({ question: vi.fn(async () => ({ ok: true as const, data: kanji })) })} />);
+    await choose("山");
+    const first = await screen.findByRole("textbox", { name: "Reading" });
+    expect(document.activeElement).toBe(first);
+  });
+});

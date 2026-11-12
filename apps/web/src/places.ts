@@ -62,6 +62,9 @@ export const levelAt = (pathname: string): Level | undefined => LEVELS.find((l) 
 export const doorPath = (entry: NavEntry, level?: Level) =>
   level && PLACES[entry.place].byLevel ? `${entry.path}?level=${slug(level)}` : entry.path;
 
+/** Whether the path is a door that can be opened for one level. Only such a door shows the Level filter. */
+export const takesLevel = (nav: NavEntry[], pathname: string) => nav.some((n) => n.path !== "/" && PLACES[n.place].byLevel && under(n.path, pathname));
+
 /** The kanji that stands large behind the screen: a level's numeral, the screen's glyph, or 文. Today keeps 文. */
 export const kanjiAt = (nav: NavEntry[], pathname: string) => {
   const level = levelAt(pathname);

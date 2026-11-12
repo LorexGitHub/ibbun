@@ -96,6 +96,18 @@ const open = async (api = apiOf()) => {
   await screen.findByRole("heading", { name: "Learn" });
   return api;
 };
+describe("Learn opened for one level", () => {
+  afterEach(() => history.replaceState(null, "", "/"));
+
+  it("asks for that level's batch, and for the active Tracks' batch without one", async () => {
+    history.replaceState(null, "", "/learn?level=n3");
+    expect((await open()).batch).toHaveBeenCalledWith("N3");
+    cleanup();
+    history.replaceState(null, "", "/learn");
+    expect((await open()).batch).toHaveBeenCalledWith(undefined);
+  });
+});
+
 const lessons = async () => {
   press("Start");
   await screen.findByText("1 / 2");
@@ -618,6 +630,8 @@ describe("talking to the API", () => {
     reply(twoItems);
     expect((await learnApi.batch()).items).toHaveLength(2);
     expect(lastCall()[0]).toBe("/api/learn/batch");
+    await learnApi.batch("N3");
+    expect(lastCall()[0]).toBe("/api/learn/batch?level=N3");
   });
 
   it("puts the Tracks, posts a skip and posts the quiz as JSON", async () => {
@@ -735,5 +749,67 @@ describe("the reading screen", () => {
     expect(screen.getByRole("link", { name: "Reading" }).getAttribute("href")).toBe("/reading");
     press("Skip reading");
     expect(onDone).toHaveBeenCalledOnce();
+  });
+});
+
+describe("Learn by keyboard", () => {
+  const key = (k: string, on: Element = document.body) => fireEvent.keyDown(on, { key: k });
+  const markOn = (name: string) => screen.getByRole("button", { name }).querySelector("kbd")?.textContent;
+
+  it("starts on Enter, answers a card with 1 or 2, and moves on with Enter", async () => {
+    await open();
+    expect(markOn("Start")).toBe("↵");
+    key("Enter");
+    await screen.findByText("1 / 2");
+    expect([markOn("Not yet"), markOn("I know this")]).toEqual(["1", "2"]);
+
+    key("1");
+    expect(screen.getByText("You said: not yet")).toBeTruthy();
+    expect(markOn("Next")).toBe("↵");
+    expect(markOn("Mark as Known")).toBeUndefined();
+    key("Enter");
+    expect(screen.getByText("2 / 2")).toBeTruthy();
+
+    key("2");
+    expect(screen.getByText("You said: I know this")).toBeTruthy();
+    key("Enter");
+    expect(screen.getByRole("heading", { name: "Quiz" })).toBeTruthy();
+  });
+
+  it("puts the cursor in the first field of each question, checks on Enter and moves on with Enter", async () => {
+    const api = await open();
+    await lessons();
+    bothLessons();
+
+    const answer = screen.getByLabelText("Answer");
+    expect(document.activeElement).toBe(answer);
+    expect(markOn("Check")).toBe("↵");
+    type("Answer", "みず");
+    key("Enter", answer);
+    await screen.findByText("Correct");
+    expect(markOn("Next")).toBe("↵");
+    key("Enter");
+
+    expect(document.activeElement).toBe(screen.getByLabelText("Reading in this sentence"));
+    type("Reading in this sentence", "みず");
+    type("Meaning of the kanji", "water");
+    key("Enter", screen.getByLabelText("Meaning of the kanji"));
+    await screen.findByText("Correct");
+    key("Enter");
+    await waitFor(() => expect(api.complete).toHaveBeenCalledOnce());
+
+    await learned(2);
+    await waitFor(() => expect((screen.getByRole("button", { name: "Keep going" }) as HTMLButtonElement).disabled).toBe(false));
+    expect(markOn("Keep going")).toBe("↵");
+    key("Enter");
+    expect(await screen.findByText("1 / 2")).toBeTruthy();
+  });
+
+  it("types a digit into the answer instead of taking it as a key", async () => {
+    await open();
+    await lessons();
+    bothLessons();
+    expect(key("1", screen.getByLabelText("Answer"))).toBe(true);
+    expect(screen.getByRole("heading", { name: "Quiz" })).toBeTruthy();
   });
 });

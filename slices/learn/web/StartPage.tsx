@@ -22,7 +22,7 @@ export const StartPage = ({ state, batch, onTracks, onStart }: Props) => (
             </li>
           ))}
         </ul>
-        <Button variant="primary" big onClick={onStart}>
+        <Button variant="primary" big hotkey="Enter" onClick={onStart}>
           Start
         </Button>
       </>

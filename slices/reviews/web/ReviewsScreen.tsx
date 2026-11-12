@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Card } from "@mojibun/ui";
-import { StudyItemId } from "@mojibun/shared";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Card, levelQuery, useLevelFilter } from "@mojibun/ui";
+import { StudyItemId, type JlptLevel } from "@mojibun/shared";
 import { DueResponse, SubmitResponse, type AnswerKind, type ReviewPrompt, type SubmitRequest } from "../contract.ts";
 import { loadDueClips, type LoadClips } from "../listening/web/clip-reviews-client.ts";
 import { ListeningReviews } from "../listening/web/ListeningReviews.tsx";
@@ -11,7 +11,7 @@ import type { Submit } from "./ReviewCard.tsx";
 import { Run } from "./Run.tsx";
 import "./reviews.css";
 
-export const loadDue = async (): Promise<DueResponse> => DueResponse.parse(await call("/due"));
+export const loadDue = async (level?: JlptLevel): Promise<DueResponse> => DueResponse.parse(await call(`/due${levelQuery(level)}`));
 
 export const loadGhosts = async (): Promise<DueResponse> => DueResponse.parse(await call("/ghosts"));
 
@@ -65,7 +65,7 @@ const Ending = ({ tally, lapses, nextDue }: { tally: Tally; lapses: string[]; ne
 };
 
 type Loaders = {
-  load?: () => Promise<DueResponse>;
+  load?: (level?: JlptLevel) => Promise<DueResponse>;
   submit?: Submit;
   wrapUp?: LoadWrapUp;
   ghosts?: () => Promise<DueResponse>;
@@ -76,10 +76,18 @@ const LIVE = { load: loadDue, submit: submitAnswer, wrapUp: loadWrapUp, ghosts: 
 
 const missOf = (prompt: ReviewPrompt): Miss => ({ studyItemId: StudyItemId.parse(prompt.studyItemId), asked: [prompt.exampleId] });
 
-/** The review session: due Reviews, then the due Listening Clips, then a Wrap-Up of every miss, then any Ghosts. */
+/** The review session at the level the Level filter names. Another level is another session, started from its beginning. */
 export const ReviewsScreen = (props: Loaders) => {
+  const level = useLevelFilter();
+  return <Session key={level ?? "all"} level={level} {...props} />;
+};
+
+/** Due Reviews, then the due Listening Clips, then a Wrap-Up of every miss, then any Ghosts. */
+const Session = ({ level, ...props }: Loaders & { level: JlptLevel | undefined }) => {
   const loaders = { ...LIVE, ...props };
-  const { data: due, failed } = useLoaded(loaders.load);
+  const load = useCallback(() => loaders.load(level), [loaders.load, level]);
+  const clips = useCallback(() => loaders.clips(level), [loaders.clips, level]);
+  const { data: due, failed } = useLoaded(load);
   const [phase, setPhase] = useState<Phase>("reviews");
   const [misses, setMisses] = useState<Miss[]>([]);
   const [tally, setTally] = useState<Tally>({ done: 0, right: 0 });
@@ -102,7 +110,7 @@ export const ReviewsScreen = (props: Loaders) => {
         onFinish={next("listening")}
       />
     ),
-    listening: <ListeningReviews load={loaders.clips} onFinish={next("wrap-up")} />,
+    listening: <ListeningReviews load={clips} onFinish={next("wrap-up")} />,
     "wrap-up": <WrapUp misses={misses} load={loaders.wrapUp} submit={asKind(loaders.submit, "wrap-up")} onFinish={next("ghosts")} />,
     ghosts: <Ghosts load={loaders.ghosts} submit={loaders.submit} onFinish={next("done")} />,
     done: <Ending tally={tally} lapses={misses.map((m) => m.studyItemId)} nextDue={due.nextDue} />,

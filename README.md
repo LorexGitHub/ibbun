@@ -14,27 +14,46 @@ mojibun teaches **Kanji, Words, Grammar Points and Listening** through real exam
 
 It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLPT-style reading passages that get longer as you progress and tell a continuing story. The suggested order is a guide, not a gate: you can always start any item you're curious about.
 
-> **Status:** every issue in the [build plan](docs/build-plan.md) (M1 to M3) is merged. This is a side project and showcase, not a released product.
+> **Status:** a working showcase, still being built. Every issue in the [build plan](docs/build-plan.md) (M1 to M3) is merged, and a second pass is redesigning the screens one by one. What is not on `main` yet is marked **to be added** below. This is a side project, not a released product.
 
 ## What's in it
 
-| Screen      | What it does                                                                                   |
-| ----------- | ---------------------------------------------------------------------------------------------- |
-| Today       | How many Reviews are due, the next step, your streak and your way up from N5 to N1.            |
-| Learn       | Batches of new Study Items: a lesson, a quiz, a Batch Text to read, and Listening Clip lessons. You can also learn any item now. |
-| Reviews     | Your due Reviews, then due Listening Clips, a Wrap-Up of what you missed, and Ghosts from earlier sessions. You can flag an answer you think was right. |
-| Reading     | Reading Passages, Batch Text episodes and Practice Texts.                                      |
-| Listening   | Free listening practice and Practice Text dialogues.                                           |
-| Cram        | Extra practice on any items you pick. Cram never changes your schedule.                        |
-| Placement   | Mark what you already know at a JLPT Level, so it skips your Reviews.                          |
-| Library     | Every Kanji, Word and Grammar Point, with their links.                                         |
-| Settings    | Appearance (five looks, light or dark), your account and your study preferences.               |
-| Approval    | Supervisor only: the Content Approval queue for generated content.                             |
-| Import      | Supervisor only: reports on Import Runs from the open datasets.                                |
+| Screen | What it does | State |
+| --- | --- | --- |
+| Today | How many Reviews are due, the next step, your streak and your way up from N5 to N1. | Done |
+| Learn | Batches of new Study Items: a lesson, a quiz, a Batch Text to read, and Listening Clip lessons. You can also learn any item now. | Done |
+| Reviews | Your due Reviews, then due Listening Clips, a Wrap-Up of what you missed, and Ghosts from earlier sessions. You can flag an answer you think was right. | Done |
+| Reading | Reading Passages, Batch Text episodes and Practice Texts. | Works. New layout to be added ([#222](https://github.com/LorexGitHub/mojibun/pull/222)) |
+| Listening | Free listening practice and Practice Text dialogues. | Works. New player to be added ([#223](https://github.com/LorexGitHub/mojibun/pull/223)) |
+| Cram | Extra practice on any items you pick. Cram never changes your schedule. | Works. New picker to be added ([#220](https://github.com/LorexGitHub/mojibun/pull/220)) |
+| Placement | Mark what you already know at a JLPT Level, so it skips your Reviews. | Works. Tile wall to be added ([#224](https://github.com/LorexGitHub/mojibun/pull/224)) |
+| Library | Every Kanji, Word and Grammar Point, with their links. | Works. Mastery wall to be added ([#221](https://github.com/LorexGitHub/mojibun/pull/221)) |
+| Settings | Appearance (five looks, light or dark), your account and your study preferences. | Done |
+| Approval | Supervisor only: the Content Approval queue for generated content. | Done |
+| Import | Supervisor only: reports on Import Runs from the open datasets. | Done |
 
 The worker imports the open datasets (JMdict, KANJIDIC2, KanjiVG, Tatoeba, JLPT level lists, UniDic pitch accent, ja Wiktionary, the Grammar Point seed) on a schedule. It also generates content with Claude, which an LLM reviewer then checks.
 
+### To be added
+
+These are being worked on now and are not on `main` yet. Each one replaces a screen that already works.
+
+| What | Where |
+| --- | --- |
+| Cram: a picker with a basket of chosen items | [#220](https://github.com/LorexGitHub/mojibun/pull/220) |
+| Library: a wall of tiles shaded by Mastery, in place of the lists | [#221](https://github.com/LorexGitHub/mojibun/pull/221) |
+| Reading: the newest story first, and switches for Furigana, Translation and Words | [#222](https://github.com/LorexGitHub/mojibun/pull/222) |
+| Listening: the player is the screen, and the answer is one of four options | [#223](https://github.com/LorexGitHub/mojibun/pull/223) |
+| Placement: a wall of tiles per level and Track, and a whole level in one press | [#224](https://github.com/LorexGitHub/mojibun/pull/224) |
+| One command that imports every open dataset, so you can study the real content instead of the small fixture | branch `content-import` |
+
 ## What it looks like
+
+<p align="center">
+  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through mojibun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
+</p>
+
+<p align="center"><sub>A Learn batch on the small N5 fixture, then the Library and the five looks. Click for the <a href="assets/demo.mp4">full-size video</a>.</sub></p>
 
 <p align="center">
   <img src="assets/screenshot-today.png" width="49%" alt="The mojibun Today screen in the Shu look, light: a large 0 in Mincho type, Nothing waits for you today, a vermilion Learn something new button, a Where to? search, and the way up from N5 to N1">

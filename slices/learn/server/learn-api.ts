@@ -6,7 +6,7 @@ import type { Jobs } from "@mojibun/jobs";
 import type { Learners } from "@mojibun/learner";
 import type { LearningPath } from "@mojibun/learning-path";
 import type { Progress, Texts } from "@mojibun/progress";
-import type { LearnerId, StudyItemId } from "@mojibun/shared";
+import { JlptLevel, type LearnerId, type StudyItemId } from "@mojibun/shared";
 import {
   BATCH_TEXT_LIMIT_24H,
   BatchTextRequest,
@@ -62,9 +62,10 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
   const textOf = async (learnerId: LearnerId, ids: readonly string[]) =>
     (await texts.batchTexts(learnerId)).find((t) => sameItems(t.studyItemIds, ids));
 
-  const batch = async (learnerId: LearnerId): Promise<Batch> => {
+  /** The next batch from the active Tracks, or from one level when the door was opened for it. */
+  const batch = async (learnerId: LearnerId, level?: JlptLevel): Promise<Batch> => {
     const { batchSize } = await learners.preferences(learnerId);
-    return batchOf(learnerId, await learningPath.next(learnerId, batchSize));
+    return batchOf(learnerId, await (level ? learningPath.nextAt(learnerId, level, batchSize) : learningPath.next(learnerId, batchSize)));
   };
 
   const nowIds = createNowIds({ teacher, learningPath });
@@ -86,7 +87,7 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
       await learningPath.setActiveTracks(learnerId, [...kept, ...change.data.tracks]);
       return c.json(await state(learnerId));
     })
-    .get("/batch", async (c) => c.json(await batch(c.get("learner").learnerId)))
+    .get("/batch", async (c) => c.json(await batch(c.get("learner").learnerId, JlptLevel.safeParse(c.req.query("level")).data)))
     .post("/batch-text", async (c) => {
       const request = BatchTextRequest.safeParse(await c.req.json().catch(() => null));
       if (!request.success) return c.json({ message: "not a valid batch" }, 400);

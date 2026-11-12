@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useLevelFilter } from "@mojibun/ui";
 import type { Batch, State, Track } from "../contract.ts";
 import { isTaught, type Tally } from "./batch-view.ts";
 import { learnApi, type LearnApi } from "./learn-client.ts";
@@ -34,9 +35,10 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
   const [started, setStarted] = useState(false);
   const [asked, setAsked] = useState<Asked>(null);
   const [failed, setFailed] = useState<string | null>(null);
+  const level = useLevelFilter();
   const load = useCallback(
-    () => Promise.all([api.state(), api.batch()]).then(([state, batch]) => setLoaded({ state, batch }), (e: Error) => setFailed(e.message)),
-    [api],
+    () => Promise.all([api.state(), api.batch(level)]).then(([state, batch]) => setLoaded({ state, batch }), (e: Error) => setFailed(e.message)),
+    [api, level],
   );
   useEffect(() => void load(), [load]);
 

@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { KeyMark, useKey } from "./keys.tsx";
 
 /** Card stock: the secondary recipe, pear for the primary action, coral for the one loud press (such as Forgot). */
 export type ButtonVariant = "secondary" | "primary" | "loud";
@@ -8,9 +9,22 @@ export type ButtonLook = { variant?: ButtonVariant; big?: boolean };
 export const buttonClass = ({ variant = "secondary", big = false }: ButtonLook = {}): string =>
   ["btn", variant !== "secondary" && `btn--${variant}`, big && "btn--big"].filter(Boolean).join(" ");
 
-export const Button = ({ variant, big, ...rest }: ButtonLook & ButtonHTMLAttributes<HTMLButtonElement>) => (
-  <button type="button" {...rest} className={buttonClass({ variant, big })} />
-);
+type ButtonProps = ButtonLook &
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    /** The key that presses this button, as `KeyboardEvent.key` names it. The button shows its mark. */
+    hotkey?: string;
+  };
+
+export const Button = ({ variant, big, hotkey, children, ...rest }: ButtonProps) => {
+  const button = useRef<HTMLButtonElement>(null);
+  useKey(hotkey, () => button.current?.click());
+  return (
+    <button type="button" aria-keyshortcuts={hotkey} {...rest} ref={button} className={buttonClass({ variant, big })}>
+      {children}
+      {hotkey && <KeyMark of={hotkey} />}
+    </button>
+  );
+};
 
 /** The class list for a pill. An ink pill is the selected one, such as the current nav entry. */
 export const pillClass = (ink: boolean): string => (ink ? "pill pill--ink" : "pill");

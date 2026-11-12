@@ -40,6 +40,7 @@ Preconditions:
 - **Learn now.** Open a locked item in Browse (`/browse`) and press **Learn now**; the URL is `/learn?now=<id>` and the header reads "1 / N" with no start page. Pass the quiz: the Tally shows. Check: `psql "$DATABASE_URL" -c "select kind, passed, detail->>'source' from progress.reviews where learner_id = '<id>' order by seq"` shows `learn | t | learn-now` rows. `curl -s -b <cookie> http://localhost:3000/api/learn/now/<id>` returns the batch (404 for an unknown id, 400 for a malformed one).
 - **Batch Text hand-off.** Start a batch and read `select name from pgboss.job where name = 'batch-text.generate' order by created_on desc limit 1`: one job with the batch's `itemIds`. Pass the quiz and press **Read the story** on the Tally: the screen shows "Preparing your story…" and then the story once the worker has generated and approved it, or the "still being prepared" note after 20 s. Tap a Word: the lookup panel appears and `progress.reviews` gains a `lookup` row. Start a sixth batch within 24 h: no new job and no **Read the story**.
 - **Spec.** `pnpm exec playwright test --project=learner slices/learn/tests` passes.
+- **One level.** Open `/learn?level=n4`. The header shows the `navigation` "Level filter" with **N4** current. The batch holds only N4 items of the active Tracks (`GET /api/learn/batch?level=N4`), even while N5 is unfinished. Click **All**: the address loses `?level=` and the batch is the usual one.
 
 ## Gotchas
 
@@ -52,3 +53,9 @@ Preconditions:
 - A Word in the batch pulls its Kanji into the same batch, so a batch can be longer than `batchSize`.
 - The default Active Tracks already include `N5:listening_clip`, so a new Learner meets a clip in the batch as soon as the Content Graph holds an approved clip with audio at N5 (no screen changes Listening Tracks yet; a Learner who changed them can be reset with `learningPath.setActiveTracks`). The N5 fixture has no clips: seed one first, or the batch simply has none. A clip's linked Words and Kanji come first as plain lessons, ahead of the clip.
 - The clip lesson shows its text in the Read step; the quiz step's own text stays hidden until the Learner answers or asks again.
+
+## Keys
+
+- Lesson: **1** is Not yet, **2** is I know this, **Enter** is Next or Start quiz. Quiz: the first answer field has the cursor, **Enter** is Check and then Next. A Listening Clip lesson takes **Enter** for Read it and Start quiz; its comprehension choices are **1** to **4**. **Enter** is also Start on the start page and Keep going on the Tally.
+- A key never runs while the Learner types in a field (Enter excepted), while a dialog is open, or with Ctrl, Alt or ⌘ held. Each key shows as a small `kbd` mark on its button, hidden on touch screens, and the button carries `aria-keyshortcuts`.
+- Check: on a lesson card press 2, then Enter; the next card shows. In the quiz type the answer, press Enter twice; the next question shows with the cursor in its field.

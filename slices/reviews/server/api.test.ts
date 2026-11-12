@@ -73,6 +73,15 @@ describe("the reviews API", () => {
       }
     });
 
+    it("keeps to one JLPT Level when asked, and to every level when the level is not one", async () => {
+      const word = t.fixture.ids.words["水"]!;
+      await t.learn(word);
+      const at = async (level: string) => ((await (await t.get(`/due?level=${level}`)).json()) as DueResponse).reviews.map((r) => r.studyItemId);
+      expect(await at("N5")).toEqual([word]);
+      expect(await at("N4")).toEqual([]);
+      expect(await at("N9")).toEqual([word]);
+    });
+
     it("leaves out Study Items that are not due yet", async () => {
       const word = t.fixture.ids.words["水"]!;
       await t.progress.record({ learnerId: t.learner, studyItemId: word, kind: "learn", passed: true, at: NOW.toISOString() });

@@ -39,6 +39,10 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
     return (await readerOver(db, await loadItems(db, await candidateIds(db, level, "listening_clip")))).listeningClips(level);
   },
 
+  async atLevel(ids, level) {
+    return (await readerOver(db, await loadItems(db, [...ids]))).atLevel(ids, level);
+  },
+
   async search(query, { limit = DEFAULT_SEARCH_LIMIT } = {}) {
     const q = normaliseQuery(query);
     if (!q) return [];

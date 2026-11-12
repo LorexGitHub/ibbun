@@ -12,7 +12,7 @@ const Summary = ({ right, asked, skipped, onDone }: { right: number; asked: numb
       {right} of {asked} right. Mastery and statistics are unchanged.
     </p>
     {skipped.length > 0 && <p className="muted">No Example to practise yet for {skipped.join(", ")}.</p>}
-    <Button variant="primary" onClick={onDone}>
+    <Button variant="primary" hotkey="Enter" onClick={onDone}>
       Choose more
     </Button>
   </Card>

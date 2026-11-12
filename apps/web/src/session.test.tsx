@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import type { Slice } from "@mojibun/slice";
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, useLocation } from "react-router";
 import { toast } from "sonner";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { App } from "./App.tsx";
@@ -92,5 +92,80 @@ describe("logging out from the account menu", () => {
     await logOut();
     expect(error).toHaveBeenCalledWith("You're still logged in.", { description: "server down" });
     expect(screen.queryByRole("link", { name: "Log in" })).toBeNull();
+  });
+});
+
+describe("a door opened for one level", () => {
+  const drill: Slice = { name: "drill", nav: { label: "Drill", path: "/drill", place: "study", blurb: "Drill.", glyph: "練", session: true } };
+  const book: Slice = { name: "book", nav: { label: "Book", path: "/book", place: "library", blurb: "Book." } };
+  const who = { state: "in" as const, learner };
+  const open = async (address: string, as: Parameters<typeof App>[0]["initialWho"] = who) => {
+    history.replaceState(null, "", address);
+    const shell = await buildShell(discoverSlices({ ...modules, drill: { default: drill }, book: { default: book } }));
+    render(
+      <MemoryRouter initialEntries={[address]}>
+        <App shell={shell} initialWho={as} />
+      </MemoryRouter>,
+    );
+  };
+  const filter = () => screen.queryByRole("navigation", { name: "Level filter" });
+  afterEach(() => history.replaceState(null, "", "/"));
+
+  it("keeps All and the levels in the header of a filtered screen, in place of the links to the level pages", async () => {
+    await open("/sample?level=n3");
+    expect(filter()).toBeTruthy();
+    expect(screen.getByRole("link", { name: "N3" }).getAttribute("aria-current")).toBe("true");
+    expect(screen.queryByRole("navigation", { name: "Levels" })).toBeNull();
+  });
+
+  it("keeps them beside the name of a filtered session, and gives the level pages back when All is chosen", async () => {
+    await open("/drill?level=n3");
+    expect(filter()).toBeTruthy();
+    expect(screen.getByText("Drill")).toBeTruthy();
+    fireEvent.click(screen.getByRole("link", { name: "All" }));
+    expect(filter()).toBeNull();
+    expect(window.location.search).toBe("");
+  });
+
+  it("shows no filter without a level, on a screen that takes none, or to a visitor", async () => {
+    await open("/sample");
+    expect(filter()).toBeNull();
+    expect(screen.getByRole("navigation", { name: "Levels" })).toBeTruthy();
+    cleanup();
+    await open("/book?level=n3");
+    expect(filter()).toBeNull();
+    cleanup();
+    await open("/sample?level=n3", { state: "out" });
+    expect(filter()).toBeNull();
+  });
+});
+
+describe("Esc on a session screen", () => {
+  const drill: Slice = { name: "drill", nav: { label: "Drill", path: "/drill", place: "study", blurb: "Drill.", glyph: "練", session: true } };
+  const Where = () => <output aria-label="where">{useLocation().pathname}</output>;
+  const open = async (address: string) => {
+    const shell = await buildShell(discoverSlices({ ...modules, drill: { default: drill } }));
+    render(
+      <MemoryRouter initialEntries={[address]}>
+        <App shell={shell} initialWho={{ state: "in", learner }} />
+        <Where />
+      </MemoryRouter>,
+    );
+  };
+  const where = () => screen.getByLabelText("where").textContent;
+
+  it("is Done for now: it shows on the link and leaves for Today", async () => {
+    await open("/drill");
+    const done = screen.getByRole("link", { name: "Done for now" });
+    expect(done.querySelector("kbd")?.textContent).toBe("Esc");
+    expect(done.getAttribute("aria-keyshortcuts")).toBe("Escape");
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(where()).toBe("/");
+  });
+
+  it("goes nowhere from a screen that is no session", async () => {
+    await open("/sample");
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(where()).toBe("/sample");
   });
 });

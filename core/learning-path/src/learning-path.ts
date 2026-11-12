@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { ContentGraph } from "@mojibun/content-graph";
 import type { DbOrTx } from "@mojibun/db";
 import type { Progress } from "@mojibun/progress";
-import type { LearnerId, StudyItemId } from "@mojibun/shared";
+import type { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
 import { DEFAULT_CONFIG, type LearningPathConfig } from "./config.ts";
 import { STRATEGIES, type Plan } from "./strategy.ts";
 import { DEFAULT_ACTIVE_TRACKS, normaliseTracks, type Track } from "./track.ts";
@@ -16,6 +16,8 @@ export type LearningPath = {
   setActiveTracks(learnerId: LearnerId, tracks: Track[], tx?: DbOrTx): Promise<Track[]>;
   /** The next `n` items for a Learn batch, each after its pulled-in dependencies. */
   next(learnerId: LearnerId, n: number, tx?: DbOrTx): Promise<StudyItemId[]>;
+  /** The next `n` items of one level: its Tracks of every type the Learner has active at any level. Active Tracks stay as they are. */
+  nextAt(learnerId: LearnerId, level: JlptLevel, n: number, tx?: DbOrTx): Promise<StudyItemId[]>;
   /** For Learn now: the item after its pulled-in dependencies. */
   forItem(learnerId: LearnerId, studyItemId: StudyItemId, tx?: DbOrTx): Promise<StudyItemId[]>;
   /** For the Browse badge. */
@@ -66,6 +68,10 @@ export const createLearningPathOver = ({ store, contentGraph, progress, config =
     async next(learnerId, n, tx) {
       const { plan: p, path } = await plan(learnerId, tx);
       return p.next(path.activeTracks, n);
+    },
+    async nextAt(learnerId, level, n, tx) {
+      const { plan: p, path } = await plan(learnerId, tx);
+      return p.next(path.activeTracks.map(({ type }) => ({ level, type })), n);
     },
     forItem: async (learnerId, studyItemId, tx) => (await plan(learnerId, tx)).plan.forItem(studyItemId),
     isLocked: async (learnerId, studyItemId, tx) => (await plan(learnerId, tx)).plan.isLocked(studyItemId),
