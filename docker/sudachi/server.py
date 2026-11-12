@@ -4,27 +4,37 @@ Wave 0 only needs the service to run. platform/nlp (#49) owns the adapter and
 may extend this response (modes, conjugation forms).
 """
 import json
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from sudachipy import dictionary, tokenizer
 
 TOKENIZER = dictionary.Dictionary().create()
 MODE = tokenizer.Tokenizer.SplitMode.C
+# A SudachiPy tokenizer serves one caller at a time: a second thread inside it raises "Already borrowed".
+ONE_AT_A_TIME = threading.Lock()
 
 
 def tokenize(text: str) -> list[dict]:
-    return [
-        {
-            "surface": m.surface(),
-            "reading": m.reading_form(),
-            "lemma": m.dictionary_form(),
-            "pos": list(m.part_of_speech()),
-        }
-        for m in TOKENIZER.tokenize(text, MODE)
-    ]
+    with ONE_AT_A_TIME:
+        return [
+            {
+                "surface": m.surface(),
+                "reading": m.reading_form(),
+                "lemma": m.dictionary_form(),
+                "pos": list(m.part_of_speech()),
+            }
+            for m in TOKENIZER.tokenize(text, MODE)
+        ]
 
 
 class Handler(BaseHTTPRequestHandler):
+    # Keep-alive: an import tokenizes every Sentence, and a new connection per Sentence costs far more than the tokenizing.
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, *args) -> None:
+        pass
+
     def _send(self, status: int, body: dict) -> None:
         data = json.dumps(body, ensure_ascii=False).encode()
         self.send_response(status)

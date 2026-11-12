@@ -44,8 +44,8 @@ const build = () => {
     graph.example.push({ id: randomUUID(), sentenceId, studyItemId: id, spanStart: 0, spanEnd: 1, targetSenseId: null, hint: null, comprehensionQuestion: null, ...life });
     return id;
   };
-  const importProvenance = provenance({ kind: "import", importRunId: randomUUID() });
-  /** A link no rebuild wrote: what `jpn_indices` gives. */
+  const importProvenance = provenance({ kind: "derived", process: "refresh", version: "1" });
+  /** A link no rebuild wrote: what `jpn_indices` gives. The Tatoeba import writes it as derived by its refresh. */
   const importedUse = (sentenceId: string, wordId: string) => {
     graph.sentenceUsesWord.push({ id: randomUUID(), sentenceId, wordId, formId: null, readingId: null, senseId: null, spanStart: 0, spanEnd: 1, ...life, provenanceId: importProvenance });
   };
@@ -138,7 +138,16 @@ describe("Sudachi Sentence uses Word", () => {
     expect(await authoring.rows("sentenceUsesWord")).toHaveLength(1);
     w.importedUse(s, eat);
     await rebuild();
-    expect((await authoring.rows("sentenceUsesWord")).map((l) => sourceOf(l.provenanceId).kind)).toEqual(["import"]);
+    expect((await authoring.rows("sentenceUsesWord")).map((l) => sourceOf(l.provenanceId))).toEqual([{ kind: "derived", process: "refresh", version: "1" }]);
+  });
+
+  it("keeps the jpn_indices links of a draft Sentence, which it does not link itself", async () => {
+    const eat = w.word(["食べる"], []);
+    const s = w.sentence("食べる", [{ surface: "食べる", lemma: "食べる" }]);
+    w.graph.sentence.find((row) => row.id === s)!.approval = "draft";
+    w.importedUse(s, eat);
+    expect(await rebuild()).toEqual({ added: 0, removed: 0 });
+    expect((await authoring.rows("sentenceUsesWord")).map((l) => [l.sentenceId, l.wordId])).toEqual([[s, eat]]);
   });
 
   it("skips retired Sentences and tokens no Word has", async () => {
@@ -268,7 +277,7 @@ describe("rebuilds", () => {
     w.kanji("飲");
     w.word(["飲"], []);
     await rebuild();
-    expect(w.graph.provenance.filter((p) => p.source.kind === "derived")).toHaveLength(4);
+    expect(w.graph.provenance.flatMap((p) => (p.source.kind === "derived" && p.source.process !== "refresh" ? [p.source.process] : [])).sort()).toEqual(["clip-voices-sentence", "sentence-uses-word", "superseded-by", "word-contains-kanji"]);
   });
 });
 

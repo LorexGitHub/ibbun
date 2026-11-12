@@ -5,6 +5,9 @@ import { replaceDerivedLinks, type Changes } from "./replace.ts";
 /** Bump when a derivation's rules change, or SudachiDict is upgraded: the next rebuild replaces every derived link. */
 export const DERIVED_PROCESS_VERSION = "1";
 
+/** The Tatoeba import writes its `jpn_indices` links as derived by its refresh. They are upstream's, not a rebuild's. */
+const JPN_INDICES_PROCESS = "refresh";
+
 const live = { approval: "approved", retired: false } as const;
 
 const readInputs = async (a: Authoring): Promise<Inputs> => {
@@ -20,7 +23,7 @@ const readInputs = async (a: Authoring): Promise<Inputs> => {
     a.rows("provenance"),
   ]);
   const kanjiIds = idsOf("kanji", false);
-  const rebuilt = new Set(derived.filter((p) => p.source.kind === "derived").map((p) => p.id));
+  const rebuilt = new Set(derived.filter((p) => p.source.kind === "derived" && p.source.process !== JPN_INDICES_PROCESS).map((p) => p.id));
   return {
     words: idsOf("word", false),
     retiredWords: idsOf("word", true),
@@ -44,7 +47,7 @@ export const rebuildDerivedLinks = async ({ authoring }: { authoring: Authoring 
   const version = DERIVED_PROCESS_VERSION;
   const results = [
     await replaceDerivedLinks(authoring, "wordContainsKanji", { name: "word-contains-kanji", version, licence: "edrdg" }, wordContainsKanji(inputs)),
-    await replaceDerivedLinks(authoring, "sentenceUsesWord", { name: "sentence-uses-word", version, licence: "mojibun" }, sentenceUsesWord(inputs)),
+    await replaceDerivedLinks(authoring, "sentenceUsesWord", { name: "sentence-uses-word", version, licence: "mojibun", keeps: [JPN_INDICES_PROCESS] }, sentenceUsesWord(inputs)),
     await replaceDerivedLinks(authoring, "clipVoicesSentence", { name: "clip-voices-sentence", version, licence: "mojibun" }, clipVoicesSentence(inputs)),
     await replaceDerivedLinks(authoring, "wordSupersededBy", { name: "superseded-by", version, licence: "edrdg" }, supersededBy(inputs)),
   ];

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineJob, handler, type JobHandler } from "@mojibun/jobs";
 import type { Dataset } from "@mojibun/content-graph/authoring";
 import { createSudachiNlp } from "@mojibun/nlp";
+import { patient, type Fetch } from "../sources/release.ts";
 import { jmdictSource } from "../sources/jmdict/index.ts";
 import { kanjidicSource } from "../sources/kanjidic2/index.ts";
 import { unidicSource } from "../sources/unidic-pitch/index.ts";
@@ -25,24 +26,24 @@ export const StalenessCheck = defineJob("import.staleness", z.object({}));
 export type Refresh = { source: Source; cron: string; monthly: boolean };
 
 /** Each further source adds one line here and a folder under `sources/`. */
-export const refreshes = (env: { SUDACHI_URL?: string } = process.env): Refresh[] => [
+export const refreshes = (env: { SUDACHI_URL?: string } = process.env, download: Fetch = patient(fetch)): Refresh[] => [
   // JMdict: the EDRDG licence wants a refresh at least monthly, so the first Monday, retried daily until it lands.
-  { source: jmdictSource() as Source, cron: "0 12 * * *", monthly: true },
+  { source: jmdictSource(download) as Source, cron: "0 12 * * *", monthly: true },
   // KANJIDIC2 and KRADFILE: the same licence and release as JMdict, so the same schedule.
-  { source: kanjidicSource() as Source, cron: "0 12 * * *", monthly: true },
+  { source: kanjidicSource(download) as Source, cron: "0 12 * * *", monthly: true },
   // KanjiVG: checked weekly. A run on a tag already applied downloads and changes nothing, so only a new release tag applies.
-  { source: kanjivgSource() as Source, cron: "0 12 * * 1", monthly: false },
+  { source: kanjivgSource(download) as Source, cron: "0 12 * * 1", monthly: false },
   // Tatoeba: exported Saturdays 06:30 UTC. Saturday and Sunday noon, so a failed Saturday run is tried once more; an applied version is a no-op.
-  { source: tatoebaSource(createSudachiNlp({ url: env.SUDACHI_URL ?? "http://localhost:8000" })) as Source, cron: "0 12 * * 6,0", monthly: false },
+  { source: tatoebaSource(createSudachiNlp({ url: env.SUDACHI_URL ?? "http://localhost:8000" }), download) as Source, cron: "0 12 * * 6,0", monthly: false },
   // yomitan-jlpt-vocab: checked every Monday, applied only when upstream has a new release (a rerun of a live version is a no-op).
-  { source: yomitanSource() as Source, cron: "0 8 * * 1", monthly: false },
+  { source: yomitanSource(download) as Source, cron: "0 8 * * 1", monthly: false },
   // ja Wiktionary: no licence deadline, so weekly, as often as kaikki.org extracts. The run is a no-op until a new extraction date appears.
-  { source: wiktionarySource() as Source, cron: "0 12 * * 1", monthly: false },
+  { source: wiktionarySource(download) as Source, cron: "0 12 * * 1", monthly: false },
   // UniDic: a release every year or so, so weekly. The run is a no-op until a new release stamp appears.
-  { source: unidicSource() as Source, cron: "0 12 * * 1", monthly: false },
+  { source: unidicSource(download) as Source, cron: "0 12 * * 1", monthly: false },
   // Tanos kanji lists: one archived snapshot, so there is only ever one run. It needs KANJIDIC2 and fails until that is in,
   // so the daily retry lands it the day after; once applied, every later firing finds the version live and does nothing.
-  { source: tanosSource() as Source, cron: "0 13 * * *", monthly: false },
+  { source: tanosSource(download) as Source, cron: "0 13 * * *", monthly: false },
 ];
 
 const DAILY_STALENESS_CHECK = "0 7 * * *";

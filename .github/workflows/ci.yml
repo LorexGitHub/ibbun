@@ -88,6 +88,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Coverage per package (LCOV for crapper and mutator)
         run: pnpm test:packages --coverage
+      - name: Coverage of the Sudachi sidecar (LCOV for crapper)
+        # SudachiPy is stubbed in the tests, so this needs neither the package nor its dictionary.
+        run: |
+          pip install -q coverage
+          coverage run --include=docker/sudachi/server.py -m unittest discover -s docker/sudachi
+          mkdir -p target/coverage/python && coverage lcov -o target/coverage/python/lcov.info
       - name: Show this change to --changed
         # crapper and mutator read --changed from `git status`. A soft reset to
         # the base leaves every file the PR adds or edits staged.

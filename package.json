@@ -10,6 +10,7 @@
     "gen": "node scripts/gen-slice-index.mjs",
     "dev": "pnpm gen && pnpm -r --parallel --filter \"./apps/*\" dev",
     "db:migrate": "pnpm --filter @mojibun/db migrate",
+    "content:import": "node --env-file-if-exists=.env slices/import/server/import-cli.ts",
     "test": "pnpm gen && vitest run",
     "typecheck": "pnpm gen && tsc -p . && tsc -p apps/web",
     "test:packages": "pnpm gen && node scripts/gates/vitest-per-package.ts",
