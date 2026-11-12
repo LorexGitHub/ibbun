@@ -121,17 +121,17 @@ describe("a review session with nothing due", () => {
   it("still offers Ghosts", async () => {
     const submit = vi.fn(async (_: SubmitRequest) => verdict(true));
     render(<ReviewsScreen clips={noClips} load={async () => due()} submit={submit} ghosts={async () => due(prompt("ghost"))} />);
-    expect(await screen.findByText("No Reviews are due. Come back later.")).toBeTruthy();
     await screen.findByRole("heading", { name: "Ghosts" });
+    expect(screen.queryByText(/No Reviews are due/)).toBeNull();
     await answerWith("水");
     await next();
-    await screen.findByText("Session complete.");
+    await screen.findByText("No Reviews are due.");
     expect(submit.mock.calls[0]![0].kind).toBe("ghost");
   });
 
   it("shows no Ghosts section when there are none, or when they cannot be loaded", async () => {
     render(<ReviewsScreen clips={noClips} load={async () => due()} ghosts={async () => Promise.reject(new Error("offline"))} />);
-    await screen.findByText("Session complete.");
+    await screen.findByText("No Reviews are due.");
     expect(screen.queryByRole("heading", { name: "Ghosts" })).toBeNull();
   });
 });

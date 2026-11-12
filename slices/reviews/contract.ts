@@ -47,6 +47,8 @@ export const DueResponse = z.object({
     explanations: z.enum(["english", "japanese", "both"]),
   }),
   reviews: z.array(ReviewPrompt),
+  /** When the soonest Review that is not due yet falls due. Only `/due` sends it. */
+  nextDue: z.string().nullable().optional(),
 });
 export type DueResponse = z.infer<typeof DueResponse>;
 

@@ -6,6 +6,7 @@ import type { Progress } from "@mojibun/progress";
 import { StudyItemId, type LearnerId } from "@mojibun/shared";
 import { SubmitRequest } from "../contract.ts";
 import { facetsOf, pickExample } from "./prompt.ts";
+import { nextDueOf } from "./next-due.ts";
 import { createPrompts } from "./prompts.ts";
 import { ghostsOf } from "../wrap-up/ghosts.ts";
 import { pickDifferent } from "../wrap-up/pick.ts";
@@ -37,7 +38,8 @@ export const createReviewsApi = ({ sessions, contentGraph, progress, learners, n
       const { learnerId } = c.get("learner");
       const due = (await progress.due(learnerId, now())).slice(0, DUE_LIMIT);
       const prompts = await Promise.all(due.map((id) => prompt(learnerId, id)));
-      return c.json(await withPreferences(learnerId, prompts));
+      const nextDue = nextDueOf(await progress.items(learnerId), now());
+      return c.json({ ...(await withPreferences(learnerId, prompts)), nextDue });
     })
     .get("/ghosts", async (c) => {
       const { learnerId } = c.get("learner");
