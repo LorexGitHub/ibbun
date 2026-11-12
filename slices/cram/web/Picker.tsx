@@ -160,7 +160,7 @@ const useItems = (client: CramClient, filter: Filter) => {
 /** The filter starts at the level in the address, and follows it when the header's level filter moves. */
 const useFilter = () => {
   const inAddress = useLevelFilter();
-  const [filter, setFilter] = useState<Filter>({ level: inAddress ?? "N5", type: "", mastery: "", search: "" });
+  const [filter, setFilter] = useState<Filter>({ level: inAddress ? inAddress : "N5", type: "", mastery: "", search: "" });
   useEffect(() => {
     if (inAddress) setFilter((now) => ({ ...now, level: inAddress }));
   }, [inAddress]);
