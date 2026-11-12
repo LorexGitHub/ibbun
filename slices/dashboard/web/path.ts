@@ -1,4 +1,4 @@
-import type { LevelMastery } from "../contract.ts";
+import type { LevelMastery, Mastery } from "../contract.ts";
 
 /** From this share Known, a level counts as settled and the Learner's focus moves on. */
 export const SETTLED_PERCENT = 90;
@@ -7,7 +7,7 @@ export type Stage = "done" | "now" | "next" | "far" | "farther";
 
 export type LevelRow = LevelMastery & { percent: number; stage: Stage };
 
-export const percentKnown = ({ known, total }: LevelMastery): number => (total === 0 ? 0 : Math.floor((known / total) * 100));
+export const percentKnown = ({ known, total }: Mastery): number => (total === 0 ? 0 : Math.floor((known / total) * 100));
 
 const STAGES_AFTER_NOW: Stage[] = ["next", "far", "farther"];
 
