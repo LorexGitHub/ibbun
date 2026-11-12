@@ -1,45 +1,35 @@
 import { useRef, useState } from "react";
-import { AudioPlayer, Button, Card, KanaInput, Pill } from "@mojibun/ui";
+import { AudioPlayer, Button, Card, Pill } from "@mojibun/ui";
 import type { AnswerResponse, ClipView } from "../contract.ts";
 import { answerClip } from "./api.ts";
 import { ClipPlayer } from "./ClipPlayer.tsx";
+import "./listening.css";
 
 type Done = Exclude<AnswerResponse, { outcome: "retry" }>;
 
-/** The Learner's answer to the question: typed Japanese, or the text of the option picked. */
-const Answer = ({ question, onSubmit }: { question: ClipView["question"]; onSubmit: (value: string) => void }) => {
-  const [typed, setTyped] = useState("");
-  if (question.kind === "dictation") {
-    return (
-      <form onSubmit={(e) => (e.preventDefault(), onSubmit(typed))}>
-        <KanaInput ime="hiragana" autoFocus aria-label="What did you hear?" value={typed} onChange={(e) => setTyped(e.target.value)} />
-        <Button type="submit" variant="primary" hotkey="Enter">
-          Check
-        </Button>
-      </form>
-    );
-  }
-  return (
-    <fieldset>
-      <legend lang="ja">{question.prompt}</legend>
+/** The question and its options. An option is picked by pressing it or by its number key, 1 to 4. */
+const Choices = ({ question, onPick }: { question: ClipView["question"]; onPick: (choice: string) => void }) => (
+  <fieldset className="clip-question">
+    <legend lang="ja">{question.prompt}</legend>
+    <ol>
       {question.choices.map((choice, i) => (
-        <Button key={choice} hotkey={String(i + 1)} onClick={() => onSubmit(choice)}>
-          <span lang="ja">{choice}</span>
-        </Button>
+        <li key={choice}>
+          <Button hotkey={String(i + 1)} onClick={() => onPick(choice)}>
+            <span lang="ja">{choice}</span>
+          </Button>
+        </li>
       ))}
-    </fieldset>
-  );
-};
+    </ol>
+  </fieldset>
+);
 
 const Result = ({ done, nextLabel, onNext }: { done: Done; nextLabel: string; onNext: () => void }) => (
   <Card>
     <Pill ink={done.outcome === "pass"}>{done.outcome === "pass" ? "Correct" : "Not quite"}</Pill>
-    {done.correctChoice && (
-      <p>
-        Answer: <span lang="ja">{done.correctChoice}</span>
-      </p>
-    )}
-    <ol>
+    <p>
+      Answer: <span lang="ja">{done.correctChoice}</span>
+    </p>
+    <ol className="clip-transcript">
       {done.transcript.map((line, i) => (
         <li key={i}>
           {line.speaker && <b lang="ja">{line.speaker} </b>}
@@ -55,7 +45,6 @@ const Result = ({ done, nextLabel, onNext }: { done: Done; nextLabel: string; on
   </Card>
 );
 
-/** One clip: hear it, answer, then read the transcript. Text stays hidden until the Learner has answered. */
 type Props = {
   view: ClipView;
   onNext: () => void;
@@ -64,14 +53,19 @@ type Props = {
   nextLabel?: string;
 };
 
+/** One clip: the player is the screen, the question sits under it, and the text shows only once the Learner has answered. */
 export const ClipCard = ({ view, onNext, answerWith = answerClip, nextLabel = "Next clip" }: Props) => {
   const [plays, setPlays] = useState(0);
   const slowUsed = useRef(false);
   const startedAt = useRef(Date.now());
+  const sending = useRef(false);
   const [attempts, setAttempts] = useState<string[]>([]);
   const [done, setDone] = useState<Done | null>(null);
 
   const submit = async (value: string, revealed = false) => {
+    // An option pressed twice before the server has replied is one answer.
+    if (sending.current) return;
+    sending.current = true;
     const answer = await answerWith(view.clipId, {
       exampleId: view.exampleId,
       input: value,
@@ -81,6 +75,7 @@ export const ClipCard = ({ view, onNext, answerWith = answerClip, nextLabel = "N
       revealed,
       timeToAnswerMs: Date.now() - startedAt.current,
     });
+    sending.current = false;
     if (answer.outcome !== "retry") return setDone(answer);
     setAttempts([...attempts, value]);
   };
@@ -88,15 +83,15 @@ export const ClipCard = ({ view, onNext, answerWith = answerClip, nextLabel = "N
   if (done) return <Result done={done} nextLabel={nextLabel} onNext={onNext} />;
   const asking = view.examMode || plays > 0;
   return (
-    <Card>
+    <div className="clip">
       <ClipPlayer
         audio={view.audio}
         examMode={view.examMode}
         slowAudio={view.slowAudio}
         onPlay={(slow) => (setPlays((n) => n + 1), (slowUsed.current ||= slow))}
       />
-      {asking && <Answer key={attempts.length} question={view.question} onSubmit={submit} />}
+      {asking && <Choices question={view.question} onPick={submit} />}
       <Button onClick={() => submit("", true)}>Show answer</Button>
-    </Card>
+    </div>
   );
 };

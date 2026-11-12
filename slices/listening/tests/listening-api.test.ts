@@ -11,6 +11,8 @@ const SENTENCE_CLIP = ID(10);
 const DIALOGUE_CLIP = ID(20);
 const OTHER_LEVEL_CLIP = ID(30);
 const SENTENCE_EXAMPLE = ID(11);
+const UNASKED_CLIP = ID(40);
+const UNASKED_EXAMPLE = ID(41);
 const DIALOGUE_EXAMPLES = [ID(21), ID(22)];
 
 const token = (surface: string, reading: string, start: number): Token => ({
@@ -35,7 +37,11 @@ const buildGraph = (): Graph => {
   sentence(2, "パンを食べる。", [token("パン", "パン", 0), token("を", "ヲ", 2), token("食べる", "タベル", 3), token("。", "。", 6)], "I eat bread.", "audio/bread.ogg");
   clip(SENTENCE_CLIP, "sentence", "N5");
   voice(3, SENTENCE_CLIP, 2, 0, "女", null);
-  example(SENTENCE_EXAMPLE, SENTENCE_CLIP, 2, null);
+  example(SENTENCE_EXAMPLE, SENTENCE_CLIP, 2, { question: "何を食べますか。", choices: ["パン", "ご飯", "魚", "肉"], answer: 0 });
+
+  clip(UNASKED_CLIP, "sentence", "N5");
+  voice(8, UNASKED_CLIP, 2, 0, "女", null);
+  example(UNASKED_EXAMPLE, UNASKED_CLIP, 2, null);
 
   sentence(4, "明日は何をしますか。", [], "What will you do tomorrow?", null);
   sentence(5, "買い物に行きます。", [], "I will go shopping.", null);
@@ -89,26 +95,32 @@ describe("listening practice API", () => {
 
   it("lists the clips of the chosen level", async () => {
     const body = await (await t.get("/clips?level=N5")).json();
-    expect(body).toEqual({ level: "N5", clipIds: [SENTENCE_CLIP, DIALOGUE_CLIP] });
+    expect(body).toEqual({ level: "N5", clipIds: [SENTENCE_CLIP, DIALOGUE_CLIP, UNASKED_CLIP] });
     expect((await t.get("/clips?level=N9")).status).toBe(400);
   });
 
-  it("serves a Sentence clip as audio and a dictation box, without its text", async () => {
+  it("serves a Sentence clip as audio and its question, without its text", async () => {
     const res = await t.get(`/clips/${SENTENCE_CLIP}`);
     const raw = await res.text();
     expect(JSON.parse(raw)).toEqual({
       clipId: SENTENCE_CLIP,
       exampleId: SENTENCE_EXAMPLE,
       audio: [{ src: "/audio/audio/bread.ogg", speaker: "女" }],
-      question: { kind: "dictation" },
+      question: { prompt: "何を食べますか。", choices: ["ご飯", "魚", "肉", "パン"] },
       examMode: false,
       slowAudio: false,
     });
-    expect(raw).not.toContain("パン");
+    expect(raw).not.toContain("パンを");
     expect(raw).not.toContain("I eat");
   });
 
-  it("serves a dialogue as one audio per line and a comprehension question with shuffled options", async () => {
+  it("has nothing to ask of a clip whose Example holds no question: nothing is typed on this screen", async () => {
+    expect((await t.get(`/clips/${UNASKED_CLIP}`)).status).toBe(404);
+    expect((await t.post(`/clips/${UNASKED_CLIP}/answer`, { exampleId: UNASKED_EXAMPLE, input: "ぱんをたべる" })).status).toBe(404);
+    expect(await t.progress.log(t.learner.id)).toEqual([]);
+  });
+
+  it("serves a dialogue as one audio per line and a question with shuffled options", async () => {
     const view = await (await t.get(`/clips/${DIALOGUE_CLIP}`)).json();
     expect(view.audio).toEqual([
       { src: "/audio/audio/d0.ogg", speaker: "男" },
@@ -132,11 +144,12 @@ describe("listening practice API", () => {
     expect(view).toMatchObject({ examMode: true, slowAudio: true });
   });
 
-  it("passes a right dictation, shows the transcript, and logs a cram Review that does not schedule", async () => {
-    const res = await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "ぱんをたべる", replays: 2, slow: true });
+  it("passes the right option, shows the transcript, and logs a cram Review that does not schedule", async () => {
+    const res = await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "パン", replays: 2, slow: true });
     expect(await res.json()).toEqual({
       outcome: "pass",
       transcript: [{ speaker: "女", text: "パンを食べる。", translation: "I eat bread.", audio: "/audio/audio/bread.ogg" }],
+      correctChoice: "パン",
     });
     const [review] = await t.progress.log(t.learner.id, SENTENCE_CLIP as never);
     expect(review).toMatchObject({
@@ -144,15 +157,15 @@ describe("listening practice API", () => {
       passed: true,
       exampleId: SENTENCE_EXAMPLE,
       at: "2026-03-01T10:00:00.000Z",
-      facets: [{ facet: "dictation", rawInput: "ぱんをたべる", normalisedInput: "ぱんをたべる", outcome: "pass" }],
+      facets: [{ facet: "comprehension", rawInput: "パン", normalisedInput: "パン", outcome: "pass" }],
       listening: { replays: 2, slow: true, examMode: false },
     });
     expect(await t.progress.due(t.learner.id, new Date("2030-01-01"))).toEqual([]);
   });
 
-  it("fails a wrong dictation", async () => {
-    const body = await (await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "ぱんをのむ" })).json();
-    expect(body.outcome).toBe("fail");
+  it("fails a wrong option", async () => {
+    const body = await (await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "魚" })).json();
+    expect(body).toMatchObject({ outcome: "fail", correctChoice: "パン" });
     const [review] = await t.progress.log(t.learner.id);
     expect(review).toMatchObject({ passed: false, facets: [{ outcome: "fail" }] });
   });
@@ -165,28 +178,28 @@ describe("listening practice API", () => {
     expect(wrong).toMatchObject({ outcome: "fail", correctChoice: "店" });
   });
 
-  it("asks again, and records nothing, when the input is not an answer; the tries are kept on the graded Review", async () => {
-    const retry = await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "pan" });
+  it("asks again, and records nothing, when the input is none of the options; the tries are kept on the graded Review", async () => {
+    const retry = await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "ぱん" });
     expect(await retry.json()).toEqual({ outcome: "retry" });
     expect(await t.progress.log(t.learner.id)).toEqual([]);
-    await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "ぱんをたべる", attempts: ["pan", ""] });
+    await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "パン", attempts: ["ぱん", ""] });
     const [review] = await t.progress.log(t.learner.id);
     expect(review!.attempts).toEqual([
-      { facet: "dictation", input: "pan" },
-      { facet: "dictation", input: "" },
+      { facet: "comprehension", input: "ぱん" },
+      { facet: "comprehension", input: "" },
     ]);
   });
 
-  it("counts Show answer as a fail, whatever was typed", async () => {
-    const res = await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "ぱんをたべる", revealed: true });
-    expect((await res.json()).outcome).toBe("fail");
+  it("counts Show answer as a fail, whatever was chosen", async () => {
+    const res = await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "パン", revealed: true });
+    expect(await res.json()).toMatchObject({ outcome: "fail", correctChoice: "パン" });
     const [review] = await t.progress.log(t.learner.id);
     expect(review).toMatchObject({ passed: false, revealed: true, facets: [{ outcome: "fail" }] });
   });
 
   it("logs Exam Mode from the Learner's setting, with no replays and no slow speed", async () => {
     await t.learners.changePreferences(t.learner.id, { examMode: true });
-    await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "ぱんをたべる", replays: 3, slow: true });
+    await t.post(`/clips/${SENTENCE_CLIP}/answer`, { exampleId: SENTENCE_EXAMPLE, input: "パン", replays: 3, slow: true });
     const [review] = await t.progress.log(t.learner.id);
     expect(review!.listening).toEqual({ replays: 0, slow: false, examMode: true });
   });

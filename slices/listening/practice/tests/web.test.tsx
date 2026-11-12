@@ -19,7 +19,7 @@ const view: ClipView = {
   clipId: "t1",
   exampleId: "0",
   audio: [{ src: "/audio/d0.ogg", speaker: "男" }],
-  question: { kind: "comprehension", prompt: "女の人は何をしますか。", choices: ["買い物", "勉強", "仕事", "料理"] },
+  question: { prompt: "女の人は何をしますか。", choices: ["買い物", "勉強", "仕事", "料理"] },
   examMode: false,
   slowAudio: false,
 };

@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import type { z } from "zod";
 import type { AuthEnv } from "@mojibun/auth";
-import { normalise, type ContentGraph, type Example } from "@mojibun/content-graph";
+import { normalise } from "@mojibun/content-graph";
 import { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
 import { AnswerRequest, type AnswerResponse, type ClipList } from "../contract.ts";
 import { createPracticeApi, type PracticeDeps } from "../practice/server/practice.ts";
-import { gradingOf, nextExample, playable, transcriptOf, viewOf, type Playable } from "./clip.ts";
+import { gradingOf, nextExample, playable, transcriptOf, viewOf, type Asked, type Playable } from "./clip.ts";
 
 type AnswerBody = z.output<typeof AnswerRequest>;
 
@@ -20,8 +20,9 @@ const notFound = { message: "no such clip" };
  */
 export const createListeningApi = (deps: ListeningDeps) => {
   const { contentGraph, progress, learners, guards, now, random } = deps;
-  type Graded = { facet: string; outcome: "pass" | "fail" } & Omit<AnswerBody, "exampleId">;
-  const record = async (learnerId: LearnerId, clip: Playable, example: Example, g: Graded) => {
+  type Graded = { outcome: "pass" | "fail" } & Omit<AnswerBody, "exampleId">;
+  const facet = "comprehension";
+  const record = async (learnerId: LearnerId, clip: Playable, example: Asked, g: Graded) => {
     const { examMode } = await learners.preferences(learnerId);
     await progress.record({
       learnerId,
@@ -30,8 +31,8 @@ export const createListeningApi = (deps: ListeningDeps) => {
       passed: g.outcome === "pass",
       at: now().toISOString(),
       exampleId: example.id,
-      facets: [{ facet: g.facet, rawInput: g.input, normalisedInput: normalise(g.input), outcome: g.outcome }],
-      attempts: g.attempts.map((input) => ({ facet: g.facet, input })),
+      facets: [{ facet, rawInput: g.input, normalisedInput: normalise(g.input), outcome: g.outcome }],
+      attempts: g.attempts.map((input) => ({ facet, input })),
       revealed: g.revealed,
       timeToAnswerMs: g.timeToAnswerMs,
       // The clip plays once in Exam Mode: there is no replay button and no slow speed.
@@ -67,14 +68,14 @@ export const createListeningApi = (deps: ListeningDeps) => {
       const example = clip?.examples.find((e) => e.id === body.data.exampleId);
       if (!clip || !example) return c.json(notFound, 404);
 
-      const { facet, run, correctChoice } = gradingOf(example);
+      const { run, correctChoice } = gradingOf(example);
       const { input, revealed } = body.data;
       const outcome = revealed ? "fail" : run(input).outcome;
       if (outcome === "retry") return c.json({ outcome } satisfies AnswerResponse);
 
       const learnerId = LearnerId.parse(c.get("learner").learnerId);
-      await record(learnerId, clip, example, { facet, outcome, ...body.data });
-      const response: AnswerResponse = { outcome, transcript: transcriptOf(clip), ...(correctChoice && { correctChoice }) };
+      await record(learnerId, clip, example, { outcome, ...body.data });
+      const response: AnswerResponse = { outcome, transcript: transcriptOf(clip), correctChoice };
       return c.json(response);
     });
 };

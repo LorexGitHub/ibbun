@@ -147,7 +147,7 @@ describe("a ready Practice Text dialogue", () => {
       clipId: id,
       exampleId: "0",
       audio: [{ src: "/audio/d0.ogg", speaker: "男" }, { src: "/audio/d1.ogg", speaker: "女" }],
-      question: { kind: "comprehension", prompt: "女の人は何をしますか。" },
+      question: { prompt: "女の人は何をしますか。" },
     });
     expect(raw).not.toContain("秘密の台詞");
   });

@@ -122,7 +122,7 @@ export const createPracticeApi = ({ contentGraph, progress, learners, texts, job
         clipId: text.id,
         exampleId: String(index),
         audio: dialogue.lines.map((l) => ({ src: l.audio, speaker: l.speaker })),
-        question: { kind: "comprehension", prompt: question.question, choices: shuffled(question.choices, random) },
+        question: { prompt: question.question, choices: shuffled(question.choices, random) },
         examMode: prefs.examMode,
         slowAudio: prefs.slowAudio,
       };
@@ -147,7 +147,7 @@ export const createPracticeApi = ({ contentGraph, progress, learners, texts, job
       const response: AnswerResponse = {
         outcome,
         transcript: dialogue.lines.map(({ speaker, text, translation, audio }) => ({ speaker, text, translation, audio })),
-        correctChoice: question.choices[question.answer],
+        correctChoice: question.choices[question.answer]!,
       };
       return c.json(response);
     });

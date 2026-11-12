@@ -2,11 +2,11 @@ import { expect, test } from "@playwright/test";
 
 // Runs as a logged-in Learner (playwright.config.ts, project `learner`). The stack's seed decides whether
 // N5 has playable clips, so the journey accepts either a clip to hear or the honest empty state.
-test("a Learner picks a level and meets a clip, or is told there are none", async ({ page }) => {
+test("a Learner opens Listening on a clip to hear, or is told there are none", async ({ page }) => {
   await page.goto("/listening");
-  await expect(page.getByRole("heading", { name: "Listening practice" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Listening", exact: true })).toBeVisible();
 
-  await page.getByRole("button", { name: "N5" }).click();
+  // N5 is chosen without a click, and no list of clips stands between the Learner and the player.
   await expect(page.getByRole("button", { name: "N5" })).toHaveAttribute("aria-pressed", "true");
 
   const play = page.getByRole("button", { name: "Play", exact: true });
@@ -14,6 +14,7 @@ test("a Learner picks a level and meets a clip, or is told there are none", asyn
   await expect(play.or(empty)).toBeVisible();
 
   if (await play.isVisible()) {
+    await expect(page.getByRole("group", { name: "Speed" })).toBeVisible();
     // The transcript stays hidden until the Learner has answered.
     await expect(page.getByRole("button", { name: "Show answer" })).toBeVisible();
     await page.getByRole("button", { name: "Show answer" }).click();
