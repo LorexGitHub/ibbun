@@ -5,9 +5,11 @@ import { DueResponse, SubmitResponse, type AnswerKind, type ReviewPrompt, type S
 import { loadDueClips, type LoadClips } from "../listening/web/clip-reviews-client.ts";
 import { ListeningReviews } from "../listening/web/ListeningReviews.tsx";
 import { WrapUp, type LoadWrapUp, type Miss } from "../wrap-up/WrapUp.tsx";
+import { clearUntil, doorsAfter, tallied, type Tally } from "./ending.ts";
 import { call, postJson, useLoaded } from "./http.ts";
 import type { Submit } from "./ReviewCard.tsx";
 import { Run } from "./Run.tsx";
+import "./reviews.css";
 
 export const loadDue = async (): Promise<DueResponse> => DueResponse.parse(await call("/due"));
 
@@ -43,6 +45,25 @@ const Ghosts = ({ load, submit, onFinish }: { load: () => Promise<DueResponse>; 
   );
 };
 
+/** The end of the screen: one line of fact, then three doors. A session that asked nothing says until when it is clear. */
+const Ending = ({ tally, lapses, nextDue }: { tally: Tally; lapses: string[]; nextDue: DueResponse["nextDue"] }) => {
+  const fact = tally.done ? `${tally.done} done, ${tally.right} right` : clearUntil(nextDue, new Date());
+  return (
+    <section className="ending">
+      <h2>{tally.done ? "Session complete." : "No Reviews are due."}</h2>
+      {fact && <p className="ending-fact">{fact}</p>}
+      <nav aria-label="Where next" className="doors">
+        {doorsAfter(lapses).map((door) => (
+          <a key={door.href} className="door" href={door.href}>
+            <strong>{door.label}</strong>
+            <span>{door.note}</span>
+          </a>
+        ))}
+      </nav>
+    </section>
+  );
+};
+
 type Loaders = {
   load?: () => Promise<DueResponse>;
   submit?: Submit;
@@ -61,6 +82,7 @@ export const ReviewsScreen = (props: Loaders) => {
   const { data: due, failed } = useLoaded(loaders.load);
   const [phase, setPhase] = useState<Phase>("reviews");
   const [misses, setMisses] = useState<Miss[]>([]);
+  const [tally, setTally] = useState<Tally>({ done: 0, right: 0 });
 
   if (failed) return <p role="alert">{failed}</p>;
   if (!due) return <p>Loading…</p>;
@@ -73,19 +95,21 @@ export const ReviewsScreen = (props: Loaders) => {
         prompts={due.reviews}
         preferences={due.preferences}
         submit={asKind(loaders.submit, "srs")}
-        onResult={(prompt, result) => result.passed || setMisses((now) => [...now, missOf(prompt)])}
+        onResult={(prompt, result) => {
+          setTally((now) => tallied(now, result.passed));
+          if (!result.passed) setMisses((now) => [...now, missOf(prompt)]);
+        }}
         onFinish={next("listening")}
       />
     ),
     listening: <ListeningReviews load={loaders.clips} onFinish={next("wrap-up")} />,
     "wrap-up": <WrapUp misses={misses} load={loaders.wrapUp} submit={asKind(loaders.submit, "wrap-up")} onFinish={next("ghosts")} />,
     ghosts: <Ghosts load={loaders.ghosts} submit={loaders.submit} onFinish={next("done")} />,
-    done: <Card>Session complete.</Card>,
+    done: <Ending tally={tally} lapses={misses.map((m) => m.studyItemId)} nextDue={due.nextDue} />,
   };
   return (
     <section>
       <h1>Reviews</h1>
-      {none && <Card>No Reviews are due. Come back later.</Card>}
       {steps[at]}
     </section>
   );

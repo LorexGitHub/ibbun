@@ -10,11 +10,12 @@ type Notes = Partial<Record<Facet, string>>;
 
 const LABEL: Record<Facet, string> = { cloze: "Answer", reading: "Reading in this sentence", meaning: "Meaning of the kanji" };
 
-const Sentence = ({ prompt, answered }: { prompt: ReviewPrompt; answered: boolean }) => {
+/** The Example. Once answered, the gap is the right answer, coloured by how the Review went. */
+const Sentence = ({ prompt, result }: { prompt: ReviewPrompt; result: SubmitResponse | null }) => {
   const { before, target, after } = prompt.sentence;
-  const blank = answered ? <strong>{target}</strong> : <span aria-label="blank">＿＿＿</span>;
+  const blank = result ? <strong className={result.passed ? "answer answer--right" : "answer answer--miss"}>{target}</strong> : <span aria-label="blank">＿＿＿</span>;
   return (
-    <p className="jp" lang="ja">
+    <p className="jp sentence" lang="ja">
       {before}
       {prompt.mode === "highlight" ? <mark>{target}</mark> : blank}
       {after}
@@ -58,9 +59,7 @@ const Info = ({ prompt, result }: { prompt: ReviewPrompt; result: SubmitResponse
         {f.message ? ` — ${f.message}` : ""}
       </p>
     ))}
-    {!result.passed && prompt.facets.map((f) => <p key={f.facet}>{acceptedOf(f).join(" / ")}</p>)}
-    <Line text={prompt.translationEn} show lang="en" />
-    <Line text={prompt.japaneseExplanation} show lang="ja" />
+    {!result.passed && prompt.mode === "highlight" && prompt.facets.map((f) => <p key={f.facet}>{acceptedOf(f).join(" / ")}</p>)}
   </div>
 );
 
@@ -114,7 +113,7 @@ const Actions = (props: { prompt: ReviewPrompt; preferences: Preferences; busy: 
   const { prompt, preferences, busy, open, reveal } = props;
   const shown = shownByDefault(preferences.explanations);
   return (
-    <p>
+    <p className="review-actions">
       <Button variant="primary" type="submit" disabled={busy}>
         Check
       </Button>
@@ -128,18 +127,37 @@ const Actions = (props: { prompt: ReviewPrompt; preferences: Preferences; busy: 
   );
 };
 
+type AnsweredProps = { prompt: ReviewPrompt; result: SubmitResponse; revealed: boolean; flag: Flag; onNext: () => void; onExplain?: () => void };
+
+/** What follows the answer: how it went, then Next, the Explanation while it is still closed, and the flag after a miss. */
+const Answered = ({ prompt, result, revealed, flag, onNext, onExplain }: AnsweredProps) => {
+  const flagged = flaggableFacet(result, revealed);
+  return (
+    <>
+      <Info prompt={prompt} result={result} />
+      <div className="review-actions">
+        <Button variant="primary" onClick={onNext}>
+          Next
+        </Button>
+        {prompt.japaneseExplanation && onExplain && <Button onClick={onExplain}>Explanation</Button>}
+        {flagged && <FlagButton request={{ studyItemId: prompt.studyItemId, exampleId: prompt.exampleId, facet: flagged }} flag={flag} />}
+      </div>
+    </>
+  );
+};
+
 /** One Review. The first graded submission is final: there is no Undo. */
 export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferences; submit: Submit; flag?: Flag; onDone: (result: SubmitResponse) => void }) => {
   const { prompt, preferences, submit, flag = flagAnswer, onDone } = props;
   const a = useAnswering(prompt, preferences, submit);
   const shown = shownByDefault(preferences.explanations);
-  const flagged = a.result && flaggableFacet(a.result, a.revealed);
+  const explained = shown.explanation || a.opened.includes("explanation");
   return (
-    <Card>
+    <Card className="review-card">
       <form onSubmit={a.check}>
-        <Sentence prompt={prompt} answered={a.result !== null} />
-        <Line text={prompt.translationEn} show={shown.translation || a.opened.includes("translation")} lang="en" />
-        <Line text={prompt.japaneseExplanation} show={shown.explanation || a.opened.includes("explanation")} lang="ja" />
+        <Sentence prompt={prompt} result={a.result} />
+        <Line text={prompt.translationEn} show={shown.translation || a.opened.includes("translation") || a.result !== null} lang="en" />
+        <Line text={prompt.japaneseExplanation} show={explained} lang="ja" />
         <Line text={prompt.hint} show={a.opened.includes("hint")} lang="en" />
         {prompt.facets.map((facet) => (
           <FacetField
@@ -155,13 +173,7 @@ export const ReviewCard = (props: { prompt: ReviewPrompt; preferences: Preferenc
         {a.result === null && <Actions prompt={prompt} preferences={preferences} busy={a.busy} open={a.open} reveal={a.reveal} />}
       </form>
       {a.result && (
-        <>
-          <Info prompt={prompt} result={a.result} />
-          {flagged && <FlagButton request={{ studyItemId: prompt.studyItemId, exampleId: prompt.exampleId, facet: flagged }} flag={flag} />}
-          <Button variant="primary" onClick={() => onDone(a.result!)}>
-            Next
-          </Button>
-        </>
+        <Answered prompt={prompt} result={a.result} revealed={a.revealed} flag={flag} onNext={() => onDone(a.result!)} onExplain={explained ? undefined : () => a.open("explanation")} />
       )}
     </Card>
   );

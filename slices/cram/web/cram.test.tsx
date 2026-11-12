@@ -5,7 +5,7 @@ import type { StudyItemSummary } from "@mojibun/content-graph";
 import { StudyItemId } from "@mojibun/shared";
 import type { Question } from "../contract.ts";
 import type { CramClient } from "./client.ts";
-import { CramScreen } from "./CramScreen.tsx";
+import { askedFor, CramScreen } from "./CramScreen.tsx";
 import { createCramClient } from "./client.ts";
 
 afterEach(cleanup);
@@ -52,6 +52,38 @@ const answer = (text: string) => {
   fireEvent.change(screen.getByRole("textbox", { name: "The missing Japanese" }), { target: { value: text } });
   fireEvent.click(screen.getByRole("button", { name: "Check" }));
 };
+
+describe("opened with Study Items in the address", () => {
+  afterEach(() => window.history.replaceState({}, "", "/cram"));
+
+  it("starts practising exactly those, in order, without the chooser", async () => {
+    window.history.replaceState({}, "", `/cram?items=${ID_B},${ID_A}`);
+    const client = fakeClient();
+    render(<CramScreen client={client} />);
+    expect(await screen.findByText("1 of 2")).toBeTruthy();
+    expect(client.question).toHaveBeenCalledWith(ID_B);
+    expect(client.items).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: /Practise/ })).toBeNull();
+  });
+
+  it("goes to the chooser afterwards", async () => {
+    window.history.replaceState({}, "", `/cram?items=${ID_A}`);
+    render(<CramScreen client={fakeClient()} />);
+    await screen.findByText("1 of 1");
+    answer("やま");
+    fireEvent.click(await screen.findByRole("button", { name: "Next" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Choose more" }));
+    expect(await screen.findByRole("checkbox", { name: /山/ })).toBeTruthy();
+  });
+
+  it("drops what is not a Study Item id, and shows the chooser when nothing is left", async () => {
+    expect(askedFor(`?items=nope,${ID_A},`)).toEqual([{ id: ID_A, label: "a Study Item from your Reviews" }]);
+    expect(askedFor("")).toEqual([]);
+    window.history.replaceState({}, "", "/cram?items=nope");
+    render(<CramScreen client={fakeClient()} />);
+    expect(await screen.findByRole("checkbox", { name: /山/ })).toBeTruthy();
+  });
+});
 
 describe("choosing items", () => {
   it("lists the level's items, locked or not, and asks the API for N5 first", async () => {

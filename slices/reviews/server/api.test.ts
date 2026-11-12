@@ -80,6 +80,16 @@ describe("the reviews API", () => {
       expect((await t.due()).reviews).toEqual([]);
     });
 
+    it("says when the next Review falls due, and null when none is scheduled later", async () => {
+      expect((await t.due()).nextDue).toBeNull();
+      const word = t.fixture.ids.words["水"]!;
+      await t.progress.record({ learnerId: t.learner, studyItemId: word, kind: "learn", passed: true, at: NOW.toISOString() });
+      await t.progress.record({ learnerId: t.learner, studyItemId: word, kind: "srs", passed: true, at: NOW.toISOString() });
+      const [item] = await t.progress.items(t.learner);
+      expect(item!.due!.getTime()).toBeGreaterThan(NOW.getTime());
+      expect((await t.due()).nextDue).toBe(item!.due!.toISOString());
+    });
+
     it("leaves out a Study Item with no approved Example (Suspended)", async () => {
       const t2 = await setup((f) => {
         const id = f.ids.words["水"]!;

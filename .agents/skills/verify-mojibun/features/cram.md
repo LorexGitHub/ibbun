@@ -12,6 +12,7 @@ Cram lets a Learner choose Study Items, including ones still Locked, and practis
 ## How to get to it (user POV)
 
 - Log in, then click **Cram** in the nav, or open `http://localhost:5173/cram`.
+- From the end of a review session with a failed Review, click **Cram the Lapses**. It opens `/cram?items=<id>,<id>` and practice starts on those Study Items with no chooser.
 
 ## Driving it with Playwright
 
@@ -26,6 +27,7 @@ Preconditions:
 - **Practise.** Click `Practise N items`. `1 of N` appears with a sentence containing `＿＿＿`. Type the answer in the textbox, click `Check`; `Right.` or `Not quite.` shows. Click `Next`; `2 of N` appears.
 - **Retry.** Type `q` and click `Check`: a message appears and nothing is saved.
 - **Show answer.** Click `Show answer`: `Not quite.` and `Answer: …`.
+- **From a link.** Open `/cram?items=<a Study Item id>`: `1 of 1` shows at once and no `Practise` button. An id that is not a Study Item id is dropped; with none left the chooser shows. After **Choose more** the chooser shows.
 - **Finish.** After the last item, `x of N right. Mastery and statistics are unchanged.` shows.
 - **Stored value.** `docker compose -p mojibun-verify exec postgres psql -U mojibun -c "select kind, passed from progress.review order by at"` lists only `cram` rows for the answers given (check the table name with `\dt progress.*`).
 - **Mastery untouched.** The Learner's dashboard (or `psql` count of rows whose kind is `srs`, `manual` or `learn`) shows no change.

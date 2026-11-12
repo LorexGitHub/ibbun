@@ -1,0 +1,82 @@
+/* The Reviews screens: the answer shown in place, and the end of a session with its three doors. */
+
+.review-card,
+.review-card form,
+.review-card [role="status"] {
+  display: grid;
+  gap: var(--space-md);
+}
+.review-card {
+  padding: var(--space-xl);
+}
+.review-card p {
+  margin: 0;
+}
+.review-card .sentence {
+  font-size: var(--text-display);
+  line-height: 1.6;
+}
+.review-card mark {
+  background: none;
+  color: var(--color-accent);
+}
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.answer {
+  font-weight: 400;
+}
+.answer--right {
+  color: var(--color-success);
+}
+.answer--miss {
+  color: var(--color-error);
+}
+
+.ending {
+  display: grid;
+  gap: var(--space-lg);
+}
+.ending h2,
+.ending p {
+  margin: 0;
+}
+.ending h2 {
+  font-size: var(--text-display);
+  font-weight: 400;
+}
+.ending-fact {
+  color: var(--color-muted);
+  font-size: var(--text-lead);
+}
+.doors {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-md);
+}
+.door {
+  display: grid;
+  gap: var(--space-xs);
+  padding: var(--space-xl);
+  border: 1px solid var(--color-rule);
+  background: var(--color-card);
+  color: inherit;
+  text-decoration: none;
+}
+.door:hover,
+.door:focus-visible {
+  border-color: var(--color-accent);
+}
+.door strong {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  font-weight: 400;
+}
+.door span {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}

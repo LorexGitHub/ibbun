@@ -135,7 +135,48 @@ describe("a cloze Review", () => {
     press("Show answer");
     await waitFor(() => expect(submit).toHaveBeenCalledOnce());
     expect(lastRequest(submit)).toMatchObject({ revealed: true });
-    expect((await screen.findByRole("status")).textContent).toContain("水");
+    await screen.findByRole("status");
+    expect(screen.getByText("水").className).toBe("answer answer--miss");
+    expect(screen.getByRole("status").textContent).not.toContain("水");
+  });
+
+  it("turns the gap into the answer in place once answered right", async () => {
+    mount();
+    type("Answer", "みず");
+    press("Check");
+    await screen.findByRole("status");
+    expect(screen.getByText("水").className).toBe("answer answer--right");
+    expect(screen.queryByLabelText("blank")).toBeNull();
+  });
+
+  it("gives the meaning under the sentence once answered, whatever the toggles say", async () => {
+    mount(cloze, prefs({ explanations: "japanese" }));
+    expect(screen.queryByText("I drink water.")).toBeNull();
+    type("Answer", "みず");
+    press("Check");
+    await screen.findByRole("status");
+    expect(screen.getAllByText("I drink water.")).toHaveLength(1);
+    expect(screen.getAllByText(/のむことができる/)).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "Explanation" })).toBeNull();
+  });
+
+  it("offers the Explanation after the answer, and it goes once opened", async () => {
+    mount();
+    type("Answer", "みず");
+    press("Check");
+    await screen.findByRole("status");
+    expect(screen.queryByText(/のむことができる/)).toBeNull();
+    press("Explanation");
+    expect(screen.getAllByText(/のむことができる/)).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "Explanation" })).toBeNull();
+  });
+
+  it("offers no Explanation when the Example has none", async () => {
+    mount({ ...cloze, japaneseExplanation: null });
+    type("Answer", "みず");
+    press("Check");
+    await screen.findByRole("status");
+    expect(screen.queryByRole("button", { name: "Explanation" })).toBeNull();
   });
 
   it("shows the Japanese Explanation by default when only that toggle is on, and offers the translation", () => {
@@ -155,6 +196,22 @@ describe("a Kanji Review", () => {
     press("Check");
     await waitFor(() => expect(submit).toHaveBeenCalledOnce());
     expect(lastRequest(submit).facets.map((f) => [f.facet, f.input])).toEqual([["reading", "みず"], ["meaning", "water"]]);
+  });
+
+  it("lists the accepted answers after a miss, since nothing was blanked", async () => {
+    mount(kanji, prefs(), { passed: false, facets: [{ facet: "reading", outcome: "fail" }, { facet: "meaning", outcome: "pass" }] });
+    press("Show answer");
+    const status = await screen.findByRole("status");
+    expect(status.textContent).toContain("water");
+    expect(status.textContent).toContain("水");
+  });
+
+  it("lists no answers when both facets were right", async () => {
+    mount(kanji, prefs(), { passed: true, facets: [{ facet: "reading", outcome: "pass" }, { facet: "meaning", outcome: "pass" }] });
+    type("Reading in this sentence", "みず");
+    type("Meaning of the kanji", "water");
+    press("Check");
+    expect((await screen.findByRole("status")).textContent).not.toContain("water");
   });
 
   it("never converts the English meaning", () => {
@@ -216,8 +273,8 @@ describe("the reviews screen", () => {
   const due = (reviews: ReviewPrompt[]): DueResponse => ({ preferences: prefs(), reviews });
 
   it("says so when nothing is due", async () => {
-    render(<ReviewsScreen load={async () => due([])} clips={noClips} />);
-    expect(await screen.findByText(/No Reviews are due/)).toBeTruthy();
+    render(<ReviewsScreen load={async () => due([])} ghosts={async () => due([])} clips={noClips} />);
+    expect(await screen.findByRole("heading", { name: "No Reviews are due." })).toBeTruthy();
   });
 
   it("still asks the due Listening Clips when no Reviews are due", async () => {
@@ -231,7 +288,7 @@ describe("the reviews screen", () => {
     };
     render(<ReviewsScreen load={async () => due([])} ghosts={async () => due([])} clips={async () => ({ clips: [clip] })} />);
     expect(await screen.findByRole("heading", { name: "Listening" })).toBeTruthy();
-    expect(screen.getByText(/No Reviews are due/)).toBeTruthy();
+    expect(screen.queryByText(/No Reviews are due/)).toBeNull();
   });
 
   it("asks the due Listening Clips after the Reviews, before the session completes", async () => {
