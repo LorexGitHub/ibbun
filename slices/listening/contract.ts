@@ -6,11 +6,8 @@ import { JlptLevel } from "@mojibun/shared";
 export const ClipList = z.object({ level: JlptLevel, clipIds: z.array(z.string()) });
 export type ClipList = z.infer<typeof ClipList>;
 
-/** What the Learner is asked after hearing the clip. Dictation shows only an input box. */
-export const Question = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("dictation") }),
-  z.object({ kind: z.literal("comprehension"), prompt: z.string(), choices: z.array(z.string()) }),
-]);
+/** What the Learner is asked after hearing the clip: a question and the options to pick from. Nothing is typed. */
+export const Question = z.object({ prompt: z.string(), choices: z.array(z.string()) });
 export type Question = z.infer<typeof Question>;
 
 const Speaker = z.enum(["男", "女"]).nullable();
@@ -28,9 +25,9 @@ export type ClipView = z.infer<typeof ClipView>;
 
 export const AnswerRequest = z.object({
   exampleId: z.string(),
-  /** Typed Japanese for dictation, the chosen option's text for comprehension. */
+  /** The chosen option's text. */
   input: z.string(),
-  /** Tries the Learner made before this one that were not answers (empty input, Latin letters). */
+  /** Tries the Learner made before this one that were not one of the options. */
   attempts: z.array(z.string()).default([]),
   replays: z.number().int().nonnegative().default(0),
   slow: z.boolean().default(false),
@@ -51,8 +48,8 @@ export const AnswerResponse = z.discriminatedUnion("outcome", [
   z.object({
     outcome: z.enum(["pass", "fail"]),
     transcript: Transcript,
-    /** The right option, for a comprehension question. */
-    correctChoice: z.string().optional(),
+    /** The right option. */
+    correctChoice: z.string(),
   }),
 ]);
 export type AnswerResponse = z.infer<typeof AnswerResponse>;

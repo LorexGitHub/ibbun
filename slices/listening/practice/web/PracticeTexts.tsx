@@ -102,8 +102,11 @@ const generateAndWait = async (choice: GenerateChoice): Promise<Screen> => {
   }
 };
 
-/** Practice Text dialogues for the Learner's Cleared Levels (listening.md#practice-texts). */
-export const PracticeTexts = () => {
+/**
+ * Practice Text dialogues for the Learner's Cleared Levels (listening.md#practice-texts).
+ * `onPlaying` hears when a dialogue starts and stops playing, so the screen can show one player at a time.
+ */
+export const PracticeTexts = ({ onPlaying }: { onPlaying?: (playing: boolean) => void }) => {
   const [options, setOptions] = useState<Options | null>(null);
   const [library, setLibrary] = useState<LibraryEntry[]>([]);
   const [screen, setScreen] = useState<Screen>({ at: "menu" });
@@ -111,6 +114,9 @@ export const PracticeTexts = () => {
   const refresh = () => Promise.all([loadOptions(), loadLibrary()]).then(([o, l]) => (setOptions(o), setLibrary(l)));
   // The section is an extra: when its options cannot load, free practice above still works and this stays hidden.
   useEffect(() => void refresh().catch(() => setOptions(null)), []);
+
+  const playing = screen.at === "playing";
+  useEffect(() => onPlaying?.(playing), [playing]);
 
   const open = async (id: string) => {
     const view = await loadPractice(id);

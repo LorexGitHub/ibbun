@@ -1,0 +1,134 @@
+/* Listening: the player is the screen. A large play button, the sound, speed and "Again"; the question sits under it. */
+
+.listening {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-lg);
+  max-width: 40rem;
+  margin: 0 auto var(--space-xl);
+  text-align: center;
+}
+.listening[hidden] {
+  display: none;
+}
+.listening-levels,
+.player-speed {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+.listening-levels .pill,
+.player-speed .pill {
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.clip {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-lg);
+  width: 100%;
+}
+
+.player {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-md);
+}
+.player p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.player-play {
+  display: grid;
+  place-items: center;
+  width: 7.5rem;
+  height: 7.5rem;
+  padding: 0 0 0 0.4rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  box-shadow: var(--shadow-paper);
+  font-size: 2.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform var(--dur-micro) ease-out;
+}
+.player-play:hover:not(:disabled) {
+  transform: scale(1.04);
+}
+.player-play:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.player-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+}
+
+.player-sound {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 2rem;
+}
+.player-sound i {
+  width: 3px;
+  height: 20%;
+  border-radius: 2px;
+  background: var(--color-rule);
+}
+.player[data-playing="true"] .player-sound i {
+  background: var(--color-accent);
+  animation: player-sound 0.9s ease-in-out infinite alternate;
+}
+.player-sound i:nth-child(2n) { animation-delay: -0.3s; }
+.player-sound i:nth-child(3n) { animation-delay: -0.6s; }
+@keyframes player-sound {
+  to { height: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .player[data-playing="true"] .player-sound i { height: 60%; animation: none; }
+  .player-play { transition: none; }
+}
+
+.clip-question {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.clip-question legend {
+  width: 100%;
+  padding: 0 0 var(--space-md);
+  font-family: var(--font-jp);
+  font-size: var(--text-lead);
+}
+.clip-question ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.clip-question .btn {
+  justify-content: space-between;
+  width: 100%;
+  min-height: 3.25rem;
+  font-size: var(--text-lead);
+  text-align: left;
+}
+.clip-transcript {
+  text-align: left;
+}
+@media (max-width: 480px) {
+  .clip-question ol { grid-template-columns: 1fr; }
+}

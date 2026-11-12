@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ClipView } from "../../contract.ts";
 import type { LibraryEntry, Options } from "../practice-contract.ts";
@@ -19,7 +19,7 @@ const view: ClipView = {
   clipId: "t1",
   exampleId: "0",
   audio: [{ src: "/audio/d0.ogg", speaker: "男" }],
-  question: { kind: "comprehension", prompt: "女の人は何をしますか。", choices: ["買い物", "勉強", "仕事", "料理"] },
+  question: { prompt: "女の人は何をしますか。", choices: ["買い物", "勉強", "仕事", "料理"] },
   examMode: false,
   slowAudio: false,
 };
@@ -116,6 +116,35 @@ describe("Practice dialogues", () => {
     await generateWith();
     await act(() => vi.advanceTimersByTimeAsync(WAIT_MS + 2_000));
     await waitFor(() => expect(screen.getByText(/appear in your library/)).toBeTruthy());
+  });
+
+  it("plays a dialogue that is only ready on the last look, 20 s in", async () => {
+    let looks = 0;
+    serve({ practice: () => (++looks <= WAIT_MS / 2_000 ? Response.json({ status: "pending" }, { status: 202 }) : Response.json(view)) });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    await generateWith();
+    await act(() => vi.advanceTimersByTimeAsync(WAIT_MS + 2_000));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Play" })).toBeTruthy());
+  });
+
+  it("shows the reason as a status, and no status or list on a plain menu with an empty library", async () => {
+    serve({ generate: () => Response.json({ message: "Try again tomorrow." }, { status: 429 }) });
+    render(<PracticeTexts />);
+    const generateButton = await screen.findByRole("button", { name: "Generate a dialogue" });
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.queryByRole("list", { name: "Your dialogues" })).toBeNull();
+    fireEvent.click(generateButton);
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Try again tomorrow."));
+  });
+
+  it("names each dialogue in the library by level, question type, length and topic", async () => {
+    serve({ library: [entry, { ...entry, id: "t2", passageType: "task", length: "exam", topic: "旅行", ready: false }] });
+    render(<PracticeTexts />);
+    const [plain, full] = within(await screen.findByRole("list", { name: "Your dialogues" })).getAllByRole("listitem");
+    expect(plain!.textContent).toBe("N5 · any type · Short Listen");
+    expect(plain!.querySelector("[lang=ja]")).toBeNull();
+    expect(full!.textContent).toBe("N5 · task · Exam length · 旅行 Being made…");
+    expect(full!.querySelector("[lang=ja]")!.textContent).toBe(" · 旅行");
   });
 
   it("lists the library, opening a ready dialogue and marking one still being made", async () => {
