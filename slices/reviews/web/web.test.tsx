@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudyItemId } from "@mojibun/shared";
 import type { DueResponse, ReviewPrompt, SubmitRequest, SubmitResponse } from "../contract.ts";
@@ -242,6 +242,30 @@ describe("check helpers", () => {
   });
 });
 
+describe("Reviews opened for one level", () => {
+  afterEach(() => history.replaceState(null, "", "/"));
+  const due = (reviews: ReviewPrompt[]): DueResponse => ({ preferences: prefs(), reviews });
+
+  it("asks for that level's Reviews and clips, and starts again from the top when the level changes", async () => {
+    history.replaceState(null, "", "/reviews?level=n3");
+    const load = vi.fn(async () => due([]));
+    const clips = vi.fn(noClips);
+    render(<ReviewsScreen load={load} clips={clips} ghosts={async () => due([])} />);
+    expect(await screen.findByText(/No Reviews are due/)).toBeTruthy();
+    expect(load).toHaveBeenCalledWith("N3");
+    expect(clips).toHaveBeenCalledWith("N3");
+
+    load.mockImplementation(async () => due([cloze]));
+    act(() => {
+      history.replaceState(null, "", "/reviews");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(await screen.findByRole("textbox")).toBeTruthy();
+    expect(load).toHaveBeenLastCalledWith(undefined);
+    expect(screen.queryByText(/No Reviews are due/)).toBeNull();
+  });
+});
+
 describe("talking to the API", () => {
   const reply = (body: unknown, status = 200) => vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(body), { status })));
   afterEach(() => vi.unstubAllGlobals());
@@ -250,6 +274,8 @@ describe("talking to the API", () => {
     reply({ preferences: prefs(), reviews: [cloze] });
     expect((await loadDue()).reviews).toHaveLength(1);
     expect(vi.mocked(fetch).mock.calls[0]![0]).toBe("/api/reviews/due");
+    await loadDue("N3");
+    expect(vi.mocked(fetch).mock.calls[1]![0]).toBe("/api/reviews/due?level=N3");
   });
 
   it("posts an answer as JSON and reads the result", async () => {

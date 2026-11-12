@@ -1,3 +1,5 @@
+import type { JlptLevel } from "@mojibun/shared";
+import { levelQuery } from "@mojibun/ui";
 import { EpisodeLists, LookupView, TextView, type LookupRequest } from "../contract.ts";
 
 const BASE = "/api/reading";
@@ -8,7 +10,7 @@ export const fetchJson = async (path: string, init?: RequestInit): Promise<unkno
   return response.json();
 };
 
-export const loadEpisodes = async () => EpisodeLists.parse(await fetchJson("/episodes"));
+export const loadEpisodes = async (level?: JlptLevel) => EpisodeLists.parse(await fetchJson(`/episodes${levelQuery(level)}`));
 
 export const loadBatchText = async (id: string) => TextView.parse(await fetchJson(`/batch-texts/${id}`));
 

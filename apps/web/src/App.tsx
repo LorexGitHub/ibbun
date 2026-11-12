@@ -1,4 +1,5 @@
-import { buttonClass, Layout, onGoTo, SessionCountSlot, useSystemModeSync } from "@mojibun/ui";
+import type { NavEntry } from "@mojibun/slice";
+import { buttonClass, Layout, LevelFilter, onGoTo, SessionCountSlot, useLevelFilter, useSystemModeSync } from "@mojibun/ui";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router";
@@ -9,7 +10,7 @@ import { AppDock } from "./AppDock.tsx";
 import { CommandMenu, CommandTrigger, useCommandKey } from "./CommandMenu.tsx";
 import { Welcome } from "./Home.tsx";
 import { LevelLinks } from "./LevelLinks.tsx";
-import { dockEntries, kanjiAt, sessionAt, visibleTo, welcomeEntries, type Who } from "./places.ts";
+import { dockEntries, kanjiAt, sessionAt, takesLevel, visibleTo, welcomeEntries, type Who } from "./places.ts";
 import type { Shell } from "./slices.ts";
 import { client, useWho } from "./who.ts";
 
@@ -31,6 +32,23 @@ const Home = ({ shell, who }: { shell: Shell; who: Who }) => {
     return <Welcome entries={welcomeEntries(visibleTo(shell.nav, who))} door={door} />;
   }
   return <Slot shell={shell} name="home" />;
+};
+
+const SessionName = ({ session }: { session: NavEntry }) => (
+  <span className="session-name">
+    <span className="jp" lang="ja" aria-hidden>
+      {session.glyph}
+    </span>
+    {session.label}
+    <SessionCountSlot />
+  </span>
+);
+
+/** What the header shows beside the seal: a door opened for one level keeps "All" and the levels, a session included. */
+const useLevels = (nav: NavEntry[], who: Who, pathname: string, map: boolean) => {
+  const filtered = useLevelFilter() !== undefined && who.state === "in" && takesLevel(nav, pathname);
+  if (filtered) return <LevelFilter />;
+  return map ? <LevelLinks /> : undefined;
 };
 
 export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) => {
@@ -57,17 +75,8 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
   // The dock and the levels are a Learner's map: hidden from visitors, and during a session
   const map = who.state === "in" && !session;
   const dock = map ? <AppDock entries={dockEntries(nav)} /> : undefined;
-  const levels = map ? <LevelLinks /> : undefined;
-
-  const sessionName = session && (
-    <span className="session-name">
-      <span className="jp" lang="ja" aria-hidden>
-        {session.glyph}
-      </span>
-      {session.label}
-      <SessionCountSlot />
-    </span>
-  );
+  const levels = useLevels(nav, who, pathname, map);
+  const sessionName = session && <SessionName session={session} />;
   const aside = session ? (
     <Link className={buttonClass()} to="/">
       Done for now
@@ -81,7 +90,7 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
 
   return (
     <MotionConfig reducedMotion="user">
-      <Layout nav={sessionName || levels} aside={aside} dock={dock} kanji={kanjiAt(nav, pathname)}>
+      <Layout nav={(sessionName || levels) && <>{sessionName}{levels}</>} aside={aside} dock={dock} kanji={kanjiAt(nav, pathname)}>
         <Routes>
           {shell.routes.map((r) => (
             <Route key={r.path} path={r.path} element={<r.component />} />

@@ -13,7 +13,8 @@ export type PlacementViewProps = {
   list: PlacementList | null;
   ticked: ReadonlySet<string>;
   message: string | null;
-  onLevel: (level: PlacementList["level"]) => void;
+  /** Absent when the Level filter picks the level: the header then holds the levels. */
+  onLevel?: (level: PlacementList["level"]) => void;
   onToggle: (id: string) => void;
   onSubmit: () => void;
 };
@@ -23,13 +24,15 @@ export const PlacementView = ({ level, list, ticked, message, onLevel, onToggle,
   <section aria-labelledby="placement-title">
     <h1 id="placement-title">Placement</h1>
     <p>Tick what you already know at this level. Ticked items become Known and still come back for review.</p>
-    <div role="group" aria-label="JLPT Level">
-      {JLPT_LEVELS.map((l) => (
-        <button key={l} type="button" className={pillClass(l === level)} aria-pressed={l === level} onClick={() => onLevel(l)}>
-          {l}
-        </button>
-      ))}
-    </div>
+    {onLevel && (
+      <div role="group" aria-label="JLPT Level">
+        {JLPT_LEVELS.map((l) => (
+          <button key={l} type="button" className={pillClass(l === level)} aria-pressed={l === level} onClick={() => onLevel(l)}>
+            {l}
+          </button>
+        ))}
+      </div>
+    )}
     {list === null ? (
       <p>Loading {level}…</p>
     ) : (

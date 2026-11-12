@@ -25,6 +25,10 @@ describe("PlacementView", () => {
     expect(html).toMatch(/aria-pressed="true"[^>]*>N5</);
   });
 
+  it("leaves the levels to the header when the Level filter picks the level", () => {
+    expect(render({ onLevel: undefined })).not.toContain(">N4</button>");
+  });
+
   it("groups the level's items under Kanji, Words and Grammar, skipping empty groups", () => {
     const html = render({
       list: { level: "N5", items: [item({}), item({ id: "00000058-0000-7000-8000-000000000002" as PlacementItem["id"], type: "word", label: "日本" })] },

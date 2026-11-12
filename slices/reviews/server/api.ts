@@ -3,7 +3,7 @@ import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/a
 import type { ContentGraph } from "@mojibun/content-graph";
 import type { Learners } from "@mojibun/learner";
 import type { Progress } from "@mojibun/progress";
-import { StudyItemId, type LearnerId } from "@mojibun/shared";
+import { JlptLevel, StudyItemId, type LearnerId } from "@mojibun/shared";
 import { SubmitRequest } from "../contract.ts";
 import { facetsOf, pickExample } from "./prompt.ts";
 import { nextDueOf } from "./next-due.ts";
@@ -18,6 +18,12 @@ export type ReviewsDeps = {
   progress: Progress;
   learners: Learners;
   now: () => Date;
+};
+
+/** The due Study Items at the level the Level filter names, or all of them when it names none. */
+export const dueAt = async (contentGraph: ContentGraph, due: StudyItemId[], filter: string | undefined) => {
+  const level = JlptLevel.safeParse(filter).data;
+  return level ? contentGraph.atLevel(due, level) : due;
 };
 
 /** The most Reviews one request hands out. */
@@ -36,7 +42,7 @@ export const createReviewsApi = ({ sessions, contentGraph, progress, learners, n
     .use(requireLearner())
     .get("/due", async (c) => {
       const { learnerId } = c.get("learner");
-      const due = (await progress.due(learnerId, now())).slice(0, DUE_LIMIT);
+      const due = (await dueAt(contentGraph, await progress.due(learnerId, now()), c.req.query("level"))).slice(0, DUE_LIMIT);
       const prompts = await Promise.all(due.map((id) => prompt(learnerId, id)));
       const nextDue = nextDueOf(await progress.items(learnerId), now());
       return c.json({ ...(await withPreferences(learnerId, prompts)), nextDue });

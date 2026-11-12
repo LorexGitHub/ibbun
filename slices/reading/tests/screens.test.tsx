@@ -44,6 +44,15 @@ describe("reading screens", () => {
     await waitFor(() => expect(screen.getByText(/No stories yet/)).toBeTruthy());
   });
 
+  it("loads one level's episodes when the Level filter names a level", async () => {
+    history.replaceState(null, "", "/reading?level=n4");
+    const calls = stub({ "/api/reading/episodes?level=N4": { body: { levels: [] } } });
+    at("/reading", "/reading", <EpisodesScreen />);
+    await waitFor(() => expect(screen.getByText(/No stories yet/)).toBeTruthy());
+    expect(calls.map((c) => c.url)).toEqual(["/api/reading/episodes?level=N4"]);
+    history.replaceState(null, "", "/");
+  });
+
   it("says so when the episodes cannot load", async () => {
     stub({});
     at("/reading", "/reading", <EpisodesScreen />);

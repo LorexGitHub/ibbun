@@ -73,6 +73,17 @@ export const learningPathContract = (make: MakeLearningPath) => {
       expect(await path.forItem(l, word.id)).toEqual([kanji[2]!.id, word.id]);
     });
 
+    it("nextAt draws from one level only, for the types the Learner has active at any level", async () => {
+      const n3 = { kanji: pathItem("kanji", "N3", { frequency: 1 }), word: pathItem("word", "N3"), grammar: pathItem("grammar_point", "N3") };
+      const path = await make({ contentGraph: graphOf([...kanji, word, ...Object.values(n3)]), progress: createFakeProgress(), newSeed: () => "s" });
+      const l = learner();
+      await path.setActiveTracks(l, [n5Kanji, { level: "N4", type: "word" }]);
+      expect(await path.nextAt(l, "N3", 5)).toEqual([n3.kanji.id, n3.word.id]);
+      expect(await path.nextAt(l, "N3", 1)).toEqual([n3.kanji.id]);
+      expect(await path.nextAt(l, "N2", 5)).toEqual([]);
+      expect(await path.activeTracks(l)).toEqual([n5Kanji, { level: "N4", type: "word" }]);
+    });
+
     it("use the strategy the config names", async () => {
       const { path } = await setup({ strategy: "frequency-v1", bands: { kanjiFrequency: 10_000, wordNfTags: 1 } }, ["x"]);
       const l = learner();

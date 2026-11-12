@@ -7,6 +7,7 @@ import type { Progress } from "@mojibun/progress";
 import type { LearnerId, StudyItemId } from "@mojibun/shared";
 import { ClipAnswerRequest, type ClipAnswerResponse, type ClipDueResponse } from "../contract.ts";
 import { gradingOf, nextExample, playable, reviewOf, transcriptOf, type Playable } from "./clip-playable.ts";
+import { dueAt } from "../../server/api.ts";
 import { diffDictation } from "./dictation-diff.ts";
 
 export type ClipReviewsDeps = {
@@ -63,7 +64,8 @@ export const createClipReviewsApi = ({ contentGraph, progress, learners, guards,
 
     .get("/due", async (c) => {
       const { learnerId } = c.get("learner");
-      const [due, prefs] = await Promise.all([progress.due(learnerId, now()), learners.preferences(learnerId)]);
+      const [all, prefs] = await Promise.all([progress.due(learnerId, now()), learners.preferences(learnerId)]);
+      const due = await dueAt(contentGraph, all, c.req.query("level"));
       const clips = (await Promise.all(due.slice(0, CLIP_DUE_LIMIT).map(async (id) => {
         const clip = playable(await contentGraph.studyItem(id));
         return clip && reviewOf(clip, nextExample(clip, await lastExampleId(learnerId, id)), prefs, random);

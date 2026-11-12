@@ -3,7 +3,7 @@ import type { AuthEnv, createAuthGuards } from "@mojibun/auth";
 import type { ContentGraph, Word } from "@mojibun/content-graph";
 import type { Learners } from "@mojibun/learner";
 import type { Progress, Texts } from "@mojibun/progress";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
 import { LookupRequest, type EpisodeLists, type LookupView, type TextView } from "../contract.ts";
 import { episodeLists } from "./episodes.ts";
 import { textView, type Reader } from "./text.ts";
@@ -45,7 +45,9 @@ export const createReadingApi = ({ contentGraph, progress, texts, learners, guar
 
     .get("/episodes", async (c) => {
       const learnerId = LearnerId.parse(c.get("learner").learnerId);
-      const body: EpisodeLists = await episodeLists(await texts.batchTexts(learnerId), (id) => contentGraph.readingPassage(id));
+      const level = JlptLevel.safeParse(c.req.query("level")).data;
+      const mine = await texts.batchTexts(learnerId);
+      const body: EpisodeLists = await episodeLists(level ? mine.filter((text) => text.level === level) : mine, (id) => contentGraph.readingPassage(id));
       return c.json(body);
     })
 

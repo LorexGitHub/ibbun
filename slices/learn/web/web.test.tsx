@@ -96,6 +96,18 @@ const open = async (api = apiOf()) => {
   await screen.findByRole("heading", { name: "Learn" });
   return api;
 };
+describe("Learn opened for one level", () => {
+  afterEach(() => history.replaceState(null, "", "/"));
+
+  it("asks for that level's batch, and for the active Tracks' batch without one", async () => {
+    history.replaceState(null, "", "/learn?level=n3");
+    expect((await open()).batch).toHaveBeenCalledWith("N3");
+    cleanup();
+    history.replaceState(null, "", "/learn");
+    expect((await open()).batch).toHaveBeenCalledWith(undefined);
+  });
+});
+
 const lessons = async () => {
   press("Start");
   await screen.findByText("1 / 2");
@@ -618,6 +630,8 @@ describe("talking to the API", () => {
     reply(twoItems);
     expect((await learnApi.batch()).items).toHaveLength(2);
     expect(lastCall()[0]).toBe("/api/learn/batch");
+    await learnApi.batch("N3");
+    expect(lastCall()[0]).toBe("/api/learn/batch?level=N3");
   });
 
   it("puts the Tracks, posts a skip and posts the quiz as JSON", async () => {

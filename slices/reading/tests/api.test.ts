@@ -103,6 +103,15 @@ describe("reading API", () => {
       expect(body.levels[2].episodes[0].id).toBe(unlevelled.id);
     });
 
+    it("keeps to one JLPT Level when asked, and to every level when the level is not one", async () => {
+      await t.batchText(1, "N5", PASSAGE);
+      await t.batchText(1, "N4", PASSAGE);
+      const levels = async (level: string) => (await (await t.get(`/episodes?level=${level}`)).json()).levels.map((l: { level: string }) => l.level);
+      expect(await levels("N4")).toEqual(["N4"]);
+      expect(await levels("N1")).toEqual([]);
+      expect(await levels("N9")).toEqual(["N5", "N4"]);
+    });
+
     it("leaves out a Batch Text whose passage is not approved yet", async () => {
       await t.batchText(1, "N5", DRAFT_PASSAGE);
       expect(await (await t.get("/episodes")).json()).toEqual({ levels: [] });

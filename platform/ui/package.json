@@ -11,6 +11,7 @@
     "lint:hallmark": "node ${HALLMARK:-../../../hallmark}/skills/hallmark/scripts/sloplint.mjs src --genre playful --scope app"
   },
   "dependencies": {
+    "@mojibun/shared": "workspace:*",
     "wanakana": "^5.3.1"
   },
   "devDependencies": {

@@ -46,6 +46,7 @@ Steps:
 6. Exam Mode: turn `examMode` on in the Learner's preferences first, reload, and expect no checkbox and a disabled Play after one play.
 
 The spec is `slices/listening/tests/listening.spec.ts` (either a clip or the empty state is accepted).
+- **One level.** Open `/listening?level=n5`: the N5 clips start without a click, and the `group "Level"` buttons are gone because the "Level filter" in the header holds the levels. Without `?level=` the buttons are back.
 
 ## Gotchas
 

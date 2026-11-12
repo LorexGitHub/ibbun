@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, buttonClass, Card } from "@mojibun/ui";
+import { Button, buttonClass, Card, useLevelFilter } from "@mojibun/ui";
 import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
 import type { ClipView } from "../contract.ts";
 import { listClips, loadClip } from "./api.ts";
@@ -37,20 +37,24 @@ const Session = ({ level }: { level: JlptLevel }) => {
   return view ? <ClipCard key={`${at}`} view={view} onNext={() => setAt(at + 1)} /> : <p>Loading…</p>;
 };
 
-/** Free Listening practice: pick a level, hear its clips, answer. Logged as `cram`. */
+/** Free Listening practice: pick a level, hear its clips, answer. Logged as `cram`. The Level filter picks the level when it names one. */
 export const ListeningPractice = () => {
-  const [level, setLevel] = useState<JlptLevel | null>(null);
+  const filter = useLevelFilter();
+  const [picked, setLevel] = useState<JlptLevel | null>(null);
+  const level = filter ?? picked;
   return (
     <>
     <Card>
       <h1>Listening practice</h1>
-      <div role="group" aria-label="Level">
-        {JLPT_LEVELS.map((l) => (
-          <Button key={l} variant={l === level ? "primary" : "secondary"} aria-pressed={l === level} onClick={() => setLevel(l)}>
-            {l}
-          </Button>
-        ))}
-      </div>
+      {!filter && (
+        <div role="group" aria-label="Level">
+          {JLPT_LEVELS.map((l) => (
+            <Button key={l} variant={l === level ? "primary" : "secondary"} aria-pressed={l === level} onClick={() => setLevel(l)}>
+              {l}
+            </Button>
+          ))}
+        </div>
+      )}
       {level && <Session key={level} level={level} />}
     </Card>
     <PracticeTexts />

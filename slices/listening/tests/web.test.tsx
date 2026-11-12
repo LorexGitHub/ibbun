@@ -216,6 +216,16 @@ describe("Listening practice", () => {
     await screen.findByRole("button", { name: "Play" });
   });
 
+  it("takes the level from the Level filter, which then stands in for the level buttons", async () => {
+    history.replaceState(null, "", "/listening?level=n3");
+    stubServer(dictation);
+    render(<ListeningPractice />);
+    await screen.findByRole("button", { name: "Play" });
+    expect(vi.mocked(fetch).mock.calls[0]![0]).toBe("/api/listening/clips?level=N3");
+    expect(screen.queryByRole("group", { name: "Level" })).toBeNull();
+    history.replaceState(null, "", "/");
+  });
+
   it("says when a level has no clips", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ level: "N1", clipIds: [] }))));
     render(<ListeningPractice />);

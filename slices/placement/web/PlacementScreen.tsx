@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { useLevelFilter } from "@mojibun/ui";
 import { PlacementList, PlacementResult, type JlptLevel } from "../contract.ts";
 import { PlacementView } from "./PlacementView.tsx";
 
 export const PlacementScreen = () => {
-  const [level, setLevel] = useState<JlptLevel>("N5");
+  const filter = useLevelFilter();
+  const [picked, setLevel] = useState<JlptLevel>("N5");
+  const level = filter ?? picked;
   const [list, setList] = useState<PlacementList | null>(null);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
@@ -42,6 +45,6 @@ export const PlacementScreen = () => {
   };
 
   return (
-    <PlacementView level={level} list={list} ticked={ticked} message={message} onLevel={setLevel} onToggle={toggle} onSubmit={submit} />
+    <PlacementView level={level} list={list} ticked={ticked} message={message} onLevel={filter ? undefined : setLevel} onToggle={toggle} onSubmit={submit} />
   );
 };
