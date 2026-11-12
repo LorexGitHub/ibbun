@@ -14,13 +14,6 @@ const Column = ({ title, children }: { title: string; children: ReactNode }) => 
   </section>
 );
 
-const Group = ({ title, children }: { title: string; children: ReactNode }) => (
-  <div className="account-form">
-    <h3>{title}</h3>
-    {children}
-  </div>
-);
-
 /** Ends the session, here or everywhere, and goes to log in once that worked. */
 const useLeave = () => {
   const navigate = useNavigate();
@@ -114,13 +107,14 @@ const DeleteAccount = () => {
     if (await run(client.deleteAccount(password), "Account deleted.")) navigate("/signup");
   };
   return (
-    <Group title="Delete account">
+    <div className="account-form">
+      <h3>Delete account</h3>
       <p>This deletes your account and everything you studied. It can't be undone.</p>
       <Form submit="Delete my account" onSubmit={submit}>
         <Field label="Password to confirm" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         <Notice outcome={outcome} />
       </Form>
-    </Group>
+    </div>
   );
 };
 
@@ -145,15 +139,17 @@ export const Settings = () => {
           <PreferencesSection />
         </Column>
         <Column title="Account">
-          <Group title="Email">
+          <div className="account-form">
+            <h3>Email</h3>
             <p>
               Signed in as <strong>{learner.email}</strong>
             </p>
             <ChangeEmail />
-          </Group>
-          <Group title="Password">
+          </div>
+          <div className="account-form">
+            <h3>Password</h3>
             <ChangePassword />
-          </Group>
+          </div>
           <LogOut />
           <DeleteAccount />
         </Column>
