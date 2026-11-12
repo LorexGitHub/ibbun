@@ -4,7 +4,7 @@ Cram lets a Learner choose Study Items, including ones still Locked, and practis
 
 ## Sub-features
 
-- `cram-choose` lists a level's Kanji, Words and Grammar Points (all of them, Locked or not), narrowed by type or a search, and keeps the choice across searches.
+- `cram-choose` lists a level's Kanji, Words and Grammar Points (all of them, Locked or not), narrowed by type or a search, and keeps the choice across searches. A search or level with no result reads "Nothing matches. Try another level, type or search word, or look it up in the Library." with the link **Open the Library** to `/browse`.
 - `cram-practise` asks each chosen item once, blanking the target (highlighting it for a Kanji), with a hint on request, retries for empty input, Latin letters and alternates, and Show answer as a fail.
 - `cram-log` stores each graded answer as a `cram` Review with its facets, attempts, hints and time, and nothing else.
 - `cram-untouched` leaves Mastery, Known, Introduced and due dates unchanged.

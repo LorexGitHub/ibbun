@@ -4,7 +4,7 @@ Free Listening practice (`slices/listening`, issue #66): a Learner picks a level
 
 ## Sub-features
 
-- **Level picker**: N5 to N1 buttons; the chosen one has `aria-pressed="true"`. A level with no playable clip says "No N1 clips yet."
+- **Level picker**: N5 to N1 buttons; the chosen one has `aria-pressed="true"`. A level with no playable clip says "No N1 clips yet. Pick another level above, or read at your level instead." with the link **Open Reading** to `/reading`.
 - **Clip playback**: "Play" plays each line of the clip in order, then the button reads "Replay". A "Slow (0.75×)" checkbox sets `playbackRate` to 0.75; it starts ticked when the Learner's `slowAudio` preference is on.
 - **Dictation** (type what you heard, `aria-label="What did you hear?"`, kana IME) and **comprehension** (a question with four shuffled choice buttons, asked after the first play). The server grades both with `grade()`; empty or unusable input answers `retry` and clears the box without logging.
 - **Show answer**: counts as a fail (`revealed: true`) and shows the transcript.
