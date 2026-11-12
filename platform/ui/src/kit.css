@@ -57,10 +57,13 @@ rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
 .mark { flex: none; }
 
 /* The frame every screen shares */
-.app { min-height: 100vh; display: flex; flex-direction: column; }
+.app { min-height: 100vh; display: flex; flex-direction: column; isolation: isolate; }
+/* The screen's kanji, bleeding off the bottom right. Ink at 6% reads as a watermark in all ten looks. */
+.app-kanji { position: fixed; right: -0.08em; bottom: -0.2em; z-index: -1; font: 500 clamp(200px, 42vw, 540px)/1 var(--font-jp); color: color-mix(in oklab, var(--color-ink) 6%, transparent); pointer-events: none; user-select: none; }
 .app-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); padding-block: var(--space-lg); }
-.brand { display: flex; align-items: center; gap: 10px; font: 500 var(--text-sm) var(--font-body); text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--color-ink); text-decoration: none; }
-.nav-links { display: flex; flex-wrap: wrap; gap: var(--space-xs); justify-content: center; }
+.brand { display: flex; border-radius: 8px; }
+.nav-links { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); }
+.session-count { color: var(--color-muted); font: 500 var(--text-md) var(--font-body); font-variant-numeric: tabular-nums; }
 .nav-aside { display: flex; gap: var(--space-xs); align-items: center; }
 .app-main { flex: 1; padding-block: var(--space-xl) var(--space-3xl); }
 
@@ -74,7 +77,7 @@ rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
 
 @media (max-width: 720px) {
   .app-nav { flex-wrap: wrap; }
-  .nav-links { order: 3; width: 100%; justify-content: flex-start; }
+  .nav-links { order: 3; flex: none; width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
 

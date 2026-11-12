@@ -1,9 +1,9 @@
 import type { NavEntry } from "@mojibun/slice";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/vendor/ui/command";
 import { Kbd } from "@/vendor/ui/kbd";
-import { groups, type Who } from "./places.ts";
+import { doorPath, groups, levelPath, LEVELS, type Level, type Who } from "./places.ts";
 
 const onMac = () => typeof navigator !== "undefined" && /Mac|iP(hone|ad)/.test(navigator.userAgent);
 
@@ -36,8 +36,8 @@ export const useCommandKey = (open: () => void) => {
 };
 
 export const CommandTrigger = ({ onOpen }: { onOpen: () => void }) => (
-  <button type="button" className="pill go-to" onClick={onOpen} aria-keyshortcuts="Control+K Meta+K">
-    Go to
+  <button type="button" className="where-to" onClick={onOpen} aria-keyshortcuts="Control+K Meta+K">
+    Where to?
     <Kbd className="go-to-key">{onMac() ? "⌘K" : "Ctrl K"}</Kbd>
   </button>
 );
@@ -46,6 +46,23 @@ const Glyph = ({ entry }: { entry: NavEntry }) => (
   <span className="cmd-glyph jp" lang="ja" aria-hidden>
     {entry.glyph ?? entry.label[0]}
   </span>
+);
+
+/** "All" and the five levels beside the doors. Choosing one opens the study and practice doors for that level. */
+const LevelPane = ({ level, onPick }: { level?: Level; onPick: (level?: Level) => void }) => (
+  <div role="radiogroup" aria-label="Level" className="cmd-levels">
+    <button type="button" role="radio" aria-checked={!level} className="cmd-level" onClick={() => onPick()}>
+      All
+    </button>
+    {LEVELS.map((l) => (
+      <button key={l.name} type="button" role="radio" aria-checked={l === level} className="cmd-level" onClick={() => onPick(l)}>
+        <span className="jp" lang="ja" aria-hidden>
+          {l.numeral}
+        </span>
+        {l.name}
+      </button>
+    ))}
+  </div>
 );
 
 export const CommandMenu = ({
@@ -62,26 +79,46 @@ export const CommandMenu = ({
   onSignOut: () => void;
 }) => {
   const navigate = useNavigate();
+  const [level, setLevel] = useState<Level>();
+  // The level is never remembered: the next time the menu opens it is on All
+  const change = (next: boolean) => {
+    setLevel(undefined);
+    onOpenChange(next);
+  };
   const run = (act: () => void) => () => {
-    onOpenChange(false);
+    change(false);
     act();
   };
   return (
     <CommandDialog
       open={open}
-      onOpenChange={onOpenChange}
-      title="Go to"
-      description="Jump to any screen in mojibun."
-      className="cmd zoom-in-100 zoom-out-100 sm:max-w-xl"
+      onOpenChange={change}
+      title="Where to?"
+      description="Jump to any screen in mojibun, for every level or for one."
+      className="cmd zoom-in-100 zoom-out-100 sm:max-w-3xl"
     >
-      <Command filter={matchScore}>
+      {/* The doors come first in the document so the search field takes the focus; the levels show on the left */}
+      <Command filter={matchScore} className="cmd-doors">
         <CommandInput placeholder="Where to? Try “listen” or “kanji”" />
         <CommandList className="max-h-[min(60vh,28rem)]">
           <CommandEmpty>Nothing goes by that name.</CommandEmpty>
+          {level && (
+            <CommandGroup heading={level.name}>
+              <CommandItem value={`${level.name} level page`} onSelect={run(() => navigate(levelPath(level)))}>
+                <span className="cmd-glyph jp" lang="ja" aria-hidden>
+                  {level.numeral}
+                </span>
+                <span className="cmd-text">
+                  {level.name} level page
+                  <small>How far you are in {level.name}, and its doors.</small>
+                </span>
+              </CommandItem>
+            </CommandGroup>
+          )}
           {groups(nav).map((g) => (
             <CommandGroup key={g.place} heading={g.heading}>
               {g.entries.map((entry) => (
-                <CommandItem key={entry.path} value={entry.label} keywords={[entry.blurb]} onSelect={run(() => navigate(entry.path))}>
+                <CommandItem key={entry.path} value={entry.label} keywords={[entry.blurb]} onSelect={run(() => navigate(doorPath(entry, level)))}>
                   <Glyph entry={entry} />
                   <span className="cmd-text">
                     {entry.label}
@@ -109,6 +146,7 @@ export const CommandMenu = ({
           </CommandGroup>
         </CommandList>
       </Command>
+      {who.state === "in" && <LevelPane level={level} onPick={setLevel} />}
     </CommandDialog>
   );
 };

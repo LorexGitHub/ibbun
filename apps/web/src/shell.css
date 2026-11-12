@@ -2,9 +2,15 @@
 
 /* The top line */
 .who { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: transparent; color: var(--color-ink); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); cursor: pointer; border: 0; padding: 0; font-size: var(--text-sm); }
-.go-to { gap: var(--space-xs); cursor: pointer; border: 0; font: inherit; font-size: var(--text-sm); color: var(--color-muted); }
+.where-to { display: inline-flex; align-items: center; justify-content: space-between; gap: var(--space-md); width: 260px; min-height: 40px; padding: 0 9px 0 var(--space-md); border: 0; border-radius: var(--radius-pill); background: var(--color-card); box-shadow: inset 0 0 0 1px var(--color-rule); color: var(--color-muted); font: inherit; font-size: var(--text-sm); cursor: text; }
+.where-to:hover { box-shadow: inset 0 0 0 1px var(--color-muted); }
+.levels { display: flex; gap: 2px; margin-left: var(--space-sm); }
+.level-link { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: var(--radius-pill); color: var(--color-muted); font: 500 var(--text-sm) var(--font-body); letter-spacing: .04em; text-decoration: none; }
+.level-link:hover { color: var(--color-ink); }
+.level-link.active { color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-rule); }
 .go-to-key { background: transparent; color: var(--color-muted); box-shadow: inset 0 0 0 1px var(--color-rule); border-radius: 6px; height: 22px; padding: 0 6px; font-family: var(--font-body); }
-.session-name { display: inline-flex; align-items: center; gap: var(--space-sm); font: 700 var(--text-title) var(--font-display); }
+.session-name { display: inline-flex; align-items: center; gap: var(--space-sm); margin-left: var(--space-sm); font: 700 var(--text-title) var(--font-display); }
+.session-name .session-count { margin-left: var(--space-xs); }
 .session-name .jp { font-size: 26px; color: var(--color-accent); }
 
 /* The dock */
@@ -32,6 +38,14 @@
 .cmd [data-slot="command-item"] { gap: var(--space-md); padding: 10px var(--space-sm); border-radius: 12px !important; font-size: var(--text-md); cursor: pointer; color: var(--color-ink); }
 .cmd [data-slot="command-item"][data-selected="true"] { background: var(--color-accent); color: var(--color-accent-ink); }
 .cmd [data-slot="command-empty"] { color: var(--color-muted); font-size: var(--text-md); }
+/* Two panes: the levels on the left, the doors on the right */
+.cmd { display: flex !important; }
+.cmd-doors { order: 2; flex: 1; min-width: 0; }
+.cmd-levels { order: 1; flex: none; width: 150px; display: grid; align-content: start; gap: 2px; padding: var(--space-sm); border-right: 1px solid var(--color-rule); }
+.cmd-level { display: flex; align-items: center; gap: var(--space-sm); min-height: 44px; padding: 0 var(--space-sm); border: 0; border-radius: 12px; background: transparent; color: var(--color-ink); font: inherit; font-size: var(--text-md); text-align: left; cursor: pointer; }
+.cmd-level .jp { width: 22px; font-size: 20px; color: var(--color-accent); }
+.cmd-level:hover { background: var(--color-paper-2); }
+.cmd-level[aria-checked="true"] { background: var(--color-paper-2); box-shadow: inset 0 0 0 1px var(--color-rule); font-weight: 600; }
 .cmd-glyph { width: 40px; height: 40px; flex: none; display: grid; place-items: center; font: 500 21px var(--font-jp); border-radius: 12px; box-shadow: inset 0 0 0 1px var(--color-rule); }
 [data-selected="true"] > .cmd-glyph { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-accent-ink) 40%, transparent); }
 .cmd-text { display: grid; line-height: 1.25; }
@@ -56,4 +70,10 @@
 @media (max-width: 860px) {
   .inside-grid { grid-template-columns: 1fr; }
   .go-to-key { display: none; }
+  .where-to { width: auto; }
+}
+@media (max-width: 640px) {
+  .cmd { flex-direction: column; }
+  .cmd-levels { display: flex; width: auto; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--color-rule); }
+  .cmd-level .jp { display: none; }
 }

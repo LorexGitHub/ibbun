@@ -29,6 +29,36 @@ describe("web shell", () => {
     expect(html).toContain('aria-label="Sample" aria-current="page" class="dock-link active" href="/sample"');
   });
 
+  it("keeps the five levels and the Where to? field in the top line for a logged-in Learner", async () => {
+    const shell = await buildShell(discoverSlices(modules));
+    const at = (who: Who, location = "/sample") =>
+      renderToString(
+        <StaticRouter location={location}>
+          <App shell={shell} initialWho={who} />
+        </StaticRouter>,
+      );
+    const learner: Who = { state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } };
+    expect(at(learner)).toContain('<nav aria-label="Levels"');
+    expect(at(learner)).toContain('class="level-link" href="/level/n5"');
+    expect(at(learner, "/level/n1")).toContain('aria-current="page" class="level-link active" href="/level/n1"');
+    expect(at(learner)).toContain('class="where-to"');
+    expect(at({ state: "out" })).not.toContain("/level/n5");
+    expect(at({ state: "out" })).toContain('class="where-to"');
+    expect(at({ state: "loading" })).not.toContain("/level/n5");
+  });
+
+  it("stands the screen's kanji in the background", async () => {
+    const shell = await buildShell(discoverSlices(modules));
+    const at = (location: string) =>
+      renderToString(
+        <StaticRouter location={location}>
+          <App shell={shell} initialWho={{ state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } }} />
+        </StaticRouter>,
+      );
+    expect(at("/sample")).toContain('<span class="app-kanji" lang="ja" aria-hidden="true">文</span>');
+    expect(at("/level/n4")).toContain('<span class="app-kanji" lang="ja" aria-hidden="true">四</span>');
+  });
+
   it("welcomes a visitor with a way to sign up and log in instead of an empty Today", async () => {
     const shell = await buildShell(discoverSlices(modules));
     const html = renderToString(
@@ -55,15 +85,19 @@ describe("web shell", () => {
   });
 
   it("swaps the map for a way back to Today inside a session", async () => {
-    const session: Slice = { name: "drill", nav: { label: "Drill", path: "/drill", place: "study", blurb: "Drill.", session: true } };
+    const session: Slice = { name: "drill", nav: { label: "Drill", path: "/drill", place: "study", blurb: "Drill.", glyph: "練", session: true } };
     const shell = await buildShell(discoverSlices({ ...modules, drill: { default: session } }));
     const html = renderToString(
       <StaticRouter location="/drill">
-        <App shell={shell} initialWho={{ state: "out" }} />
+        <App shell={shell} initialWho={{ state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } }} />
       </StaticRouter>,
     );
     expect(html).toContain("Done for now");
     expect(html).not.toContain('href="/sample"');
+    expect(html).not.toContain("/level/n5");
+    expect(html).not.toContain('class="where-to"');
+    expect(html).toContain('id="session-count"');
+    expect(html).toContain('<span class="app-kanji" lang="ja" aria-hidden="true">練</span>');
   });
 
   it("frames every screen with the EDRDG footer", async () => {

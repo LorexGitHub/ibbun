@@ -3,21 +3,34 @@ import { Footer } from "./attribution.tsx";
 import { Mark } from "./mark.tsx";
 
 /**
- * Every screen's frame: a quiet top line with the seal, the nav entries and an aside (search, account),
+ * Every screen's frame: the screen's kanji large in the background, a quiet top line with the seal as the way home,
+ * what the app puts beside it (the levels, or a session's name) and an aside (search, account),
  * the screen, the dock along the bottom when there is one, and the EDRDG footer.
  */
-export const Layout = ({ nav, aside, dock, children }: { nav?: ReactNode; aside?: ReactNode; dock?: ReactNode; children: ReactNode }) => (
+export const Layout = ({
+  nav,
+  aside,
+  dock,
+  kanji,
+  children,
+}: {
+  nav?: ReactNode;
+  aside?: ReactNode;
+  dock?: ReactNode;
+  kanji?: string;
+  children: ReactNode;
+}) => (
   <div className="app">
+    {kanji && (
+      <span className="app-kanji" lang="ja" aria-hidden="true">
+        {kanji}
+      </span>
+    )}
     <header className="wrap app-nav">
-      <a className="brand" href="/">
+      <a className="brand" href="/" aria-label="mojibun">
         <Mark />
-        mojibun
       </a>
-      {nav && (
-        <nav aria-label="Main" className="nav-links">
-          {nav}
-        </nav>
-      )}
+      {nav && <div className="nav-links">{nav}</div>}
       <div className="nav-aside">{aside}</div>
     </header>
     <main className="wrap app-main">{children}</main>

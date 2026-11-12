@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import type { NavEntry } from "@mojibun/slice";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountMenu } from "./AccountMenu.tsx";
 import { AppDock } from "./AppDock.tsx";
-import { CommandMenu, matchScore, useCommandKey } from "./CommandMenu.tsx";
+import { CommandMenu, CommandTrigger, matchScore, useCommandKey } from "./CommandMenu.tsx";
 import type { Who } from "./places.ts";
 
 afterEach(cleanup);
@@ -61,6 +61,81 @@ const Keyed = ({ onOpen }: { onOpen: () => void }) => {
   return <input aria-label="answer" />;
 };
 
+const Address = () => {
+  const { pathname, search } = useLocation();
+  return <output data-testid="address">{pathname + search}</output>;
+};
+
+const openCommandMenu = (who: Who, onOpenChange = (_open: boolean) => {}) =>
+  render(
+    <MemoryRouter>
+      <CommandMenu open onOpenChange={onOpenChange} nav={nav} who={who} onSignOut={() => {}} />
+      <Address />
+    </MemoryRouter>,
+  );
+const address = () => screen.getByTestId("address").textContent;
+const checked = (name: string) => screen.getByRole("radio", { name }).getAttribute("aria-checked");
+const pick = async (role: "radio" | "option", name: string | RegExp) => act(async () => fireEvent.click(screen.getByRole(role, { name })));
+
+describe("the Where to? field", () => {
+  it("opens the command menu and names its key", () => {
+    const open = vi.fn();
+    render(<CommandTrigger onOpen={open} />);
+    const field = screen.getByRole("button", { name: /Where to\?/ });
+    expect(field.textContent).toContain("Ctrl K");
+    fireEvent.click(field);
+    expect(open).toHaveBeenCalledOnce();
+  });
+});
+
+describe("the command menu's levels", () => {
+  it("starts on All, with the five levels beside the doors", () => {
+    openCommandMenu(as("learner"));
+    const levels = screen.getByRole("radiogroup", { name: "Level" });
+    expect(levels.textContent).toBe("All五N5四N4三N3二N2一N1");
+    expect(checked("All")).toBe("true");
+    expect(checked("N3")).toBe("false");
+    expect(screen.queryByRole("option", { name: /level page/ })).toBeNull();
+  });
+
+  it("opens a door for the chosen level", async () => {
+    openCommandMenu(as("learner"));
+    await pick("radio", "N3");
+    expect(checked("N3")).toBe("true");
+    expect(checked("All")).toBe("false");
+    expect(checked("N4")).toBe("false");
+    await pick("option", /Reviews/);
+    expect(address()).toBe("/reviews?level=n3");
+  });
+
+  it("links the chosen level to its page, and goes back to every level on All", async () => {
+    openCommandMenu(as("learner"));
+    await pick("radio", "N2");
+    await pick("radio", "All");
+    expect(checked("All")).toBe("true");
+    expect(screen.queryByRole("option", { name: /level page/ })).toBeNull();
+    await pick("radio", "N2");
+    await pick("option", /N2 level page/);
+    expect(address()).toBe("/level/n2");
+  });
+
+  it("forgets the level once the menu closes", async () => {
+    const close = vi.fn();
+    openCommandMenu(as("learner"), close);
+    await pick("radio", "N1");
+    await pick("option", /Library/);
+    expect(close).toHaveBeenCalledWith(false);
+    expect(address()).toBe("/browse");
+    expect(checked("All")).toBe("true");
+  });
+
+  it("offers a visitor no levels, since a level page needs an account", () => {
+    openCommandMenu({ state: "out" });
+    expect(screen.queryByRole("radiogroup")).toBeNull();
+    expect(screen.getByRole("option", { name: /Reviews/ })).toBeTruthy();
+  });
+});
+
 describe("the command menu", () => {
   it("opens on Ctrl K anywhere and on / unless the Learner is typing", () => {
     const open = vi.fn();
@@ -79,7 +154,7 @@ describe("the command menu", () => {
         <CommandMenu open onOpenChange={close} nav={nav} who={as("learner")} onSignOut={() => {}} />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("dialog", { name: "Go to" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Where to?" })).toBeTruthy();
     expect(screen.getByText("Study")).toBeTruthy();
     expect(screen.getByRole("option", { name: /Log out/ })).toBeTruthy();
     await act(async () => fireEvent.click(screen.getByRole("option", { name: /Library/ })));

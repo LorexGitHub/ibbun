@@ -11,5 +11,5 @@ test("a Learner browses a level, searches, and opens a page with a Locked badge 
   await page.getByRole("link", { name: /月/ }).first().click();
 
   await expect(page.getByRole("link", { name: "Learn now" })).toHaveAttribute("href", /^\/learn\?now=/);
-  await expect(page.getByText("N5", { exact: true })).toBeVisible();
+  await expect(page.getByRole("main").getByText("N5", { exact: true })).toBeVisible();
 });

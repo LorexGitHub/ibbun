@@ -33,7 +33,8 @@ The theme module ([`src/theme.tsx`](src/theme.tsx)) owns the choice: `applyTheme
 - Cards are quiet: a lifted surface with a hairline, `--radius-card` 20px.
 
 ## Frame and wayfinding
-- `Layout`: a quiet top line with the seal and the wordmark, an aside (Go to, account), the screen, the EDRDG footer, and the dock.
+- `Layout`: the screen's kanji large and faint at the bottom right (`kanji`, ink at 6%, hidden from assistive technology), a quiet top line with the seal alone as the way home (its accessible name is "mojibun"; there is no wordmark), what the app puts beside it (`nav`: the five levels, or a session's name), an aside (the Where to? field, account), the screen, the EDRDG footer, and the dock.
+- `SessionCountSlot` and `SessionCount`: a session screen renders `<SessionCount at={2} of={5} />` anywhere and the frame's header shows "2 / 5" where the slot is. Without a slot it shows in place.
 - The dock is for logged-in Learners only. It holds Today and every study, practice and library place as a glyph (今 復 新 測 詰 聞 読 辞), the name on hover and focus, a dot under the current one. A slice joins it through its nav entry's `place` and `glyph`; `apps/web/src/places.ts` is the map.
 - A session screen hides the dock and shows its glyph and name with "Done for now".
 - Any screen can open the ⌘K menu with `openGoTo()` from `@mojibun/ui`.
