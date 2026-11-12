@@ -1,0 +1,138 @@
+/* The Library: a wall of tiles shaded by Mastery, and a Study Item as a sheet over it. */
+
+.library {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.wall-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+.wall-bar .input {
+  flex: 1;
+  min-width: 12rem;
+  min-height: 42px;
+}
+
+.wall-tabs {
+  display: inline-flex;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.wall-tabs [role="tab"] {
+  min-height: 42px;
+  padding: 0 var(--space-md);
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.wall-tabs [role="tab"][aria-selected="true"] {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.wall-tabs [role="tab"]:focus-visible {
+  outline-offset: -3px;
+}
+
+.wall-count {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.wall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wall:empty {
+  display: none;
+}
+
+/* The shade is the accent mixed into the card: none for New, full for Mature */
+.tile,
+.wall-swatch {
+  --shade: 0%;
+  background: color-mix(in oklab, var(--color-accent) var(--shade), var(--color-card));
+  border: 1px solid color-mix(in oklab, var(--color-accent) var(--shade), var(--color-rule));
+}
+[data-mastery="learning"] { --shade: 18%; }
+[data-mastery="relearning"] { --shade: 18%; border-style: dashed; }
+[data-mastery="young"] { --shade: 48%; }
+[data-mastery="mature"] { --shade: 100%; color: var(--color-accent-ink); }
+
+.tile {
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 var(--space-xs);
+  border-radius: 6px;
+  color: var(--color-ink);
+  font: 500 var(--text-md) var(--font-jp);
+  cursor: pointer;
+  transition: opacity var(--dur-short), translate var(--dur-micro);
+}
+.tile:hover {
+  translate: 0 -1px;
+}
+.tile[data-dim] {
+  opacity: 0.16;
+}
+/* Words and Grammar are as wide as they need, up to a limit: long ones are cut with an ellipsis */
+.wall:not([data-track="kanji"]) .tile {
+  max-width: 14rem;
+  padding: 0 var(--space-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wall-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.wall-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+.wall-swatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 3px;
+}
+
+.wall-sheet-back {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  justify-items: end;
+  background: color-mix(in oklab, var(--color-ink) 28%, transparent);
+}
+.wall-sheet {
+  width: min(34rem, 100%);
+  height: 100%;
+  padding: var(--space-lg);
+  overflow-y: auto;
+  background: var(--color-paper);
+  box-shadow: var(--shadow-paper);
+}
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}

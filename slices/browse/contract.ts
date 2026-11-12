@@ -17,8 +17,16 @@ export const Summary = z.object({
 });
 export type Summary = z.infer<typeof Summary>;
 
-/** `GET /api/browse/levels/:level`: every visible Study Item at the level. */
-export const LevelList = z.object({ level: JlptLevel, items: z.array(Summary) });
+/** Where the Learner stands with a Study Item. One they have not been taught is New. */
+export const Mastery = z.enum(["new", "learning", "young", "mature", "relearning"]);
+export type Mastery = z.infer<typeof Mastery>;
+
+/** One tile of the Mastery wall. */
+export const Tile = Summary.extend({ mastery: Mastery });
+export type Tile = z.infer<typeof Tile>;
+
+/** `GET /api/browse/levels/:level`: every visible Study Item at the level, with the Learner's Mastery of each. */
+export const LevelList = z.object({ level: JlptLevel, items: z.array(Tile) });
 export type LevelList = z.infer<typeof LevelList>;
 
 /** `GET /api/browse/search?q=` */

@@ -8,6 +8,7 @@ import { ItemPage, LevelList, Redirect, SearchResults } from "../contract.ts";
 import { createBrowseApi } from "../server/api.ts";
 
 const learner: LearnerSession = { learnerId: LearnerId.parse("4f1c2a3e-0000-4000-8000-000000000001"), role: "learner" };
+const OTHER = LearnerId.parse("4f1c2a3e-0000-4000-8000-000000000002");
 const RETIRED = StudyItemId.parse("00000058-0000-7000-8000-00000000ffff");
 
 const setup = () => {
@@ -21,7 +22,7 @@ const setup = () => {
   const api = createBrowseApi({ contentGraph, learningPath, progress, sessions });
   const headers = sessions.signIn(learner);
   const get = (path: string) => api.request(path, { headers });
-  return { api, ids, progress, get };
+  return { api, ids, progress, sessions, get };
 };
 
 describe("browse api", () => {
@@ -40,6 +41,20 @@ describe("browse api", () => {
       expect(body.level).toBe("N5");
       expect(new Set(body.items.map((i) => i.type))).toEqual(new Set(["kanji", "word", "grammar_point"]));
       expect(body.items).toHaveLength(30);
+    });
+
+    it("gives each item the Learner's own Mastery, and New for what they have not met", async () => {
+      const day = s.ids.kanji["日"]!;
+      await s.progress.record({ learnerId: learner.learnerId, studyItemId: day, kind: "manual", passed: true, at: "2026-11-06T09:00:00Z", source: "placement" });
+      const mine = (await s.progress.item(learner.learnerId, day)).mastery;
+      expect(mine).not.toBe("new");
+
+      const { items } = LevelList.parse(await (await s.get("/levels/N5")).json());
+      expect(items.find((i) => i.id === day)!.mastery).toBe(mine);
+      expect(new Set(items.filter((i) => i.id !== day).map((i) => i.mastery))).toEqual(new Set(["new"]));
+
+      const other = await s.api.request("/levels/N5", { headers: s.sessions.signIn({ ...learner, learnerId: OTHER }) });
+      expect(new Set(LevelList.parse(await other.json()).items.map((i) => i.mastery))).toEqual(new Set(["new"]));
     });
 
     it("lists nothing for a level with no content", async () => {

@@ -24,8 +24,9 @@ export const createBrowseApi = ({ contentGraph, learningPath, progress, sessions
     .get("/levels/:level", requireLearner(), async (c) => {
       const level = JlptLevel.safeParse(c.req.param("level"));
       if (!level.success) return c.json({ message: "unknown JLPT Level" }, 404);
-      const lists = await Promise.all(TYPES.map((type) => contentGraph.levelList(level.data, type)));
-      const body: LevelList = { level: level.data, items: lists.flat().map(summaryOf) };
+      const [met, ...lists] = await Promise.all([progress.items(c.get("learner").learnerId), ...TYPES.map((type) => contentGraph.levelList(level.data, type))]);
+      const mastery = new Map(met.map((p) => [p.studyItemId, p.mastery]));
+      const body: LevelList = { level: level.data, items: lists.flat().map((item) => ({ ...summaryOf(item), mastery: mastery.get(item.id) ?? "new" })) };
       return c.json(body);
     })
     .get("/search", requireLearner(), async (c) => {
