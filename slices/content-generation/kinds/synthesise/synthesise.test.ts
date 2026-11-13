@@ -3,7 +3,7 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CreateBucketCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { createFakeAuthoring } from "@ibbun/content-graph/testing";
 import { ListeningSynthesise } from "@ibbun/content-graph/jobs";
 import { createFakeJobs } from "@ibbun/jobs";
@@ -164,25 +164,23 @@ describe("the audio store in a directory", () => {
 const endpoint = process.env.TEST_S3_ENDPOINT;
 describe.runIf(endpoint)("the audio store in S3", () => {
   const client = new S3Client({ endpoint, region: "us-east-1", forcePathStyle: true, credentials: { accessKeyId: "test", secretAccessKey: "test" } });
-  const bucket = async () => {
-    const name = `audio-${randomUUID()}`;
-    await client.send(new CreateBucketCommand({ Bucket: name }));
-    return name;
-  };
+  // One bucket for every run: SeaweedFS gives each bucket its own volumes and fails once they run out. Each test takes a fresh prefix.
+  const bucket = "ibbun-test-audio";
+  beforeAll(() => client.send(new CreateBucketCommand({ Bucket: bucket })).catch(() => {}));
 
-  audioStoreContract(async () => createS3AudioStore(client, { bucket: await bucket(), prefix: "audio/" }));
+  audioStoreContract(async () => createS3AudioStore(client, { bucket, prefix: `${randomUUID()}/audio/` }));
 
   it("is what s3://bucket/audio/ in AUDIO_DIR names, keeping a clip at audio/<key>, the path CloudFront serves, as cacheable Ogg", async () => {
-    const name = await bucket();
+    const prefix = `${randomUUID()}/audio/`;
     vi.stubEnv("AWS_ENDPOINT_URL_S3", endpoint);
     vi.stubEnv("AWS_ACCESS_KEY_ID", "test");
     vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test");
     try {
-      await audioStoreAt(`s3://${name}/audio/`).put("k", new Uint8Array([9]));
+      await audioStoreAt(`s3://${bucket}/${prefix}`).put("k", new Uint8Array([9]));
     } finally {
       vi.unstubAllEnvs();
     }
-    const object = await client.send(new GetObjectCommand({ Bucket: name, Key: "audio/k" }));
+    const object = await client.send(new GetObjectCommand({ Bucket: bucket, Key: `${prefix}k` }));
     expect({ type: object.ContentType, cache: object.CacheControl, body: [...(await object.Body!.transformToByteArray())] }).toEqual({ type: "audio/ogg", cache: "public, max-age=31536000, immutable", body: [9] });
   });
 });

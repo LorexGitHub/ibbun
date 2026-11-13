@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { CreateBucketCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { directoryRawFiles, memoryRawFiles, RAW_RUNS_KEPT, rawFilesAt, s3RawFiles, type RawFiles } from "./raw-files.ts";
 
 const file = (name: string, text: string) => ({ name, bytes: new TextEncoder().encode(text) });
@@ -72,34 +72,32 @@ describe("raw files in memory", () => {
 const endpoint = process.env.TEST_S3_ENDPOINT;
 describe.runIf(endpoint)("raw files in S3", () => {
   const client = new S3Client({ endpoint, region: "us-east-1", forcePathStyle: true, credentials: { accessKeyId: "test", secretAccessKey: "test" } });
-  const bucket = async () => {
-    const name = `raw-${randomUUID()}`;
-    await client.send(new CreateBucketCommand({ Bucket: name }));
-    return name;
-  };
+  // One bucket for every run: SeaweedFS gives each bucket its own volumes and fails once they run out. Each test takes a fresh prefix.
+  const bucket = "ibbun-test-raw";
+  beforeAll(() => client.send(new CreateBucketCommand({ Bucket: bucket })).catch(() => {}));
   // From the objects, not CommonPrefixes: SeaweedFS lists a prefix whose objects were all deleted.
-  const versionsIn = async (name: string, prefix: string) => {
-    const page = await client.send(new ListObjectsV2Command({ Bucket: name, Prefix: `${prefix}jmdict/` }));
+  const versionsIn = async (prefix: string) => {
+    const page = await client.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: `${prefix}jmdict/` }));
     const folders = (page.Contents ?? []).map((o) => o.Key!.slice(`${prefix}jmdict/`.length).split("/")).filter((parts) => parts.length > 1);
     return [...new Set(folders.map(([folder]) => decodeURIComponent(folder!)))];
   };
 
   rawFilesContract(async () => {
-    const name = await bucket();
-    return { raw: s3RawFiles(client, name, "import-raw/"), versions: () => versionsIn(name, "import-raw/"), age: async () => {} };
+    const prefix = `${randomUUID()}/`;
+    return { raw: s3RawFiles(client, bucket, prefix), versions: () => versionsIn(prefix), age: async () => {} };
   });
 
   it("is what s3://bucket/prefix in IMPORT_RAW_DIR names", async () => {
-    const name = await bucket();
+    const prefix = `${randomUUID()}/raw/`;
     vi.stubEnv("AWS_ENDPOINT_URL_S3", endpoint);
     vi.stubEnv("AWS_ACCESS_KEY_ID", "test");
     vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test");
     try {
-      await rawFilesAt(`s3://${name}/raw/`).keep("jmdict", "3.6.2+2026/11?02", [file("a.json", "x")]);
+      await rawFilesAt(`s3://${bucket}/${prefix}`).keep("jmdict", "3.6.2+2026/11?02", [file("a.json", "x")]);
     } finally {
       vi.unstubAllEnvs();
     }
-    expect(text(await s3RawFiles(client, name, "raw/").read("jmdict", "3.6.2+2026/11?02"))).toEqual(["x"]);
-    expect(await versionsIn(name, "raw/")).toEqual(["3.6.2+2026/11?02"]);
+    expect(text(await s3RawFiles(client, bucket, prefix).read("jmdict", "3.6.2+2026/11?02"))).toEqual(["x"]);
+    expect(await versionsIn(prefix)).toEqual(["3.6.2+2026/11?02"]);
   });
 });
