@@ -139,7 +139,7 @@ export interface ContentGraph {
   search(query: string, options?: { limit?: number }): Promise<StudyItemSummary[]>;
   /** The Credits page: every source with its licence, link and live version, then every VOICEVOX voice in use. */
   credits(): Promise<CreditsEntry[]>;
-  /** Every visible Study Item, for `learning-path`. */
+  /** The visible Study Items `learning-path` can offer or depend on: all but the Words with no level that no Listening Clip uses. */
   pathItems(): Promise<PathItem[]>;
 }
 
@@ -170,6 +170,8 @@ type Ctx = {
   overrideIds: Map<string, string[]>;
   items: Map<string, Row<"studyItem">>;
   licensing: ReturnType<typeof licensing>;
+  /** Per table and column, the rows by that column's value, built on first use by `where`. */
+  indexes: Map<object, Map<PropertyKey, Map<unknown, object[]>>>;
 };
 
 const context = (graph: Graph, links: Map<string, string>): Ctx => {
@@ -177,19 +179,31 @@ const context = (graph: Graph, links: Map<string, string>): Ctx => {
   const overrideIds = new Map<string, string[]>();
   for (const o of graph.override.filter((o) => visible(o) && o.state === "active").sort(byId)) {
     overrides.set(o.recordId, { ...overrides.get(o.recordId), [o.field]: o.value });
-    overrideIds.set(o.recordId, [...(overrideIds.get(o.recordId) ?? []), o.id]);
+    overrideIds.set(o.recordId, [...(overrideIds.get(o.recordId) || []), o.id]);
   }
   const items = new Map(graph.studyItem.filter(visible).map((s) => [s.id, s]));
-  return { graph, overrides, overrideIds, items, licensing: licensing(graph, links) };
+  return { graph, overrides, overrideIds, items, licensing: licensing(graph, links), indexes: new Map() };
+};
+
+/** The rows of a table whose `key` is `value`, in table order. A dictionary is too long to scan once per Study Item. */
+const where = <R extends object, K extends keyof R>(ctx: Ctx, rows: R[], key: K, value: R[K]): R[] => {
+  if (!ctx.indexes.has(rows)) ctx.indexes.set(rows, new Map());
+  const byColumn = ctx.indexes.get(rows)!;
+  if (!byColumn.has(key)) {
+    const byValue = new Map<unknown, R[]>();
+    for (const row of rows) byValue.set(row[key], [...(byValue.get(row[key]) || []), row]);
+    byColumn.set(key, byValue);
+  }
+  return (byColumn.get(key)!.get(value) || []) as R[];
 };
 
 /** The Attribution of records as shown: each record plus the active overrides applied to it. */
 const attributionOf = (ctx: Ctx, recordIds: string[]): Attribution =>
-  ctx.licensing.attributionOf(recordIds.flatMap((id) => [id, ...(ctx.overrideIds.get(id) ?? [])]));
+  ctx.licensing.attributionOf(recordIds.flatMap((id) => [id, ...(ctx.overrideIds.get(id) || [])]));
 
 const current = <T extends object>(ctx: Ctx, row: T, recordId: string): T => ({ ...row, ...ctx.overrides.get(recordId) });
 
-const levelOf = (ctx: Ctx, id: string): JlptLevel | null => currentLevel(ctx.graph.levelCandidate.filter((c) => c.studyItemId === id));
+const levelOf = (ctx: Ctx, id: string): JlptLevel | null => currentLevel(where(ctx, ctx.graph.levelCandidate, "studyItemId", id));
 
 /** The newest visible Japanese Explanation that `matches`. */
 const explanationRow = (ctx: Ctx, matches: (e: Row<"japaneseExplanation">) => boolean) =>
@@ -201,17 +215,17 @@ const explanation = (ctx: Ctx, matches: (e: Row<"japaneseExplanation">) => boole
 };
 
 const subEntries = <R extends Lifecycle & { id: string; wordId: string; position: number }>(ctx: Ctx, rows: R[], wordId: string) =>
-  rows.filter((r) => r.wordId === wordId && visible(r)).sort(byPosition).map((r) => current(ctx, r, r.id));
+  where(ctx, rows, "wordId", wordId).filter(visible).sort(byPosition).map((r) => current(ctx, r, r.id));
 
 const kanjiOf = (ctx: Ctx, id: StudyItemId): Kanji | null => {
-  const row = ctx.graph.kanji.find((k) => k.studyItemId === id);
+  const row = where(ctx, ctx.graph.kanji, "studyItemId", id)[0];
   if (!row) return null;
   const { studyItemId: _, ...fields } = current(ctx, row, id);
   return { type: "kanji", id, level: levelOf(ctx, id), ...fields };
 };
 
 const wordOf = (ctx: Ctx, id: StudyItemId): Word | null => {
-  const row = ctx.graph.word.find((w) => w.studyItemId === id);
+  const row = where(ctx, ctx.graph.word, "studyItemId", id)[0];
   if (!row) return null;
   return {
     type: "word",
@@ -265,7 +279,7 @@ const summaryOf = (item: StudyItem | null): StudyItemSummary | null => {
 };
 
 const sentenceOf = (ctx: Ctx, id: string): Sentence | null => {
-  const row = ctx.graph.sentence.find((s) => s.id === id && visible(s));
+  const row = where(ctx, ctx.graph.sentence, "id", id).find(visible);
   if (!row) return null;
   const s = current(ctx, row, row.id);
   const audio = s.audioKey ? { key: s.audioKey, voice: s.audioVoice } : null;
@@ -365,24 +379,24 @@ const bestTier = (item: StudyItem, query: string) =>
 
 const distinct = (ids: string[]) => [...new Set(ids)].sort() as StudyItemId[];
 
-/** Visible Sentences linked to a Study Item by a visible row of `rows`. */
-const sentencesOf = <R extends Lifecycle & { sentenceId: string }>(ctx: Ctx, rows: R[], mine: (r: R) => boolean) =>
-  new Set(rows.filter((r) => mine(r) && visible(r) && sentenceOf(ctx, r.sentenceId)).map((r) => r.sentenceId));
+/** The visible Sentences that the visible rows of `links` point at. */
+const sentencesOf = <R extends Lifecycle & { sentenceId: string }>(ctx: Ctx, links: R[]) =>
+  new Set(links.filter((r) => visible(r) && sentenceOf(ctx, r.sentenceId)).map((r) => r.sentenceId));
 
 /** Visible Study Items that `rows` link from the given Sentences. */
 const linkedFrom = <R extends Lifecycle & { sentenceId: string }>(ctx: Ctx, rows: R[], sentences: Set<string>, end: (r: R) => string) =>
-  rows.filter((r) => sentences.has(r.sentenceId) && visible(r) && ctx.items.has(end(r))).map(end);
+  [...sentences].flatMap((id) => where(ctx, rows, "sentenceId", id as R["sentenceId"])).filter((r) => visible(r) && ctx.items.has(end(r))).map(end);
 
-const exampleSentences = (ctx: Ctx, id: string) => sentencesOf(ctx, ctx.graph.example, (e) => e.studyItemId === id);
+const exampleSentences = (ctx: Ctx, id: string) => sentencesOf(ctx, where(ctx, ctx.graph.example, "studyItemId", id));
 
 const firstFormKanji = (ctx: Ctx, id: string) => {
   const first = subEntries(ctx, ctx.graph.wordForm, id)[0];
-  const inFirst = new Set(ctx.graph.kanji.filter((k) => first?.text.includes(k.literal)).map((k) => k.studyItemId));
-  return ctx.graph.wordContainsKanji.filter((l) => l.wordId === id && visible(l) && ctx.items.has(l.kanjiId) && inFirst.has(l.kanjiId)).map((l) => l.kanjiId);
+  const inFirst = new Set([...new Set(first?.text)].flatMap((literal) => where(ctx, ctx.graph.kanji, "literal", literal)).map((k) => k.studyItemId));
+  return where(ctx, ctx.graph.wordContainsKanji, "wordId", id).filter((l) => visible(l) && ctx.items.has(l.kanjiId) && inFirst.has(l.kanjiId)).map((l) => l.kanjiId);
 };
 
 const clipDependencies = (ctx: Ctx, id: string) => {
-  const sentences = sentencesOf(ctx, ctx.graph.clipVoicesSentence, (l) => l.clipId === id);
+  const sentences = sentencesOf(ctx, where(ctx, ctx.graph.clipVoicesSentence, "clipId", id));
   return [
     ...linkedFrom(ctx, ctx.graph.sentenceUsesWord, sentences, (l) => l.wordId),
     ...linkedFrom(ctx, ctx.graph.sentenceDemonstratesGrammar, sentences, (l) => l.grammarPointId),
@@ -396,12 +410,12 @@ type PathFacts = Pick<PathItem, "priorityTags" | "frequency" | "grade" | "depend
 const NO_FACTS: PathFacts = { priorityTags: [], frequency: null, grade: null, dependsOn: [], demonstrates: [] };
 const PATH_FACTS: { [K in StudyItem["type"]]: (ctx: Ctx, id: string) => Partial<PathFacts> } = {
   kanji: (ctx, id) => {
-    const row = ctx.graph.kanji.find((k) => k.studyItemId === id);
+    const row = where(ctx, ctx.graph.kanji, "studyItemId", id)[0];
     const k = row && current(ctx, row, id);
     return { frequency: k?.frequency ?? null, grade: k?.grade ?? null };
   },
   word: (ctx, id) => {
-    const row = ctx.graph.word.find((w) => w.studyItemId === id);
+    const row = where(ctx, ctx.graph.word, "studyItemId", id)[0];
     return { priorityTags: row ? current(ctx, row, id).priorityTags : [], dependsOn: distinct(firstFormKanji(ctx, id)) };
   },
   grammar_point: (ctx, id) => ({ demonstrates: distinct(demonstratedBy(ctx, id)) }),
@@ -420,7 +434,7 @@ const pathItemOf = (ctx: Ctx, row: Row<"studyItem">): PathItem => ({
 /** The visible Word a Retired Word is superseded by; the first link by ID if there are several. */
 const successorOf = (ctx: Ctx, id: string): StudyItemId | null => {
   const link = ctx.graph.wordSupersededBy.filter((l) => l.retiredWordId === id && visible(l) && ctx.items.has(l.wordId)).sort(byId)[0];
-  return (link?.wordId as StudyItemId | undefined) ?? null;
+  return (link?.wordId as StudyItemId | undefined) || null;
 };
 
 /** The visible Reading Passage with its visible Sentences in order, each with the Words linked to it. */
@@ -502,7 +516,11 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
     },
 
     pathItems(): PathItem[] {
-      return [...ctx.items.values()].sort(byId).map((row) => pathItemOf(ctx, row));
+      const heard = new Set(linkedFrom(ctx, graph.sentenceUsesWord, sentencesOf(ctx, graph.clipVoicesSentence), (l) => l.wordId));
+      return [...ctx.items.values()]
+        .sort(byId)
+        .map((row) => pathItemOf(ctx, row))
+        .filter((item) => item.type !== "word" || item.level !== null || heard.has(item.id));
     },
   };
 };

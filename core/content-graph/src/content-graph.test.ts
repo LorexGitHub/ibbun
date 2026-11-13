@@ -188,7 +188,7 @@ const contract = (make: () => Promise<ContentGraph>) => {
 
   describe("atLevel", () => {
     it("keeps the Study Items whose current level is that level, in the order given", async () => {
-      expect(await cg.atLevel([id("clipAtN5"), id("nomu"), id("taberu"), id("chau")], "N5")).toEqual([id("clipAtN5"), id("taberu")]);
+      expect(await cg.atLevel([id("clipAtN5"), id("nomu"), id("missing"), id("taberu"), id("chau")], "N5")).toEqual([id("clipAtN5"), id("taberu")]);
       expect(await cg.atLevel([id("nomu"), id("taberu")], "N4")).toEqual([id("nomu")]);
       expect(await cg.atLevel([], "N5")).toEqual([]);
     });
