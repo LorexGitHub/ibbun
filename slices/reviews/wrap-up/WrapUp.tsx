@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Card } from "@ibbun/ui";
 import type { StudyItemId } from "@ibbun/shared";
 import type { DueResponse, ReviewPrompt, SubmitResponse } from "../contract.ts";
 import { ReviewCard, type Submit } from "../web/ReviewCard.tsx";
@@ -38,7 +37,7 @@ export const WrapUp = ({ misses, load, submit, onFinish }: { misses: Miss[]; loa
     <section aria-label="Wrap-Up">
       <h2>Wrap-Up</h2>
       <p>{queue.length} to get right</p>
-      <Card>Missed earlier. Answer it again; only your first answer counted.</Card>
+      <p className="muted">Missed earlier. Answer it again; only your first answer counted.</p>
       <ReviewCard key={asking.prompt.exampleId + queue.length} prompt={asking.prompt} preferences={asking.preferences} submit={submit} onDone={answered} />
     </section>
   );
