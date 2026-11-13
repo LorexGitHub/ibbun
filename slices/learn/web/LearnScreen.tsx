@@ -80,7 +80,7 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
   };
 
   if (now) return <LearnNow id={now} api={api} onFinished={finished} />;
-  if (failed) return <p role="alert">{failed}</p>;
+  if (failed) return <Failed message={failed} onRetry={() => (setFailed(null), void load())} />;
   if (ended) return <Ending tally={ended.tally} story={ended.story} next={loaded ? loaded.batch : null} api={api} onMore={keepGoing} />;
   if (!loaded) return <p>Loading…</p>;
   if (started) return <Session batch={loaded.batch} api={api} now={false} onFinished={finished} />;
