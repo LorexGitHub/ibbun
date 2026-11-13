@@ -31,6 +31,7 @@ The theme module ([`src/theme.tsx`](src/theme.tsx)) owns the choice: `applyTheme
 - Buttons are pills (`.btn`). `btn--primary` fills with the accent and casts a soft accent shadow; one per screen. The default is a hairline outline. `btn--loud` is an accent outline.
 - Inputs: 50px, `--radius-input` 12px, a hairline border, the accent focus ring. Answers in Japanese use `KanaInput`.
 - Cards are quiet: a lifted surface with a hairline, `--radius-card` 20px.
+- A result, an empty place or a failed load is a `State`, never text in a bare card: centred under the screen's heading, one large faint mark (the place's glyph, or a result's `score` in ink), a caps label, the heading, one line of fact, a muted note, and the actions with one accent pill. `onRetry` makes it a failed load: an alert labelled "Not loaded" with **Try again**. `inline` is the same rhythm inside a section (an empty list), left-aligned and without the mark.
 
 ## Frame and wayfinding
 - `Layout`: the screen's kanji large and faint at the bottom right (`kanji`, ink at 6%, hidden from assistive technology), a quiet top line with the seal alone as the way home (its accessible name is "ibbun"; there is no wordmark), what the app puts beside it (`nav`: the five levels, or a session's name), an aside (the Where to? field, account), the screen, the EDRDG footer, and the dock.

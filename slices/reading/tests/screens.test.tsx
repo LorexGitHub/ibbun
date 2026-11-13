@@ -53,10 +53,15 @@ describe("reading screens", () => {
     history.replaceState(null, "", "/");
   });
 
-  it("says so when the episodes cannot load", async () => {
-    stub({});
+  it("says so when the episodes cannot load, and loads them again on Try again", async () => {
+    const calls = stub({});
     at("/reading", "/reading", <EpisodesScreen />);
-    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Reading could not load this."));
+    expect((await screen.findByRole("alert")).textContent).toContain("This did not load");
+    calls.length = 0;
+    stub({ "/api/reading/episodes": { body: { levels: [] } } });
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(screen.getByText(/No stories yet/)).toBeTruthy());
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("opens a Batch Text and logs a lookup when a Word is tapped", async () => {

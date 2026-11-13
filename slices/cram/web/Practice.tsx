@@ -1,22 +1,29 @@
 import { useEffect, useState } from "react";
 import type { StudyItemId } from "@ibbun/shared";
-import { Button, Card } from "@ibbun/ui";
+import { Button, State } from "@ibbun/ui";
 import type { Question } from "../contract.ts";
 import type { CramClient } from "./client.ts";
 import { QuestionCard } from "./QuestionCard.tsx";
 
-const Summary = ({ right, asked, skipped, onDone }: { right: number; asked: number; skipped: string[]; onDone: () => void }) => (
-  <Card>
-    <h1>Done</h1>
-    <p>
-      {right} of {asked} right. Mastery and statistics are unchanged.
-    </p>
-    {skipped.length > 0 && <p className="muted">No Example to practise yet for {skipped.join(", ")}.</p>}
+const Summary = ({ right, asked, skipped, onDone }: { right: number; asked: number; skipped: string[]; onDone: () => void }) => {
+  const note = skipped.length > 0 && `No Example to practise yet for ${skipped.join(", ")}.`;
+  const again = (label: string) => (
     <Button variant="primary" hotkey="Enter" onClick={onDone}>
-      Choose more
+      {label}
     </Button>
-  </Card>
-);
+  );
+  if (asked === 0)
+    return (
+      <State heading={1} mark="詰" label="Practice over" title="Nothing to practise" fact="None of these has an Example yet, so there was nothing to ask." note={note}>
+        {again("Choose others")}
+      </State>
+    );
+  return (
+    <State heading={1} score={{ right, of: asked }} label="Practice over" title="Done" fact={`${right} of ${asked} right. Mastery and statistics are unchanged.`} note={note}>
+      {again("Choose more")}
+    </State>
+  );
+};
 
 /** What Practice needs of a Study Item: its id to ask with, and a label to name it when it has no Example. */
 export type PracticeItem = { id: StudyItemId; label: string };
