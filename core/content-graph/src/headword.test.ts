@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { headword } from "./read.ts";
 
 const forms = (...texts: string[]) => texts.map((text, i) => ({ id: `f${i}`, text }));
-const readings = (...texts: string[]) => texts.map((text, i) => ({ id: `r${i}`, text }));
+const readings = (...texts: string[]) => texts.map((text, i) => ({ id: `r${i}`, text, pitchAccent: null }));
 
 describe("headword", () => {
   it("shows the first written form of a Word", () => {
