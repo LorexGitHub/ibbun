@@ -199,9 +199,13 @@ describe("createDb", () => {
 
   it("takes the IAM region from DATABASE_IAM_REGION", async () => {
     vi.stubEnv("DATABASE_IAM_REGION", "eu-central-1");
-    const db = createDb("postgres://ibbun_app@h/ibbun", { signer: async () => "t" });
+    const targets: { port: number }[] = [];
+    const db = createDb("postgres://ibbun_app@h/ibbun", { signer: async (target) => (targets.push(target), "t") });
     expect(await (poolOptions(db).password as () => Promise<string>)()).toBe("t");
-    await db.$client.end();
+    expect(targets[0]!.port).toBe(5432);
+    const off = createDb("postgres://ibbun:ibbun@h/ibbun", { iamRegion: "" });
+    expect(poolOptions(off).password).toBeUndefined();
+    await Promise.all([db.$client.end(), off.$client.end()]);
   });
 
   it("without an IAM region, signs no token and keeps the URL's own password and TLS settings", async () => {
@@ -220,11 +224,12 @@ describe("createDb", () => {
   });
 
   it("sizes the pool from DATABASE_POOL_MAX, an explicit max winning", async () => {
-    vi.stubEnv("DATABASE_POOL_MAX", "2");
+    vi.stubEnv("DATABASE_POOL_MAX", "1");
     const fromEnv = createDb("postgres://x:x@localhost/x");
-    const explicit = createDb("postgres://x:x@localhost/x", { max: 1 });
-    expect([fromEnv.$client.options.max, explicit.$client.options.max]).toEqual([2, 1]);
+    const explicit = createDb("postgres://x:x@localhost/x", { max: 2 });
+    expect([fromEnv.$client.options.max, explicit.$client.options.max]).toEqual([1, 2]);
     await Promise.all([fromEnv.$client.end(), explicit.$client.end()]);
+    expect(() => createDb("postgres://x:x@localhost/x", { max: 0 })).toThrow(/positive integer/);
     vi.stubEnv("DATABASE_POOL_MAX", "0");
     expect(() => createDb("postgres://x:x@localhost/x")).toThrow(/DATABASE_POOL_MAX/);
   });
