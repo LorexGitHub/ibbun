@@ -160,6 +160,13 @@ describe("the quiz queue", () => {
     expect(quiz.tries[kanji.studyItemId]).toEqual({ reading: [], meaning: ["wine"] });
   });
 
+  it("counts every answer it takes, right or missed", () => {
+    expect(startQuiz([water]).asked).toBe(0);
+    let quiz = answered(startQuiz([water]), given(["cloze", false]), 5);
+    quiz = answered(quiz, given(["cloze", true]), 5);
+    expect(quiz.asked).toBe(2);
+  });
+
   it("ignores an answer when no question is left", () => {
     const quiz = startQuiz([]);
     expect(answered(quiz, [], 1)).toBe(quiz);
@@ -313,11 +320,11 @@ describe("a lesson", () => {
     press("I know this");
     expect(screen.getByRole("heading", { name: "水" })).toBeTruthy();
     expect(screen.getByText("You said: I know this")).toBeTruthy();
-    expect(screen.getByText("みず")).toBeTruthy();
+    expect(screen.getByText("みず").className).toBe("jp lesson-reading");
     expect(screen.getByText("water")).toBeTruthy();
-    expect(screen.getByText("のむ水。")).toBeTruthy();
+    expect(screen.getByText("のむ水。").className).toBe("jp lesson-explanation");
     expect(screen.getByText("私は水を飲む。")).toBeTruthy();
-    expect(screen.getByText("I drink water.")).toBeTruthy();
+    expect(screen.getByText("I drink water.").tagName).toBe("P");
     expect(screen.getByRole("button", { name: "Mark as Known" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Not yet" })).toBeNull();
     press("Next");
@@ -338,7 +345,7 @@ describe("a lesson", () => {
     press("Not yet");
     expect(screen.getByText("You said: not yet")).toBeTruthy();
     expect(container.querySelector("mark rt")!.textContent).toBe("みず");
-    expect(screen.getByText("I drink water.")).toBeTruthy();
+    expect(screen.getByText("I drink water.").className).toBe("lesson-translation");
     expect(screen.getByText("Strokes")).toBeTruthy();
     expect(screen.getByText("water")).toBeTruthy();
     press("Start quiz");
@@ -527,7 +534,8 @@ describe("the quiz", () => {
     const { answers } = vi.mocked(api.complete).mock.calls[0]![0] as { answers: QuizAnswer[] };
     expect(answers.map((a) => a.exampleId)).toEqual(["ex-2", "ex-1"]);
     expect(answers[1]).toMatchObject({ studyItemId: water.studyItemId, facets: [{ facet: "cloze", input: "みず", attempts: ["ちがう"] }] });
-    expect(typeof answers[1]!.timeToAnswerMs).toBe("number");
+    expect(answers[1]!.timeToAnswerMs).toBeGreaterThanOrEqual(0);
+    expect(answers[1]!.timeToAnswerMs).toBeLessThan(60_000);
     expect(await learned(2)).toBeTruthy();
   });
 
@@ -541,8 +549,26 @@ describe("the quiz", () => {
     type("Reading in this sentence", "みず");
     type("Meaning of the kanji", "wine");
     press("Check");
-    const lines = [...(await screen.findByRole("status")).querySelectorAll(".answer")];
+    const status = await screen.findByRole("status");
+    const lines = [...status.querySelectorAll(".answer")];
     expect(lines.map((line) => line.className)).toEqual(["answer answer--right", "answer answer--miss"]);
+    expect(status.querySelector('p[lang="en"]')!.textContent).toBe("I drink water.");
+    expect(status.querySelector('p[lang="ja"]')!.textContent).toBe("のむことができる、色のないもの。");
+  });
+
+  it("blanks the word of a cloze until it is checked, and marks a Kanji in its sentence", async () => {
+    const { container } = render(<LearnScreen api={apiOf()} />);
+    await screen.findByRole("heading", { name: "Learn" });
+    await lessons();
+    bothLessons();
+    const sentence = () => container.querySelector(".sentence")!;
+    expect(sentence().querySelector('[aria-label="blank"]')).toBeTruthy();
+    expect(sentence().querySelector("strong")).toBeNull();
+    answerWater();
+    expect(sentence().querySelector("strong")!.textContent).toBe("水");
+    press("Next");
+    expect(sentence().querySelector("mark")!.textContent).toBe("水");
+    expect(sentence().querySelector('[aria-label="blank"]')).toBeNull();
   });
 
   it("asks a Kanji again when only one facet is wrong", async () => {
@@ -604,7 +630,7 @@ describe("the quiz", () => {
     await open(apiOf({ batch: vi.fn(async () => japanese) }));
     await lessons();
     bothLessons();
-    expect(screen.getByText(/のむことができる/)).toBeTruthy();
+    expect(screen.getByText(/のむことができる/).tagName).toBe("P");
     expect(screen.queryByText("I drink water.")).toBeNull();
   });
 
