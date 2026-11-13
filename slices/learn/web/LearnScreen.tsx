@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useLevelFilter } from "@ibbun/ui";
+import { buttonClass, State as Shown, useLevelFilter } from "@ibbun/ui";
 import type { Batch, State, Track } from "../contract.ts";
 import { isTaught, type Tally } from "./batch-view.ts";
 import { learnApi, type LearnApi } from "./learn-client.ts";
@@ -15,12 +15,28 @@ const nowFromUrl = () => new URLSearchParams(globalThis.location.search).get("no
 const LearnNow = ({ id, api, onFinished }: { id: string; api: LearnApi; onFinished: (tally: Tally) => void }) => {
   const [batch, setBatch] = useState<Batch | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
-  useEffect(() => void api.now(id).then(setBatch, (e: Error) => setFailed(e.message)), [api, id]);
-  if (failed) return <p role="alert">{failed}</p>;
+  const load = useCallback(() => {
+    setFailed(null);
+    void api.now(id).then(setBatch, (e: Error) => setFailed(e.message));
+  }, [api, id]);
+  useEffect(load, [load]);
+  if (failed) return <Failed message={failed} onRetry={load} />;
   if (!batch) return <p>Loading…</p>;
-  if (batch.items.length === 0) return <p>This item cannot be taught yet.</p>;
+  if (batch.items.length === 0) return <NothingToTeach />;
   return <Session batch={batch} api={api} now onFinished={onFinished} />;
 };
+
+const Failed = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
+  <Shown heading={1} mark="新" title="Learn did not load" note={message} onRetry={onRetry} />
+);
+
+const NothingToTeach = () => (
+  <Shown heading={1} mark="新" title="This item cannot be taught yet" fact="It has nothing to learn it by yet, such as an Example.">
+    <a className={buttonClass({ variant: "primary" })} href="/learn">
+      Learn something else
+    </a>
+  </Shown>
+);
 
 type Asked = { ids: string[]; enqueued: boolean } | null;
 
@@ -64,7 +80,7 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
   };
 
   if (now) return <LearnNow id={now} api={api} onFinished={finished} />;
-  if (failed) return <p role="alert">{failed}</p>;
+  if (failed) return <Failed message={failed} onRetry={() => (setFailed(null), void load())} />;
   if (ended) return <Ending tally={ended.tally} story={ended.story} next={loaded ? loaded.batch : null} api={api} onMore={keepGoing} />;
   if (!loaded) return <p>Loading…</p>;
   if (started) return <Session batch={loaded.batch} api={api} now={false} onFinished={finished} />;
