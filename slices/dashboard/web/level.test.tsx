@@ -40,7 +40,8 @@ describe("LevelView", () => {
     render(<LevelView page={n4} />, { wrapper: MemoryRouter });
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("N4");
     const rows = within(screen.getByRole("list", { name: "Progress" })).getAllByRole("listitem");
-    expect(rows.map((r) => r.textContent)).toEqual(["Kanji12 of 80 Known · 15%", "Words40 of 600 Known · 6%", "Grammar0 of 0 Known · 0%"]);
+    expect(rows.map((r) => r.textContent)).toEqual(["Kanji12 of 80 Known · 15%", "Words40 of 600 Known · 6%", "GrammarNone at N4 yet · Look in the Library"]);
+    expect(within(rows[2]!).getByRole("link", { name: "Look in the Library" }).getAttribute("href")).toBe("/browse");
     expect(rows.map((r) => (r.querySelector(".level-bar span") as HTMLElement).style.width)).toEqual(["15%", "6%", "0%"]);
   });
 

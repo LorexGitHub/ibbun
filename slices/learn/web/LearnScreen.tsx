@@ -9,7 +9,7 @@ import { Ending, type Story } from "./TallyScreen.tsx";
 import "./learn.css";
 
 /** The Study Item Learn now was asked for: `/learn?now=<id>`, which Browse links to. */
-const nowFromUrl = () => new URLSearchParams(globalThis.location?.search).get("now");
+const nowFromUrl = () => new URLSearchParams(globalThis.location.search).get("now");
 
 /** Learn now: one item and its dependencies through the normal lesson and quiz. */
 const LearnNow = ({ id, api, onFinished }: { id: string; api: LearnApi; onFinished: (tally: Tally) => void }) => {
@@ -80,7 +80,7 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
   };
 
   if (now) return <LearnNow id={now} api={api} onFinished={finished} />;
-  if (failed) return <Failed message={failed} onRetry={() => (setFailed(null), void load())} />;
+  if (failed) return <p role="alert">{failed}</p>;
   if (ended) return <Ending tally={ended.tally} story={ended.story} next={loaded ? loaded.batch : null} api={api} onMore={keepGoing} />;
   if (!loaded) return <p>Loading…</p>;
   if (started) return <Session batch={loaded.batch} api={api} now={false} onFinished={finished} />;
