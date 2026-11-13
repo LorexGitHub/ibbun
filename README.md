@@ -16,8 +16,6 @@ It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLP
 
 > **Status:** a working showcase, still being built. Every issue in the [build plan](docs/build-plan.md) (M1 to M3) is merged, and a second pass is redesigning the screens one by one. What is not on `main` yet is marked **to be added** below. This is a side project, not a released product.
 
-## Demo
-
 <p align="center">
   <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through mojibun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
 </p>
