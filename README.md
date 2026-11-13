@@ -16,6 +16,12 @@ It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLP
 
 > **Status:** a working showcase, still being built. Every issue in the [build plan](docs/build-plan.md) (M1 to M3) is merged, and a second pass is redesigning the screens one by one. What is not on `main` yet is marked **to be added** below. This is a side project, not a released product.
 
+## Demo
+
+<p align="center">
+  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through mojibun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
+</p>
+
 ## What's in it
 
 | Screen | What it does | State |
@@ -33,12 +39,6 @@ It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLP
 | Import | Supervisor only: reports on Import Runs from the open datasets. | Done |
 
 The worker imports the open datasets (JMdict, KANJIDIC2, KanjiVG, Tatoeba, JLPT level lists, UniDic pitch accent, ja Wiktionary, the Grammar Point seed) on a schedule. It also generates content with Claude, which an LLM reviewer then checks.
-
-## Demo
-
-<p align="center">
-  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through mojibun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
-</p>
 
 ## Run it locally
 
