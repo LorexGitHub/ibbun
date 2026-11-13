@@ -25,17 +25,20 @@ const REASON_NOTE: Record<string, string> = {
 
 const KIND_LABEL: Record<string, string> = { example: "Examples", "japanese-explanation": "Japanese Explanations", "grammar-fields": "Grammar Point fields", "listening-clip": "Listening Clips" };
 
+/** Every label is a non-empty name, so an unknown kind falls back to its own key. */
+const kindLabel = (kind: string) => KIND_LABEL[kind] || kind;
+
 const percent = (rate: number) => `${Math.round(rate * 100)}%`;
 
 const KindRow = ({ report, window, onResume }: { report: KindReport; window: number; onResume: (kind: string) => void }) => (
   <li>
     <Card>
-      <strong>{KIND_LABEL[report.kind] ?? report.kind}</strong> <Pill ink={report.paused}>{report.paused ? "auto-approval paused" : "auto-approving"}</Pill>
+      <strong>{kindLabel(report.kind)}</strong> <Pill ink={report.paused}>{report.paused ? "auto-approval paused" : "auto-approving"}</Pill>
       <p>
         Error rate {percent(report.errorRate)} of the last {report.sampled} sampled (up to {window}).
         {report.calibrationLeft > 0 && <> Calibrating: the next {report.calibrationLeft} approvals are all sampled.</>}
       </p>
-      {report.paused && <Button onClick={() => onResume(report.kind)}>Resume {KIND_LABEL[report.kind] ?? report.kind}</Button>}
+      {report.paused && <Button onClick={() => onResume(report.kind)}>Resume {kindLabel(report.kind)}</Button>}
     </Card>
   </li>
 );
@@ -46,7 +49,7 @@ const reviewerNote = (sample: SampleItem) => (sample.model ? `${sample.model}, r
 
 const SampleBody = ({ sample }: { sample: SampleItem }) => (
   <>
-    <Pill ink={sample.reason === "held"}>{sample.reason}</Pill> <small>{KIND_LABEL[sample.kind] ?? sample.kind}. {REASON_NOTE[sample.reason]}</small>
+    <Pill ink={sample.reason === "held"}>{sample.reason}</Pill> <small>{kindLabel(sample.kind)}. {REASON_NOTE[sample.reason]}</small>
     <p lang="ja">{sample.text}</p>
     {sample.translation && <p>{sample.translation}</p>}
     {sample.kind === "listening-clip" && <p>{listenNote(sample.audioKey)}</p>}

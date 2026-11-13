@@ -28,7 +28,9 @@ describe("spot-checks screen", () => {
     expect(html).toContain("Error rate 10% of the last 10 sampled (up to 50)");
     expect(html).toContain("auto-approving");
     expect(html).toContain("水を飲む。");
-    expect(html).toContain("I drink water.");
+    expect(html).toContain("<p>I drink water.</p>");
+    expect(html).toContain('<span class="pill">random</span>');
+    expect(html).not.toContain('role="alert"');
     expect(html).toContain("opus, rubric v1");
     expect(html).toContain("random sample of the reviewer&#x27;s approvals");
     expect(html).toContain("Looks right");
@@ -39,6 +41,7 @@ describe("spot-checks screen", () => {
     expect(render()).not.toContain("Resume");
     const html = render({ kinds: [kind({ paused: true, errorRate: 0.2 })], samples: [sample({ reason: "held" })] });
     expect(html).toContain("auto-approval paused");
+    expect(html).toContain('<span class="pill pill--ink">held</span>');
     expect(html).toContain("Resume Examples");
     expect(html).toContain("not live until you approve it");
     expect(html).toContain(">Approve<");
@@ -46,6 +49,8 @@ describe("spot-checks screen", () => {
 
   it("says when a kind is calibrating", () => {
     expect(render({ kinds: [kind({ calibrationLeft: 12 })] })).toContain("the next 12 approvals are all sampled");
+    expect(render({ kinds: [kind({ calibrationLeft: 1 })] })).toContain("the next 1 approvals are all sampled");
+    expect(render()).not.toContain("Calibrating");
   });
 
   it("tells the supervisor to listen to a Listening Clip", () => {
@@ -58,7 +63,7 @@ describe("spot-checks screen", () => {
   it("says when nothing waits, or why the spot-checks could not load", () => {
     expect(render({ samples: [] })).toContain("No samples are waiting.");
     const html = render({ samples: [], error: "Supervisors only." });
-    expect(html).toContain("Supervisors only.");
+    expect(html).toContain('<p role="alert">Supervisors only.</p>');
     expect(html).not.toContain("No samples are waiting.");
   });
 
@@ -67,6 +72,13 @@ describe("spot-checks screen", () => {
     for (const label of ["Generation Run", "Rubric version", "Model"]) expect(html).toContain(label);
     expect(html).toContain("3 queued.");
     expect(render()).not.toContain("queued.");
+  });
+
+  it("names a kind it has no label for by its key", () => {
+    const html = render({ kinds: [kind({ kind: "mystery", paused: true })], samples: [sample({ kind: "mystery" })] });
+    expect(html).toContain("<strong>mystery</strong>");
+    expect(html).toContain("Resume mystery");
+    expect(html).toContain("<small>mystery. ");
   });
 
   it("is a second route of the slice", () => {
