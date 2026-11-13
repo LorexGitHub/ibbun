@@ -132,3 +132,10 @@
 @media (max-width: 480px) {
   .clip-question ol { grid-template-columns: 1fr; }
 }
+
+/* Practice dialogues sit under the player as their own section, set off by a rule rather than a bare card. */
+.listening-dialogues { display: grid; gap: var(--space-md); max-width: 44rem; margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 1px solid var(--color-rule); }
+.listening-dialogues h2 { font-size: var(--text-title); }
+.listening-dialogues > .btn { justify-self: start; }
+.listening-dialogues ul { margin: 0; padding: 0; list-style: none; }
+.listening-dialogues li { padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-rule); }

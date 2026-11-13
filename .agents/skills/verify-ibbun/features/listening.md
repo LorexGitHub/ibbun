@@ -4,7 +4,7 @@ Free Listening practice (`slices/listening`, issues #66 and #198): the player is
 
 ## Sub-features
 
-- **Level**: N5 to N1 pills in `group "Level"`; the chosen one has `aria-pressed="true"`. The screen opens on N5 with a clip ready, nothing to pick first. A level with no playable clip says "No N1 clips yet. Pick another level, or read at your level instead." with the link **Open Reading** to `/reading`.
+- **Level**: N5 to N1 pills in `group "Level"`; the chosen one has `aria-pressed="true"`. The screen opens on N5 with a clip ready, nothing to pick first. A level with no playable clip is a centred `State` under the 聞 mark: the heading "No N1 clips yet", "Pick another level, or read at your level instead." and the accent link **Open Reading** to `/reading`. A failed load is an alert "Not loaded · The clips did not load" with **Try again**, which asks for the clips again.
 - **The player**: one large round button, `aria-label="Play"`, plays each line of the clip in order; bars beside it move while it plays (`.player[data-playing="true"]`). `group "Speed"` holds the pills "1×" and "0.75×" (the pressed one sets `playbackRate`; 0.75× starts pressed when the Learner's `slowAudio` preference is on). "Again" replays and is disabled until the clip has played once. There is no list of clips on the screen.
 - **The question**: a prompt and four shuffled options under the player, shown after the first play. The server grades the option with `grade()`; an input that is none of the options answers `retry` and logs nothing. Nothing is typed on this screen: a clip whose Example holds no question is not served (404) and the screen skips it.
 - **Show answer**: counts as a fail (`revealed: true`) and shows the transcript.
@@ -14,7 +14,7 @@ Free Listening practice (`slices/listening`, issues #66 and #198): the player is
 
 ## Practice dialogues (issue #95)
 
-A second card on `/listening`, "Practice dialogues": a Learner at a Cleared Level generates their own dialogue and answers its 2 questions. Slice code is in `slices/listening/practice`.
+A second section on `/listening` under a rule (not a card), "Practice dialogues": a Learner at a Cleared Level generates their own dialogue and answers its 2 questions. Slice code is in `slices/listening/practice`.
 
 - **Cleared Level**: every non-suspended Kanji of the level is Known. A Learner with none sees "Know every Kanji of a level to unlock dialogues at that level." and no form.
 - **Generate form**: Level (Cleared only), Question type (Any, 課題理解, ポイント理解, plus 概要理解 from N3), Length (Short, Medium, Exam length), Topic (a fixed list). No free text. "N left today." shows the rolling 24 h allowance (`PRACTICE_TEXT_LIMIT`, default 5); at 0 it says "Try again tomorrow." and shows no form.

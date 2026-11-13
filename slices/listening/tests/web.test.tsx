@@ -321,7 +321,8 @@ describe("the Listening screen's level", () => {
     stubClips([]);
     render(<ListeningPractice />);
     press("N1");
-    expect(await screen.findByText("No N1 clips yet. Pick another level, or read at your level instead.")).toBeTruthy();
+    expect((await screen.findByRole("heading", { name: "No N1 clips yet" })).textContent).toBe("No N1 clips yet");
+    expect(screen.getByText("Pick another level, or read at your level instead.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Open Reading" }).getAttribute("href")).toBe("/reading");
     expect(screen.queryByRole("button", { name: "Play" })).toBeNull();
   });
@@ -355,8 +356,19 @@ describe("the Listening screen's level", () => {
   it("says the clips could not load, not that there are none, when the server fails", async () => {
     vi.stubGlobal("fetch", vi.fn(async (url: string) => (url.includes("/clips?") ? json({ level: "N5", clipIds: ["c1"] }) : new Response("oops", { status: 500 }))));
     render(<ListeningPractice />);
-    expect((await screen.findByRole("alert")).textContent).toMatch(/could not load/);
+    expect((await screen.findByRole("alert")).textContent).toMatch(/did not load/);
     expect(screen.queryByText(/No N5 clips yet/)).toBeNull();
+  });
+
+  it("loads the clips again on Try again", async () => {
+    let fail = true;
+    vi.stubGlobal("fetch", vi.fn(async () => (fail ? new Response("oops", { status: 500 }) : json({ level: "N5", clipIds: [] }))));
+    render(<ListeningPractice />);
+    await screen.findByRole("alert");
+    fail = false;
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { name: "No N5 clips yet" })).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("says the level has no clips when none of them can be served", async () => {

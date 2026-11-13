@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { buttonClass, pillClass, useLevelFilter } from "@ibbun/ui";
+import { buttonClass, pillClass, State, useLevelFilter } from "@ibbun/ui";
 import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
 import type { ClipView } from "../contract.ts";
 import { listClips, loadClip, RequestFailed } from "./api.ts";
@@ -9,12 +9,11 @@ import "./listening.css";
 
 /** A level without clips: why, and Reading as the other way to practise at that level. */
 const NoClips = ({ level }: { level: JlptLevel }) => (
-  <>
-    <p>No {level} clips yet. Pick another level, or read at your level instead.</p>
-    <a className={buttonClass()} href="/reading">
+  <State mark="聞" title={`No ${level} clips yet`} fact="Pick another level, or read at your level instead.">
+    <a className={buttonClass({ variant: "primary" })} href="/reading">
       Open Reading
     </a>
-  </>
+  </State>
 );
 
 /** Walks through the clips of a level, one at a time, and starts over at the end. There is no list to pick from. */
@@ -23,11 +22,12 @@ const Session = ({ level }: { level: JlptLevel }) => {
   const [at, setAt] = useState(0);
   const [view, setView] = useState<ClipView | null>(null);
   const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     setFailed(false);
     listClips(level).then((list) => setClipIds(list.clipIds), () => setFailed(true));
-  }, [level]);
+  }, [level, attempt]);
 
   const id = clipIds?.[at % clipIds.length];
   useEffect(() => {
@@ -42,7 +42,7 @@ const Session = ({ level }: { level: JlptLevel }) => {
     }
   }, [id, at]);
 
-  if (failed) return <p role="alert">Listening could not load clips. Try again in a moment.</p>;
+  if (failed) return <State mark="聞" title="The clips did not load" onRetry={() => setAttempt(attempt + 1)} />;
   if (clipIds === null) return <p>Loading…</p>;
   if (clipIds.length === 0) return <NoClips level={level} />;
   return view ? <ClipCard key={`${at}`} view={view} onNext={() => setAt(at + 1)} /> : <p>Loading…</p>;
