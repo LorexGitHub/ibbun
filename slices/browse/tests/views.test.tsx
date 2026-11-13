@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { renderToString } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
@@ -38,6 +39,25 @@ describe("ItemView as a page or a sheet", () => {
       expect(html).toContain(`href="${cramHref(id(2))}"`);
       expect(html).toContain(">Cram this</a>");
     }
+  });
+});
+
+describe("the sheet's place on the screen", () => {
+  it("lies above the dock, so the dock never covers what the sheet says", () => {
+    const layer = (file: string, rule: RegExp) => Number(readFileSync(new URL(file, import.meta.url), "utf8").match(rule)?.[1]);
+    const sheet = layer("../web/browse.css", /\.wall-sheet-back \{[^}]*z-index: (\d+)/);
+    const dock = layer("../../../platform/ui/src/kit.css", /\.app-dock \{[^}]*z-index: (\d+)/);
+    expect(dock).toBeGreaterThan(0);
+    expect(sheet).toBeGreaterThan(dock);
+  });
+});
+
+describe("ItemView in parts", () => {
+  it("sets the details, each group of related items and the Examples apart as parts under the headword", () => {
+    const html = item();
+    expect(html.match(/<section class="item-part">/g)).toHaveLength(3);
+    expect(html).toContain('<article aria-labelledby="item-title" class="item">');
+    expect(html).not.toContain('class="card"');
   });
 });
 

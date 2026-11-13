@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Attribution, Card, buttonClass, pillClass } from "@mojibun/ui";
+import { Attribution, buttonClass, pillClass } from "@mojibun/ui";
 import type { Detail, ItemPage } from "../contract.ts";
 import { itemPath, levelLabel } from "./BrowseView.tsx";
 
@@ -8,7 +8,7 @@ const list = (values: string[]) => values.join("、");
 type Of<T extends Detail["type"]> = Extract<Detail, { type: T }>;
 
 const KanjiDetail = ({ d }: { d: Of<"kanji"> }) => (
-  <dl>
+  <dl className="item-facts">
     <dt>Meanings</dt>
     <dd>{d.meanings.join(", ")}</dd>
     <dt>On readings</dt>
@@ -34,11 +34,11 @@ const KanjiDetail = ({ d }: { d: Of<"kanji"> }) => (
 
 const WordDetail = ({ d }: { d: Of<"word"> }) => (
   <>
-    <dl>
+    <dl className="item-facts">
       <dt>Readings</dt>
       <dd lang="ja">{d.readings.map((r) => (r.pitchAccent?.length ? `${r.text} [${r.pitchAccent.join(", ")}]` : r.text)).join("、")}</dd>
     </dl>
-    <ol>
+    <ol className="item-senses">
       {d.senses.map((s, i) => (
         <li key={i}>
           {s.partsOfSpeech.length > 0 && <small>{s.partsOfSpeech.join(", ")} </small>}
@@ -52,8 +52,8 @@ const WordDetail = ({ d }: { d: Of<"word"> }) => (
 
 const GrammarDetail = ({ d }: { d: Of<"grammar_point"> }) => (
   <>
-    <p>{d.meaning}</p>
-    <dl>
+    <p className="item-meaning">{d.meaning}</p>
+    <dl className="item-facts">
       <dt>Forms</dt>
       <dd lang="ja">{d.forms.map((f) => `${f.text} (${f.register})`).join("、")}</dd>
       <dt>Formation</dt>
@@ -96,7 +96,7 @@ export const cramHref = (id: string) => `/cram?items=${encodeURIComponent(id)}`;
 
 /** One Study Item, as its own page or as the sheet over the wall. Locked items can always be read here; Learn now starts them early. */
 export const ItemView = ({ page, sheet = false }: { page: ItemPage; sheet?: boolean }) => (
-  <article aria-labelledby="item-title">
+  <article aria-labelledby="item-title" className="item">
     {!sheet && (
       <p>
         <Link to="/browse">Library</Link>
@@ -105,7 +105,7 @@ export const ItemView = ({ page, sheet = false }: { page: ItemPage; sheet?: bool
     <h1 id="item-title" lang="ja">
       {headword(page.detail)}
     </h1>
-    <p>
+    <p className="item-tags">
       <span className={pillClass(false)}>{levelLabel(page.level)}</span>{" "}
       <span className={pillClass(false)}>{page.detail.type.replace("_", " ")}</span>
       {page.locked && <span className={pillClass(true)}>Locked</span>}
@@ -120,13 +120,13 @@ export const ItemView = ({ page, sheet = false }: { page: ItemPage; sheet?: bool
         Cram this
       </a>
     </p>
-    <Card>
+    <section className="item-part">
       <DetailView d={page.detail} />
-    </Card>
+    </section>
     {page.related.map((group) => (
-      <Card key={group.heading}>
+      <section key={group.heading} className="item-part">
         <h2>{group.heading}</h2>
-        <ul>
+        <ul className="item-links">
           {group.items.map(({ summary, note }) => (
             <li key={summary.id}>
               <Link to={itemPath(summary.id)}>
@@ -136,12 +136,12 @@ export const ItemView = ({ page, sheet = false }: { page: ItemPage; sheet?: bool
             </li>
           ))}
         </ul>
-      </Card>
+      </section>
     ))}
     {page.examples.length > 0 && (
-      <Card>
+      <section className="item-part">
         <h2>Examples</h2>
-        <ul>
+        <ul className="item-examples">
           {page.examples.map((e) => (
             <li key={e.id}>
               <span lang="ja">{e.text}</span>
@@ -150,7 +150,7 @@ export const ItemView = ({ page, sheet = false }: { page: ItemPage; sheet?: bool
             </li>
           ))}
         </ul>
-      </Card>
+      </section>
     )}
     <Attribution credits={page.credits} />
   </article>
