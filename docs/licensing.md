@@ -61,7 +61,7 @@ A record's inputs are the records it was made from: an override's target, an Exa
 
 ## Public deploy
 
-No public release is planned. If mojibun is ever deployed publicly (the AWS plan), a lawyer must review this policy first. Open points for that review:
+No public release is planned. If mojibun is ever deployed publicly ([the AWS plan](adr/0015-serverless-on-aws-with-neon.md)), a lawyer must review this policy first. Open points for that review:
 
 - Does a study app count as an EDRDG "WWW dictionary server"?
 - Is crediting Tatoeba authors on the answer side, but not on the prompt, "reasonable to the medium"?

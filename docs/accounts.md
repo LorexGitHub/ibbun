@@ -80,7 +80,7 @@ Open sign-up means Learners trigger LLM spend: every Learn batch asks for a Batc
 
 - A new platform package, `mail`, sends a named template with data. Like the other adapters, it has an interface and a fake.
 - Locally, Docker Compose runs **Mailpit**, and `mail` sends to it over SMTP. The verifier agent and Playwright read verification and reset links from Mailpit's API.
-- A real SMTP transport is config for the later AWS plan.
+- On AWS, mail goes through SES ([ADR 0015](adr/0015-serverless-on-aws-with-neon.md)).
 - Templates: verify email, already registered, reset password, email changed (sent to the old address), account deleted.
 
 ## Wiring
