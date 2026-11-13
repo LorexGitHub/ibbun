@@ -1,10 +1,10 @@
-import { and, eq, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, ne, or, sql, type SQL } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import type { DbOrTx } from "@ibbun/db";
 import type { JlptLevel, StudyItemId } from "@ibbun/shared";
 import { emptyGraph, type Graph } from "./graph.ts";
 import { creditsOf, recordProvenance } from "./licensing.ts";
-import { DEFAULT_SEARCH_LIMIT, normaliseQuery, reader, type ContentGraph } from "./read.ts";
+import { DEFAULT_SEARCH_LIMIT, reader, searchTerms, type ContentGraph } from "./read.ts";
 import * as t from "./schema.ts";
 
 /**
@@ -44,18 +44,23 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
   },
 
   async search(query, { limit = DEFAULT_SEARCH_LIMIT } = {}) {
-    const q = normaliseQuery(query);
-    if (!q) return [];
-    const like = q.replace(/[\\%_]/g, (c) => `\\${c}`);
+    const terms = searchTerms(query);
+    if (!terms.length) return [];
+    const likes = terms.map((term) => term.replace(/[\\%_]/g, (c) => `\\${c}`));
+    const any = (match: (like: string) => SQL) => sql.join(likes.map(match), sql` OR `);
+    // Within a tier, items on a level come first, so the limit cuts a rare kanji that means water rather than 水
     const { rows } = await db.execute<{ study_item_id: string }>(sql`
       SELECT study_item_id,
-             min(CASE WHEN lower(text) = ${q} THEN 0 WHEN lower(text) LIKE ${like} || '%' THEN 1 ELSE 2 END) AS tier
+             min(CASE WHEN lower(text) IN (${sql.join(terms.map((term) => sql`${term}`), sql`, `)}) THEN 0
+                      WHEN ${any((like) => sql`lower(text) LIKE ${like} || '%'`)} THEN 1 ELSE 2 END) AS tier,
+             NOT EXISTS (SELECT 1 FROM content_graph.level_candidate lc
+                         WHERE lc.study_item_id = search_text.study_item_id AND lc.approval = 'approved' AND NOT lc.retired) AS unlevelled
       FROM content_graph.search_text
-      WHERE lower(text) LIKE '%' || ${like} || '%'
+      WHERE ${any((like) => sql`lower(text) LIKE '%' || ${like} || '%'`)}
       GROUP BY study_item_id
-      ORDER BY tier, study_item_id
+      ORDER BY tier, unlevelled, study_item_id
       LIMIT ${limit}`);
-    return (await readerOver(db, await loadItems(db, rows.map((r) => r.study_item_id)))).search(q, limit);
+    return (await readerOver(db, await loadItems(db, rows.map((r) => r.study_item_id)))).search(query, limit);
   },
 
   async credits() {
