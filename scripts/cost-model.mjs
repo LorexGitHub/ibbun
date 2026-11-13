@@ -1,8 +1,7 @@
-// Monthly cost estimate for the serverless stack in docs/adr/0015-serverless-on-aws-with-neon.md.
+// Monthly cost estimate for the serverless stack in docs/adr/0015-serverless-on-aws.md.
 // Usage: node scripts/cost-model.mjs [learners ...]
 // AWS: eu-central-1 list prices from the AWS Price List API, fetched 2026-11-13; only the always-free
-// allowances are applied. Neon: neon.com/pricing, Launch plan, read 2026-11-13. Claude: Anthropic list
-// prices for claude-sonnet-5-5.
+// allowances are applied. Claude: Anthropic list prices for claude-sonnet-5-5.
 
 const price = {
   lambdaRequest: 0.2 / 1e6,
@@ -18,13 +17,12 @@ const price = {
   logsIngestGb: 0.63,
   fargateVcpuHour: 0.04656,
   fargateGbHour: 0.00511,
-  neonCuHour: 0.106,
-  neonStorageGbMonth: 0.35,
-  neonRestoreGbMonth: 0.2,
   auroraAcuHour: 0.14,
   auroraStorageGbMonth: 0.119,
   auroraIo: 0.22 / 1e6,
   publicIpv4Hour: 0.005,
+  rdsMicroHour: 0.019, // db.t4g.micro, PostgreSQL, Single-AZ
+  rdsGp3GbMonth: 0.137,
   claudeInput: 2 / 1e6,
   claudeOutput: 10 / 1e6,
 };
@@ -75,7 +73,7 @@ const platform = {
   logBytesPerInvoke: 300,
 };
 
-// Neon and Aurora suspend after 5 idle minutes. Sessions arrive at random, so the share of the month with
+// Aurora pauses after 5 idle minutes. Sessions arrive at random, so the share of the month with
 // at least one session open is 1 - e^(-busy hours / month hours).
 const activeHours = (learners) => {
   const sessionHours = learners * learner.studyDays * learner.sessionsPerDay * ((learner.sessionMinutes + 5) / 60);
@@ -88,16 +86,8 @@ const concurrentLearners = (learners) =>
 const over = (used, allowance) => Math.max(0, used - allowance);
 
 const database = {
-  // Real Postgres, scale to zero, public TLS endpoint with a pooler: no VPC and no NAT gateway.
-  neon: (learners) => {
-    const cu = Math.max(0.25, concurrentLearners(learners) * 0.01);
-    return (
-      activeHours(learners) * cu * price.neonCuHour +
-      platform.dbGb * (price.neonStorageGbMonth + price.neonRestoreGbMonth)
-    );
-  },
-  // Aurora Serverless v2 with auto-pause, publicly reachable so the Lambdas stay out of a VPC. An ACU is half a
-  // Neon CU, and its public IPv4 address bills every hour, paused or not.
+  // Aurora Serverless v2 (PostgreSQL) with auto-pause. It is publicly reachable over TLS with IAM authentication,
+  // so the Lambdas stay out of a VPC and need no NAT gateway; its public IPv4 address bills every hour.
   aurora: (learners) => {
     const acu = Math.max(0.5, concurrentLearners(learners) * 0.02);
     const ios = learners * learner.studyDays * learner.apiCallsPerDay * 20;
@@ -108,6 +98,8 @@ const database = {
       HOURS * price.publicIpv4Hour
     );
   },
+  // The alternative: one always-on db.t4g.micro with the 20 GB minimum of gp3 storage. It never sleeps.
+  rds: () => HOURS * (price.rdsMicroHour + price.publicIpv4Hour) + 20 * price.rdsGp3GbMonth,
 };
 
 function estimate(learners, db) {
@@ -149,8 +141,8 @@ const contentBudgetTokens = tokenBudget.perDay * (1 - tokenBudget.batchTextShare
 const contentCeiling = contentBudgetTokens * (0.75 * price.claudeInput + 0.25 * price.claudeOutput);
 
 const sizes = process.argv.slice(2).map(Number);
-for (const db of ["neon", "aurora"]) {
-  console.log(`\n${db === "neon" ? "Neon (Launch)" : "Aurora Serverless v2"}`);
+for (const db of ["aurora", "rds"]) {
+  console.log(`\n${db === "aurora" ? "Aurora Serverless v2, auto-pause" : "RDS db.t4g.micro, always on"}`);
   for (const n of sizes.length ? sizes : [0, 10, 100, 1_000, 10_000]) {
     const { aws, total, claude, capped } = estimate(n, db);
     const parts = Object.entries(aws)
