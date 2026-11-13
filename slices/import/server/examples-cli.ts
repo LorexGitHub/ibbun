@@ -1,6 +1,6 @@
 // `pnpm content:examples` drafts Tatoeba Examples for N5; `pnpm content:examples approve` approves the drafts as the supervisor.
-import { createAuthoring } from "@mojibun/content-graph/authoring";
-import { createDb } from "@mojibun/db";
+import { createAuthoring } from "@ibbun/content-graph/authoring";
+import { createDb } from "@ibbun/db";
 import { approveDraftExamples, deriveExamples } from "../sources/examples/index.ts";
 
 const url = process.env.DATABASE_URL;

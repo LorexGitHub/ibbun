@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
-import type { Authoring, Row } from "@mojibun/content-graph/authoring";
-import { currentLevel } from "@mojibun/content-graph/levels";
+import type { Authoring, Row } from "@ibbun/content-graph/authoring";
+import { currentLevel } from "@ibbun/content-graph/levels";
 import { sentenceUsesWord, toHiragana } from "../derived-links/derive.ts";
 import { chunks } from "../derived-links/replace.ts";
+import { derivedProvenance } from "../derived-provenance.ts";
 
 /** Draft Examples a Study Item gets from Tatoeba, as a config value. */
 export const EXAMPLES_PER_ITEM = 3;
@@ -13,14 +14,6 @@ const PROCESS = { name: "tatoeba-examples", version: "1" } as const;
 const LEVEL = "N5";
 
 export type ExamplesReport = { items: number; drafted: number; uncovered: number };
-
-const provenanceFor = async (authoring: Authoring) => {
-  const found = (await authoring.rows("provenance")).find(({ source }) => source.kind === "derived" && source.process === PROCESS.name && source.version === PROCESS.version);
-  if (found) return found.id;
-  const id = randomUUID();
-  await authoring.insert("provenance", [{ id, source: { kind: "derived", process: PROCESS.name, version: PROCESS.version }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] }]);
-  return id;
-};
 
 /** The reading of the Sentence's tokens inside a span, in hiragana. */
 const readingOf = (sentence: Row<"sentence">, start: number, end: number) =>
@@ -85,7 +78,7 @@ export const deriveExamples = async ({ authoring }: { authoring: Authoring }): P
   const wordsOf = group(contains, (c) => c.kanjiId);
   const wordsOfItem = (item: Row<"studyItem">) => (item.type === "word" ? [item.id] : (wordsOf.get(item.id) ?? []).map((c) => c.wordId));
 
-  const life = { approval: "draft", retired: false, provenanceId: await provenanceFor(authoring) } as const;
+  const life = { approval: "draft", retired: false, provenanceId: await derivedProvenance(authoring, PROCESS) } as const;
   const newExamples: Row<"example">[] = [];
   const newAnswers: Row<"exampleAnswer">[] = [];
   let uncovered = 0;

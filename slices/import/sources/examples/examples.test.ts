@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
+import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
 import { approveDraftExamples, deriveExamples, EXAMPLES_PER_ITEM } from "./index.ts";
 
 const build = () => {
   const graph = emptyGraph();
-  graph.provenance.push({ id: "p", source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: "p", source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const life = { approval: "approved" as const, retired: false, provenanceId: "p" };
   const word = (level: "N5" | "N4", form = "水") => {
     const id = randomUUID();
