@@ -25,12 +25,12 @@ describe("readingPassage", () => {
     expect((await createFakeContentGraph(graph).readingPassage(ID(3)))?.title).toBe("この話");
   });
 
-  it("gives each Sentence only its own visible links to visible Words, in the order they appear", async () => {
+  it("holds only its own visible Sentences, each with only its own visible links to visible Words, in the order they appear", async () => {
     const graph = emptyGraph();
     graph.readingPassage.push({ id: ID(2), title: "話", form: "prose", comprehensionQuestions: [], ...life });
-    for (const [n, position] of [[3, 0], [4, 1]] as const) {
+    for (const [n, position, passage, extra] of [[3, 0, 2, {}], [4, 1, 2, {}], [5, 2, 9, {}], [6, 3, 2, { approval: "draft" }]] as const) {
       graph.sentence.push({ id: ID(n), text: `文${n}`, translationEn: null, tokens: [], audioKey: null, audioVoice: null, unlevelledWordCount: 0, ...life });
-      graph.passageContainsSentence.push({ id: ID(n + 10), passageId: ID(2), sentenceId: ID(n), position, speaker: null, ...life });
+      graph.passageContainsSentence.push({ id: ID(n + 10), passageId: ID(passage), sentenceId: ID(n), position, speaker: null, ...life, ...extra });
     }
     graph.studyItem.push({ id: ID(20), type: "word", ...life }, { id: ID(21), type: "word", ...life }, { id: ID(22), type: "word", ...life, approval: "draft" });
     const uses = (n: number, sentence: number, word: number, start: number, extra: object = {}) =>
@@ -41,6 +41,7 @@ describe("readingPassage", () => {
     uses(33, 3, 22, 8);
     uses(34, 4, 20, 0);
     const passage = await createFakeContentGraph(graph).readingPassage(ID(2));
+    expect(passage?.sentences.map((s) => s.text)).toEqual(["文3", "文4"]);
     expect(passage?.sentences.map((s) => s.words.map((w) => [w.wordId, w.start]))).toEqual([
       [[ID(20), 1], [ID(21), 4]],
       [[ID(20), 0]],
