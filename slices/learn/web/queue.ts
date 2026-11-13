@@ -24,12 +24,12 @@ export const answered = (quiz: Quiz, given: Given[], timeToAnswerMs: number): Qu
   if (!prompt) return quiz;
   const asked = quiz.asked + 1;
   const id = prompt.studyItemId;
-  const before = quiz.tries[id] ?? {};
-  const triesOf = (g: Given, missed: boolean) => [...(before[g.facet] ?? []), ...g.attempts, ...(missed && !g.passed ? [g.input] : [])];
+  const before = quiz.tries[id] || {};
+  const triesOf = (g: Given) => [...(before[g.facet] || []), ...g.attempts, ...(g.passed ? [] : [g.input])];
   if (given.every((g) => g.passed)) {
-    const facets = given.map((g) => ({ facet: g.facet, input: g.input, attempts: triesOf(g, false) }));
+    const facets = given.map((g) => ({ facet: g.facet, input: g.input, attempts: triesOf(g) }));
     return { ...quiz, asked, queue: rest, answers: [...quiz.answers, { studyItemId: id, exampleId: prompt.exampleId, facets, timeToAnswerMs }] };
   }
-  const tries = { ...before, ...Object.fromEntries(given.map((g) => [g.facet, triesOf(g, true)])) };
+  const tries = { ...before, ...Object.fromEntries(given.map((g) => [g.facet, triesOf(g)])) };
   return { ...quiz, asked, queue: [...rest, prompt], tries: { ...quiz.tries, [id]: tries } };
 };
