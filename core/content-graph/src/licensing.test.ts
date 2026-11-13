@@ -32,7 +32,7 @@ const licensedGraph = () => {
 
   const word = next();
   graph.studyItem.push({ id: word, type: "word", ...life(fromJmdict) });
-  graph.word.push({ studyItemId: word, priorityTags: [] });
+  graph.word.push({ studyItemId: word, priorityTags: [], usuallyKana: false });
   const sense = next();
   graph.wordSense.push({ id: sense, wordId: word, position: 0, partsOfSpeech: ["v1"], glosses: ["to eat"], ...life(fromJmdict) });
 

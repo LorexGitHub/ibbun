@@ -8,6 +8,7 @@ export type WordRecord = {
   readings: { text: string; pitchAccent: number[] | null }[];
   senses: { partsOfSpeech: string[]; glosses: string[] }[];
   priorityTags: string[];
+  usuallyKana: boolean;
 };
 
 /** One KANJIDIC2 character, keyed by its literal. */

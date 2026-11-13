@@ -25,7 +25,7 @@ const world = (...examples: Approval[]) => {
   graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const item = randomUUID();
   graph.studyItem.push({ id: item, type: "word", ...life() });
-  graph.word.push({ studyItemId: item, priorityTags: [] });
+  graph.word.push({ studyItemId: item, priorityTags: [], usuallyKana: false });
   const sentence = randomUUID();
   graph.sentence.push({ id: sentence, text: "パンを食べる。", translationEn: null, tokens: [], audioKey: null, audioVoice: null, unlevelledWordCount: 0, ...life() });
   const exampleIds = examples.map((approval) => {

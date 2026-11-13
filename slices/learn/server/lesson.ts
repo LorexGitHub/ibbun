@@ -1,4 +1,4 @@
-import type { Example, GrammarPoint, Kanji, Word } from "@ibbun/content-graph";
+import { headword, type Example, type GrammarPoint, type Kanji, type Word } from "@ibbun/content-graph";
 import type { Lesson } from "../contract.ts";
 import type { TaughtPage } from "./prompt.ts";
 
@@ -13,9 +13,9 @@ const kanjiFacts = (kanji: Kanji): Facts => ({
   details: [...detail("On'yomi", kanji.onReadings), ...detail("Kun'yomi", kanji.kunReadings), { label: "Strokes", value: String(kanji.strokeCount) }],
 });
 
-/** A Word with no written form in kanji is taught by its reading. */
+/** A Word with no written form in kanji, or one usually written in kana, is taught by its reading. */
 const wordFacts = (word: Word): Facts => ({
-  title: word.forms[0]?.text ?? word.readings[0]!.text,
+  title: headword(word),
   reading: word.readings[0]!.text,
   meanings: word.senses.map((s) => s.glosses.join("; ")),
   details: detail("Part of speech", word.senses[0]!.partsOfSpeech),

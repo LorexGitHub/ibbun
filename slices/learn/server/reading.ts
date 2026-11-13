@@ -1,4 +1,4 @@
-import type { ContentGraph, ReadingPassage, Token, Word } from "@ibbun/content-graph";
+import { headword, type ContentGraph, type ReadingPassage, type Token, type Word } from "@ibbun/content-graph";
 import { showsFurigana, type FuriganaSetting, type Mastery } from "@ibbun/progress";
 import { JLPT_LEVELS, type StudyItemId } from "@ibbun/shared";
 import type { LookupView, Run, SentenceView, TextView } from "../contract.ts";
@@ -41,10 +41,10 @@ export const textView = (passage: ReadingPassage, reader: Reader): TextView => (
   sentences: passage.sentences.map((s) => sentenceView(reader, s)),
 });
 
-export const lookupView = ({ forms, readings, senses }: Word): LookupView => ({
-  label: forms[0]?.text ?? readings[0]?.text ?? "",
-  reading: readings[0]?.text ?? null,
-  meanings: senses.flatMap((s) => s.glosses).slice(0, 4),
+export const lookupView = (word: Word): LookupView => ({
+  label: headword(word),
+  reading: word.readings[0]?.text ?? null,
+  meanings: word.senses.flatMap((s) => s.glosses).slice(0, 4),
 });
 
 /** The batch's level is its hardest item's, an Unlevelled item counting as hardest (batch-text.md). */

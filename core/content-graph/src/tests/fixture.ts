@@ -19,7 +19,7 @@ export const fixture = () => {
     graph.levelCandidate.push({ id: next(), studyItemId, level: lvl, kind, ...life(approval, retired) });
   const word = (forms: string[], reading: string, glosses: string[], approval?: Approval, retired?: boolean) => {
     const id = item("word", approval, retired);
-    graph.word.push({ studyItemId: id, priorityTags: ["ichi1"] });
+    graph.word.push({ studyItemId: id, priorityTags: ["ichi1"], usuallyKana: false });
     const formIds = forms.map((text, position) => {
       const formId = next();
       graph.wordForm.push({ id: formId, wordId: id, position, text, ...life() });

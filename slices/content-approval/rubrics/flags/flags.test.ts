@@ -26,7 +26,7 @@ const world = () => {
 
   const word = randomUUID();
   graph.studyItem.push({ id: word, type: "word", ...life });
-  graph.word.push({ studyItemId: word, priorityTags: [] });
+  graph.word.push({ studyItemId: word, priorityTags: [], usuallyKana: false });
   graph.levelCandidate.push({ id: randomUUID(), studyItemId: word, level: "N5", kind: "list", ...life });
   const sentence = randomUUID();
   graph.sentence.push({ id: sentence, text: "水を飲む。", translationEn: "I drink water.", tokens: [], audioKey: null, audioVoice: null, unlevelledWordCount: 0, ...life });

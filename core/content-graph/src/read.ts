@@ -35,6 +35,7 @@ export type Kanji = Common & {
 export type Word = Common & {
   type: "word";
   priorityTags: string[];
+  usuallyKana: boolean;
   forms: { id: string; text: string }[];
   readings: { id: string; text: string; pitchAccent: number[] | null }[];
   senses: { id: string; partsOfSpeech: string[]; glosses: string[]; japaneseExplanation: string | null }[];
@@ -116,7 +117,7 @@ export type PathItem = {
   /** Kanji: KANJIDIC2 `freq` and grade. Null for other types. */
   frequency: number | null;
   grade: number | null;
-  /** Words: the Kanji in the first written form. Listening Clips: the Words and Grammar Points their Sentences link to. */
+  /** Words: the Kanji in the first written form (none for a usually-kana Word). Listening Clips: the Words and Grammar Points their Sentences link to. */
   dependsOn: StudyItemId[];
   /** Grammar Points: the other Grammar Points their approved Examples demonstrate. */
   demonstrates: StudyItemId[];
@@ -224,6 +225,10 @@ const kanjiOf = (ctx: Ctx, id: StudyItemId): Kanji | null => {
   return { type: "kanji", id, level: levelOf(ctx, id), ...fields };
 };
 
+/** The form a Learner is shown: the first written form, or the reading for a word JMdict marks usually-kana. */
+export const headword = (w: Pick<Word, "forms" | "readings" | "usuallyKana">): string =>
+  (w.usuallyKana ? null : w.forms[0]?.text) ?? w.readings[0]?.text ?? "";
+
 const wordOf = (ctx: Ctx, id: StudyItemId): Word | null => {
   const row = where(ctx, ctx.graph.word, "studyItemId", id)[0];
   if (!row) return null;
@@ -232,6 +237,7 @@ const wordOf = (ctx: Ctx, id: StudyItemId): Word | null => {
     id,
     level: levelOf(ctx, id),
     priorityTags: current(ctx, row, id).priorityTags,
+    usuallyKana: row.usuallyKana,
     forms: subEntries(ctx, ctx.graph.wordForm, id).map(({ id, text }) => ({ id, text })),
     readings: subEntries(ctx, ctx.graph.wordReading, id).map(({ id, text, pitchAccent }) => ({ id, text, pitchAccent })),
     senses: subEntries(ctx, ctx.graph.wordSense, id).map(({ id, partsOfSpeech, glosses }) => ({
@@ -268,7 +274,7 @@ const byType = <R>(table: ByType<R>, item: StudyItem): R => (table[item.type] as
 type SummaryFields = Pick<StudyItemSummary, "label" | "reading" | "meaning">;
 const SUMMARY: ByType<SummaryFields | null> = {
   kanji: (k) => ({ label: k.literal, reading: [...k.onReadings, ...k.kunReadings][0] ?? null, meaning: k.meanings[0] ?? null }),
-  word: (w) => ({ label: w.forms[0]?.text ?? w.readings[0]?.text ?? "", reading: w.readings[0]?.text ?? null, meaning: w.senses[0]?.glosses[0] ?? null }),
+  word: (w) => ({ label: headword(w), reading: w.readings[0]?.text ?? null, meaning: w.senses[0]?.glosses[0] ?? null }),
   grammar_point: (g) => ({ label: g.title, reading: null, meaning: g.meaning }),
   listening_clip: () => null,
 };
@@ -390,6 +396,7 @@ const linkedFrom = <R extends Lifecycle & { sentenceId: string }>(ctx: Ctx, rows
 const exampleSentences = (ctx: Ctx, id: string) => sentencesOf(ctx, where(ctx, ctx.graph.example, "studyItemId", id));
 
 const firstFormKanji = (ctx: Ctx, id: string) => {
+  if (where(ctx, ctx.graph.word, "studyItemId", id)[0]?.usuallyKana) return [];
   const first = subEntries(ctx, ctx.graph.wordForm, id)[0];
   const inFirst = new Set([...new Set(first?.text)].flatMap((literal) => where(ctx, ctx.graph.kanji, "literal", literal)).map((k) => k.studyItemId));
   return where(ctx, ctx.graph.wordContainsKanji, "wordId", id).filter((l) => visible(l) && ctx.items.has(l.kanjiId) && inFirst.has(l.kanjiId)).map((l) => l.kanjiId);

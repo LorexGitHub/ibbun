@@ -26,7 +26,7 @@ const buildGraph = (): Graph => {
   );
   const word = (id: string, form: string, reading: string, gloss: string, n: number) => {
     graph.studyItem.push({ id, type: "word", ...life });
-    graph.word.push({ studyItemId: id, priorityTags: [] });
+    graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana: false });
     graph.wordForm.push({ id: ID(n), wordId: id, position: 0, text: form, ...life });
     graph.wordReading.push({ id: ID(n + 1), wordId: id, position: 0, text: reading, pitchAccent: null, ...life });
     graph.wordSense.push({ id: ID(n + 2), wordId: id, position: 0, partsOfSpeech: ["v1"], glosses: [gloss, "to devour"], ...life });

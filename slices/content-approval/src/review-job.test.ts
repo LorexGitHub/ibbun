@@ -60,7 +60,7 @@ const world = async (options: Options = {}) => {
   const word = (form: string) => {
     const id = randomUUID();
     graph.studyItem.push({ id, type: "word", ...life(authored) });
-    graph.word.push({ studyItemId: id, priorityTags: [] });
+    graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana: false });
     graph.wordForm.push({ id: randomUUID(), wordId: id, position: 0, text: form, ...life(authored) });
     graph.levelCandidate.push({ id: randomUUID(), studyItemId: id, level: "N5", kind: "list", ...life(authored) });
     return id;

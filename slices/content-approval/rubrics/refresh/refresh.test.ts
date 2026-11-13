@@ -28,7 +28,7 @@ const world = () => {
 
   const word = randomUUID();
   graph.studyItem.push({ id: word, type: "word", ...life() });
-  graph.word.push({ studyItemId: word, priorityTags: [] });
+  graph.word.push({ studyItemId: word, priorityTags: [], usuallyKana: false });
   graph.levelCandidate.push({ id: randomUUID(), studyItemId: word, level: "N5", kind: "list", ...life() });
   const form = randomUUID();
   graph.wordForm.push({ id: form, wordId: word, position: 0, text: "水", ...life() });

@@ -7,7 +7,10 @@ const BASE = "/api/learn";
 
 const call = async (path: string, init?: RequestInit): Promise<unknown> => {
   const response = await fetch(`${BASE}${path}`, { credentials: "same-origin", ...init });
-  if (!response.ok) throw new Error(((await response.json().catch(() => null)) as { message?: string } | null)?.message ?? response.statusText);
+  if (!response.ok) {
+    const message = ((await response.json().catch(() => null)) as { message?: string } | null)?.message;
+    throw new Error(message ?? (response.status >= 500 ? "Learn could not load. Nothing you did caused this; try again in a moment." : response.statusText));
+  }
   return response.json();
 };
 
