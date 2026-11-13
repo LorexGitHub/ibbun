@@ -1,8 +1,9 @@
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { sql } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { CONNECT_TIMEOUT_MS, type TokenSigner } from "./client.ts";
 import { collectMigrations, createDb, migrate, parseMigrationFile, transaction, type Db } from "./index.ts";
 import { startTestPostgres, type TestPostgres } from "./testing.ts";
 
@@ -163,5 +164,115 @@ describe("migrate and transaction, against Postgres", () => {
     ).rejects.toThrow("abort");
     const { rows } = await db.$client.query("SELECT n FROM tx_probe");
     expect(rows).toEqual([{ n: 1 }]);
+  });
+});
+
+describe("createDb", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  const poolOptions = (db: Db) => db.$client.options as typeof db.$client.options & { password?: unknown };
+
+  it("with an IAM region, signs a fresh token for every new connection and verifies TLS against the RDS CA", async () => {
+    const targets: unknown[] = [];
+    const signer: TokenSigner = async (target) => {
+      targets.push(target);
+      return `token-${targets.length}`;
+    };
+    const db = createDb("postgres://ibbun_app@cluster.example.eu-central-1.rds.amazonaws.com:5432/ibbun", {
+      iamRegion: "eu-central-1",
+      signer,
+    });
+    const password = poolOptions(db).password as () => Promise<string>;
+    expect(await password()).toBe("token-1");
+    expect(await password()).toBe("token-2");
+    expect(targets[0]).toEqual({
+      hostname: "cluster.example.eu-central-1.rds.amazonaws.com",
+      port: 5432,
+      username: "ibbun_app",
+      region: "eu-central-1",
+    });
+    const ssl = poolOptions(db).ssl as { ca: string; rejectUnauthorized: boolean };
+    expect(ssl.rejectUnauthorized).toBe(true);
+    expect(ssl.ca).toContain("BEGIN CERTIFICATE");
+    await db.$client.end();
+  });
+
+  it("takes the IAM region from DATABASE_IAM_REGION", async () => {
+    vi.stubEnv("DATABASE_IAM_REGION", "eu-central-1");
+    const db = createDb("postgres://ibbun_app@h/ibbun", { signer: async () => "t" });
+    expect(await (poolOptions(db).password as () => Promise<string>)()).toBe("t");
+    await db.$client.end();
+  });
+
+  it("without an IAM region, signs no token and keeps the URL's own password and TLS settings", async () => {
+    vi.stubEnv("DATABASE_IAM_REGION", "");
+    const db = createDb("postgres://ibbun:ibbun@localhost:5432/ibbun");
+    expect(poolOptions(db).password).toBeUndefined();
+    expect(poolOptions(db).ssl).toBeFalsy();
+    await db.$client.end();
+  });
+
+  it("waits long enough for a paused Aurora to resume", async () => {
+    const db = createDb("postgres://ibbun:ibbun@localhost/ibbun");
+    expect(db.$client.options.connectionTimeoutMillis).toBe(CONNECT_TIMEOUT_MS);
+    expect(CONNECT_TIMEOUT_MS).toBeGreaterThanOrEqual(20_000);
+    await db.$client.end();
+  });
+
+  it("sizes the pool from DATABASE_POOL_MAX, an explicit max winning", async () => {
+    vi.stubEnv("DATABASE_POOL_MAX", "2");
+    const fromEnv = createDb("postgres://x:x@localhost/x");
+    const explicit = createDb("postgres://x:x@localhost/x", { max: 1 });
+    expect([fromEnv.$client.options.max, explicit.$client.options.max]).toEqual([2, 1]);
+    await Promise.all([fromEnv.$client.end(), explicit.$client.end()]);
+    vi.stubEnv("DATABASE_POOL_MAX", "0");
+    expect(() => createDb("postgres://x:x@localhost/x")).toThrow(/DATABASE_POOL_MAX/);
+  });
+
+  it("defaults the pool to 10", async () => {
+    vi.stubEnv("DATABASE_POOL_MAX", "");
+    const db = createDb("postgres://x:x@localhost/x");
+    expect(db.$client.options.max).toBe(10);
+    await db.$client.end();
+  });
+});
+
+describe("the app role", () => {
+  let pg: TestPostgres;
+  let db: Db;
+  beforeAll(async () => {
+    pg = await startTestPostgres();
+    db = createDb(pg.url, { max: 1 });
+  });
+  afterAll(async () => {
+    await db.$client.end();
+    await pg.stop();
+  });
+
+  const asApp = async (statement: string) => {
+    await db.$client.query("SET ROLE ibbun_app");
+    try {
+      return await db.$client.query(statement);
+    } finally {
+      await db.$client.query("RESET ROLE");
+    }
+  };
+
+  it("reads and writes tables made before and after the grants, and cannot change the schema", async () => {
+    const grants = await readFile(new URL("../db/migrations/20261113120000_app_role.sql", import.meta.url), "utf8");
+    const m = (id: string, schema: string, sql: string) => ({ id, schema, timestamp: "0", sql });
+    await migrate(db.$client, [
+      m("progress/1.sql", "progress", "CREATE TABLE before (id serial PRIMARY KEY, n int)"),
+      m("db/app_role.sql", "db", grants),
+      m("cram/1.sql", "cram", "CREATE TABLE after (id serial PRIMARY KEY, n int)"),
+    ]);
+    await asApp("INSERT INTO progress.before (n) VALUES (1)");
+    await asApp("INSERT INTO cram.after (n) VALUES (2)");
+    await asApp("UPDATE cram.after SET n = 3");
+    expect((await asApp("SELECT n FROM cram.after")).rows).toEqual([{ n: 3 }]);
+    await asApp("DELETE FROM progress.before");
+    await expect(asApp("CREATE TABLE progress.sneaky (n int)")).rejects.toThrow(/permission denied/);
+    await expect(asApp("DROP TABLE cram.after")).rejects.toThrow(/must be owner/);
+    await expect(asApp("SELECT * FROM public.ibbun_migrations")).rejects.toThrow(/permission denied/);
   });
 });
