@@ -57,6 +57,12 @@ const pathFixture = () => {
   graph.word.push({ studyItemId: kana, priorityTags: [], usuallyKana: false });
   graph.wordContainsKanji.push({ id: next(), wordId: kana, kanjiId: shoku, position: 0, ...life() });
 
+  const usual = item("word", "N5");
+  graph.word.push({ studyItemId: usual, priorityTags: [], usuallyKana: true });
+  graph.wordForm.push({ id: next(), wordId: usual, position: 0, text: "食う", ...life() });
+  graph.wordContainsKanji.push({ id: next(), wordId: usual, kanjiId: shoku, position: 0, ...life() });
+  const rowless = item("word", "N5");
+
   const te = item("grammar_point", "N5");
   const masu = item("grammar_point", "N5");
   const gone = item("grammar_point", "N5", true);
@@ -86,6 +92,8 @@ const pathFixture = () => {
     { ...facts, id: kuu, type: "kanji", level: "N4", suspended: true },
     { ...facts, id: taberu, type: "word", level: "N5", suspended: true, priorityTags: ["nf02"], dependsOn: [shoku] },
     { ...facts, id: kana, type: "word", level: "N5", suspended: true },
+    { ...facts, id: usual, type: "word", level: "N5", suspended: true },
+    { ...facts, id: rowless, type: "word", level: "N5", suspended: true },
     { ...facts, id: te, type: "grammar_point", level: "N5", suspended: false, demonstrates: [masu] },
     { ...facts, id: masu, type: "grammar_point", level: "N5", suspended: true },
     { ...facts, id: clip, type: "listening_clip", level: null, suspended: false, dependsOn: [taberu, masu, heard].sort() },
