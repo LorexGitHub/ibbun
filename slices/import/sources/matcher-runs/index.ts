@@ -3,6 +3,7 @@ import { z } from "zod";
 import { matchRule, type Authoring, type MatcherRule, type Row } from "@ibbun/content-graph/authoring";
 import { ContentGenerate } from "@ibbun/content-graph/jobs";
 import { defineJob, handler, type JobHandler, type Jobs } from "@ibbun/jobs";
+import { derivedProvenance } from "../derived-provenance.ts";
 
 export type MatcherRunsDeps = { authoring: Authoring; jobs: Pick<Jobs, "enqueue"> };
 export type MatcherRunsReport = { proposed: number; requested: number };
@@ -18,15 +19,6 @@ export const MatcherRuns = defineJob("import.matcher-runs", z.object({}));
 const live = { approval: "approved", retired: false } as const;
 const spanKey = (sentenceId: string, grammarPointId: string, start: number, end: number) => `${sentenceId}\0${grammarPointId}\0${start}\0${end}`;
 
-/** The one Provenance row for this process version, made on first use. */
-const provenanceFor = async (authoring: Authoring) => {
-  const found = (await authoring.rows("provenance")).find(({ source }) => source.kind === "derived" && source.process === PROCESS.name && source.version === PROCESS.version);
-  if (found) return found.id;
-  const id = randomUUID();
-  await authoring.insert("provenance", [{ id, source: { kind: "derived", process: PROCESS.name, version: PROCESS.version }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] }]);
-  return id;
-};
-
 /** Approved Grammar Points that have a Matcher Rule. */
 const rulesToRun = async (authoring: Authoring) => {
   const approved = new Set((await authoring.rows("studyItem", { type: "grammar_point", ...live })).map((i) => i.id));
@@ -37,7 +29,7 @@ const rulesToRun = async (authoring: Authoring) => {
 const proposeLinks = async (authoring: Authoring): Promise<number> => {
   const [rules, sentences, existing] = await Promise.all([rulesToRun(authoring), authoring.rows("sentence", live), authoring.rows("sentenceDemonstratesGrammar")]);
   const known = new Set(existing.map((l) => spanKey(l.sentenceId, l.grammarPointId, l.spanStart, l.spanEnd)));
-  const provenanceId = await provenanceFor(authoring);
+  const provenanceId = await derivedProvenance(authoring, PROCESS);
   const drafts: Row<"sentenceDemonstratesGrammar">[] = rules.flatMap(({ id: grammarPointId, rule }) =>
     sentences.flatMap((s) =>
       matchRule(rule, s.tokens)
