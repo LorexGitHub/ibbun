@@ -1,4 +1,5 @@
-import type { JlptLevel, StudyItemId } from "@ibbun/shared";
+import { JLPT_LEVELS, type JlptLevel, type StudyItemId } from "@ibbun/shared";
+import { isKana, isRomaji, toHiragana } from "wanakana";
 import type { Graph } from "./graph.ts";
 import { currentLevel } from "./levels/levels.ts";
 import { creditsOf, licensing, recordProvenance, type Attribution, type CreditsEntry } from "./licensing.ts";
@@ -153,7 +154,13 @@ const byId = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id, 
 const byPosition = (a: { position: number }, b: { position: number }) => a.position - b.position;
 const present = <T>(value: T | null | undefined): value is T => value != null;
 
-export const normaliseQuery = (query: string) => query.trim().toLowerCase();
+/** What a query is searched as: itself, and its kana too when it is romaji, so "taberu" finds 食べる. */
+export const searchTerms = (query: string): string[] => {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const kana = toHiragana(q);
+  return isRomaji(q) && isKana(kana) ? [q, kana] : [q];
+};
 
 /** Exact 0, prefix 1, anywhere 2; null when `text` does not match. */
 export const matchTier = (text: string, query: string): number | null => {
@@ -374,8 +381,17 @@ const SEARCH_TEXTS: ByType<string[]> = {
   listening_clip: () => [],
 };
 
-const bestTier = (item: StudyItem, query: string) =>
-  Math.min(...byType(SEARCH_TEXTS, item).map((text) => matchTier(text, query) ?? Infinity));
+const bestTier = (item: StudyItem, terms: string[]) =>
+  Math.min(...byType(SEARCH_TEXTS, item).flatMap((text) => terms.map((term) => matchTier(text, term) ?? Infinity)));
+
+/** Items on a level before those on none, easiest level first. */
+export const levelRank = (level: JlptLevel | null) => (level ? JLPT_LEVELS.indexOf(level) : JLPT_LEVELS.length);
+
+type Match = { tier: number; summary: StudyItemSummary };
+
+/** Best match first; within a tier, items on a level before the rest, then the shorter label (水 before お水). */
+export const byRank = (a: Match, b: Match) =>
+  a.tier - b.tier || levelRank(a.summary.level) - levelRank(b.summary.level) || a.summary.label.length - b.summary.label.length || byId(a.summary, b.summary);
 
 const distinct = (ids: string[]) => [...new Set(ids)].sort() as StudyItemId[];
 
@@ -500,15 +516,16 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
     },
 
     search(query: string, limit = DEFAULT_SEARCH_LIMIT): StudyItemSummary[] {
-      const q = normaliseQuery(query);
-      if (!q) return [];
+      const terms = searchTerms(query);
       return visibleItems()
-        .map((item) => ({ item, tier: bestTier(item, q) }))
-        .filter((m) => m.tier !== Infinity)
-        .sort((a, b) => a.tier - b.tier || byId(a.item, b.item))
+        .flatMap((item): Match[] => {
+          const tier = bestTier(item, terms);
+          const summary = summaryOf(item);
+          return tier !== Infinity && summary ? [{ tier, summary }] : [];
+        })
+        .sort(byRank)
         .slice(0, limit)
-        .map((m) => summaryOf(m.item))
-        .filter(present);
+        .map((m) => m.summary);
     },
 
     credits(): CreditsEntry[] {
