@@ -16,6 +16,10 @@ It's built to be reading-heavy and fun. Alongside reviews, ibbun gives you JLPT-
 
 > **Status:** a working showcase, still being built. Every issue in the [build plan](docs/build-plan.md) (M1 to M3) is merged, and a second pass is redesigning the screens one by one. What is not on `main` yet is marked **to be added** below. This is a side project, not a released product.
 
+<p align="center">
+  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through ibbun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
+</p>
+
 ## What's in it
 
 | Screen | What it does | State |
@@ -33,36 +37,6 @@ It's built to be reading-heavy and fun. Alongside reviews, ibbun gives you JLPT-
 | Import | Supervisor only: reports on Import Runs from the open datasets. | Done |
 
 The worker imports the open datasets (JMdict, KANJIDIC2, KanjiVG, Tatoeba, JLPT level lists, UniDic pitch accent, ja Wiktionary, the Grammar Point seed) on a schedule. It also generates content with Claude, which an LLM reviewer then checks.
-
-### To be added
-
-These are being worked on now and are not on `main` yet. Each one replaces a screen that already works.
-
-| What | Where |
-| --- | --- |
-| Cram: a picker with a basket of chosen items | [#220](https://github.com/LorexGitHub/ibbun/pull/220) |
-| Library: a wall of tiles shaded by Mastery, in place of the lists | [#221](https://github.com/LorexGitHub/ibbun/pull/221) |
-| Reading: the newest story first, and switches for Furigana, Translation and Words | [#222](https://github.com/LorexGitHub/ibbun/pull/222) |
-| Listening: the player is the screen, and the answer is one of four options | [#223](https://github.com/LorexGitHub/ibbun/pull/223) |
-| Placement: a wall of tiles per level and Track, and a whole level in one press | [#224](https://github.com/LorexGitHub/ibbun/pull/224) |
-| One command that imports every open dataset, so you can study the real content instead of the small fixture | branch `content-import` |
-
-## What it looks like
-
-<p align="center">
-  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through ibbun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
-</p>
-
-<p align="center"><sub>A Learn batch on the small N5 fixture, then the Library and the five looks. Click for the <a href="assets/demo.mp4">full-size video</a>.</sub></p>
-
-<p align="center">
-  <img src="assets/screenshot-today.png" width="49%" alt="The ibbun Today screen in the Shu look, light: a large 0 in Mincho type, Nothing waits for you today, a vermilion Learn something new button, a Where to? search, and the way up from N5 to N1">
-  <img src="assets/screenshot-today-dark.png" width="49%" alt="The same Today screen in the Ai look, dark: navy page, pale ink and a light blue button">
-</p>
-
-The design is called **Ma** (間, the space between): one thing on screen at a time, Shippori Mincho for headings and Japanese, and a dock of glyphs along the bottom for getting around (今 Today, 復 Reviews, 新 Learn, 読 Reading, 聞 Listening, 辞 Library and more). ⌘K or Ctrl K jumps anywhere.
-
-It comes in five looks, each in light and dark: **Shu 朱** (vermilion on washi, the default), **Ai 藍** (indigo), **Matcha 抹茶**, **Sakura 桜** and **Shiro / Kuro 白黒** (pure white and black). Pick one in Settings → Appearance, or let it follow your device. The reasoning is in [ADR 0014](docs/adr/0014-ma-visual-design.md), and the rules every screen follows are in [platform/ui/design.md](platform/ui/design.md).
 
 ## Run it locally
 
@@ -118,17 +92,6 @@ The background worker starts with `pnpm dev` too.
 | `LLM_GENERATOR_MODEL`, `LLM_REVIEWER_MODEL`  | Override the defaults, `claude-sonnet-5-5` and `claude-opus-5-5`.                                |
 | `DAILY_TOKEN_BUDGET`                         | The daily token cap for generation. The default is 2,000,000.                                    |
 | `SUPERVISOR_EMAIL`                           | `seed` makes this account a Supervisor.                                                          |
-
-### If port 5432 is taken
-
-If you already run PostgreSQL locally, it answers on port 5432 instead of the container, and `pnpm db:migrate` fails with `role "ibbun" does not exist`. Move the container to another port by changing these two lines in `.env`:
-
-```sh
-POSTGRES_PORT=5433
-DATABASE_URL=postgres://ibbun:ibbun@localhost:5433/ibbun
-```
-
-Then run `docker compose up -d` again to recreate the container on the new port.
 
 ## Everyday commands
 
