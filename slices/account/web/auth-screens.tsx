@@ -43,6 +43,9 @@ export const SignUp = () => {
   );
 };
 
+/** Where a log in returns to: a path in this app, never another site. */
+const returnPath = (next: string | null) => (next?.startsWith("/") && !next.startsWith("//") ? next : "/");
+
 export const Login = () => {
   const client = useClient();
   const navigate = useNavigate();
@@ -51,7 +54,7 @@ export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const submit = async () => {
-    if (await run(client.signIn(email, password), "Logged in.")) navigate("/");
+    if (await run(client.signIn(email, password), "Logged in.")) navigate(returnPath(params.get("next")));
   };
   return (
     <Split title="Log in">

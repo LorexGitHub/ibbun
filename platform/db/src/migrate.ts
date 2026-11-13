@@ -16,6 +16,12 @@ export const migrate = async (pool: pg.Pool, migrations: Migration[]): Promise<s
     await client.query(
       "CREATE TABLE IF NOT EXISTS public.ibbun_migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())",
     );
+    // A database made before the project was called ibbun keeps its record under the old name
+    if ((await client.query("SELECT to_regclass('public.mojibun_migrations') AS old")).rows[0].old) {
+      await client.query(
+        "INSERT INTO public.ibbun_migrations (id, applied_at) SELECT id, applied_at FROM public.mojibun_migrations ON CONFLICT (id) DO NOTHING",
+      );
+    }
     const done = new Set(
       (await client.query<{ id: string }>("SELECT id FROM public.ibbun_migrations")).rows.map((r) => r.id),
     );
