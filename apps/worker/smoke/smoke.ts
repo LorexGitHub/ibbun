@@ -48,7 +48,10 @@ const invoke = async (record: { messageId: string; body: string }) => {
   return (await response.json()) as { batchItemFailures?: unknown[]; errorMessage?: string };
 };
 
-const batchText = async () => (await db.query("select passage_id, detail from progress.texts where learner_id = $1 and kind = 'batch'", [learnerId])).rows[0];
+const batchText = async () => {
+  const { rows: [text] } = await db.query("select passage_id, detail from progress.texts where learner_id = $1 and kind = 'batch'", [learnerId]);
+  return text;
+};
 
 const deadline = Date.now() + 120_000;
 let found;

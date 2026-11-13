@@ -3,7 +3,7 @@ import { checkSlices, loadServerParts, type ServerContext, type Slice } from "@i
 
 /** Every slice's job handlers, as both the local worker and the worker Lambda run them. */
 export const jobHandlers = async (slices: Slice[], ctx: ServerContext): Promise<JobHandler[]> =>
-  (await loadServerParts(checkSlices(slices), ctx)).flatMap(({ part }) => part.jobs ?? []);
+  (await loadServerParts(checkSlices(slices), ctx)).flatMap(({ part: { jobs = [] } }) => jobs);
 
 /** Hands every slice's job handlers to the queue and starts the schedules they carry. Returns the job names being worked. */
 export const startWorker = async (jobs: Jobs, slices: Slice[], ctx: ServerContext): Promise<string[]> => {
