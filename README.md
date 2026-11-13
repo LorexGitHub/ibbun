@@ -53,13 +53,6 @@ These are being worked on now and are not on `main` yet. Each one replaces a scr
   <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through mojibun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
 </p>
 
-<p align="center"><sub>A Learn batch on the small N5 fixture, then the Library and the five looks. Click for the <a href="assets/demo.mp4">full-size video</a>.</sub></p>
-
-<p align="center">
-  <img src="assets/screenshot-today.png" width="49%" alt="The mojibun Today screen in the Shu look, light: a large 0 in Mincho type, Nothing waits for you today, a vermilion Learn something new button, a Where to? search, and the way up from N5 to N1">
-  <img src="assets/screenshot-today-dark.png" width="49%" alt="The same Today screen in the Ai look, dark: navy page, pale ink and a light blue button">
-</p>
-
 The design is called **Ma** (間, the space between): one thing on screen at a time, Shippori Mincho for headings and Japanese, and a dock of glyphs along the bottom for getting around (今 Today, 復 Reviews, 新 Learn, 読 Reading, 聞 Listening, 辞 Library and more). ⌘K or Ctrl K jumps anywhere.
 
 It comes in five looks, each in light and dark: **Shu 朱** (vermilion on washi, the default), **Ai 藍** (indigo), **Matcha 抹茶**, **Sakura 桜** and **Shiro / Kuro 白黒** (pure white and black). Pick one in Settings → Appearance, or let it follow your device. The reasoning is in [ADR 0014](docs/adr/0014-ma-visual-design.md), and the rules every screen follows are in [platform/ui/design.md](platform/ui/design.md).
