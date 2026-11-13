@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { AuthEnv, createAuthGuards } from "@ibbun/auth";
-import type { ContentGraph, Word } from "@ibbun/content-graph";
+import { headword, type ContentGraph, type Word } from "@ibbun/content-graph";
 import type { Learners } from "@ibbun/learner";
 import type { Progress, Texts } from "@ibbun/progress";
 import { JlptLevel, LearnerId, StudyItemId } from "@ibbun/shared";
@@ -19,10 +19,10 @@ export type ReadingDeps = {
   practice: PracticeRuntime;
 };
 
-export const lookupView = ({ forms, readings, senses }: Word): LookupView => ({
-  label: forms[0]?.text ?? readings[0]?.text ?? "",
-  reading: readings[0]?.text ?? null,
-  meanings: senses.flatMap((s) => s.glosses).slice(0, 4),
+export const lookupView = (word: Word): LookupView => ({
+  label: headword(word),
+  reading: word.readings[0]?.text ?? null,
+  meanings: word.senses.flatMap((s) => s.glosses).slice(0, 4),
 });
 
 const notFound = { message: "no such text" };

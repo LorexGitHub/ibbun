@@ -68,5 +68,5 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
   if (ended) return <Ending tally={ended.tally} story={ended.story} next={loaded ? loaded.batch : null} api={api} onMore={keepGoing} />;
   if (!loaded) return <p>Loading…</p>;
   if (started) return <Session batch={loaded.batch} api={api} now={false} onFinished={finished} />;
-  return <StartPage state={loaded.state} batch={loaded.batch} onTracks={(t) => void saveTracks(t)} onStart={() => start(loaded.batch)} />;
+  return <StartPage state={loaded.state} batch={loaded.batch} filter={level} onTracks={(t) => void saveTracks(t)} onStart={() => start(loaded.batch)} />;
 };

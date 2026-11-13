@@ -18,6 +18,7 @@ const detailOf = (item: StudyItem): Detail | null => {
       return {
         type: "word",
         forms: item.forms.map((f) => f.text),
+        usuallyKana: item.usuallyKana,
         readings: item.readings.map((r) => ({ text: r.text, pitchAccent: r.pitchAccent })),
         senses: item.senses.map((s) => ({ partsOfSpeech: s.partsOfSpeech, glosses: s.glosses, japaneseExplanation: s.japaneseExplanation })),
       };

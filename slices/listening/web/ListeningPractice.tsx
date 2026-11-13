@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { buttonClass, pillClass, useLevelFilter } from "@ibbun/ui";
 import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
 import type { ClipView } from "../contract.ts";
-import { listClips, loadClip } from "./api.ts";
+import { listClips, loadClip, RequestFailed } from "./api.ts";
 import { PracticeTexts } from "../practice/web/PracticeTexts.tsx";
 import { ClipCard } from "./ClipCard.tsx";
 import "./listening.css";
@@ -22,18 +22,27 @@ const Session = ({ level }: { level: JlptLevel }) => {
   const [clipIds, setClipIds] = useState<string[] | null>(null);
   const [at, setAt] = useState(0);
   const [view, setView] = useState<ClipView | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    listClips(level).then((list) => setClipIds(list.clipIds));
+    setFailed(false);
+    listClips(level).then((list) => setClipIds(list.clipIds), () => setFailed(true));
   }, [level]);
 
   const id = clipIds?.[at % clipIds.length];
   useEffect(() => {
     setView(null);
     // A clip that cannot be served (it has no question yet) is left out, so the Learner only meets clips they can answer.
-    if (id) loadClip(id).then(setView, () => setClipIds((ids) => ids!.filter((other) => other !== id)));
+    if (id) {
+      loadClip(id).then(setView, (e) => {
+        // Only a 404 means this clip cannot be served; any other failure says nothing about the clip.
+        if (e instanceof RequestFailed && e.status === 404) setClipIds((ids) => ids!.filter((other) => other !== id));
+        else setFailed(true);
+      });
+    }
   }, [id, at]);
 
+  if (failed) return <p role="alert">Listening could not load clips. Try again in a moment.</p>;
   if (clipIds === null) return <p>Loading…</p>;
   if (clipIds.length === 0) return <NoClips level={level} />;
   return view ? <ClipCard key={`${at}`} view={view} onNext={() => setAt(at + 1)} /> : <p>Loading…</p>;

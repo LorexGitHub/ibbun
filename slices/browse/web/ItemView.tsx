@@ -82,7 +82,7 @@ const headword = (d: Detail) => {
     case "kanji":
       return d.literal;
     case "word":
-      return d.forms[0] ?? d.readings[0]?.text ?? "";
+      return (d.usuallyKana ? null : d.forms[0]) ?? d.readings[0]?.text ?? "";
     case "grammar_point":
       return d.title;
   }

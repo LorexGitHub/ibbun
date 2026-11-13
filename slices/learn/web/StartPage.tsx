@@ -1,15 +1,16 @@
+import type { JlptLevel } from "@ibbun/shared";
 import { Button, buttonClass } from "@ibbun/ui";
 import type { Batch, State, Track } from "../contract.ts";
 import { faceOf } from "./batch-view.ts";
 import { SourceChooser } from "./SourceChooser.tsx";
 
-type Props = { state: State; batch: Batch; onTracks: (tracks: Track[]) => void; onStart: () => void };
+type Props = { state: State; batch: Batch; filter?: JlptLevel; onTracks: (tracks: Track[]) => void; onStart: () => void };
 
 /** Where a batch starts: what Learn draws from, the Study Items that come next, and one button. */
-export const StartPage = ({ state, batch, onTracks, onStart }: Props) => (
+export const StartPage = ({ state, batch, filter, onTracks, onStart }: Props) => (
   <section className="learn-start">
     <h1>Learn</h1>
-    <SourceChooser tracks={state.activeTracks} onChange={onTracks} />
+    <SourceChooser tracks={state.activeTracks} filter={filter} onChange={onTracks} />
     {batch.items[0] ? (
       <>
         <ul aria-label="Next up" className="face-list">

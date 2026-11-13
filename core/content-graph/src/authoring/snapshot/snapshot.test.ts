@@ -22,7 +22,7 @@ const word = (key: string, forms: string[], readings: string[], senses: [string[
   forms,
   readings: readings.map((text) => ({ text, pitchAccent: null })),
   senses: senses.map(([partsOfSpeech, glosses]) => ({ partsOfSpeech, glosses })),
-  priorityTags: [],
+  priorityTags: [], usuallyKana: false,
 });
 
 const taberu = word("1", ["食べる"], ["たべる"], [[["v1"], ["to eat"]], [["v1"], ["to live on"]]]);

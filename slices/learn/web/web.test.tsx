@@ -106,6 +106,13 @@ describe("Learn opened for one level", () => {
     history.replaceState(null, "", "/learn");
     expect((await open()).batch).toHaveBeenCalledWith(undefined);
   });
+
+  it("shows that level in the chooser, not the active Tracks' level", async () => {
+    history.replaceState(null, "", "/learn?level=n3");
+    await open();
+    expect(checked("radio", "N3")).toBe(true);
+    expect(checked("radio", "N5")).toBe(false);
+  });
 });
 
 const lessons = async () => {
@@ -539,6 +546,18 @@ describe("the quiz", () => {
     expect(await learned(2)).toBeTruthy();
   });
 
+  it("shows the reading, not the Kanji, after a wrong reading", async () => {
+    await toQuiz();
+    answerWater();
+    press("Next");
+    type("Reading in this sentence", "ちがう");
+    type("Meaning of the kanji", "water");
+    press("Check");
+    const miss = (await screen.findByRole("status")).querySelector(".answer--miss")!;
+    expect(miss.textContent).toContain("It is みず");
+    expect(miss.textContent).not.toContain("水");
+  });
+
   it("names every answer field in sight, and marks each facet of a checked answer right or missed", async () => {
     await toQuiz();
     const named = () => [...document.querySelectorAll(".field > .caps")].map((label) => label.textContent);
@@ -692,6 +711,8 @@ describe("talking to the API", () => {
     await expect(learnApi.batch()).rejects.toThrow("not a valid quiz");
     vi.stubGlobal("fetch", vi.fn(async () => new Response("nope", { status: 401, statusText: "Unauthorized" })));
     await expect(learnApi.batch()).rejects.toThrow("Unauthorized");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("", { status: 500, statusText: "Internal Server Error" })));
+    await expect(learnApi.batch()).rejects.toThrow("Learn could not load");
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ message: "" }), { status: 400, statusText: "Bad Request" })));
     await expect(learnApi.batch()).rejects.toMatchObject({ message: "" });
   });

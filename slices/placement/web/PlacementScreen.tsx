@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLevelFilter } from "@ibbun/ui";
 import { PlacementList, PlacementResult, type JlptLevel } from "../contract.ts";
 import { PlacementView, type Track } from "./PlacementView.tsx";
@@ -19,9 +19,14 @@ export const PlacementScreen = () => {
   const [list, setList] = useState<PlacementList | null>(null);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  /** The level the Learner has chosen now: a response for any other level is stale and dropped. */
+  const current = useRef(level);
+  current.current = level;
 
   const load = useCallback(async (l: JlptLevel) => {
     const res = await fetch(`/api/placement/${l}`);
+    if (l !== current.current) return;
     if (res.ok) setList(PlacementList.parse(await res.json()));
     else setMessage(res.status === 401 ? "Log in to use Placement." : "Placement could not load this level.");
   }, []);
@@ -30,6 +35,7 @@ export const PlacementScreen = () => {
     setList(null);
     setTicked(new Set());
     setMessage(null);
+    setSaving(false);
     void load(level);
   }, [level, load]);
 
@@ -37,11 +43,15 @@ export const PlacementScreen = () => {
   const tickAll = () => setTicked((prev) => flipped(prev, list!.items.filter((item) => item.type === track && !item.known).map((item) => item.id)));
 
   const submit = async () => {
-    const res = await fetch(`/api/placement/${level}`, {
+    const saved = level;
+    setSaving(true);
+    const res = await fetch(`/api/placement/${saved}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ studyItemIds: [...ticked] }),
     });
+    if (saved !== current.current) return;
+    setSaving(false);
     if (!res.ok) return setMessage("Placement could not save your ticks.");
     const { recorded } = PlacementResult.parse(await res.json());
     setTicked(new Set());
@@ -50,6 +60,6 @@ export const PlacementScreen = () => {
   };
 
   return (
-    <PlacementView level={level} track={track} list={list} ticked={ticked} message={message} onLevel={filter ? undefined : setLevel} onTrack={setTrack} onToggle={toggle} onAll={tickAll} onSubmit={submit} />
+    <PlacementView level={level} track={track} list={list} ticked={ticked} message={message} saving={saving} onLevel={filter ? undefined : setLevel} onTrack={setTrack} onToggle={toggle} onAll={tickAll} onSubmit={submit} />
   );
 };

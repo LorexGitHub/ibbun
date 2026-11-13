@@ -28,7 +28,7 @@ const page: ItemPage = {
   level: "N5",
   locked: true,
   introduced: false,
-  detail: { type: "word", forms: ["日本"], readings: [{ text: "にほん", pitchAccent: null }], senses: [{ partsOfSpeech: ["n"], glosses: ["Japan"], japaneseExplanation: null }] },
+  detail: { type: "word", forms: ["日本"], usuallyKana: false, readings: [{ text: "にほん", pitchAccent: null }], senses: [{ partsOfSpeech: ["n"], glosses: ["Japan"], japaneseExplanation: null }] },
   examples: [],
   related: [],
   credits: [],

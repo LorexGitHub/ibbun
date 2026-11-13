@@ -13,12 +13,13 @@ const live = async (ctx: RunCtx, wordId: string) => ({
   senses: (await ctx.tx.rows("wordSense", { wordId, retired: false })).sort((a, b) => a.position - b.position),
 });
 
-const asRecord = (key: string, priorityTags: string[], rows: Awaited<ReturnType<typeof live>>): WordRecord => ({
+const asRecord = (key: string, { priorityTags, usuallyKana }: Pick<WordRecord, "priorityTags" | "usuallyKana">, rows: Awaited<ReturnType<typeof live>>): WordRecord => ({
   key,
   forms: rows.forms.map((f) => f.text),
   readings: rows.readings.map((r) => ({ text: r.text, pitchAccent: null })),
   senses: rows.senses.map((s) => ({ partsOfSpeech: s.partsOfSpeech, glosses: s.glosses })),
   priorityTags,
+  usuallyKana,
 });
 
 /**
@@ -85,7 +86,7 @@ export const jmdict = {
     const id = ctx.clock.newId();
     const l = await life(ctx);
     await ctx.tx.insert("studyItem", [{ id, type: "word", ...l }]);
-    await ctx.tx.insert("word", [{ studyItemId: id, priorityTags: record.priorityTags }]);
+    await ctx.tx.insert("word", [{ studyItemId: id, priorityTags: record.priorityTags, usuallyKana: record.usuallyKana }]);
     await write(ctx, id, record, { forms: [], readings: [], senses: [] }, l);
     await ctx.sourceKey(record.key, id);
     return id;
@@ -96,10 +97,10 @@ export const jmdict = {
     const [item] = await ctx.tx.rows("studyItem", { id });
     const [word] = await ctx.tx.rows("word", { studyItemId: id });
     const old = await live(ctx, id);
-    if (!item!.retired && same(asRecord(record.key, word!.priorityTags, old), record)) return false;
+    if (!item!.retired && same(asRecord(record.key, word!, old), record)) return false;
     const l = await life(ctx);
     await ctx.tx.update("studyItem", { id }, { retired: false, provenanceId: l.provenanceId });
-    await ctx.tx.update("word", { studyItemId: id }, { priorityTags: record.priorityTags });
+    await ctx.tx.update("word", { studyItemId: id }, { priorityTags: record.priorityTags, usuallyKana: record.usuallyKana });
     await ctx.checkOverrides(id, { priorityTags: record.priorityTags });
     await write(ctx, id, record, old, l);
     return true;

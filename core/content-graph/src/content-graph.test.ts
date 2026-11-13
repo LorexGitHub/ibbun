@@ -47,6 +47,7 @@ const contract = (make: () => Promise<ContentGraph>) => {
         id: id("taberu"),
         level: "N5",
         priorityTags: ["ichi1"],
+        usuallyKana: false,
         forms: [
           { id: g.ids.taberuForm, text: "食べる" },
           { id: g.ids.taberuSecondForm, text: "喰べる" },
@@ -259,5 +260,10 @@ describe.each([
     await seedContentGraph(db, graph);
     return createContentGraph(db);
   });
+
+  it("reads a list of ids longer than one query can name", async () => {
+    const absent = Array.from({ length: 130_000 }, (_, i) => `10000000-0000-4000-8000-${i.toString(16).padStart(12, "0")}` as StudyItemId);
+    expect(await createContentGraph(db).atLevel([...absent, id("taberu")], "N5")).toEqual([id("taberu")]);
+  }, 60_000);
   });
 });

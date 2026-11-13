@@ -18,5 +18,6 @@ export type {
   StudyItemSummary,
   Word,
 } from "./read.ts";
+export { headword } from "./read.ts";
 export type { ComprehensionQuestion, GrammarForm, Licence, StudyItemType, Token } from "./schema.ts";
 export * from "./grade/index.ts";

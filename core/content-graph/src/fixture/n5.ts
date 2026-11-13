@@ -146,7 +146,7 @@ export const n5Fixture = (): N5Fixture => {
   for (const w of WORDS) {
     const id = studyItem("word");
     words[w.form] = id;
-    graph.word.push({ studyItemId: id, priorityTags: ["ichi1"] });
+    graph.word.push({ studyItemId: id, priorityTags: ["ichi1"], usuallyKana: false });
     const formId = next();
     const readingId = next();
     const senseId = next();

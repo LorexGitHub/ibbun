@@ -17,7 +17,7 @@ const word = (key: string, text: string, reading: string, gloss: string): WordRe
   forms: [text],
   readings: [{ text: reading, pitchAccent: null }],
   senses: [{ partsOfSpeech: ["v1"], glosses: [gloss] }],
-  priorityTags: [],
+  priorityTags: [], usuallyKana: false,
 });
 
 /** An upstream whose newest release and contents the test controls, and which counts downloads. */

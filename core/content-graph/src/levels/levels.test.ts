@@ -61,7 +61,7 @@ const world = () => {
   };
   const word = (approval?: Approval) => {
     const id = item("word", approval);
-    graph.word.push({ studyItemId: id, priorityTags: [] });
+    graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana: false });
     return id;
   };
   const grammar = () => {
