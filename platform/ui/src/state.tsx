@@ -49,7 +49,7 @@ const classOf = (inline: boolean, failed: boolean) =>
 export const State = ({ title, heading = 2, mark, score, label, fact, note, inline = false, onRetry, children }: StateProps) => {
   const Heading = `h${heading}` as const;
   const failed = onRetry !== undefined;
-  const caption = label ?? (failed ? "Not loaded" : undefined);
+  const caption = label || (failed ? "Not loaded" : undefined);
   return (
     <section className={classOf(inline, failed)} role={failed ? "alert" : undefined}>
       {!inline && <Mark mark={mark} score={score} />}

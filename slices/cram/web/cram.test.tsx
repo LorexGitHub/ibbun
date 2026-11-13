@@ -5,6 +5,7 @@ import { StudyItemId } from "@ibbun/shared";
 import type { CramItem, Question } from "../contract.ts";
 import type { CramClient } from "./client.ts";
 import { askedFor, CramScreen } from "./CramScreen.tsx";
+import { Practice } from "./Practice.tsx";
 import { queryFor } from "./Picker.tsx";
 import { createCramClient } from "./client.ts";
 
@@ -234,7 +235,10 @@ describe("practising", () => {
     expect(await screen.findByText("Not quite.")).toBeTruthy();
     expect(screen.getByText(/Answer: 山/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
-    expect(await screen.findByText(/1 of 2 right\. Mastery and statistics are unchanged\./)).toBeTruthy();
+    expect(await screen.findByText("1 of 2 right. Mastery and statistics are unchanged.")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "Done" })).toBeTruthy();
+    expect(document.querySelector(".state-mark")?.textContent).toBe("1 / 2");
+    expect(screen.queryByText(/No Example/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Choose more" }));
     expect(await screen.findByRole("heading", { name: "Cram" })).toBeTruthy();
   });
@@ -352,6 +356,20 @@ describe("practising", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Next" }));
     expect(await screen.findByText(/1 of 1 right/)).toBeTruthy();
     expect(screen.getByText("No Example to practise yet for 山.")).toBeTruthy();
+  });
+
+  it("ignores the answer for items it is no longer practising", async () => {
+    let failA!: () => void;
+    const client = fakeClient({
+      question: (id) =>
+        id === ID_A ? new Promise((resolve) => (failA = () => resolve({ ok: false, status: 404, message: "nothing" }))) : Promise.resolve({ ok: true, data: question(id) }),
+    });
+    const { rerender } = render(<Practice items={[{ id: ID_A, label: "山" }]} client={client} onDone={() => undefined} />);
+    rerender(<Practice items={[{ id: ID_B, label: "川" }]} client={client} onDone={() => undefined} />);
+    await screen.findByRole("textbox", { name: "The missing Japanese" });
+    await act(async () => failA());
+    expect(screen.getByText("1 of 1")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "The missing Japanese" })).toBeTruthy();
   });
 
   it("says there was nothing to practise, not 0 of 0 right, when no item had an Example", async () => {
