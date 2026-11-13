@@ -25,8 +25,6 @@ const toEvent = (req, body) => {
 
 const reply = (res, { statusCode, headers, cookies = [], body = "", isBase64Encoded }) =>
   res.writeHead(statusCode, { ...headers, "set-cookie": cookies }).end(Buffer.from(body, isBase64Encoded ? "base64" : "utf8"));
-  res.writeHead(result.statusCode, headers).end(Buffer.from(result.body ?? "", result.isBase64Encoded ? "base64" : "utf8"));
-};
 
 // The emulator runs one invocation at a time and drops the others, where Lambda would
 // start another instance. Queue them instead.
