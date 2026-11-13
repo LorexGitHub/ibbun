@@ -155,7 +155,7 @@ export const Settings = () => {
           <div className="account-form">
             <h3>Email</h3>
             <p>
-              Signed in as <strong>{learner.email}</strong>
+              Signed in as <strong className="settings-email">{learner.email}</strong>
             </p>
             <ChangeEmail />
           </div>
