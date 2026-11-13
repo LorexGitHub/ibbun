@@ -127,6 +127,15 @@ describe("migrate and transaction, against Postgres", () => {
     expect(rows.map((r) => r.table_schema)).toEqual(["cram", "progress"]);
   });
 
+  it("counts a migration recorded under the project's old name as applied", async () => {
+    await db.$client.query("CREATE TABLE public.mojibun_migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())");
+    await db.$client.query("INSERT INTO public.mojibun_migrations (id) VALUES ('old/1.sql')");
+    const m = migration("old/1.sql", "old", "CREATE TABLE never (id int)");
+    expect(await migrate(db.$client, [m, migration("old/2.sql", "old", "CREATE TABLE fresh (id int)")])).toEqual(["old/2.sql"]);
+    expect(await migrate(db.$client, [m])).toEqual([]);
+    await db.$client.query("DROP TABLE public.mojibun_migrations");
+  });
+
   it("applies nothing the second time", async () => {
     const m = migration("learner/1.sql", "learner", "CREATE TABLE accounts (id int)");
     expect(await migrate(db.$client, [m])).toEqual(["learner/1.sql"]);
