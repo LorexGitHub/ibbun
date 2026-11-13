@@ -40,6 +40,23 @@ rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
 @media (hover: none) { .key-mark { display: none; } }
 
 .card { background: var(--color-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card), inset 0 0 0 1px var(--color-rule); }
+/* A result, an empty place or a failed load (#239): one large mark, then the label, heading, fact and actions, centred with room around them. Inline, inside a screen, it drops the mark. */
+.state { display: grid; justify-items: center; gap: var(--space-md); padding-block: var(--space-2xl); text-align: center; }
+.state > * { margin: 0; }
+.state-mark { margin-bottom: var(--space-sm); font: 500 clamp(72px, 11vw, 128px)/0.9 var(--font-jp); color: color-mix(in oklab, var(--color-ink) 14%, transparent); }
+.state-mark--score { color: var(--color-ink); font-variant-numeric: tabular-nums; }
+.state-mark small { font-size: 0.4em; color: var(--color-muted); }
+.state h1, .state h2 { font-size: var(--text-section); font-weight: 400; }
+.state h3 { font-size: var(--text-title); font-weight: 400; }
+.state-label { margin-bottom: calc(var(--space-sm) * -1); }
+.state-fact { max-width: 34ch; font-size: var(--text-lead); color: var(--color-ink-2); }
+.state-note { max-width: 46ch; color: var(--color-muted); }
+.state-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-sm); margin-top: var(--space-md); }
+.state--inline { justify-items: start; gap: var(--space-xs); padding-block: var(--space-md); text-align: start; }
+.state--inline .state-actions { justify-content: start; margin-top: var(--space-xs); }
+.state--error .state-label { color: var(--color-error); }
+.state--error .state-label::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 10px; border-radius: 50%; background: currentColor; vertical-align: 2px; }
+
 .pill { display: inline-flex; align-items: center; min-height: 34px; padding: 0 var(--space-md); border-radius: var(--radius-pill); background: transparent; box-shadow: inset 0 0 0 1px var(--color-rule); color: var(--color-ink); font-size: var(--text-sm); text-decoration: none; }
 .pill--ink { background: var(--color-ink); color: var(--color-paper); box-shadow: none; }
 

@@ -9,4 +9,5 @@ export { SessionCount, SessionCountSlot } from "./session.tsx";
 export { onGoTo, openGoTo } from "./go-to.ts";
 export { LevelFilter, levelIn, levelQuery, useLevelFilter } from "./level-filter.tsx";
 export { applyTheme, MODES, PALETTES, parseTheme, setTheme, ThemePicker, useSystemModeSync, useTheme, type PaletteKey, type Theme, type ThemeMode } from "./theme.tsx";
+export { State } from "./state.tsx";
 export { Button, buttonClass, Card, Pill, pillClass, Sheet, type ButtonLook, type ButtonVariant, type Fill, type Tear } from "./paper.tsx";
