@@ -19,34 +19,45 @@ type StateProps = {
   children?: ReactNode;
 };
 
+/** The large mark above a whole-screen state: a result's score in ink, or the place's glyph. */
+const Mark = ({ mark, score }: Pick<StateProps, "mark" | "score">) => {
+  if (score) {
+    return (
+      <div className="state-mark state-mark--score jp" aria-hidden="true">
+        {score.right}
+        <small> / {score.of}</small>
+      </div>
+    );
+  }
+  return mark ? <div className="state-mark jp" aria-hidden="true">{mark}</div> : null;
+};
+
+const Actions = ({ inline, onRetry, children }: Pick<StateProps, "inline" | "onRetry" | "children">) => {
+  if (!onRetry && !children) return null;
+  return (
+    <div className="state-actions">
+      {onRetry && <Button variant={inline ? "secondary" : "primary"} onClick={onRetry}>Try again</Button>}
+      {children}
+    </div>
+  );
+};
+
+const classOf = (inline: boolean, failed: boolean) =>
+  ["state", inline && "state--inline", failed && "state--error"].filter(Boolean).join(" ");
+
 /** A result, an empty place or a failed load, centred under the screen's heading (#239). */
 export const State = ({ title, heading = 2, mark, score, label, fact, note, inline = false, onRetry, children }: StateProps) => {
   const Heading = `h${heading}` as const;
   const failed = onRetry !== undefined;
   const caption = label ?? (failed ? "Not loaded" : undefined);
   return (
-    <section className={["state", inline && "state--inline", failed && "state--error"].filter(Boolean).join(" ")} role={failed ? "alert" : undefined}>
-      {!inline && score && (
-        <div className="state-mark state-mark--score jp" aria-hidden="true">
-          {score.right}
-          <small> / {score.of}</small>
-        </div>
-      )}
-      {!inline && !score && mark && (
-        <div className="state-mark jp" aria-hidden="true">
-          {mark}
-        </div>
-      )}
+    <section className={classOf(inline, failed)} role={failed ? "alert" : undefined}>
+      {!inline && <Mark mark={mark} score={score} />}
       {caption && <p className="caps state-label">{caption}</p>}
       <Heading>{title}</Heading>
       {fact && <p className="state-fact">{fact}</p>}
       {note && <p className="state-note">{note}</p>}
-      {(failed || children) && (
-        <div className="state-actions">
-          {failed && <Button variant={inline ? "secondary" : "primary"} onClick={onRetry}>Try again</Button>}
-          {children}
-        </div>
-      )}
+      <Actions inline={inline} onRetry={onRetry}>{children}</Actions>
     </section>
   );
 };
