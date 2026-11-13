@@ -1,8 +1,10 @@
 import { mkdtemp, readdir, rm, utimes } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { directoryRawFiles, memoryRawFiles, RAW_RUNS_KEPT, type RawFiles } from "./raw-files.ts";
+import { randomUUID } from "node:crypto";
+import { CreateBucketCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { directoryRawFiles, memoryRawFiles, RAW_RUNS_KEPT, rawFilesAt, s3RawFiles, type RawFiles } from "./raw-files.ts";
 
 const file = (name: string, text: string) => ({ name, bytes: new TextEncoder().encode(text) });
 const text = (files: { bytes: Uint8Array }[] | null) => files?.map((f) => new TextDecoder().decode(f.bytes));
@@ -63,5 +65,41 @@ describe("raw files in memory", () => {
   rawFilesContract(async () => {
     const raw = memoryRawFiles();
     return { raw, versions: async () => raw.versions("jmdict"), age: async () => undefined };
+  });
+});
+
+// Runs against Compose's S3 (`docker compose up -d s3`) when TEST_S3_ENDPOINT is set, as in CI.
+const endpoint = process.env.TEST_S3_ENDPOINT;
+describe.runIf(endpoint)("raw files in S3", () => {
+  const client = new S3Client({ endpoint, region: "us-east-1", forcePathStyle: true, credentials: { accessKeyId: "test", secretAccessKey: "test" } });
+  const bucket = async () => {
+    const name = `raw-${randomUUID()}`;
+    await client.send(new CreateBucketCommand({ Bucket: name }));
+    return name;
+  };
+  // From the objects, not CommonPrefixes: SeaweedFS lists a prefix whose objects were all deleted.
+  const versionsIn = async (name: string, prefix: string) => {
+    const page = await client.send(new ListObjectsV2Command({ Bucket: name, Prefix: `${prefix}jmdict/` }));
+    const folders = (page.Contents ?? []).map((o) => o.Key!.slice(`${prefix}jmdict/`.length).split("/")).filter((parts) => parts.length > 1);
+    return [...new Set(folders.map(([folder]) => decodeURIComponent(folder!)))];
+  };
+
+  rawFilesContract(async () => {
+    const name = await bucket();
+    return { raw: s3RawFiles(client, name, "import-raw/"), versions: () => versionsIn(name, "import-raw/"), age: async () => {} };
+  });
+
+  it("is what s3://bucket/prefix in IMPORT_RAW_DIR names", async () => {
+    const name = await bucket();
+    vi.stubEnv("AWS_ENDPOINT_URL_S3", endpoint);
+    vi.stubEnv("AWS_ACCESS_KEY_ID", "test");
+    vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test");
+    try {
+      await rawFilesAt(`s3://${name}/raw/`).keep("jmdict", "3.6.2+2026/11?02", [file("a.json", "x")]);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    expect(text(await s3RawFiles(client, name, "raw/").read("jmdict", "3.6.2+2026/11?02"))).toEqual(["x"]);
+    expect(await versionsIn(name, "raw/")).toEqual(["3.6.2+2026/11?02"]);
   });
 });

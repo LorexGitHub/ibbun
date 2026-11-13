@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {},
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1167.0",
     "@ibbun/content-graph": "workspace:*",
     "@ibbun/db": "workspace:*",
     "@ibbun/jobs": "workspace:*",
@@ -15,5 +16,7 @@
     "@ibbun/tts": "workspace:*",
     "zod": "^4.1.0"
   },
-  "devDependencies": { "@types/node": "^24.0.0" }
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
 }

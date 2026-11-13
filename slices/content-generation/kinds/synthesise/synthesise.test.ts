@@ -1,14 +1,15 @@
 import { randomUUID } from "node:crypto";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { CreateBucketCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { describe, expect, it, vi } from "vitest";
 import { createFakeAuthoring } from "@ibbun/content-graph/testing";
 import { ListeningSynthesise } from "@ibbun/content-graph/jobs";
 import { createFakeJobs } from "@ibbun/jobs";
 import { createFakeTts } from "@ibbun/tts";
 import { world } from "../../server/world.ts";
-import { audioKeyOf, createDirectoryAudioStore, createMemoryAudioStore, synthesiseHandlers, type Voice } from "./index.ts";
+import { audioKeyOf, audioStoreAt, createDirectoryAudioStore, createMemoryAudioStore, createS3AudioStore, synthesiseHandlers, type AudioStore, type Voice } from "./index.ts";
 import { kanaOf } from "./kana.ts";
 import { dialogueVoices, loadSynthesisConfig, loadVoices, sentenceVoice } from "./voices.ts";
 
@@ -127,20 +128,62 @@ describe("the audio store", () => {
     for (const other of [{ kana: "イ'ヌ" }, { voice: 2 }, { engineVersion: "0.26.1" }, { speed: 0.75 }]) expect(audioKeyOf({ ...spec, ...other })).not.toBe(key);
   });
 
-  it("keeps files in a directory", async () => {
-    const store = createDirectoryAudioStore(join(await mkdtemp(join(tmpdir(), "audio-")), "nested"));
+});
+
+const audioStoreContract = (make: () => Promise<AudioStore>) => {
+  it("answers has and get for a key it never stored with false and null", async () => {
+    const store = await make();
     expect(await store.has("k")).toBe(false);
     expect(await store.get("k")).toBeNull();
+  });
+
+  it("returns the bytes it was given, and the latest bytes for a key put twice", async () => {
+    const store = await make();
     await store.put("k", new Uint8Array([1, 2, 3]));
     expect(await store.has("k")).toBe(true);
     expect([...(await store.get("k"))!]).toEqual([1, 2, 3]);
-  });
-
-  it("keeps files in memory", async () => {
-    const store = createMemoryAudioStore();
-    expect(await store.get("k")).toBeNull();
     await store.put("k", new Uint8Array([4]));
     expect([...(await store.get("k"))!]).toEqual([4]);
+    expect(await store.has("other")).toBe(false);
+  });
+};
+
+describe("the audio store in memory", () => audioStoreContract(async () => createMemoryAudioStore()));
+
+describe("the audio store in a directory", () => {
+  audioStoreContract(async () => createDirectoryAudioStore(join(await mkdtemp(join(tmpdir(), "audio-")), "nested")));
+
+  it("is what a path in AUDIO_DIR names", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "audio-"));
+    await audioStoreAt(dir).put("k", new Uint8Array([7]));
+    expect([...(await readFile(join(dir, "k")))]).toEqual([7]);
+  });
+});
+
+// Runs against Compose's S3 (`docker compose up -d s3`) when TEST_S3_ENDPOINT is set, as in CI.
+const endpoint = process.env.TEST_S3_ENDPOINT;
+describe.runIf(endpoint)("the audio store in S3", () => {
+  const client = new S3Client({ endpoint, region: "us-east-1", forcePathStyle: true, credentials: { accessKeyId: "test", secretAccessKey: "test" } });
+  const bucket = async () => {
+    const name = `audio-${randomUUID()}`;
+    await client.send(new CreateBucketCommand({ Bucket: name }));
+    return name;
+  };
+
+  audioStoreContract(async () => createS3AudioStore(client, { bucket: await bucket(), prefix: "audio/" }));
+
+  it("is what s3://bucket/audio/ in AUDIO_DIR names, keeping a clip at audio/<key>, the path CloudFront serves, as cacheable Ogg", async () => {
+    const name = await bucket();
+    vi.stubEnv("AWS_ENDPOINT_URL_S3", endpoint);
+    vi.stubEnv("AWS_ACCESS_KEY_ID", "test");
+    vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test");
+    try {
+      await audioStoreAt(`s3://${name}/audio/`).put("k", new Uint8Array([9]));
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    const object = await client.send(new GetObjectCommand({ Bucket: name, Key: "audio/k" }));
+    expect({ type: object.ContentType, cache: object.CacheControl, body: [...(await object.Body!.transformToByteArray())] }).toEqual({ type: "audio/ogg", cache: "public, max-age=31536000, immutable", body: [9] });
   });
 });
 
