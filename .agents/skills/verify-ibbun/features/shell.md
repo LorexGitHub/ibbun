@@ -17,6 +17,7 @@ The shell is the web app every slice mounts into: the slice routes, a home scree
 - `shell-welcome`: logged out, `/` shows whatever a slice registered in the `welcome` slot (the account slice puts its sign-up split there, see [account.md](account.md)) and Study, Practice and Library under "What's inside". With no such widget the shell shows its own line with **Sign up** and **Log in**.
 - `shell-theme` applies the saved look before the first paint: `<html>` carries `data-palette` and `data-mode`, read from `localStorage` key `ibbun.theme`; "Match my device" follows `prefers-color-scheme`.
 - `shell-health` answers `GET /api/health` with `{"ok":true}`, directly and through the web proxy.
+- `shell-lambda` is the same API as a Lambda function (`apps/api/src/lambda.ts`, Hono's `aws-lambda` adapter), for the stack's CloudFront and function URL. It serves every request on `APP_URL`'s origin whatever host reached it, takes the viewer's IP only from `cloudfront-viewer-address`, and reads the parameters under `SSM_PARAMETER_PATH` (such as `AUTH_SECRET`) from SSM once per cold start. Locally it runs under the Lambda Runtime Interface Emulator, with `apps/api/lambda-url-proxy.mjs` standing in for the function URL.
 
 ## How to get to it (user POV)
 
@@ -43,6 +44,7 @@ Preconditions:
 - **Session.** On `/learn` or `/reviews` there is no dock, no "Levels" and no **Where to?**; the top line shows the session's glyph and name, and a **Done for now** link points to `/`.
 - **Theme.** In Settings → Look pick Ai and Dark. `document.documentElement.dataset` is `{palette: "ai", mode: "dark"}`, the page background turns navy, and a reload keeps it. `verify.sh shot / shell/ai-dark`.
 - **Logged out.** In a fresh context open `/`. The page shows the sign-up split with a **Sign up** button, **Log in** (`/login`) and "What's inside", and no dock: there is no `navigation` landmark.
+- **On Lambda.** Run `pnpm --filter @ibbun/api build:lambda`, then `docker build -f apps/api/lambda.Dockerfile -t mojibun-api-lambda apps/api`. Start it with `docker run -d --name api-lambda -p 9256:8080 --memory=512m -e NODE_ENV=production -e DATABASE_URL=postgres://ibbun:ibbun@host.docker.internal:5433/ibbun -e APP_URL=http://localhost:5256 -e AUTH_SECRET=<32+ bytes> -e SMTP_URL=smtp://host.docker.internal:1025 mojibun-api-lambda` (use the Postgres port from `.env`), and the function URL with `node apps/api/lambda-url-proxy.mjs 3256 http://localhost:9256/2015-03-31/functions/function/invocations`. `curl -s localhost:3256/api/health` prints `{"ok":true}`. Run `API_PORT=3256 WEB_PORT=5256 pnpm exec playwright test`: Playwright reuses the running API, starts Vite on 5256, and every spec passes, login and Reviews included. `docker logs api-lambda` shows one `REPORT` line per request.
 - **Harness spec.** Run `pnpm exec playwright test --project=anonymous`. `e2e/shell.spec.ts` passes.
 
 ## Gotchas
@@ -53,6 +55,10 @@ Preconditions:
 - If login says "email or password is wrong" for a seeded account, or sign-up fails with a 500, check that `DATABASE_URL` reaches the container: a local PostgreSQL on 5432 answers first and has no `ibbun` role. `/api/health` does not touch the database, so it stays green.
 - Better Auth only trusts the configured web origin. A second Vite on another port can log in but gets 403 on **Log out**.
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
+
+- The emulator runs one invocation at a time and crashes on a second concurrent one (`ReserveFailed: AlreadyReserved`, then a Go panic). The proxy queues requests for that reason; never point a browser at port 9256 directly.
+- Under the emulator the session cookie is `__Secure-better-auth.session_token` and `Secure`, as everywhere; Chrome accepts it on `http://localhost`.
+- `APP_URL` in the container must be the Vite origin Playwright uses, or Better Auth answers 403 on every POST.
 
 ## Keys
 
