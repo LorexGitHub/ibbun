@@ -23,8 +23,8 @@ export const ssmParameters =
     const found: { name: string; value: string }[] = [];
     let NextToken: string | undefined;
     do {
-      const page = await ssm.send(new GetParametersByPathCommand({ Path: path, WithDecryption: true, NextToken }));
-      for (const { Name, Value } of page.Parameters ?? []) found.push({ name: Name!, value: Value! });
+      const { Parameters = [], ...page } = await ssm.send(new GetParametersByPathCommand({ Path: path, WithDecryption: true, NextToken }));
+      for (const { Name, Value } of Parameters) found.push({ name: Name!, value: Value! });
       NextToken = page.NextToken;
     } while (NextToken);
     return found;
