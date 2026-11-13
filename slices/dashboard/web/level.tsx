@@ -1,9 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { LevelPage } from "../contract.ts";
+import { LevelPage, type Mastery } from "../contract.ts";
 import { levelDoors, TRACKS } from "./doors.ts";
 import { percentKnown } from "./path.ts";
 import "./level.css";
+
+/** A Track's count, or, when the level has none of it yet, where to look instead. */
+const TrackCount = ({ mastery, level }: { mastery: Mastery; level: string }) =>
+  mastery.total ? (
+    <small>
+      {mastery.known} of {mastery.total} Known · {percentKnown(mastery)}%
+    </small>
+  ) : (
+    <small>
+      None at {level} yet · <Link to="/browse">Look in the Library</Link>
+    </small>
+  );
 
 export const LevelView = ({ page }: { page: LevelPage }) => (
   <section className="level-page" aria-labelledby="level-name">
@@ -21,9 +33,7 @@ export const LevelView = ({ page }: { page: LevelPage }) => (
             <span className="level-bar" aria-hidden>
               <span style={{ width: `${percent}%` }} />
             </span>
-            <small>
-              {mastery.known} of {mastery.total} Known · {percent}%
-            </small>
+            <TrackCount mastery={mastery} level={page.level} />
           </li>
         );
       })}

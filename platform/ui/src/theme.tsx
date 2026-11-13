@@ -25,8 +25,9 @@ const DEFAULT: Theme = { palette: "shu", mode: "system" };
 
 /** Reads the saved theme; anything unreadable or unknown falls back to the default. */
 export const parseTheme = (raw: string | null): Theme => {
+  if (raw === null) return DEFAULT;
   try {
-    const t = JSON.parse(raw ?? "") as Partial<Theme>;
+    const t = JSON.parse(raw) as Partial<Theme>;
     return {
       palette: PALETTES.some((p) => p.key === t.palette) ? t.palette! : DEFAULT.palette,
       mode: MODES.some((m) => m.key === t.mode) ? t.mode! : DEFAULT.mode,

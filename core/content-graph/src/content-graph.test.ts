@@ -212,6 +212,11 @@ const contract = (make: () => Promise<ContentGraph>) => {
       expect(await labels("飲")).toEqual(["飲", "飲む"]);
     });
 
+    it("reads a romaji query as kana too", async () => {
+      expect(await labels("taberu")).toEqual(["食べる"]);
+      expect(await labels(" NOMU ")).toEqual(["飲む"]);
+    });
+
     it("matches the overridden text, not the text it replaced", async () => {
       expect(await labels("to devour")).toEqual([]);
       expect(await labels("to consume")).toEqual(["食べる"]);
