@@ -1,5 +1,5 @@
 import { collectMigrations, createDb, migrate, workspacePackageDirs } from "@ibbun/db";
-import { createPgBossJobs } from "@ibbun/jobs";
+import { createSqsJobsFromEnv } from "@ibbun/jobs";
 import { resolve } from "node:path";
 import { startWorker } from "./worker.ts";
 import { slices } from "./slices.generated.ts";
@@ -11,7 +11,7 @@ const root = resolve(import.meta.dirname, "../../..");
 const db = createDb(url);
 await migrate(db.$client, await collectMigrations(await workspacePackageDirs(root)));
 
-const jobs = await createPgBossJobs(url);
+const jobs = createSqsJobsFromEnv(process.env);
 const names = await startWorker(jobs, slices, { db, sessions: { resolve: async () => null } });
 console.log(`worker running ${names.length} job type(s)`);
 
