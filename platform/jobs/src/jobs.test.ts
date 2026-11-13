@@ -90,8 +90,8 @@ describe("fake jobs", () => {
 
 describe("SQS jobs, against ElasticMQ", () => {
   const opened: { queue: TestQueue; jobs: Jobs[] }[] = [];
-  const open = async (visibilitySeconds?: number) => {
-    const queue = await startTestQueue({ visibilitySeconds });
+  const open = async (visibilitySeconds = 30) => {
+    const queue = await startTestQueue(visibilitySeconds);
     opened.push({ queue, jobs: [] });
     return queue;
   };

@@ -18,7 +18,7 @@ console.log(`worker running ${names.length} job type(s)`);
 const stop = async () => {
   await jobs.stop();
   await db.$client.end();
-  process.exit(0);
+  process.exit();
 };
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);

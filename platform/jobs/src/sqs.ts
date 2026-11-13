@@ -79,19 +79,19 @@ export const createSqsJobs = ({ client, queueUrl, waitSeconds = 20 }: SqsJobsOpt
   };
 };
 
-/** ElasticMQ: any credentials, and the endpoint is the queue URL's own host. */
-const local = (queueUrl: string) => ({ endpoint: new URL(queueUrl).origin, credentials: { accessKeyId: "local", secretAccessKey: "local" } });
+/** ElasticMQ: any region and credentials, and the endpoint is the queue URL's own host. */
+const local = (queueUrl: string) => ({ region: "elasticmq", endpoint: new URL(queueUrl).origin, credentials: { accessKeyId: "local", secretAccessKey: "local" } });
 
 const unconfigured = (): Promise<never> => Promise.reject(new Error("JOBS_QUEUE_URL is not set"));
 
 /**
- * The queue named by `JOBS_QUEUE_URL`. On AWS the Lambda's role signs the calls; locally, with no
+ * The queue named by `JOBS_QUEUE_URL`. On AWS the Lambda's role signs the calls, in its own region; locally, with no
  * AWS credentials in the environment, ElasticMQ accepts any. A missing URL fails on first use, so
  * the API and the worker start without it.
  */
 export const createSqsJobsFromEnv = (env: Record<string, string | undefined>): Jobs => {
   const queueUrl = env.JOBS_QUEUE_URL;
   if (!queueUrl) return { enqueue: unconfigured, schedule: unconfigured, work: unconfigured, stop: async () => {} };
-  const client = new SQSClient({ region: env.AWS_REGION ?? "eu-central-1", ...(env.AWS_ACCESS_KEY_ID ? {} : local(queueUrl)) });
+  const client = new SQSClient(env.AWS_ACCESS_KEY_ID ? {} : local(queueUrl));
   return createSqsJobs({ client, queueUrl });
 };
