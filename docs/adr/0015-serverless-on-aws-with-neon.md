@@ -55,4 +55,5 @@ Run `node scripts/cost-model.mjs 250 5000` to price other sizes, and edit the `l
 - The first request after a quiet period waits for a Lambda cold start and for Neon to wake, a few hundred milliseconds each. A job may wait longer while VOICEVOX's large image starts, which no Learner sees.
 - Session-level Postgres features work only on the direct endpoint. Application code that needs one must say so.
 - Every `Jobs` handler must tolerate being run twice, because SQS delivers at least once.
+- This decides the shape the app must have to run on AWS. No deploy is planned yet. Until one is, the stack is checked locally with `alchemy dev`.
 - A deploy is not a public release. [licensing.md](../licensing.md) still requires a lawyer's review before the app is shown to people outside the team.
