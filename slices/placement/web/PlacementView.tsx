@@ -17,6 +17,8 @@ export type PlacementViewProps = {
   list: PlacementList | null;
   ticked: ReadonlySet<string>;
   message: string | null;
+  /** A save is in flight. */
+  saving?: boolean;
   /** Absent when the Level filter picks the level: the header then holds the levels. */
   onLevel?: (level: PlacementList["level"]) => void;
   onTrack: (track: Track) => void;
@@ -37,9 +39,16 @@ const Tile = ({ item, ticked, onToggle }: { item: PlacementItem; ticked: boolean
   </li>
 );
 
-const Wall = ({ level, track, items, ticked, onToggle, onAll }: Pick<PlacementViewProps, "level" | "track" | "ticked" | "onToggle" | "onAll"> & { items: PlacementItem[] }) => {
+const Wall = ({ level, track, items, ticked, onToggle, onAll, onTrack }: Pick<PlacementViewProps, "level" | "track" | "ticked" | "onToggle" | "onAll" | "onTrack"> & { items: PlacementItem[] }) => {
   const title = TRACKS.find((t) => t.type === track)!.title;
-  if (items.length === 0) return <p>No {level} {title} yet.</p>;
+  if (items.length === 0) {
+    return (
+      <>
+        <p>No {level} {title} yet.</p>
+        {track !== "kanji" && <Button onClick={() => onTrack("kanji")}>Back to Kanji</Button>}
+      </>
+    );
+  }
   const open = items.filter((item) => !item.known);
   return (
     <>
@@ -54,7 +63,7 @@ const Wall = ({ level, track, items, ticked, onToggle, onAll }: Pick<PlacementVi
 };
 
 /** The wall of a level and Track: tap what is Known, or take the whole level at once, then Save. */
-export const PlacementView = ({ level, track, list, ticked, message, onLevel, onTrack, onToggle, onAll, onSubmit }: PlacementViewProps) => (
+export const PlacementView = ({ level, track, list, ticked, message, saving, onLevel, onTrack, onToggle, onAll, onSubmit }: PlacementViewProps) => (
   <section aria-labelledby="placement-title" className="placement">
     <h1 id="placement-title">Placement</h1>
     <p>Tap what you already know. It becomes Known and still comes back for review.</p>
@@ -78,13 +87,13 @@ export const PlacementView = ({ level, track, list, ticked, message, onLevel, on
       <p>Loading {level}…</p>
     ) : (
       <>
-        <Wall level={level} track={track} items={list.items.filter((item) => item.type === track)} ticked={ticked} onToggle={onToggle} onAll={onAll} />
+        <Wall level={level} track={track} items={list.items.filter((item) => item.type === track)} ticked={ticked} onToggle={onToggle} onAll={onAll} onTrack={onTrack} />
         <div className="placement-save">
           <p>
             <b>{ticked.size}</b> to mark as Known · {list.items.filter((item) => item.known).length} of {list.items.length} Known
           </p>
-          <Button variant="primary" big hotkey="Enter" disabled={ticked.size === 0} onClick={onSubmit}>
-            Save
+          <Button variant="primary" big hotkey="Enter" disabled={ticked.size === 0 || saving} aria-busy={saving} onClick={onSubmit}>
+            {saving ? "Saving…" : "Save"}
           </Button>
         </div>
       </>
