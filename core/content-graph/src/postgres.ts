@@ -120,7 +120,7 @@ const visible = (table: { approval: PgColumn; retired: PgColumn }) =>
 
 /** drizzle's `inArray` overflows the stack past about 120,000 ids, so a long list is read a chunk at a time. */
 const CHUNK = 1_000;
-const inChunks = async <T>(ids: string[], read: (chunk: string[]) => Promise<T[]>): Promise<T[]> => {
+export const inChunks = async <T>(ids: string[], read: (chunk: string[]) => Promise<T[]>): Promise<T[]> => {
   const rows: T[] = [];
   for (let i = 0; i < ids.length; i += CHUNK) rows.push(...(await read(ids.slice(i, i + CHUNK))));
   return rows;
