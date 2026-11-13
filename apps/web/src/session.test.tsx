@@ -1,6 +1,14 @@
 // @vitest-environment happy-dom
 import type { Slice } from "@ibbun/slice";
-import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router";
 import { toast } from "sonner";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -18,8 +26,15 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const learner = { learnerId: "l", email: "learner@x.test", role: "learner" as const };
-const modules = import.meta.glob<{ default: Slice }>("../../../scripts/fixtures/root/slices/*/register.ts", { eager: true });
+const learner = {
+  learnerId: "l",
+  email: "learner@x.test",
+  role: "learner" as const,
+};
+const modules = import.meta.glob<{ default: Slice }>(
+  "../../../scripts/fixtures/root/slices/*/register.ts",
+  { eager: true },
+);
 
 /** A promise the test settles by hand, to put two answers in a chosen order. */
 const deferred = <T,>() => {
@@ -32,9 +47,13 @@ describe("useWho", () => {
   it("knows a logged-in Learner, a visitor, and a failed check as a visitor", async () => {
     const session = vi.spyOn(client, "session");
     session.mockResolvedValueOnce({ ok: true, data: learner });
-    const { result, rerender } = renderHook(({ path }) => useWho(path)[0], { initialProps: { path: "/" } });
+    const { result, rerender } = renderHook(({ path }) => useWho(path)[0], {
+      initialProps: { path: "/" },
+    });
     expect(result.current).toEqual({ state: "loading" });
-    await waitFor(() => expect(result.current).toEqual({ state: "in", learner }));
+    await waitFor(() =>
+      expect(result.current).toEqual({ state: "in", learner }),
+    );
 
     session.mockResolvedValueOnce({ ok: true, data: null });
     rerender({ path: "/login" });
@@ -51,8 +70,12 @@ describe("useWho", () => {
   it("ignores an answer that arrives after the Learner has moved on", async () => {
     const slow = deferred<Awaited<ReturnType<typeof client.session>>>();
     const fast = deferred<Awaited<ReturnType<typeof client.session>>>();
-    vi.spyOn(client, "session").mockReturnValueOnce(slow.promise).mockReturnValueOnce(fast.promise);
-    const { result, rerender } = renderHook(({ path }) => useWho(path)[0], { initialProps: { path: "/" } });
+    vi.spyOn(client, "session")
+      .mockReturnValueOnce(slow.promise)
+      .mockReturnValueOnce(fast.promise);
+    const { result, rerender } = renderHook(({ path }) => useWho(path)[0], {
+      initialProps: { path: "/" },
+    });
     rerender({ path: "/login" });
     await act(async () => fast.settle({ ok: true, data: null }));
     await act(async () => slow.settle({ ok: true, data: learner }));
@@ -64,15 +87,22 @@ describe("logging out from the account menu", () => {
   let loggedIn = true;
   const logOut = async () => {
     loggedIn = true;
-    vi.spyOn(client, "session").mockImplementation(async () => ({ ok: true, data: loggedIn ? learner : null }));
+    vi.spyOn(client, "session").mockImplementation(async () => ({
+      ok: true,
+      data: loggedIn ? learner : null,
+    }));
     const shell = await buildShell(discoverSlices(modules));
     render(
       <MemoryRouter initialEntries={["/sample"]}>
         <App shell={shell} />
       </MemoryRouter>,
     );
-    fireEvent.keyDown(await screen.findByRole("button", { name: /Account/ }), { key: "Enter" });
-    await act(async () => fireEvent.click(screen.getByRole("menuitem", { name: "Log out" })));
+    fireEvent.keyDown(await screen.findByRole("button", { name: /Account/ }), {
+      key: "Enter",
+    });
+    await act(async () =>
+      fireEvent.click(screen.getByRole("menuitem", { name: "Log out" })),
+    );
   };
 
   it("logs the Learner out and shows the welcome", async () => {
@@ -82,39 +112,74 @@ describe("logging out from the account menu", () => {
     });
     const error = vi.spyOn(toast, "error");
     await logOut();
-    expect((await screen.findByRole("link", { name: /Sign up/ })).getAttribute("href")).toBe("/signup");
+    expect(
+      (await screen.findByRole("link", { name: /Sign up/ })).getAttribute(
+        "href",
+      ),
+    ).toBe("/signup");
     expect(error).not.toHaveBeenCalled();
   });
 
   it("keeps the Learner logged in and says why when logging out fails", async () => {
-    vi.spyOn(client, "signOut").mockResolvedValue({ ok: false, status: 500, message: "server down" });
+    vi.spyOn(client, "signOut").mockResolvedValue({
+      ok: false,
+      status: 500,
+      message: "server down",
+    });
     const error = vi.spyOn(toast, "error");
     await logOut();
-    expect(error).toHaveBeenCalledWith("You're still logged in.", { description: "server down" });
+    expect(error).toHaveBeenCalledWith("You're still logged in.", {
+      description: "server down",
+    });
     expect(screen.queryByRole("link", { name: "Log in" })).toBeNull();
   });
 });
 
 describe("a door opened for one level", () => {
-  const drill: Slice = { name: "drill", nav: { label: "Drill", path: "/drill", place: "study", blurb: "Drill.", glyph: "練", session: true } };
-  const book: Slice = { name: "book", nav: { label: "Book", path: "/book", place: "library", blurb: "Book." } };
+  const drill: Slice = {
+    name: "drill",
+    nav: {
+      label: "Drill",
+      path: "/drill",
+      place: "study",
+      blurb: "Drill.",
+      glyph: "練",
+      session: true,
+    },
+  };
+  const book: Slice = {
+    name: "book",
+    nav: { label: "Book", path: "/book", place: "library", blurb: "Book." },
+  };
   const who = { state: "in" as const, learner };
-  const open = async (address: string, as: Parameters<typeof App>[0]["initialWho"] = who) => {
+  const open = async (
+    address: string,
+    as: Parameters<typeof App>[0]["initialWho"] = who,
+  ) => {
     history.replaceState(null, "", address);
-    const shell = await buildShell(discoverSlices({ ...modules, drill: { default: drill }, book: { default: book } }));
+    const shell = await buildShell(
+      discoverSlices({
+        ...modules,
+        drill: { default: drill },
+        book: { default: book },
+      }),
+    );
     render(
       <MemoryRouter initialEntries={[address]}>
         <App shell={shell} initialWho={as} />
       </MemoryRouter>,
     );
   };
-  const filter = () => screen.queryByRole("navigation", { name: "Level filter" });
+  const filter = () =>
+    screen.queryByRole("navigation", { name: "Level filter" });
   afterEach(() => history.replaceState(null, "", "/"));
 
   it("keeps All and the levels in the header of a filtered screen, in place of the links to the level pages", async () => {
     await open("/sample?level=n3");
     expect(filter()).toBeTruthy();
-    expect(screen.getByRole("link", { name: "N3" }).getAttribute("aria-current")).toBe("true");
+    expect(
+      screen.getByRole("link", { name: "N3" }).getAttribute("aria-current"),
+    ).toBe("true");
     expect(screen.queryByRole("navigation", { name: "Levels" })).toBeNull();
   });
 
@@ -141,10 +206,24 @@ describe("a door opened for one level", () => {
 });
 
 describe("Esc on a session screen", () => {
-  const drill: Slice = { name: "drill", nav: { label: "Drill", path: "/drill", place: "study", blurb: "Drill.", glyph: "練", session: true } };
-  const Where = () => <output aria-label="where">{useLocation().pathname}</output>;
+  const drill: Slice = {
+    name: "drill",
+    nav: {
+      label: "Drill",
+      path: "/drill",
+      place: "study",
+      blurb: "Drill.",
+      glyph: "練",
+      session: true,
+    },
+  };
+  const Where = () => (
+    <output aria-label="where">{useLocation().pathname}</output>
+  );
   const open = async (address: string) => {
-    const shell = await buildShell(discoverSlices({ ...modules, drill: { default: drill } }));
+    const shell = await buildShell(
+      discoverSlices({ ...modules, drill: { default: drill } }),
+    );
     render(
       <MemoryRouter initialEntries={[address]}>
         <App shell={shell} initialWho={{ state: "in", learner }} />
@@ -167,5 +246,57 @@ describe("Esc on a session screen", () => {
     await open("/sample");
     fireEvent.keyDown(document.body, { key: "Escape" });
     expect(where()).toBe("/sample");
+  });
+});
+
+describe("a visitor on a session screen", () => {
+  const drill: Slice = {
+    name: "drill",
+    nav: {
+      label: "Drill",
+      path: "/drill",
+      place: "study",
+      blurb: "Drill.",
+      glyph: "練",
+      session: true,
+    },
+  };
+  const Where = () => {
+    const { pathname, search } = useLocation();
+    return <output aria-label="where">{pathname + search}</output>;
+  };
+  const open = async (address: string, who: "in" | "out") => {
+    const shell = await buildShell(
+      discoverSlices({ ...modules, drill: { default: drill } }),
+    );
+    render(
+      <MemoryRouter initialEntries={[address]}>
+        <App
+          shell={shell}
+          initialWho={
+            who === "in" ? { state: "in", learner } : { state: "out" }
+          }
+        />
+        <Where />
+      </MemoryRouter>,
+    );
+  };
+  const where = () => screen.getByLabelText("where").textContent;
+
+  it("goes to Log in, which returns to the session afterwards", async () => {
+    await open("/drill?level=n3", "out");
+    await waitFor(() =>
+      expect(where()).toBe(
+        `/login?next=${encodeURIComponent("/drill?level=n3")}`,
+      ),
+    );
+  });
+
+  it("stays put on a screen that is not a session, and a Learner stays on the session", async () => {
+    await open("/sample", "out");
+    expect(where()).toBe("/sample");
+    cleanup();
+    await open("/drill", "in");
+    expect(where()).toBe("/drill");
   });
 });

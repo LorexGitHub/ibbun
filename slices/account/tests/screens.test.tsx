@@ -150,6 +150,20 @@ describe("log in", () => {
     expect(client.signIn).toHaveBeenCalledWith("a@x.test", "pw");
   });
 
+  it("returns to the screen that sent the visitor here, and only to a screen of this app", async () => {
+    const logIn = async (path: string, to: string) => {
+      open(path);
+      type("Email", "a@x.test");
+      type("Password", "pw");
+      press("Log in");
+      await waitFor(() => expect(where()).toBe(to));
+      cleanup();
+    };
+    await logIn(`/login?next=${encodeURIComponent("/learn?level=n3")}`, "/learn?level=n3");
+    await logIn(`/login?next=${encodeURIComponent("//elsewhere.test/x")}`, "/");
+    await logIn(`/login?next=${encodeURIComponent("https://elsewhere.test/")}`, "/");
+  });
+
   it("stays on the form with the one failure message", async () => {
     open("/login", fakeClient({ signIn: vi.fn(async () => fail(401, "email or password is wrong")) }));
     type("Email", "a@x.test");

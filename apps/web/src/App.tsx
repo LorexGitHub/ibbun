@@ -1,8 +1,25 @@
 import type { NavEntry } from "@ibbun/slice";
-import { buttonClass, KeyMark, Layout, LevelFilter, onGoTo, SessionCountSlot, useKey, useLevelFilter, useSystemModeSync } from "@ibbun/ui";
+import {
+  buttonClass,
+  KeyMark,
+  Layout,
+  LevelFilter,
+  onGoTo,
+  SessionCountSlot,
+  useKey,
+  useLevelFilter,
+  useSystemModeSync,
+} from "@ibbun/ui";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
-import { Link, Route, Routes, useLocation, useNavigate } from "react-router";
+import {
+  Link,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router";
 import { toast } from "sonner";
 import { Toaster } from "@/vendor/ui/sonner";
 import { AccountMenu } from "./AccountMenu.tsx";
@@ -10,7 +27,15 @@ import { AppDock } from "./AppDock.tsx";
 import { CommandMenu, CommandTrigger, useCommandKey } from "./CommandMenu.tsx";
 import { Welcome } from "./Home.tsx";
 import { LevelLinks } from "./LevelLinks.tsx";
-import { dockEntries, kanjiAt, sessionAt, takesLevel, visibleTo, welcomeEntries, type Who } from "./places.ts";
+import {
+  dockEntries,
+  kanjiAt,
+  sessionAt,
+  takesLevel,
+  visibleTo,
+  welcomeEntries,
+  type Who,
+} from "./places.ts";
 import type { Shell } from "./slices.ts";
 import { client, useWho } from "./who.ts";
 
@@ -28,8 +53,15 @@ export const Slot = ({ shell, name }: { shell: Shell; name: string }) => (
 const Home = ({ shell, who }: { shell: Shell; who: Who }) => {
   if (who.state === "loading") return null;
   if (who.state === "out") {
-    const door = shell.widgets.some((w) => w.slot === "welcome") && <Slot shell={shell} name="welcome" />;
-    return <Welcome entries={welcomeEntries(visibleTo(shell.nav, who))} door={door} />;
+    const door = shell.widgets.some((w) => w.slot === "welcome") && (
+      <Slot shell={shell} name="welcome" />
+    );
+    return (
+      <Welcome
+        entries={welcomeEntries(visibleTo(shell.nav, who))}
+        door={door}
+      />
+    );
   }
   return <Slot shell={shell} name="home" />;
 };
@@ -57,13 +89,38 @@ const SessionName = ({ session }: { session: NavEntry }) => (
 );
 
 /** What the header shows beside the seal: a door opened for one level keeps "All" and the levels, a session included. */
-const useLevels = (nav: NavEntry[], who: Who, pathname: string, map: boolean) => {
-  const filtered = useLevelFilter() !== undefined && who.state === "in" && takesLevel(nav, pathname);
+const useLevels = (
+  nav: NavEntry[],
+  who: Who,
+  pathname: string,
+  map: boolean,
+) => {
+  const filtered =
+    useLevelFilter() !== undefined &&
+    who.state === "in" &&
+    takesLevel(nav, pathname);
   if (filtered) return <LevelFilter />;
   return map ? <LevelLinks /> : undefined;
 };
 
-export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) => {
+/** A session is the Learner's own: a visitor goes to Log in and comes back here afterwards. */
+const LogInFirst = () => {
+  const { pathname, search } = useLocation();
+  return (
+    <Navigate
+      replace
+      to={`/login?next=${encodeURIComponent(pathname + search)}`}
+    />
+  );
+};
+
+export const App = ({
+  shell,
+  initialWho,
+}: {
+  shell: Shell;
+  initialWho?: Who;
+}) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [fetched, setWho] = useWho(pathname);
@@ -78,7 +135,10 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
 
   const signOut = async () => {
     const result = await client.signOut();
-    if (!result.ok) return void toast.error("You're still logged in.", { description: result.message });
+    if (!result.ok)
+      return void toast.error("You're still logged in.", {
+        description: result.message,
+      });
     setWho({ state: "out" });
     navigate("/");
     toast("Logged out. See you next time.");
@@ -100,15 +160,37 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
 
   return (
     <MotionConfig reducedMotion="user">
-      <Layout nav={(sessionName || levels) && <>{sessionName}{levels}</>} aside={aside} dock={dock} kanji={kanjiAt(nav, pathname)}>
-        <Routes>
-          {shell.routes.map((r) => (
-            <Route key={r.path} path={r.path} element={<r.component />} />
-          ))}
-          <Route path="*" element={<Home shell={shell} who={who} />} />
-        </Routes>
+      <Layout
+        nav={
+          (sessionName || levels) && (
+            <>
+              {sessionName}
+              {levels}
+            </>
+          )
+        }
+        aside={aside}
+        dock={dock}
+        kanji={kanjiAt(nav, pathname)}
+      >
+        {session && who.state === "out" ? (
+          <LogInFirst />
+        ) : (
+          <Routes>
+            {shell.routes.map((r) => (
+              <Route key={r.path} path={r.path} element={<r.component />} />
+            ))}
+            <Route path="*" element={<Home shell={shell} who={who} />} />
+          </Routes>
+        )}
       </Layout>
-      <CommandMenu open={menuOpen} onOpenChange={setMenuOpen} nav={nav} who={who} onSignOut={signOut} />
+      <CommandMenu
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        nav={nav}
+        who={who}
+        onSignOut={signOut}
+      />
       <Toaster position="top-center" />
     </MotionConfig>
   );
