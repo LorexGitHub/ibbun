@@ -93,17 +93,6 @@ The background worker starts with `pnpm dev` too.
 | `DAILY_TOKEN_BUDGET`                         | The daily token cap for generation. The default is 2,000,000.                                    |
 | `SUPERVISOR_EMAIL`                           | `seed` makes this account a Supervisor.                                                          |
 
-### If port 5432 is taken
-
-If you already run PostgreSQL locally, it answers on port 5432 instead of the container, and `pnpm db:migrate` fails with `role "mojibun" does not exist`. Move the container to another port by changing these two lines in `.env`:
-
-```sh
-POSTGRES_PORT=5433
-DATABASE_URL=postgres://mojibun:mojibun@localhost:5433/mojibun
-```
-
-Then run `docker compose up -d` again to recreate the container on the new port.
-
 ## Everyday commands
 
 | Command          | What it does                                                        |
