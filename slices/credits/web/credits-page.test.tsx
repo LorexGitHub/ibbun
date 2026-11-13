@@ -35,9 +35,10 @@ const reply = (body: unknown, status = 200) => (async () => new Response(JSON.st
 
 describe("loading the Credits page", () => {
   it("shows a loading line, then the credits, or an alert when they failed", () => {
-    expect(renderToString(<CreditsState credits={null} />)).toContain("Loading credits");
-    expect(renderToString(<CreditsState credits="failed" />)).toContain("could not be loaded");
-    expect(renderToString(<CreditsState credits={[jmdict]} />)).toContain("JMdict");
+    const retry = () => undefined;
+    expect(renderToString(<CreditsState credits={null} onRetry={retry} />)).toContain("Loading credits");
+    expect(renderToString(<CreditsState credits="failed" onRetry={retry} />)).toContain("The credits did not load");
+    expect(renderToString(<CreditsState credits={[jmdict]} onRetry={retry} />)).toContain("JMdict");
   });
 
   it("parses a good response", async () => {
