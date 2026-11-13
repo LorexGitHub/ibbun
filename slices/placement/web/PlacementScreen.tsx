@@ -19,7 +19,8 @@ export const PlacementScreen = () => {
   const [list, setList] = useState<PlacementList | null>(null);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  // The effect below sets it for each level, so it starts unset
+  const [saving, setSaving] = useState<boolean>();
   /** The level the Learner has chosen now: a response for any other level is stale and dropped. */
   const current = useRef(level);
   current.current = level;

@@ -56,8 +56,10 @@ const SYSTEMS: [RegExp, string][] = [[/Windows/, "Windows"], [/Android/, "Androi
 
 /** "Chrome on Windows" from a raw user-agent string; the raw string never reaches the screen. */
 export const deviceName = (userAgent: string | null): string => {
-  const browser = BROWSERS.find(([re]) => re.test(userAgent ?? ""))?.[1];
-  const system = SYSTEMS.find(([re]) => re.test(userAgent ?? ""))?.[1];
+  // A missing user agent reads as "null", which names no browser and no system
+  const ua = String(userAgent);
+  const browser = BROWSERS.find(([re]) => re.test(ua))?.[1];
+  const system = SYSTEMS.find(([re]) => re.test(ua))?.[1];
   if (browser && system) return `${browser} on ${system}`;
   return browser ?? system ?? "Unknown device";
 };
