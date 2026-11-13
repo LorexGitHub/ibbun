@@ -51,10 +51,21 @@ const ChangePassword = () => {
   );
 };
 
+const BROWSERS: [RegExp, string][] = [[/Edg\//, "Edge"], [/OPR\/|Opera/, "Opera"], [/Firefox|FxiOS/, "Firefox"], [/Chrome|CriOS/, "Chrome"], [/Safari/, "Safari"]];
+const SYSTEMS: [RegExp, string][] = [[/Windows/, "Windows"], [/Android/, "Android"], [/iPhone|iPad|iOS/, "iOS"], [/Mac OS|Macintosh/, "macOS"], [/CrOS/, "ChromeOS"], [/Linux/, "Linux"]];
+
+/** "Chrome on Windows" from a raw user-agent string; the raw string never reaches the screen. */
+export const deviceName = (userAgent: string | null): string => {
+  const browser = BROWSERS.find(([re]) => re.test(userAgent ?? ""))?.[1];
+  const system = SYSTEMS.find(([re]) => re.test(userAgent ?? ""))?.[1];
+  if (browser && system) return `${browser} on ${system}`;
+  return browser ?? system ?? "Unknown device";
+};
+
 const SessionRow = ({ session, onEnd }: { session: ActiveSession; onEnd: () => void }) => (
   <li className="session-row">
     <span>
-      {session.userAgent || "Unknown device"}
+      {deviceName(session.userAgent)}
       {session.current ? " (this device)" : ""}, last used {session.lastUsedAt.slice(0, 10)}
     </span>
     {!session.current && <Button onClick={onEnd}>End session</Button>}
