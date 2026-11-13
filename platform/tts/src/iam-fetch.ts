@@ -11,8 +11,9 @@ const hmac = (key: string | Buffer, data: string) => createHmac("sha256", key).u
 
 const encode = (value: string) => encodeURIComponent(value).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 
-const canonicalQuery = (params: URLSearchParams) =>
-  [...params].map(([k, v]) => [encode(k), encode(v)]).sort(([a, x], [b, y]) => (a === b ? (x! < y! ? -1 : 1) : a! < b! ? -1 : 1)).map(([k, v]) => `${k}=${v}`).join("&");
+/** Encoded pairs sorted by name, then value: "\0" sorts below every character a name can hold. */
+export const canonicalQuery = (params: URLSearchParams) =>
+  [...params].map(([k, v]) => `${encode(k)}\0${encode(v)}`).sort().map((pair) => pair.replace("\0", "=")).join("&");
 
 /** The headers that sign one request. `body` must be the exact bytes sent. */
 export const signRequest = (
@@ -53,7 +54,7 @@ export const createIamFetch = (scope: SigningScope, send: typeof fetch = fetch, 
     const url = new URL(input instanceof Request ? input.url : input);
     const body = typeof init.body === "string" ? init.body : "";
     const headers = Object.fromEntries(new Headers(init.headers).entries());
-    return send(url, { ...init, headers: signRequest({ method: init.method ?? "GET", url, headers, body }, scope, clock()) });
+    return send(url, { ...init, headers: signRequest({ method: init.method || "GET", url, headers, body }, scope, clock()) });
   }) as typeof fetch;
 
 const FUNCTION_URL = /\.lambda-url\.([a-z0-9-]+)\.on\.aws$/;

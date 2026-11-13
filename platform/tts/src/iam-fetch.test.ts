@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createIamFetch, credentialsFromEnv, functionUrlRegion, signRequest, type SigningScope } from "./iam-fetch.ts";
+import { canonicalQuery, createIamFetch, credentialsFromEnv, functionUrlRegion, signRequest, type SigningScope } from "./iam-fetch.ts";
 import { createVoicevoxTts } from "./voicevox.ts";
 
 const HOST = "abc.lambda-url.eu-central-1.on.aws";
@@ -43,6 +43,12 @@ describe("signRequest", () => {
     const sign = (query: string) => signRequest({ method: "GET", url: new URL(`https://${HOST}/v?${query}`) }, SCOPE, NOW).authorization;
     expect(sign("b=1&a=2&a=1")).toBe(sign("a=1&a=2&b=1"));
     expect(sign("a=1&b=2")).not.toBe(sign("a=2&b=1"));
+  });
+});
+
+describe("canonicalQuery", () => {
+  it("sorts by encoded name, a name before any longer one it starts, then by value", () => {
+    expect(canonicalQuery(new URLSearchParams("b=1&a-b=1&a=2&a=1&c=it's"))).toBe("a=1&a=2&a-b=1&b=1&c=it%27s");
   });
 });
 
