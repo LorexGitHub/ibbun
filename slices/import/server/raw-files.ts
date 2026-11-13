@@ -91,11 +91,11 @@ export const s3RawFiles = (client: S3Client, bucket: string, prefix: string): Ra
   };
 };
 
-/** `IMPORT_RAW_DIR` is a directory, or `s3://bucket/prefix` on AWS. A local S3 such as Compose's needs `AWS_ENDPOINT_URL_S3`. */
+/** `IMPORT_RAW_DIR` is a directory, or `s3://bucket/prefix` on AWS. The client reads `AWS_REGION`; a local S3 such as Compose's also needs `AWS_ENDPOINT_URL_S3`. */
 export const rawFilesAt = (location: string): RawFiles => {
   if (!location.startsWith("s3://")) return directoryRawFiles(location);
-  const url = new URL(location);
-  return s3RawFiles(new S3Client({ region: process.env.AWS_REGION ?? "us-east-1", forcePathStyle: Boolean(process.env.AWS_ENDPOINT_URL_S3) }), url.hostname, url.pathname.slice(1));
+  const [bucket, ...path] = location.slice("s3://".length).split("/");
+  return s3RawFiles(new S3Client({ forcePathStyle: Boolean(process.env.AWS_ENDPOINT_URL_S3) }), bucket!, path.join("/"));
 };
 
 /** Raw files held in memory, for tests of everything that uses them. */

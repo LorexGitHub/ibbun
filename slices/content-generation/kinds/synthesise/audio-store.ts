@@ -26,7 +26,7 @@ export const createMemoryAudioStore = (): AudioStore => {
       files.set(key, audio);
     },
     async get(key) {
-      return files.get(key) ?? null;
+      return files.has(key) ? files.get(key)! : null;
     },
   };
 };
@@ -70,9 +70,9 @@ export const createS3AudioStore = (client: S3Client, { bucket, prefix }: S3Locat
   };
 };
 
-/** `AUDIO_DIR` is a directory, or `s3://bucket/prefix` on AWS. A local S3 such as Compose's needs `AWS_ENDPOINT_URL_S3`. */
+/** `AUDIO_DIR` is a directory, or `s3://bucket/prefix` on AWS. The client reads `AWS_REGION`; a local S3 such as Compose's also needs `AWS_ENDPOINT_URL_S3`. */
 export const audioStoreAt = (location: string): AudioStore => {
   if (!location.startsWith("s3://")) return createDirectoryAudioStore(location);
-  const url = new URL(location);
-  return createS3AudioStore(new S3Client({ region: process.env.AWS_REGION ?? "us-east-1", forcePathStyle: Boolean(process.env.AWS_ENDPOINT_URL_S3) }), { bucket: url.hostname, prefix: url.pathname.slice(1) });
+  const [bucket, ...path] = location.slice("s3://".length).split("/");
+  return createS3AudioStore(new S3Client({ forcePathStyle: Boolean(process.env.AWS_ENDPOINT_URL_S3) }), { bucket: bucket!, prefix: path.join("/") });
 };

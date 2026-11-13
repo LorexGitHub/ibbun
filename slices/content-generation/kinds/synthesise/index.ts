@@ -94,5 +94,5 @@ export const synthesise = async (deps: SynthesiseDeps, target: SynthesiseTarget)
 
 export const synthesiseHandlers = (deps: SynthesiseDeps) => [handler(ListeningSynthesise, ({ target }) => synthesise(deps, target))];
 
-export { audioKeyOf, audioStoreAt, createDirectoryAudioStore, createMemoryAudioStore, createS3AudioStore, type AudioStore } from "./audio-store.ts";
+export { audioKeyOf, createDirectoryAudioStore, createMemoryAudioStore, type AudioStore } from "./audio-store.ts";
 export { loadSynthesisConfig, loadVoices, type Voice } from "./voices.ts";

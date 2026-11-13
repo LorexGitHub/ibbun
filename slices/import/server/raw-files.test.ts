@@ -90,6 +90,7 @@ describe.runIf(endpoint)("raw files in S3", () => {
   it("is what s3://bucket/prefix in IMPORT_RAW_DIR names", async () => {
     const prefix = `${randomUUID()}/raw/`;
     vi.stubEnv("AWS_ENDPOINT_URL_S3", endpoint);
+    vi.stubEnv("AWS_REGION", "us-east-1");
     vi.stubEnv("AWS_ACCESS_KEY_ID", "test");
     vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test");
     try {

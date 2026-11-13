@@ -9,7 +9,8 @@ import { ListeningSynthesise } from "@ibbun/content-graph/jobs";
 import { createFakeJobs } from "@ibbun/jobs";
 import { createFakeTts } from "@ibbun/tts";
 import { world } from "../../server/world.ts";
-import { audioKeyOf, audioStoreAt, createDirectoryAudioStore, createMemoryAudioStore, createS3AudioStore, synthesiseHandlers, type AudioStore, type Voice } from "./index.ts";
+import { audioStoreAt, createS3AudioStore, type AudioStore } from "./audio-store.ts";
+import { audioKeyOf, createDirectoryAudioStore, createMemoryAudioStore, synthesiseHandlers, type Voice } from "./index.ts";
 import { kanaOf } from "./kana.ts";
 import { dialogueVoices, loadSynthesisConfig, loadVoices, sentenceVoice } from "./voices.ts";
 
@@ -173,6 +174,7 @@ describe.runIf(endpoint)("the audio store in S3", () => {
   it("is what s3://bucket/audio/ in AUDIO_DIR names, keeping a clip at audio/<key>, the path CloudFront serves, as cacheable Ogg", async () => {
     const prefix = `${randomUUID()}/audio/`;
     vi.stubEnv("AWS_ENDPOINT_URL_S3", endpoint);
+    vi.stubEnv("AWS_REGION", "us-east-1");
     vi.stubEnv("AWS_ACCESS_KEY_ID", "test");
     vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test");
     try {
