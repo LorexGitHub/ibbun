@@ -1,4 +1,4 @@
-# ADR 0015: Local LLM providers for content generation
+# ADR 0016: Local LLM providers for content generation
 
 - Status: Accepted
 - Date: 2026-11-13
