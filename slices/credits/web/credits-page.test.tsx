@@ -19,6 +19,12 @@ describe("Credits page", () => {
     expect(html).toContain("not imported yet");
   });
 
+  it("shows the date alone for a source applied with no version", () => {
+    const undated = renderToString(<CreditsView credits={[{ ...jmdict, version: null }]} />);
+    expect(undated).toContain("<td>2026-11-02</td>");
+    expect(undated).not.toContain("not imported yet");
+  });
+
   it("says levels are estimates and credits Waller and stephenmk with links", () => {
     expect(html).toContain("estimate");
     expect(html).toContain('<a href="http://www.tanos.co.uk/jlpt/">Jonathan Waller</a>');

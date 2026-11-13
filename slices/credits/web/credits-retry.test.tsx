@@ -16,6 +16,7 @@ describe("a failed load of the Credits page", () => {
     render(<CreditsPage />);
     const alert = await screen.findByRole("alert");
     expect(within(alert).getByText("Not loaded")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "The credits did not load" })).toBeTruthy();
     fireEvent.click(within(alert).getByRole("button", { name: "Try again" }));
     expect(await screen.findByRole("link", { name: "JMdict" })).toBeTruthy();
     expect(get).toHaveBeenCalledTimes(2);
