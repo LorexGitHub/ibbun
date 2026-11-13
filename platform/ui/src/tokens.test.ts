@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { pillClass } from "./paper.tsx";
 import { PALETTES, parseTheme } from "./theme.tsx";
 
 // ADR 0014: every look sets the same six roles in light and dark; tokens.css derives the rest from them.
@@ -20,6 +21,14 @@ describe("palettes.css", () => {
   it("offers no look the picker doesn't list", () => {
     const inCss = new Set([...palettes.matchAll(/data-palette="([\w-]+)"/g)].map(([, key]) => key));
     expect([...inCss].sort()).toEqual(PALETTES.map((p) => p.key).sort());
+  });
+});
+
+describe("kit.css", () => {
+  it("gives the selected pill a look of its own", () => {
+    const kit = readFileSync(new URL("./kit.css", import.meta.url), "utf8");
+    const selected = pillClass(true).split(" ").at(-1);
+    expect(kit).toContain(`.${selected} { background: var(--color-ink);`);
   });
 });
 

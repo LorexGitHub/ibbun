@@ -6,7 +6,7 @@ Where a logged-in Learner reads about Study Items without studying them. `/brows
 
 - `browse-wall` shows two tab rows, **JLPT Level** (N5 to N1) and **Track** (Kanji, Words, Grammar), over the list `<level> <Track>` of tiles (`.wall`). The level starts at the one in the address (`/browse?level=n3`), else N5, and follows the header's level filter. A tile carries `data-mastery` (`new`, `learning`, `relearning`, `young`, `mature`) and is named "written form, meaning, Mastery". A line above counts the wall ("10 Kanji at N5. 2 Learning, 1 Mature.") and a legend below names the five shades.
 - `browse-search` dims the tiles on the wall that do not match what is typed, by written form, reading or meaning. It asks the server nothing and never leaves the wall. The count line adds "n match."
-- `browse-sheet` opens the pressed tile's Study Item as the dialog "Study Item" on the right. **Close**, Esc or a click beside it puts it away.
+- `browse-sheet` opens the pressed tile's Study Item as the dialog "Study Item" on the right. **Close**, Esc or a click beside it puts it away. The sheet lies above the dock. It shows the headword large, the level and type as pills, then the details, each group of related items and the Examples as parts under their own rule and small-caps heading.
 - `browse-pages` opens a Kanji, Word or Grammar Point page from the related links in a sheet or on a page.
 - `browse-cram-this` shows **Cram this**, a link to `/cram?items=<id>`, on every sheet and page.
 - `browse-locked` shows the **Locked** badge on a page when `learning-path` says the item is locked for this Learner.
