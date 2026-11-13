@@ -46,7 +46,23 @@ describe("parseJmdict", () => {
         { partsOfSpeech: ["v1"], glosses: [] },
       ],
       priorityTags: ["common"],
+      usuallyKana: false,
     });
+  });
+
+  it("marks a Word usually-kana only when every sense is marked uk and a written form exists", () => {
+    const sense = (misc: string[]) => ({ partOfSpeech: ["adv"], misc, gloss: [{ lang: "eng", text: "so" }] });
+    const entry = (kanji: unknown[], senses: unknown[]) => ({ id: "1", kanji, kana: [{ common: true, text: "そうして", tags: [] }], sense: senses });
+    const rare = [{ common: false, text: "然うして", tags: ["rK"] }];
+    const flags = (e: unknown) => parseJmdict(dictionary(e))[0]!.usuallyKana;
+    expect(flags(entry(rare, [sense(["uk"])]))).toBe(true);
+    expect(flags(entry(rare, [sense(["uk"]), sense([])]))).toBe(false);
+    expect(flags(entry([], [sense(["uk"])]))).toBe(false);
+  });
+
+  it("folds full-width digits and letters in forms and merges forms that then match", () => {
+    const entry = { id: "2", kanji: [{ common: true, text: "７日", tags: [] }, { common: false, text: "7日", tags: [] }, { common: false, text: "Ｙシャツ", tags: [] }], kana: [{ common: true, text: "なのか", tags: [] }], sense: [{ partOfSpeech: ["n"], gloss: [{ lang: "eng", text: "seven days" }] }] };
+    expect(parseJmdict(dictionary(entry))[0]!.forms).toEqual(["7日", "Yシャツ"]);
   });
 
   it("keeps an entry with no kanji form, and marks it uncommon when no form is common", () => {

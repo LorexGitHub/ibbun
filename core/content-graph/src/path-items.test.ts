@@ -42,7 +42,7 @@ const pathFixture = () => {
   example(kuu, sentence("draft"));
 
   const taberu = item("word", "N5");
-  graph.word.push({ studyItemId: taberu, priorityTags: ["ichi1"] });
+  graph.word.push({ studyItemId: taberu, priorityTags: ["ichi1"], usuallyKana: false });
   graph.wordForm.push(
     { id: next(), wordId: taberu, position: 1, text: "喰べる", ...life() },
     { id: next(), wordId: taberu, position: 0, text: "食べる", ...life() },
@@ -54,8 +54,14 @@ const pathFixture = () => {
   graph.override.push({ id: next(), recordId: taberu, field: "priorityTags", value: ["nf02"], basedOn: null, state: "active", ...life() });
 
   const kana = item("word", "N5");
-  graph.word.push({ studyItemId: kana, priorityTags: [] });
+  graph.word.push({ studyItemId: kana, priorityTags: [], usuallyKana: false });
   graph.wordContainsKanji.push({ id: next(), wordId: kana, kanjiId: shoku, position: 0, ...life() });
+
+  const usual = item("word", "N5");
+  graph.word.push({ studyItemId: usual, priorityTags: [], usuallyKana: true });
+  graph.wordForm.push({ id: next(), wordId: usual, position: 0, text: "食う", ...life() });
+  graph.wordContainsKanji.push({ id: next(), wordId: usual, kanjiId: shoku, position: 0, ...life() });
+  const rowless = item("word", "N5");
 
   const te = item("grammar_point", "N5");
   const masu = item("grammar_point", "N5");
@@ -74,10 +80,10 @@ const pathFixture = () => {
   demonstrates(clipSentence, masu);
 
   const heard = item("word", null);
-  graph.word.push({ studyItemId: heard, priorityTags: [] });
+  graph.word.push({ studyItemId: heard, priorityTags: [], usuallyKana: false });
   graph.sentenceUsesWord.push({ id: next(), sentenceId: clipSentence, wordId: heard, formId: null, readingId: null, senseId: null, spanStart: 1, spanEnd: 2, ...life() });
   const dictionaryOnly = item("word", null);
-  graph.word.push({ studyItemId: dictionaryOnly, priorityTags: ["news1"] });
+  graph.word.push({ studyItemId: dictionaryOnly, priorityTags: ["news1"], usuallyKana: false });
   graph.wordForm.push({ id: next(), wordId: dictionaryOnly, position: 0, text: "食", ...life() });
 
   const facts = { priorityTags: [], frequency: null, grade: null, dependsOn: [], demonstrates: [] };
@@ -86,6 +92,8 @@ const pathFixture = () => {
     { ...facts, id: kuu, type: "kanji", level: "N4", suspended: true },
     { ...facts, id: taberu, type: "word", level: "N5", suspended: true, priorityTags: ["nf02"], dependsOn: [shoku] },
     { ...facts, id: kana, type: "word", level: "N5", suspended: true },
+    { ...facts, id: usual, type: "word", level: "N5", suspended: true },
+    { ...facts, id: rowless, type: "word", level: "N5", suspended: true },
     { ...facts, id: te, type: "grammar_point", level: "N5", suspended: false, demonstrates: [masu] },
     { ...facts, id: masu, type: "grammar_point", level: "N5", suspended: true },
     { ...facts, id: clip, type: "listening_clip", level: null, suspended: false, dependsOn: [taberu, masu, heard].sort() },

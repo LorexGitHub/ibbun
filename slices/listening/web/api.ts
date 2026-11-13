@@ -3,9 +3,16 @@ import type { JlptLevel } from "@ibbun/shared";
 
 const BASE = "/api/listening";
 
+/** A failed request, with the status the server answered. */
+export class RequestFailed extends Error {
+  constructor(path: string, readonly status: number) {
+    super(`listening ${path}: ${status}`);
+  }
+}
+
 const fetchJson = async (path: string, init?: RequestInit): Promise<unknown> => {
   const response = await fetch(`${BASE}${path}`, init);
-  if (!response.ok) throw new Error(`listening ${path}: ${response.status}`);
+  if (!response.ok) throw new RequestFailed(path, response.status);
   return response.json();
 };
 

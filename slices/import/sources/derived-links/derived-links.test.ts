@@ -25,7 +25,7 @@ const build = () => {
   const word = (forms: string[], readings: string[], retired = false) => {
     const id = randomUUID();
     graph.studyItem.push({ id, type: "word", ...life, retired });
-    graph.word.push({ studyItemId: id, priorityTags: [] });
+    graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana: false });
     forms.forEach((text, position) => graph.wordForm.push({ id: randomUUID(), wordId: id, position, text, ...life }));
     readings.forEach((text, position) => graph.wordReading.push({ id: randomUUID(), wordId: id, position, text, pitchAccent: null, ...life }));
     return id;

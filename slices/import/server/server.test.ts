@@ -53,7 +53,7 @@ describe("the import slice, registered", () => {
         dataset: "jmdict",
         latest: async () => "3.6.2+1",
         download: async () => [{ name: "f", bytes: new Uint8Array() }],
-        parse: () => [{ key: "1", forms: ["食べる"], readings: [{ text: "たべる", pitchAccent: null }], senses: [{ partsOfSpeech: ["v1"], glosses: ["to eat"] }], priorityTags: [] }],
+        parse: () => [{ key: "1", forms: ["食べる"], readings: [{ text: "たべる", pitchAccent: null }], senses: [{ partsOfSpeech: ["v1"], glosses: ["to eat"] }], priorityTags: [], usuallyKana: false }],
       },
     };
     const sessions = createFakeSessionResolver();

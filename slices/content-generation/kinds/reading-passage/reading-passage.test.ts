@@ -59,7 +59,7 @@ const setup = ({ dailyTokenBudget = 1_000_000 }: { dailyTokenBudget?: number } =
   const addWord = (text: string, level: "N5" | null = "N5") => {
     const id = randomUUID();
     w.graph.studyItem.push({ id, type: "word", ...w.life });
-    w.graph.word.push({ studyItemId: id, priorityTags: [] });
+    w.graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana: false });
     w.graph.wordForm.push({ id: randomUUID(), wordId: id, position: 0, text, ...w.life });
     w.graph.wordReading.push({ id: randomUUID(), wordId: id, position: 0, text, pitchAccent: null, ...w.life });
     w.graph.wordSense.push({ id: randomUUID(), wordId: id, position: 0, partsOfSpeech: ["n"], glosses: [`gloss of ${text}`], ...w.life });

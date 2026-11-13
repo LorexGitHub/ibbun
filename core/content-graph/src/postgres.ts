@@ -118,26 +118,34 @@ const loadPath = async (db: DbOrTx): Promise<Graph> => {
 const visible = (table: { approval: PgColumn; retired: PgColumn }) =>
   and(eq(table.approval, "approved"), eq(table.retired, false));
 
+/** drizzle's `inArray` overflows the stack past about 120,000 ids, so a long list is read a chunk at a time. */
+const CHUNK = 1_000;
+export const inChunks = async <T>(ids: string[], read: (chunk: string[]) => Promise<T[]>): Promise<T[]> => {
+  const rows: T[] = [];
+  for (let i = 0; i < ids.length; i += CHUNK) rows.push(...(await read(ids.slice(i, i + CHUNK))));
+  return rows;
+};
+
 const unique = (ids: (string | null)[]) => [...new Set(ids.filter((id): id is string => id !== null))];
 
 /** The rows a summary or a Study Item needs: the item, its details, sub-entries, explanations, Level Candidates and overrides. */
 const loadItems = async (db: DbOrTx, ids: string[], graph: Graph = emptyGraph()): Promise<Graph> => {
   const [studyItem, kanji, word, grammarPoint, listeningClip, wordForm, wordReading, wordSense, levelCandidate] = await Promise.all([
-    db.select().from(t.studyItem).where(inArray(t.studyItem.id, ids)),
-    db.select().from(t.kanji).where(inArray(t.kanji.studyItemId, ids)),
-    db.select().from(t.word).where(inArray(t.word.studyItemId, ids)),
-    db.select().from(t.grammarPoint).where(inArray(t.grammarPoint.studyItemId, ids)),
-    db.select().from(t.listeningClip).where(inArray(t.listeningClip.studyItemId, ids)),
-    db.select().from(t.wordForm).where(inArray(t.wordForm.wordId, ids)),
-    db.select().from(t.wordReading).where(inArray(t.wordReading.wordId, ids)),
-    db.select().from(t.wordSense).where(inArray(t.wordSense.wordId, ids)),
-    db.select().from(t.levelCandidate).where(inArray(t.levelCandidate.studyItemId, ids)),
+    inChunks(ids, (c) => db.select().from(t.studyItem).where(inArray(t.studyItem.id, c))),
+    inChunks(ids, (c) => db.select().from(t.kanji).where(inArray(t.kanji.studyItemId, c))),
+    inChunks(ids, (c) => db.select().from(t.word).where(inArray(t.word.studyItemId, c))),
+    inChunks(ids, (c) => db.select().from(t.grammarPoint).where(inArray(t.grammarPoint.studyItemId, c))),
+    inChunks(ids, (c) => db.select().from(t.listeningClip).where(inArray(t.listeningClip.studyItemId, c))),
+    inChunks(ids, (c) => db.select().from(t.wordForm).where(inArray(t.wordForm.wordId, c))),
+    inChunks(ids, (c) => db.select().from(t.wordReading).where(inArray(t.wordReading.wordId, c))),
+    inChunks(ids, (c) => db.select().from(t.wordSense).where(inArray(t.wordSense.wordId, c))),
+    inChunks(ids, (c) => db.select().from(t.levelCandidate).where(inArray(t.levelCandidate.studyItemId, c))),
   ]);
-  const senseIds = wordSense.map((s) => s.id);
-  const japaneseExplanation = await db
-    .select()
-    .from(t.japaneseExplanation)
-    .where(or(inArray(t.japaneseExplanation.wordSenseId, senseIds), inArray(t.japaneseExplanation.grammarPointId, ids)));
+  const [bySense, byGrammarPoint] = await Promise.all([
+    inChunks(wordSense.map((s) => s.id), (c) => db.select().from(t.japaneseExplanation).where(inArray(t.japaneseExplanation.wordSenseId, c))),
+    inChunks(ids, (c) => db.select().from(t.japaneseExplanation).where(inArray(t.japaneseExplanation.grammarPointId, c))),
+  ]);
+  const japaneseExplanation = [...new Map([...bySense, ...byGrammarPoint].map((e) => [e.id, e])).values()];
   const loaded = { ...graph, studyItem, kanji, word, grammarPoint, listeningClip, wordForm, wordReading, wordSense, levelCandidate, japaneseExplanation };
   return withOverrides(db, loaded);
 };
@@ -185,7 +193,7 @@ const withOverrides = async (db: DbOrTx, graph: Graph): Promise<Graph> => {
     ...graph.sentence,
     ...graph.readingPassage,
   ].map((r) => r.id));
-  return { ...graph, override: await db.select().from(t.override).where(inArray(t.override.recordId, recordIds)) };
+  return { ...graph, override: await inChunks(recordIds, (c) => db.select().from(t.override).where(inArray(t.override.recordId, c))) };
 };
 
 const uuids = (ids: string[]) => sql`ARRAY[${sql.join(ids.map((id) => sql`${id}`), sql`, `)}]::uuid[]`;

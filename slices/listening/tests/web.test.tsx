@@ -352,6 +352,13 @@ describe("the Listening screen's level", () => {
     expect(asked).toEqual(["c1", "c2"]);
   });
 
+  it("says the clips could not load, not that there are none, when the server fails", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => (url.includes("/clips?") ? json({ level: "N5", clipIds: ["c1"] }) : new Response("oops", { status: 500 }))));
+    render(<ListeningPractice />);
+    expect((await screen.findByRole("alert")).textContent).toMatch(/could not load/);
+    expect(screen.queryByText(/No N5 clips yet/)).toBeNull();
+  });
+
   it("says the level has no clips when none of them can be served", async () => {
     stubClips(["c1", "c2"], ["c1", "c2"]);
     render(<ListeningPractice />);

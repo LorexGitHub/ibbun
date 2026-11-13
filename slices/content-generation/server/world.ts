@@ -11,7 +11,7 @@ export const world = () => {
   const wordId = randomUUID();
   const senseId = randomUUID();
   graph.studyItem.push({ id: wordId, type: "word", ...life });
-  graph.word.push({ studyItemId: wordId, priorityTags: [] });
+  graph.word.push({ studyItemId: wordId, priorityTags: [], usuallyKana: false });
   graph.wordForm.push({ id: randomUUID(), wordId, position: 0, text: "食べる", ...life });
   graph.wordReading.push({ id: randomUUID(), wordId, position: 0, text: "たべる", pitchAccent: null, ...life });
   graph.wordSense.push({ id: senseId, wordId, position: 0, partsOfSpeech: ["v1"], glosses: ["to eat"], ...life });

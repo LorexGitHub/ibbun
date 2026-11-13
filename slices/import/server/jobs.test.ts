@@ -7,7 +7,7 @@ import { memoryRawFiles } from "./raw-files.ts";
 import { memorySnapshots } from "./snapshots.ts";
 import type { Source } from "./source.ts";
 
-const word = { key: "1", forms: ["食べる"], readings: [{ text: "たべる", pitchAccent: null }], senses: [{ partsOfSpeech: ["v1"], glosses: ["to eat"] }], priorityTags: [] };
+const word = { key: "1", forms: ["食べる"], readings: [{ text: "たべる", pitchAccent: null }], senses: [{ partsOfSpeech: ["v1"], glosses: ["to eat"] }], priorityTags: [], usuallyKana: false };
 
 const world = (now: string) => {
   const graph = emptyGraph();
