@@ -32,8 +32,8 @@ pg-boss polls Postgres every few seconds from a process that never stops. On Lam
 | 0 | $2 | $0 |
 | 10 | $5 | $12 |
 | 100 | $17 | $120 |
-| 1,000 | $22 | $127, at the budget cap |
-| 10,000 | $155 | $127, at the budget cap |
+| 1,000 | $21 | $127, at the budget cap |
+| 10,000 | $154 | $127, at the budget cap |
 
 - **Claude is the largest cost from the first Learners on.** ADR 0012 gives Batch Texts half of the 2,000,000-token daily budget, so their cost stops at about $127 a month. Beyond roughly 100 Learners, batches go out without a Batch Text. The other half pays for content generation and review, up to about $122 a month if the supervisor uses all of it.
 - **The database is the largest AWS-side cost.** It stays asleep when nobody studies, and from about 100 Learners on it is awake most of the day.
