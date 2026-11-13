@@ -19,6 +19,12 @@ describe("Credits page", () => {
     expect(html).toContain("not imported yet");
   });
 
+  it("shows the date alone for a source applied with no version", () => {
+    const undated = renderToString(<CreditsView credits={[{ ...jmdict, version: null }]} />);
+    expect(undated).toContain("<td>2026-11-02</td>");
+    expect(undated).not.toContain("not imported yet");
+  });
+
   it("says levels are estimates and credits Waller and stephenmk with links", () => {
     expect(html).toContain("estimate");
     expect(html).toContain('<a href="http://www.tanos.co.uk/jlpt/">Jonathan Waller</a>');
@@ -35,9 +41,10 @@ const reply = (body: unknown, status = 200) => (async () => new Response(JSON.st
 
 describe("loading the Credits page", () => {
   it("shows a loading line, then the credits, or an alert when they failed", () => {
-    expect(renderToString(<CreditsState credits={null} />)).toContain("Loading credits");
-    expect(renderToString(<CreditsState credits="failed" />)).toContain("could not be loaded");
-    expect(renderToString(<CreditsState credits={[jmdict]} />)).toContain("JMdict");
+    const retry = () => undefined;
+    expect(renderToString(<CreditsState credits={null} onRetry={retry} />)).toContain("Loading credits");
+    expect(renderToString(<CreditsState credits="failed" onRetry={retry} />)).toContain("The credits did not load");
+    expect(renderToString(<CreditsState credits={[jmdict]} onRetry={retry} />)).toContain("JMdict");
   });
 
   it("parses a good response", async () => {

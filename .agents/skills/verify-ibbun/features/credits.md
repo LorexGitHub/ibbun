@@ -35,3 +35,4 @@ Preconditions:
 - The page has no nav entry; only the footer links to it.
 - A fresh database has no Import Run, so every row reads `not imported yet`. That is correct, not a failure.
 - If `DATABASE_URL` is unset the API answers `/api/credits` with a 500; `verify.sh up` sets it.
+- If `/api/credits` fails, the page is an alert "Not loaded · The credits did not load" with **Try again**, which asks again.
