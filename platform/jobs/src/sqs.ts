@@ -13,6 +13,35 @@ export type SqsJobsOptions = {
 };
 
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+type Queue = { readonly client: SQSClient; readonly queueUrl: string; readonly waitSeconds: number };
+
+/** One long poll: runs what arrives and deletes what succeeded. A failed job stays, for SQS to deliver again. */
+const receiveAndRun = async ({ client, queueUrl, waitSeconds }: Queue, handlers: ReadonlyMap<string, JobHandler>, signal: AbortSignal) => {
+  const command = new ReceiveMessageCommand({ QueueUrl: queueUrl, MaxNumberOfMessages: 10, WaitTimeSeconds: waitSeconds });
+  const { Messages = [] } = await client.send(command, { abortSignal: signal });
+  const records = Messages.map((m) => ({ messageId: m.MessageId!, body: m.Body!, receipt: m.ReceiptHandle! }));
+  const failed = new Set(await runRecords(handlers, records));
+  const done = records.filter((r) => !failed.has(r.messageId));
+  if (done.length === 0) return;
+  const entries = done.map((r, i) => ({ Id: String(i), ReceiptHandle: r.receipt }));
+  await client.send(new DeleteMessageBatchCommand({ QueueUrl: queueUrl, Entries: entries }));
+};
+
+/** Polls until stopped. `stop` lets the jobs in hand finish. */
+const startPolling = (queue: Queue, handlers: ReadonlyMap<string, JobHandler>) => {
+  const abort = new AbortController();
+  const loop = async () => {
+    while (!abort.signal.aborted) {
+      await receiveAndRun(queue, handlers, abort.signal).catch(async (error) => {
+        if (abort.signal.aborted) return;
+        console.error("jobs: receiving from the queue failed:", error);
+        await pause(1000);
+      });
+    }
+  };
+  const done = loop();
+  return () => (abort.abort(), done);
+};
 
 /**
  * Jobs on SQS. On AWS only `enqueue` is used: the worker Lambda runs `sqsHandler`, and
@@ -22,31 +51,9 @@ const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const createSqsJobs = ({ client, queueUrl, waitSeconds = 20 }: SqsJobsOptions): Jobs => {
   const handlers = new Map<string, JobHandler>();
   const crons = new Map<string, Cron>();
-  let polling: { stop: AbortController; done: Promise<void> } | undefined;
-
+  let stopPolling: (() => Promise<void>) | undefined;
   const send = async (contract: JobContract, data: unknown) => {
     await client.send(new SendMessageCommand({ QueueUrl: queueUrl, MessageBody: messageBody(contract, data) }));
-  };
-
-  const receiveAndRun = async (signal: AbortSignal) => {
-    const command = new ReceiveMessageCommand({ QueueUrl: queueUrl, MaxNumberOfMessages: 10, WaitTimeSeconds: waitSeconds });
-    const { Messages = [] } = await client.send(command, { abortSignal: signal });
-    const records = Messages.map((m) => ({ messageId: m.MessageId!, body: m.Body!, receipt: m.ReceiptHandle! }));
-    const failed = new Set(await runRecords(handlers, records));
-    const done = records.filter((r) => !failed.has(r.messageId));
-    if (done.length === 0) return;
-    const entries = done.map((r, i) => ({ Id: String(i), ReceiptHandle: r.receipt }));
-    await client.send(new DeleteMessageBatchCommand({ QueueUrl: queueUrl, Entries: entries }));
-  };
-
-  const poll = async (signal: AbortSignal) => {
-    while (!signal.aborted) {
-      await receiveAndRun(signal).catch(async (error) => {
-        if (signal.aborted) return;
-        console.error("jobs: receiving from the queue failed:", error);
-        await pause(1000);
-      });
-    }
   };
 
   return {
@@ -61,16 +68,13 @@ export const createSqsJobs = ({ client, queueUrl, waitSeconds = 20 }: SqsJobsOpt
     },
     async work(list) {
       for (const h of list) handlers.set(h.contract.name, h);
-      if (polling) return;
-      const stop = new AbortController();
-      polling = { stop, done: poll(stop.signal) };
+      stopPolling ??= startPolling({ client, queueUrl, waitSeconds }, handlers);
     },
     async stop() {
       for (const cron of crons.values()) cron.stop();
       crons.clear();
-      polling?.stop.abort();
-      await polling?.done;
-      polling = undefined;
+      await stopPolling?.();
+      stopPolling = undefined;
     },
   };
 };
