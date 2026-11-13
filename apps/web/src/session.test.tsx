@@ -169,3 +169,34 @@ describe("Esc on a session screen", () => {
     expect(where()).toBe("/sample");
   });
 });
+
+describe("a visitor on a session screen", () => {
+  const drill: Slice = { name: "drill", nav: { label: "Drill", path: "/drill", place: "study", blurb: "Drill.", glyph: "練", session: true } };
+  const Where = () => {
+    const { pathname, search } = useLocation();
+    return <output aria-label="where">{pathname + search}</output>;
+  };
+  const open = async (address: string, who: "in" | "out") => {
+    const shell = await buildShell(discoverSlices({ ...modules, drill: { default: drill } }));
+    render(
+      <MemoryRouter initialEntries={[address]}>
+        <App shell={shell} initialWho={who === "in" ? { state: "in", learner } : { state: "out" }} />
+        <Where />
+      </MemoryRouter>,
+    );
+  };
+  const where = () => screen.getByLabelText("where").textContent;
+
+  it("goes to Log in, which returns to the session afterwards", async () => {
+    await open("/drill?level=n3", "out");
+    await waitFor(() => expect(where()).toBe(`/login?next=${encodeURIComponent("/drill?level=n3")}`));
+  });
+
+  it("stays put on a screen that is not a session, and a Learner stays on the session", async () => {
+    await open("/sample", "out");
+    expect(where()).toBe("/sample");
+    cleanup();
+    await open("/drill", "in");
+    expect(where()).toBe("/drill");
+  });
+});
