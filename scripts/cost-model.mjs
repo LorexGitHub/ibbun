@@ -71,7 +71,7 @@ const platform = {
   clipSeconds: 4,
   clipGb: 3,
   idleQueuePolls: 650_000, // Lambda's long polling of one empty SQS queue, per queue
-  queues: 2,
+  queues: 1, // the dead-letter queue is not polled
   logBytesPerInvoke: 300,
 };
 
