@@ -34,19 +34,6 @@ It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLP
 
 The worker imports the open datasets (JMdict, KANJIDIC2, KanjiVG, Tatoeba, JLPT level lists, UniDic pitch accent, ja Wiktionary, the Grammar Point seed) on a schedule. It also generates content with Claude, which an LLM reviewer then checks.
 
-### To be added
-
-These are being worked on now and are not on `main` yet. Each one replaces a screen that already works.
-
-| What | Where |
-| --- | --- |
-| Cram: a picker with a basket of chosen items | [#220](https://github.com/LorexGitHub/mojibun/pull/220) |
-| Library: a wall of tiles shaded by Mastery, in place of the lists | [#221](https://github.com/LorexGitHub/mojibun/pull/221) |
-| Reading: the newest story first, and switches for Furigana, Translation and Words | [#222](https://github.com/LorexGitHub/mojibun/pull/222) |
-| Listening: the player is the screen, and the answer is one of four options | [#223](https://github.com/LorexGitHub/mojibun/pull/223) |
-| Placement: a wall of tiles per level and Track, and a whole level in one press | [#224](https://github.com/LorexGitHub/mojibun/pull/224) |
-| One command that imports every open dataset, so you can study the real content instead of the small fixture | branch `content-import` |
-
 ## Demo
 
 <p align="center">
