@@ -4,11 +4,15 @@ import { StudyItemId, type LearnerId } from "@ibbun/shared";
 import type { DueResponse, ReviewPrompt } from "../contract.ts";
 import { explanationOf, isReviewable, promptOf } from "./prompt.ts";
 
-/** The Words a Kanji appears in, so the target Word sense's Japanese Explanation can be found. */
-const wordsOf = async (graph: ContentGraph, page: StudyItemPage): Promise<Word[]> => {
-  if (page.item.type !== "kanji") return [];
+/**
+ * The Words a Kanji Example's target sense can belong to, so its Japanese Explanation can be found: only when the
+ * Example names a sense, and only the Words written in its Sentence. A common Kanji is in thousands of Words.
+ */
+const wordsOf = async (graph: ContentGraph, page: StudyItemPage, example: Example): Promise<Word[]> => {
+  if (page.item.type !== "kanji" || !example.targetSenseId) return [];
+  const { text } = example.sentence;
   const pages = await Promise.all(
-    page.links.flatMap((l) => (l.kind === "contained_in_word" ? [graph.studyItem(StudyItemId.parse(l.word.id))] : [])),
+    page.links.flatMap((l) => (l.kind === "contained_in_word" && text.includes(l.word.label) ? [graph.studyItem(StudyItemId.parse(l.word.id))] : [])),
   );
   return pages.flatMap((p) => (p?.item.type === "word" ? [p.item] : []));
 };
@@ -21,7 +25,7 @@ export const createPrompts = (graph: ContentGraph, learners: Learners) => ({
     if (!page || !isReviewable(page)) return null;
     const example = choose(page.examples);
     if (!example) return null;
-    return promptOf(page, example, explanationOf(page.item, example, await wordsOf(graph, page)));
+    return promptOf(page, example, explanationOf(page.item, example, await wordsOf(graph, page, example)));
   },
 
   async withPreferences(learnerId: LearnerId, prompts: (ReviewPrompt | null)[]): Promise<DueResponse> {
