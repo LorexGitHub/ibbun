@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import type { DbOrTx } from "@mojibun/db";
 import type { JlptLevel, StudyItemId } from "@mojibun/shared";
@@ -81,24 +81,33 @@ const candidateIds = async (db: DbOrTx, level: JlptLevel, type: t.StudyItemType)
       .where(and(eq(t.studyItem.type, type), eq(t.levelCandidate.level, level), visible(t.studyItem), visible(t.levelCandidate)))
   ).map((r) => r.id);
 
-/** Every visible row the Learning Path reads: items, levels, first forms, Examples, Sentences and fact links. */
+const PATH_SENTENCES = sql`(SELECT sentence_id FROM content_graph.example UNION SELECT sentence_id FROM content_graph.clip_voices_sentence)`;
+const HEARD_SENTENCES = sql`(SELECT sentence_id FROM content_graph.clip_voices_sentence)`;
+/** Every Study Item with a Level Candidate, and every Word a Listening Clip's Sentences use. */
+const PATH_WORDS = sql`(SELECT study_item_id FROM content_graph.level_candidate UNION SELECT word_id FROM content_graph.sentence_uses_word WHERE sentence_id IN ${HEARD_SENTENCES})`;
+
+/**
+ * The visible rows the Learning Path reads: items, levels, first forms, Examples, Sentences and fact links.
+ * A Word with no level that no clip uses stays in the database, with its forms, and so do the Sentences of no Example or clip:
+ * the dictionary is twenty times the path. Every override comes along, since the path has more records than one query can name.
+ */
 const loadPath = async (db: DbOrTx): Promise<Graph> => {
-  const [studyItem, levelCandidate, wordForm, example, sentence, wordContainsKanji, sentenceUsesWord, sentenceDemonstratesGrammar, clipVoicesSentence, kanji, word] =
+  const [studyItem, levelCandidate, wordForm, example, sentence, wordContainsKanji, sentenceUsesWord, sentenceDemonstratesGrammar, clipVoicesSentence, kanji, word, override] =
     await Promise.all([
-      db.select().from(t.studyItem).where(visible(t.studyItem)),
+      db.select().from(t.studyItem).where(and(visible(t.studyItem), or(ne(t.studyItem.type, "word"), sql`${t.studyItem.id} IN ${PATH_WORDS}`))),
       db.select().from(t.levelCandidate).where(visible(t.levelCandidate)),
-      db.select().from(t.wordForm).where(visible(t.wordForm)),
+      db.select().from(t.wordForm).where(and(visible(t.wordForm), sql`${t.wordForm.wordId} IN ${PATH_WORDS}`)),
       db.select().from(t.example).where(visible(t.example)),
-      db.select().from(t.sentence).where(visible(t.sentence)),
-      db.select().from(t.wordContainsKanji).where(visible(t.wordContainsKanji)),
-      db.select().from(t.sentenceUsesWord).where(visible(t.sentenceUsesWord)),
-      db.select().from(t.sentenceDemonstratesGrammar).where(visible(t.sentenceDemonstratesGrammar)),
+      db.select().from(t.sentence).where(and(visible(t.sentence), sql`${t.sentence.id} IN ${PATH_SENTENCES}`)),
+      db.select().from(t.wordContainsKanji).where(and(visible(t.wordContainsKanji), sql`${t.wordContainsKanji.wordId} IN ${PATH_WORDS}`)),
+      db.select().from(t.sentenceUsesWord).where(and(visible(t.sentenceUsesWord), sql`${t.sentenceUsesWord.sentenceId} IN ${HEARD_SENTENCES}`)),
+      db.select().from(t.sentenceDemonstratesGrammar).where(and(visible(t.sentenceDemonstratesGrammar), sql`${t.sentenceDemonstratesGrammar.sentenceId} IN ${PATH_SENTENCES}`)),
       db.select().from(t.clipVoicesSentence).where(visible(t.clipVoicesSentence)),
       db.select().from(t.kanji),
-      db.select().from(t.word),
+      db.select().from(t.word).where(sql`${t.word.studyItemId} IN ${PATH_WORDS}`),
+      db.select().from(t.override),
     ]);
-  const graph = { ...emptyGraph(), studyItem, levelCandidate, wordForm, example, sentence, wordContainsKanji, sentenceUsesWord, sentenceDemonstratesGrammar, clipVoicesSentence, kanji, word };
-  return withOverrides(db, graph);
+  return { ...emptyGraph(), studyItem, levelCandidate, wordForm, example, sentence, wordContainsKanji, sentenceUsesWord, sentenceDemonstratesGrammar, clipVoicesSentence, kanji, word, override };
 };
 
 const visible = (table: { approval: PgColumn; retired: PgColumn }) =>

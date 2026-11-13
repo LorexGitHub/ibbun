@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { sql } from "drizzle-orm";
 import { createDb, type Db } from "@mojibun/db";
 import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
 import { createContentGraph, type ContentGraph, type PathItem } from "./index.ts";
@@ -72,6 +73,13 @@ const pathFixture = () => {
   graph.sentenceUsesWord.push({ id: next(), sentenceId: clipSentence, wordId: taberu, formId: null, readingId: null, senseId: null, spanStart: 0, spanEnd: 1, ...life() });
   demonstrates(clipSentence, masu);
 
+  const heard = item("word", null);
+  graph.word.push({ studyItemId: heard, priorityTags: [] });
+  graph.sentenceUsesWord.push({ id: next(), sentenceId: clipSentence, wordId: heard, formId: null, readingId: null, senseId: null, spanStart: 1, spanEnd: 2, ...life() });
+  const dictionaryOnly = item("word", null);
+  graph.word.push({ studyItemId: dictionaryOnly, priorityTags: ["news1"] });
+  graph.wordForm.push({ id: next(), wordId: dictionaryOnly, position: 0, text: "食", ...life() });
+
   const facts = { priorityTags: [], frequency: null, grade: null, dependsOn: [], demonstrates: [] };
   const expected: PathItem[] = [
     { ...facts, id: shoku, type: "kanji", level: "N5", suspended: false, frequency: 328, grade: 2 },
@@ -80,15 +88,17 @@ const pathFixture = () => {
     { ...facts, id: kana, type: "word", level: "N5", suspended: true },
     { ...facts, id: te, type: "grammar_point", level: "N5", suspended: false, demonstrates: [masu] },
     { ...facts, id: masu, type: "grammar_point", level: "N5", suspended: true },
-    { ...facts, id: clip, type: "listening_clip", level: null, suspended: false, dependsOn: [taberu, masu].sort() },
+    { ...facts, id: clip, type: "listening_clip", level: null, suspended: false, dependsOn: [taberu, masu, heard].sort() },
+    { ...facts, id: heard, type: "word", level: null, suspended: true },
   ] as unknown as PathItem[];
   return { graph, expected };
 };
 
 const { graph, expected } = pathFixture();
+const DICTIONARY = 200_000;
 
 const contract = (make: () => Promise<ContentGraph>) => {
-  it("returns every visible Study Item with its level, Suspended flag, sort facts and dependencies", async () => {
+  it("returns the visible Study Items the path can offer or depend on, leaving out a Word with no level that no clip uses", async () => {
     expect(await (await make()).pathItems()).toEqual(expected);
   });
 };
@@ -111,4 +121,18 @@ describe("pathItems, against Postgres", () => {
     await pg.stop();
   });
   contract(async () => createContentGraph(db));
+
+  it("stays the same beside a whole dictionary of Words with no level", async () => {
+    await db.execute(sql`
+      WITH entry AS (
+        INSERT INTO content_graph.study_item (id, type, approval, retired, provenance_id)
+        SELECT gen_random_uuid(), 'word', 'approved', false, ${graph.provenance[0]!.id} FROM generate_series(1, ${DICTIONARY})
+        RETURNING id
+      ), word AS (
+        INSERT INTO content_graph.word (study_item_id, priority_tags) SELECT id, '{}' FROM entry
+      )
+      INSERT INTO content_graph.word_form (id, word_id, position, text, approval, retired, provenance_id)
+      SELECT gen_random_uuid(), id, 0, '語', 'approved', false, ${graph.provenance[0]!.id} FROM entry`);
+    expect(await createContentGraph(db).pathItems()).toEqual(expected);
+  }, 60_000);
 });
