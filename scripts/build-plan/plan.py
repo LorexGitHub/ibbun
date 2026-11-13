@@ -32,26 +32,39 @@ def anchors(path):
         return {slug(m.group(1)) for m in re.finditer(r"^#+\s+(.*)$", f.read(), re.M)}
 
 
-def check():
+def dup_errors():
     errors = []
     if len(BY_KEY) != len(ISSUES):
         errors.append("duplicate keys")
     if len({i["title"] for i in ISSUES}) != len(ISSUES):
         errors.append("duplicate titles")
-    for i in ISSUES:
-        for b in i["blocked_by"]:
-            if b not in BY_KEY:
-                errors.append(f"{i['key']}: unknown blocker {b}")
-            elif MILESTONES.index(BY_KEY[b]["milestone"]) > MILESTONES.index(i["milestone"]):
-                errors.append(f"{i['key']} ({i['milestone']}) blocked by later {b}")
-        for s in i["spec"]:
-            path, _, anchor = s.partition("#")
-            full = os.path.join(ROOT, "docs", path)
-            if not os.path.exists(full):
-                errors.append(f"{i['key']}: missing doc {path}")
-            elif anchor and anchor not in anchors(full):
-                errors.append(f"{i['key']}: missing anchor {s}")
-    depth = {}
+    return errors
+
+
+def blocker_errors(i):
+    errors = []
+    for b in i["blocked_by"]:
+        if b not in BY_KEY:
+            errors.append(f"{i['key']}: unknown blocker {b}")
+        elif MILESTONES.index(BY_KEY[b]["milestone"]) > MILESTONES.index(i["milestone"]):
+            errors.append(f"{i['key']} ({i['milestone']}) blocked by later {b}")
+    return errors
+
+
+def spec_errors(i):
+    errors = []
+    for s in i["spec"]:
+        path, _, anchor = s.partition("#")
+        full = os.path.join(ROOT, "docs", path)
+        if not os.path.exists(full):
+            errors.append(f"{i['key']}: missing doc {path}")
+        elif anchor and anchor not in anchors(full):
+            errors.append(f"{i['key']}: missing anchor {s}")
+    return errors
+
+
+def cycle_and_depth():
+    depth, errors = {}, []
 
     def visit(k, stack=()):
         if k in stack:
@@ -64,6 +77,14 @@ def check():
     for k in BY_KEY:
         visit(k)
     return errors, depth
+
+
+def check():
+    errors = dup_errors()
+    for i in ISSUES:
+        errors += blocker_errors(i) + spec_errors(i)
+    cycle_errors, depth = cycle_and_depth()
+    return errors + cycle_errors, depth
 
 
 def filed():
@@ -138,10 +159,7 @@ The docs are authoritative; these criteria point into them.
 """
 
 
-def file_issues():
-    errors, depth = check()
-    if errors:
-        sys.exit("\n".join(errors))
+def ensure_labels_and_milestones():
     for name, color in [("ready-for-agent", "0e8a16"), ("blocked", "b60205"),
                         ("wave-0", "5319e7"), ("slice", "1d76db"), ("seed", "c5def5")]:
         gh("label", "create", name, "--repo", REPO, "--color", color, "--force")
@@ -149,6 +167,9 @@ def file_issues():
     for m in MILESTONES:
         if m not in existing_ms:
             gh("api", f"repos/{REPO}/milestones", "-f", f"title={m}")
+
+
+def create_issues(depth):
     existing = {x["title"]: x["number"] for x in json.loads(
         gh("issue", "list", "--repo", REPO, "--state", "all", "--limit", "500", "--json", "title,number"))}
     numbers = filed()
@@ -162,7 +183,11 @@ def file_issues():
             numbers[i["key"]] = int(url.rsplit("/", 1)[1])
             json.dump(numbers, open(FILED, "w"), indent=1)
             print("created", i["key"], url)
-    for i in order:  # second pass: bodies now resolve every blocker to a number
+    return numbers, order
+
+
+def sync_issues(numbers, order):
+    for i in order:  # bodies now resolve every blocker to a number
         n = numbers[i["key"]]
         gh("issue", "edit", str(n), "--repo", REPO, "--body-file", "-", input=body(i, numbers))
         have = {d["number"] for d in json.loads(gh("api", f"repos/{REPO}/issues/{n}/dependencies/blocked_by"))}
@@ -174,6 +199,15 @@ def file_issues():
         gh("issue", "edit", str(n), "--repo", REPO,
            "--add-label", "ready-for-agent" if ready else "blocked",
            "--remove-label", "blocked" if ready else "ready-for-agent")
+
+
+def file_issues():
+    errors, depth = check()
+    if errors:
+        sys.exit("\n".join(errors))
+    ensure_labels_and_milestones()
+    numbers, order = create_issues(depth)
+    sync_issues(numbers, order)
     json.dump(numbers, open(FILED, "w"), indent=1)
     render()
 

@@ -88,11 +88,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Coverage per package (LCOV for crapper and mutator)
         run: pnpm test:packages --coverage
-      - name: Coverage of the Sudachi sidecar (LCOV for crapper)
-        # SudachiPy is stubbed in the tests, so this needs neither the package nor its dictionary.
+      - name: Coverage of the Python scripts (LCOV for crapper)
+        # SudachiPy is stubbed in the tests, so this needs neither the package
+        # nor its dictionary. The other two are the supervisor's tooling.
         run: |
           pip install -q coverage
           coverage run --include=docker/sudachi/server.py -m unittest discover -s docker/sudachi
+          coverage run --append --include=scripts/build-plan/*.py -m unittest discover -s scripts/build-plan
+          coverage run --append --include='docs/research/pitch-accent-source/fetch_reference.py' -m unittest discover -s docs/research/pitch-accent-source
           mkdir -p target/coverage/python && coverage lcov -o target/coverage/python/lcov.info
       - name: Show this change to --changed
         # crapper and mutator read --changed from `git status`. A soft reset to
