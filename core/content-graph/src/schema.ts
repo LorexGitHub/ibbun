@@ -1,5 +1,5 @@
 import { boolean, integer, jsonb, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 
 export const contentGraph = pgSchema("content_graph");
 
@@ -20,7 +20,7 @@ export const LICENCES = [
   "bsd-3-clause",
   "voicevox",
   "cc0",
-  "mojibun",
+  "ibbun",
 ] as const;
 export type Licence = (typeof LICENCES)[number];
 

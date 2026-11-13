@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { DbOrTx } from "@mojibun/db";
+import type { DbOrTx } from "@ibbun/db";
 
 export type RateLimitRule = { windowSeconds: number; max: number };
 

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import type { Authoring, GenerationRequest } from "@mojibun/content-graph/authoring";
-import type { Texts } from "@mojibun/progress";
+import type { Authoring, GenerationRequest } from "@ibbun/content-graph/authoring";
+import type { Texts } from "@ibbun/progress";
 import { definePlan, type Kind, type Services } from "../kind.ts";
 import { factsOf, subjects, writePassageDraft } from "../passage/draft.ts";
 import { contextOf, type BatchContext } from "./context.ts";

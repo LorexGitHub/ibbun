@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import type { z } from "zod";
-import type { AuthEnv, createAuthGuards } from "@mojibun/auth";
-import { normalise, type ContentGraph, type Example } from "@mojibun/content-graph";
-import type { Learners } from "@mojibun/learner";
-import type { Progress } from "@mojibun/progress";
-import type { LearnerId, StudyItemId } from "@mojibun/shared";
+import type { AuthEnv, createAuthGuards } from "@ibbun/auth";
+import { normalise, type ContentGraph, type Example } from "@ibbun/content-graph";
+import type { Learners } from "@ibbun/learner";
+import type { Progress } from "@ibbun/progress";
+import type { LearnerId, StudyItemId } from "@ibbun/shared";
 import { ClipAnswerRequest, type ClipAnswerResponse, type ClipDueResponse } from "../contract.ts";
 import { gradingOf, nextExample, playable, reviewOf, transcriptOf, type Playable } from "./clip-playable.ts";
 import { dueAt } from "../../server/api.ts";

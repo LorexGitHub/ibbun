@@ -1,4 +1,4 @@
-import { defineSlice } from "@mojibun/slice";
+import { defineSlice } from "@ibbun/slice";
 
 export default defineSlice({
   name: "reviews",

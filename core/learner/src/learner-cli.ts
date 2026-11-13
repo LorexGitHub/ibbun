@@ -1,5 +1,5 @@
-// `pnpm --filter @mojibun/learner seed` and `... grant-supervisor <email>`. Needs DATABASE_URL.
-import { createDb } from "@mojibun/db";
+// `pnpm --filter @ibbun/learner seed` and `... grant-supervisor <email>`. Needs DATABASE_URL.
+import { createDb } from "@ibbun/db";
 import { consoleAuthLog } from "./events.ts";
 import { createLearners } from "./learners.ts";
 import { grantSupervisor, seedAccounts } from "./seed.ts";

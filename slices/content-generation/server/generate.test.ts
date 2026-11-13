@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring, type Graph } from "@mojibun/content-graph/testing";
-import { ContentGenerate, ContentReview } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { createFakeLlm, loadLlmConfig } from "@mojibun/llm";
+import { createFakeAuthoring, type Graph } from "@ibbun/content-graph/testing";
+import { ContentGenerate, ContentReview } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { createFakeLlm, loadLlmConfig } from "@ibbun/llm";
 import { contentGeneration } from "./generate.ts";
 import { world } from "./world.ts";
 
@@ -56,7 +56,7 @@ describe("content.generate for Example Sentences", () => {
     const [provenance] = await t.auth.rows("provenance", { id: first!.provenanceId });
     expect(provenance).toMatchObject({
       source: { kind: "generated", model: "claude-sonnet-5-5", promptTemplateVersion: "example-sentence/1", generationRunId: run!.id },
-      licence: "mojibun",
+      licence: "ibbun",
     });
     expect(provenance!.inputs).toContain(t.wordId);
     expect(provenance!.inputs).toContain(t.senseId);

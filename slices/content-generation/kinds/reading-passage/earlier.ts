@@ -1,7 +1,7 @@
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import { currentLevel } from "@mojibun/content-graph/levels";
-import type { JlptLevel } from "@mojibun/shared";
-import type { ItemProgress, Mastery } from "@mojibun/progress";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import { currentLevel } from "@ibbun/content-graph/levels";
+import type { JlptLevel } from "@ibbun/shared";
+import type { ItemProgress, Mastery } from "@ibbun/progress";
 
 /** Each Study Item's current level; Unlevelled items are null, and so are ones with no candidate at all. */
 export const levelsByItem = async (auth: Authoring): Promise<ReadonlyMap<string, JlptLevel | null>> => {

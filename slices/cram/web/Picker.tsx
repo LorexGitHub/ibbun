@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
-import { Button, buttonClass, Input, Pill, useLevelFilter } from "@mojibun/ui";
+import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
+import { Button, buttonClass, Input, Pill, useLevelFilter } from "@ibbun/ui";
 import type { CramItem, CramMastery, CramType, ItemQuery } from "../contract.ts";
 import type { CramClient } from "./client.ts";
 import "./cram.css";

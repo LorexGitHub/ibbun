@@ -1,6 +1,6 @@
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import { currentLevel } from "@mojibun/content-graph/levels";
-import type { JlptLevel } from "@mojibun/shared";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import { currentLevel } from "@ibbun/content-graph/levels";
+import type { JlptLevel } from "@ibbun/shared";
 
 /** The Study Item an Example Sentence teaches, as the prompt describes it. */
 export type Subject = {

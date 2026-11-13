@@ -26,13 +26,13 @@ describe("seedAccounts", () => {
     await seedAccounts(pg.db, learners, devEnv);
     expect(await pg.db.select().from(t.learners)).toEqual(before);
 
-    const learner = before.find((l) => l.email === "learner@mojibun.test");
-    const supervisor = before.find((l) => l.email === "supervisor@mojibun.test");
+    const learner = before.find((l) => l.email === "learner@ibbun.test");
+    const supervisor = before.find((l) => l.email === "supervisor@ibbun.test");
     expect(learner).toMatchObject({ role: "learner", emailVerified: true });
     expect(supervisor).toMatchObject({ role: "supervisor", emailVerified: true });
-    expect(await verifyPassword({ hash: (await passwordOf("learner@mojibun.test"))!, password: devEnv.SEED_LEARNER_PASSWORD })).toBe(true);
+    expect(await verifyPassword({ hash: (await passwordOf("learner@ibbun.test"))!, password: devEnv.SEED_LEARNER_PASSWORD })).toBe(true);
     expect(
-      await verifyPassword({ hash: (await passwordOf("supervisor@mojibun.test"))!, password: devEnv.SEED_SUPERVISOR_PASSWORD }),
+      await verifyPassword({ hash: (await passwordOf("supervisor@ibbun.test"))!, password: devEnv.SEED_SUPERVISOR_PASSWORD }),
     ).toBe(true);
   });
 

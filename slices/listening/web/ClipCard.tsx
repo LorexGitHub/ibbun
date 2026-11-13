@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { AudioPlayer, Button, Card, Pill } from "@mojibun/ui";
+import { AudioPlayer, Button, Card, Pill } from "@ibbun/ui";
 import type { AnswerResponse, ClipView } from "../contract.ts";
 import { answerClip } from "./api.ts";
 import { ClipPlayer } from "./ClipPlayer.tsx";

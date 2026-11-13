@@ -20,8 +20,8 @@ The docs are authoritative; these criteria point into them.
 
 - [ ] <checkable behaviour, from the spec>
 - [ ] All CI gates pass ([architecture.md](../blob/main/docs/architecture.md#done-for-a-slice-or-core-change)); work in ub-mode
-- [ ] `verify-mojibun/features/` file added or updated with `/maintain-verification-skill`
-- [ ] A separate verifier agent attached passing `verify-mojibun` evidence to the PR
+- [ ] `verify-ibbun/features/` file added or updated with `/maintain-verification-skill`
+- [ ] A separate verifier agent attached passing `verify-ibbun` evidence to the PR
 
 ## Blocked by
 

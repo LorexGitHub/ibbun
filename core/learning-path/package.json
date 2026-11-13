@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/learning-path",
+  "name": "@ibbun/learning-path",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,10 +8,10 @@
     "./testing": "./src/testing.ts"
   },
   "dependencies": {
-    "@mojibun/content-graph": "workspace:*",
-    "@mojibun/db": "workspace:*",
-    "@mojibun/progress": "workspace:*",
-    "@mojibun/shared": "workspace:*",
+    "@ibbun/content-graph": "workspace:*",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/progress": "workspace:*",
+    "@ibbun/shared": "workspace:*",
     "drizzle-orm": "^0.44.0",
     "zod": "^4.1.0"
   },

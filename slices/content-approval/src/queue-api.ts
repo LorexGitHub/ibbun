@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import { QUEUE_REASONS, type Authoring, type QueueEntry, type QueueFilter, type QueueReason } from "@mojibun/content-graph/authoring";
+import { createAuthGuards, type AuthEnv, type SessionResolver } from "@ibbun/auth";
+import { QUEUE_REASONS, type Authoring, type QueueEntry, type QueueFilter, type QueueReason } from "@ibbun/content-graph/authoring";
 
 /** These always go straight to the supervisor; the reviewer agent never handles them (docs/content-approval.md#what-it-handles). */
 export const OPERATIONAL: readonly QueueReason[] = ["breaker tripped", "budget exhausted", "generation failed", "staleness alarm"];

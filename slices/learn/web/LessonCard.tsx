@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Card, Furigana } from "@mojibun/ui";
+import { Button, Card, Furigana } from "@ibbun/ui";
 import type { Lesson, QuizPrompt } from "../contract.ts";
 import { readingIn } from "./batch-view.ts";
 

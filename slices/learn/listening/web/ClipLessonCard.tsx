@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Card } from "@mojibun/ui";
+import { Button, Card } from "@ibbun/ui";
 import type { ClipAnswer, ClipLesson, ClipVerdict } from "../contract.ts";
 import { ClipPlayer } from "./LessonPlayer.tsx";
 import { ClipQuiz } from "./ClipQuiz.tsx";

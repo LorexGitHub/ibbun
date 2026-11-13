@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
-import type { PathItem } from "@mojibun/content-graph";
+import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
+import type { PathItem } from "@ibbun/content-graph";
 
 export const TRACK_TYPES = ["kanji", "word", "grammar_point", "listening_clip"] as const;
 export type TrackType = (typeof TRACK_TYPES)[number];

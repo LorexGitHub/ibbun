@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { ContentGraph } from "@mojibun/content-graph";
-import type { Progress } from "@mojibun/progress";
-import { JlptLevel } from "@mojibun/shared";
+import { createAuthGuards, type AuthEnv, type SessionResolver } from "@ibbun/auth";
+import type { ContentGraph } from "@ibbun/content-graph";
+import type { Progress } from "@ibbun/progress";
+import { JlptLevel } from "@ibbun/shared";
 import { buildLevel } from "./level.ts";
 import { buildToday, type BatchSize } from "./today.ts";
 

@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { createAuthGuards } from "@mojibun/auth";
-import { createContentGraph } from "@mojibun/content-graph";
-import { createAnswerFlags } from "@mojibun/content-graph/flags";
-import { createLearners } from "@mojibun/learner";
-import { createProgress } from "@mojibun/progress";
-import type { ServerContext, ServerPart } from "@mojibun/slice";
+import { createAuthGuards } from "@ibbun/auth";
+import { createContentGraph } from "@ibbun/content-graph";
+import { createAnswerFlags } from "@ibbun/content-graph/flags";
+import { createLearners } from "@ibbun/learner";
+import { createProgress } from "@ibbun/progress";
+import type { ServerContext, ServerPart } from "@ibbun/slice";
 import { createFlagsApi } from "../flags/api.ts";
 import { withListening } from "../listening/server/with-listening.ts";
 import { createReviewsApi } from "./api.ts";

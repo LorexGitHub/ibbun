@@ -49,7 +49,7 @@ Researched 2026-11-03. Versions and dates come from the npm registry (`npm view`
 - kuromoji.js is "a binary and/or source version of data from mecab-ipadic-2.7.0-20070801". The NOTICE carries the NAIST and ICOT licence: use and redistribution are permitted, but the copyright notice and disclaimer must be kept. Source: https://github.com/takuyaa/kuromoji.js/blob/master/NOTICE.md
 - npm `kuromoji` latest is 0.1.2, published 2018-03-19. The repo had its last push in 2023-11 and has no releases. The forks (`@sglkc/kuromoji` 1.1.0, `@patdx/kuromoji` 1.0.4, `kuromoji.js` 0.1.6) keep the same 2007 dictionary.
 - kuroshiro (https://github.com/hexenq/kuroshiro) became active again in October 2026. 1.2.1 fixed sokuon handling in furigana and okurigana. `kuroshiro-analyzer-kuromoji@2.0.0-beta.3` still depends on `kuromoji ^0.1.2` (npm registry). kuroshiro's own README for sudachi-wasm333 makes the same point: "all of them are considerably outdated" (https://github.com/Benjas333/sudachi-wasm333).
-- An IPADIC from 2007 has none of the newer vocabulary, and its entries cannot be mapped cleanly to JMdict. For mojibun this matters less than reading accuracy (see the test below), but it is a reason not to build on it.
+- An IPADIC from 2007 has none of the newer vocabulary, and its entries cannot be mapped cleanly to JMdict. For ibbun this matters less than reading accuracy (see the test below), but it is a reason not to build on it.
 
 ### Sudachi
 - sudachi.rs is "a Rust implementation of Sudachi". The Python version (SudachiPy) now lives in the same repo, and the old SudachiPy repo is archived. Source: https://github.com/WorksApplications/sudachi.rs
@@ -189,7 +189,7 @@ Recommended voices: pick 2–4 from the "credit only" group, preferably from the
 - **Open JTalk + HTS "Mei":** licences are clean (BSD + CC BY 3.0, credit "Nagoya Institute of Technology"), but the quality is clearly synthetic. Suitable for tests only.
 - **Piper:** the only Japanese voice is trained on Hi-Fi-CAPTAIN, which is **CC BY-NC-SA 4.0** (`MODEL_CARD`). Excluded.
 - **XTTS-v2:** the CPML licence restricts the model *and its outputs* to non-commercial use, and its URL now returns 404 (Coqui is gone). Excluded.
-- **Fish Speech:** free commercial use only below USD 500k annual revenue. Above that, a written licence is required. It could work today but is a trap if mojibun grows.
+- **Fish Speech:** free commercial use only below USD 500k annual revenue. Above that, a written licence is required. It could work today but is a trap if ibbun grows.
 - **Kokoro:** Apache-2.0 and commercially clean. The author's own grades for Japanese voices are C- to C+, there is no accent editing, and the JS port's Japanese support is **(unconfirmed)**. Worth a listening test only.
 - **MeloTTS:** MIT, but dormant since 2024 and no accent editing.
 - **COEIROINK:** credit `COEIROINK:<voice>`. The terms ban redistribution and "running models on non-COEIROINK engines". Only "ローカルAPI" (local API) use alongside the app is allowed. Source: https://coeiroink.com/terms. Running it headless in Docker on ECS is not clearly permitted. Excluded.

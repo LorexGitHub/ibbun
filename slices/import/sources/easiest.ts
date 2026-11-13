@@ -1,4 +1,4 @@
-import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
+import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
 
 type RawText = { name: string; text: string };
 

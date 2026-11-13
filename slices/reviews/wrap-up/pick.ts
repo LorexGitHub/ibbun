@@ -1,4 +1,4 @@
-import type { Example } from "@mojibun/content-graph";
+import type { Example } from "@ibbun/content-graph";
 
 /**
  * The Example a Wrap-Up re-ask uses: one not asked yet this session, so the Learner can't just repeat the answer

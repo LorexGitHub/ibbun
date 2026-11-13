@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeContentGraph, n5Fixture } from "@mojibun/content-graph/testing";
-import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeLearningPath } from "@mojibun/learning-path/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { StudyItemId, type LearnerId } from "@mojibun/shared";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeContentGraph, n5Fixture } from "@ibbun/content-graph/testing";
+import { createFakeLearners } from "@ibbun/learner/testing";
+import { createFakeLearningPath } from "@ibbun/learning-path/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { StudyItemId, type LearnerId } from "@ibbun/shared";
 import type { Batch, CompleteRequest, QuizPrompt } from "../contract.ts";
 import { createLearnApi } from "../server/learn-api.ts";
 

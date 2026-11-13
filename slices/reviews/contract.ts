@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 
 /** What a Review asks for: a blanked span, a Kanji's reading in its Word, or a Kanji's meaning. */
 export const Facet = z.enum(["cloze", "reading", "meaning"]);

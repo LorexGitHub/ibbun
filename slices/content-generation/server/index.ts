@@ -1,10 +1,10 @@
-import { BatchTextGenerate, ContentGenerate, ListeningSynthesise, PracticeGenerate } from "@mojibun/content-graph/jobs";
-import { createAuthoring } from "@mojibun/content-graph/authoring";
-import { createDb } from "@mojibun/db";
-import { createPgBossJobs, handler } from "@mojibun/jobs";
-import { createAnthropicLlm, loadLlmConfig } from "@mojibun/llm";
-import { createProgress, createTexts } from "@mojibun/progress";
-import { createVoicevoxTts } from "@mojibun/tts";
+import { BatchTextGenerate, ContentGenerate, ListeningSynthesise, PracticeGenerate } from "@ibbun/content-graph/jobs";
+import { createAuthoring } from "@ibbun/content-graph/authoring";
+import { createDb } from "@ibbun/db";
+import { createPgBossJobs, handler } from "@ibbun/jobs";
+import { createAnthropicLlm, loadLlmConfig } from "@ibbun/llm";
+import { createProgress, createTexts } from "@ibbun/progress";
+import { createVoicevoxTts } from "@ibbun/tts";
 import { createDirectoryAudioStore, loadSynthesisConfig, synthesise, type SynthesiseDeps } from "../kinds/synthesise/index.ts";
 import { loadGenerationConfig } from "./config.ts";
 import { contentGeneration, type ContentGeneration } from "./generate.ts";

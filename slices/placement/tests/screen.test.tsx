@@ -233,3 +233,61 @@ describe("saving a Placement", () => {
     expect((await screen.findByRole("status")).textContent).toBe("Placement could not load this level.");
   });
 });
+
+describe("responses that arrive late", () => {
+  const reply = (level: string, items: unknown[]) => new Response(JSON.stringify({ level, items }), { status: 200 });
+
+  it("never shows another level's wall when the responses resolve out of order", async () => {
+    const waiting: Record<string, (r: Response) => void> = {};
+    vi.stubGlobal("fetch", vi.fn((url: string) => new Promise<Response>((resolve) => (waiting[url.split("/").pop()!] = resolve))));
+    history.replaceState(null, "", "/placement");
+    render(<PlacementScreen />);
+    press("N3");
+    waiting.N3!(reply("N3", [{ ...list.items[0], label: "三" }]));
+    await tile("三");
+    press("N5");
+    waiting.N5!(reply("N5", [list.items[1]]));
+    await tile("月");
+    expect(screen.queryByText("三", { selector: ".placement-tile-label" })).toBeNull();
+    expect(screen.getByRole("list", { name: "N5 Kanji" })).toBeTruthy();
+  });
+
+  it("drops the wall of a level the Learner has left while it loads", async () => {
+    const waiting: Record<string, (r: Response) => void> = {};
+    vi.stubGlobal("fetch", vi.fn((url: string) => new Promise<Response>((resolve) => (waiting[url.split("/").pop()!] = resolve))));
+    history.replaceState(null, "", "/placement");
+    render(<PlacementScreen />);
+    press("N3");
+    waiting.N3!(reply("N3", [{ ...list.items[0], label: "三" }]));
+    await tile("三");
+    press("N5");
+    press("N3");
+    waiting.N5!(reply("N5", [list.items[1]]));
+    await Promise.resolve();
+    expect(screen.queryByText("月", { selector: ".placement-tile-label" })).toBeNull();
+  });
+});
+
+describe("while saving", () => {
+  it("shows Saving… and holds the button until the answer comes", async () => {
+    let finish!: (r: Response) => void;
+    vi.stubGlobal("fetch", vi.fn((_url: string, init?: RequestInit) => init?.method === "POST" ? new Promise<Response>((r) => (finish = r)) : Promise.resolve(new Response(JSON.stringify(list)))));
+    render(<PlacementScreen />);
+    fireEvent.click(await tile("日"));
+    press("Save");
+    expect(button("Saving…").disabled).toBe(true);
+    finish(new Response(JSON.stringify({ recorded: 1 }), { status: 200 }));
+    await screen.findByRole("status");
+    expect(button("Save").disabled).toBe(true);
+  });
+});
+
+describe("an empty Track", () => {
+  it("offers the way back to Kanji", async () => {
+    serve();
+    await tile("日");
+    press("Grammar");
+    press("Back to Kanji");
+    expect(screen.getByRole("list", { name: "N5 Kanji" })).toBeTruthy();
+  });
+});

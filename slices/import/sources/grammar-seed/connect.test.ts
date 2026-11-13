@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Db } from "@mojibun/db";
+import type { Db } from "@ibbun/db";
 import { connectGrammarSeed } from "./connect.ts";
 
 const db = {} as Db;

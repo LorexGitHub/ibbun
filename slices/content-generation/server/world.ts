@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { emptyGraph, type Graph } from "@mojibun/content-graph/testing";
+import { emptyGraph, type Graph } from "@ibbun/content-graph/testing";
 
 /** A graph with an approved Word (食べる, N5), Kanji (食, N4) and Grammar Point (〜ます, N5), for the slice's tests. */
 export const world = () => {
   const graph: Graph = emptyGraph();
   const provenanceId = randomUUID();
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const life = { approval: "approved" as const, retired: false, provenanceId };
 
   const wordId = randomUUID();

@@ -1,4 +1,4 @@
-import { normalise } from "@mojibun/content-graph/grade";
+import { normalise } from "@ibbun/content-graph/grade";
 import type { TokenDiff } from "../contract.ts";
 
 export type SentenceToken = { surface: string; reading: string };

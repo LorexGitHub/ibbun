@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { renderToString } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { ItemPage, Summary } from "../contract.ts";
 import { ItemView, cramHref, learnNowHref } from "../web/ItemView.tsx";
 

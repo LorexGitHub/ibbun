@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { buttonClass, pillClass, useLevelFilter } from "@mojibun/ui";
-import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
+import { buttonClass, pillClass, useLevelFilter } from "@ibbun/ui";
+import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
 import type { ClipView } from "../contract.ts";
 import { listClips, loadClip } from "./api.ts";
 import { PracticeTexts } from "../practice/web/PracticeTexts.tsx";

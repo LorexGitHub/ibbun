@@ -1,12 +1,12 @@
 # Content Graph schema
 
-Decided in [#12](https://github.com/LorexGitHub/mojibun/issues/12). Terms follow [CONTEXT.md](../CONTEXT.md). This document fixes the *shape* of the graph. Field-level detail for Grammar Points is in [grammar-points.md](grammar-points.md) (#20), answer data on Examples in [review-answer-model.md](review-answer-model.md) (#18), and import and refresh mechanics in [import-pipeline.md](import-pipeline.md) (#23).
+Decided in [#12](https://github.com/LorexGitHub/ibbun/issues/12). Terms follow [CONTEXT.md](../CONTEXT.md). This document fixes the *shape* of the graph. Field-level detail for Grammar Points is in [grammar-points.md](grammar-points.md) (#20), answer data on Examples in [review-answer-model.md](review-answer-model.md) (#18), and import and refresh mechanics in [import-pipeline.md](import-pipeline.md) (#23).
 
 ## Principles
 
 - **Facts only, no order.** The graph holds stable facts about Japanese. Anything about sequence, unlocking or prerequisites belongs to the Learning Path ([learning-path.md](learning-path.md)), even when it looks like a fact.
 - **Shared and the same for everyone.** Learner-written content (own Sentences, notes) never lives in the graph. It lives in the Learner's data and points into the graph.
-- **Every record has** a mojibun-owned ID, Provenance, an approval state (`draft` → `approved` | `rejected`) and a retired flag. Learners see only approved, non-retired records. Nothing is hard-deleted ([ADR 0002](adr/0002-own-ids-and-override-layer.md)), except derived links, which are a rebuildable cache ([ADR 0004](adr/0004-owned-sub-entry-ids-and-derived-links-as-cache.md)).
+- **Every record has** a ibbun-owned ID, Provenance, an approval state (`draft` → `approved` | `rejected`) and a retired flag. Learners see only approved, non-retired records. Nothing is hard-deleted ([ADR 0002](adr/0002-own-ids-and-override-layer.md)), except derived links, which are a rebuildable cache ([ADR 0004](adr/0004-owned-sub-entry-ids-and-derived-links-as-cache.md)).
 
 ## Storage shape
 
@@ -17,8 +17,8 @@ A hybrid layout:
 - One detail table per Study Item type.
 - `sentence` and `reading_passage` are separate tables, outside `study_item`.
 - Typed link tables, one per link type.
-- A `source_key` mapping table: (dataset, upstream key) → mojibun ID.
-- mojibun IDs *inside* a Word too: each written form, reading and sense has its own ID, kept across refreshes ([ADR 0004](adr/0004-owned-sub-entry-ids-and-derived-links-as-cache.md)). Pitch accent, Japanese Explanations, Sentence uses Word links and overrides point at these IDs, never at positions.
+- A `source_key` mapping table: (dataset, upstream key) → ibbun ID.
+- ibbun IDs *inside* a Word too: each written form, reading and sense has its own ID, kept across refreshes ([ADR 0004](adr/0004-owned-sub-entry-ids-and-derived-links-as-cache.md)). Pitch accent, Japanese Explanations, Sentence uses Word links and overrides point at these IDs, never at positions.
 - An `override` table: (record, field, value, based-on upstream value, state `active` | `stale` | `orphaned`, Provenance), applied on top of the imported data.
 - An `import_run` table: dataset, upstream version, checksum, status, counts. Import Provenance points at it.
 

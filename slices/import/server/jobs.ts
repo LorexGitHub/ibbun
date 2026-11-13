@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { defineJob, handler, type JobHandler } from "@mojibun/jobs";
-import type { Dataset } from "@mojibun/content-graph/authoring";
-import { createSudachiNlp } from "@mojibun/nlp";
+import { defineJob, handler, type JobHandler } from "@ibbun/jobs";
+import type { Dataset } from "@ibbun/content-graph/authoring";
+import { createSudachiNlp } from "@ibbun/nlp";
 import { patient, type Fetch } from "../sources/release.ts";
 import { jmdictSource } from "../sources/jmdict/index.ts";
 import { kanjidicSource } from "../sources/kanjidic2/index.ts";

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createFakeJobs } from "@mojibun/jobs";
-import { BatchTextGenerate } from "@mojibun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { BatchTextGenerate } from "@ibbun/content-graph/jobs";
 import { lazyEnqueue } from "./enqueue.ts";
 
 const payload = {

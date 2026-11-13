@@ -7,7 +7,7 @@ The shell is the web app every slice mounts into: the slice routes, a home scree
 - `shell-home` renders the layout at `/`.
 - `shell-fallback` renders the home screen for any unknown route.
 - `shell-dock` is the `navigation` landmark "Main" along the bottom, shown only to a logged-in Learner outside a session: one glyph link per place (今 Today, 復 Reviews, 新 Learn, 測 Placement, 詰 Cram, 聞 Listening, 読 Reading, 辞 Library), each named by `aria-label`, the name shown on hover and focus, `aria-current="page"` on the current one.
-- `shell-top` is the quiet top line: the 文 seal alone on the left, a link named "mojibun" to `/`; the wide **Where to?** field (⌘K or Ctrl K) and the account button on the right. Logged out, the account button is a **Log in** pill.
+- `shell-top` is the quiet top line: the 文 seal alone on the left, a link named "ibbun" to `/`; the wide **Where to?** field (⌘K or Ctrl K) and the account button on the right. Logged out, the account button is a **Log in** pill.
 - `shell-levels` is the `navigation` landmark "Levels" beside the seal, shown only to a logged-in Learner outside a session: N5, N4, N3, N2 and N1, each a link to `/level/n5` … `/level/n1`, with `aria-current="page"` on the level the Learner is on.
 - `shell-kanji` is the screen's kanji, large and faint at the bottom right, behind everything and hidden from assistive technology (`.app-kanji`): a level's numeral on its level page (四 on `/level/n4`), the screen's glyph on a screen that has one (復 on `/reviews`), and 文 everywhere else, Today included.
 - `shell-account-menu` opens from the initial in the top line: the email, Settings, the Supervisor screens (Approval, Import) for a Supervisor only, and **Log out**, which shows a toast.
@@ -15,7 +15,7 @@ The shell is the web app every slice mounts into: the slice routes, a home scree
 - `shell-level-filter` is the `navigation` landmark "Level filter" (the kit's `LevelFilter`): All, N5, N4, N3, N2, N1, with `aria-current="true"` on the active one. It stands in the top line of a Study or Practice door whose address carries `?level=`, in place of "Levels", and beside the session name in a session. Clicking a level rewrites `?level=` in place, **All** removes it and "Levels" returns. It is never stored: leaving the screen drops it.
 - `shell-session` replaces the levels with the session's glyph and name, and the field and account button with a **Done for now** button to `/`, on a session screen (Reviews, Learn, Cram, Placement). A session screen that renders `SessionCount` shows how far it is, as "2 / 5", after the name (`#session-count`).
 - `shell-welcome`: logged out, `/` shows whatever a slice registered in the `welcome` slot (the account slice puts its sign-up split there, see [account.md](account.md)) and Study, Practice and Library under "What's inside". With no such widget the shell shows its own line with **Sign up** and **Log in**.
-- `shell-theme` applies the saved look before the first paint: `<html>` carries `data-palette` and `data-mode`, read from `localStorage` key `mojibun.theme`; "Match my device" follows `prefers-color-scheme`.
+- `shell-theme` applies the saved look before the first paint: `<html>` carries `data-palette` and `data-mode`, read from `localStorage` key `ibbun.theme`; "Match my device" follows `prefers-color-scheme`.
 - `shell-health` answers `GET /api/health` with `{"ok":true}`, directly and through the web proxy.
 
 ## How to get to it (user POV)
@@ -32,7 +32,7 @@ Preconditions:
 
 - `verify.sh doctor` reports every line `ok`.
 
-- **Home.** Logged in as the Learner, open `/`. Run `verify.sh shot / shell/home`. `home.aria.txt` contains the `navigation` landmarks "Levels" and "Main", and a link "mojibun". No text "mojibun" shows in the top line.
+- **Home.** Logged in as the Learner, open `/`. Run `verify.sh shot / shell/home`. `home.aria.txt` contains the `navigation` landmarks "Levels" and "Main", and a link "ibbun". No text "ibbun" shows in the top line.
 - **Levels.** Click **N3** in the top line. The URL is `/level/n3`, the N3 link is current, and `.app-kanji` reads 三.
 - **Background kanji.** Open `/browse`: `.app-kanji` reads 辞. Open `/`: it reads 文. Shoot both, and one level page, in a light and a dark look and check the kanji stays a watermark behind the text.
 - **Fallback.** Open `/nowhere`. Run `verify.sh shot /nowhere shell/fallback`. The page renders the same layout as Home, with no error.
@@ -50,11 +50,11 @@ Preconditions:
 - `/level/n5` … `/level/n1` show Today until the dashboard slice registers the level page.
 - A level in the address narrows Reviews, Learn, Reading, Listening and Placement, and sets the level of Cram's picker.
 - The shell reads the session again on every navigation, so the top line catches up after the Login screen navigates to `/`.
-- If login says "email or password is wrong" for a seeded account, or sign-up fails with a 500, check that `DATABASE_URL` reaches the container: a local PostgreSQL on 5432 answers first and has no `mojibun` role. `/api/health` does not touch the database, so it stays green.
+- If login says "email or password is wrong" for a seeded account, or sign-up fails with a 500, check that `DATABASE_URL` reaches the container: a local PostgreSQL on 5432 answers first and has no `ibbun` role. `/api/health` does not touch the database, so it stays green.
 - Better Auth only trusts the configured web origin. A second Vite on another port can log in but gets 403 on **Log out**.
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
 
 ## Keys
 
 - On a session screen **Esc** is **Done for now**: it goes to `/`. The link shows the Esc mark and carries `aria-keyshortcuts="Escape"`. Esc does nothing on other screens or while a dialog is open (the dialog closes instead).
-- The kit owns the keys: `useKey`, `KeyMark` and the `hotkey` prop of `Button` in `@mojibun/ui`.
+- The kit owns the keys: `useKey`, `KeyMark` and the `hotkey` prop of `Button` in `@ibbun/ui`.

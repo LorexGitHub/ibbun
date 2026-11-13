@@ -1,5 +1,5 @@
-import { collectMigrations, createDb, migrate, workspacePackageDirs } from "@mojibun/db";
-import { createPgBossJobs } from "@mojibun/jobs";
+import { collectMigrations, createDb, migrate, workspacePackageDirs } from "@ibbun/db";
+import { createPgBossJobs } from "@ibbun/jobs";
 import { resolve } from "node:path";
 import { startWorker } from "./worker.ts";
 import { slices } from "./slices.generated.ts";

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { loadN5Fixture } from "@mojibun/content-graph/authoring";
-import { createFakeAuthoring, createFakeLevels, emptyGraph } from "@mojibun/content-graph/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeNlp } from "@mojibun/nlp";
+import { loadN5Fixture } from "@ibbun/content-graph/authoring";
+import { createFakeAuthoring, createFakeLevels, emptyGraph } from "@ibbun/content-graph/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeNlp } from "@ibbun/nlp";
 import { importEverything, type Everything } from "./import-all.ts";
 import type { Refresh } from "./jobs.ts";
 import { memoryRawFiles } from "./raw-files.ts";

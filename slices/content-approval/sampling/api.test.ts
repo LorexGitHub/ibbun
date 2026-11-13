@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { LearnerId } from "@mojibun/shared";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeProgress } from "@ibbun/progress/testing";
+import { LearnerId } from "@ibbun/shared";
 import { createSamplingApi } from "./api.ts";
 import { DEFAULT_SAMPLING } from "./config.ts";
 import { createSampling } from "./sampler.ts";
@@ -19,7 +19,7 @@ const setup = async () => {
   const as = (role: "learner" | "supervisor") => sessions.signIn({ learnerId: LearnerId.parse(randomUUID()), role });
 
   const provenanceId = randomUUID();
-  graph.provenance.push({ id: provenanceId, source: { kind: "generated", model: "sonnet", promptTemplateVersion: "p1", generationRunId: randomUUID() }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "generated", model: "sonnet", promptTemplateVersion: "p1", generationRunId: randomUUID() }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const life = { approval: "approved" as const, retired: false, provenanceId };
   const [sentenceId, exampleId] = [randomUUID(), randomUUID()];
   graph.sentence.push({ id: sentenceId, text: "水を飲む。", translationEn: "I drink water.", tokens: [], audioKey: "audio/1.mp3", audioVoice: null, unlevelledWordCount: 0, ...life });

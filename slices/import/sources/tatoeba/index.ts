@@ -1,6 +1,6 @@
 import Bunzip from "seek-bzip";
-import type { SentenceRecord } from "@mojibun/content-graph/authoring";
-import type { Nlp } from "@mojibun/nlp";
+import type { SentenceRecord } from "@ibbun/content-graph/authoring";
+import type { Nlp } from "@ibbun/nlp";
 import type { RawFile, Source } from "../../server/source.ts";
 import { chooseTranslation, parseDetailed, parseIds, parseIndexLine, parseIndices, parseLinks, parseNativeSpeakers } from "./parse.ts";
 import { mapLimited, sudachiLinks, tokenize } from "./tokens.ts";
@@ -23,7 +23,7 @@ const TOKENIZE_CONCURRENCY = 16;
 type Fetch = typeof fetch;
 
 const get = async (fetchImpl: Fetch, url: string, method = "GET") => {
-  const response = await fetchImpl(url, { method, headers: { "user-agent": "mojibun-import" } });
+  const response = await fetchImpl(url, { method, headers: { "user-agent": "ibbun-import" } });
   if (!response.ok) throw new Error(`${url} answered ${response.status}`);
   return response;
 };

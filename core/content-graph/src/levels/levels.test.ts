@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { JlptLevel } from "@mojibun/shared";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import type { JlptLevel } from "@ibbun/shared";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { memoryStore, postgresStore, type Store } from "../authoring/store.ts";
 import { emptyGraph, type Graph } from "../graph.ts";
 import type { Approval } from "../schema.ts";
@@ -48,7 +48,7 @@ const world = () => {
   const graph = emptyGraph();
   const provenanceId = randomUUID();
   const life = (approval: Approval = "approved", retired = false) => ({ approval, retired, provenanceId });
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const item = (type: "kanji" | "word" | "grammar_point" | "listening_clip", approval?: Approval) => {
     const id = randomUUID();
     graph.studyItem.push({ id, type, ...life(approval) });

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 
 const Speaker = z.enum(["男", "女"]).nullable();
 

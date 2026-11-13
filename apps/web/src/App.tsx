@@ -1,5 +1,5 @@
-import type { NavEntry } from "@mojibun/slice";
-import { buttonClass, KeyMark, Layout, LevelFilter, onGoTo, SessionCountSlot, useKey, useLevelFilter, useSystemModeSync } from "@mojibun/ui";
+import type { NavEntry } from "@ibbun/slice";
+import { buttonClass, KeyMark, Layout, LevelFilter, onGoTo, SessionCountSlot, useKey, useLevelFilter, useSystemModeSync } from "@ibbun/ui";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router";

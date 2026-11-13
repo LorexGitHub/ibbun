@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Authoring, DerivedLinkTable, Row } from "@mojibun/content-graph/authoring";
+import type { Authoring, DerivedLinkTable, Row } from "@ibbun/content-graph/authoring";
 import type { Desired } from "./derive.ts";
 
 type Link<N extends DerivedLinkTable> = Row<N>;

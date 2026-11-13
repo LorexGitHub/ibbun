@@ -1,18 +1,18 @@
 {
-  "name": "@mojibun/content-generation",
+  "name": "@ibbun/content-generation",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {},
   "dependencies": {
-    "@mojibun/content-graph": "workspace:*",
-    "@mojibun/db": "workspace:*",
-    "@mojibun/jobs": "workspace:*",
-    "@mojibun/llm": "workspace:*",
-    "@mojibun/progress": "workspace:*",
-    "@mojibun/shared": "workspace:*",
-    "@mojibun/slice": "workspace:*",
-    "@mojibun/tts": "workspace:*",
+    "@ibbun/content-graph": "workspace:*",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/jobs": "workspace:*",
+    "@ibbun/llm": "workspace:*",
+    "@ibbun/progress": "workspace:*",
+    "@ibbun/shared": "workspace:*",
+    "@ibbun/slice": "workspace:*",
+    "@ibbun/tts": "workspace:*",
     "zod": "^4.1.0"
   },
   "devDependencies": { "@types/node": "^24.0.0" }

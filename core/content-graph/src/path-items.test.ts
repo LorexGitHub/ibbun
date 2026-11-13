@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { createContentGraph, type ContentGraph, type PathItem } from "./index.ts";
 import { createFakeContentGraph, emptyGraph, migrateContentGraph, seedContentGraph, type Graph } from "./testing.ts";
 import type { Approval } from "./schema.ts";
@@ -11,7 +11,7 @@ const pathFixture = () => {
   const next = () => `00000000-0000-7000-8000-${(++n).toString().padStart(12, "0")}`;
   const graph: Graph = emptyGraph();
   const provenanceId = next();
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const life = (approval: Approval = "approved", retired = false) => ({ approval, retired, provenanceId });
   const item = (type: Graph["studyItem"][number]["type"], level: "N5" | "N4" | null, retired = false) => {
     const id = next();

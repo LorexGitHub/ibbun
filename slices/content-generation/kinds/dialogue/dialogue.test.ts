@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring } from "@mojibun/content-graph/testing";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeLlm, loadLlmConfig } from "@mojibun/llm";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import type { JlptLevel } from "@mojibun/shared";
+import { createFakeAuthoring } from "@ibbun/content-graph/testing";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeLlm, loadLlmConfig } from "@ibbun/llm";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import type { JlptLevel } from "@ibbun/shared";
 import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
 import { requestDialogues } from "./index.ts";
@@ -97,7 +97,7 @@ describe("dialogue kind", () => {
     ]);
 
     const [run] = await t.auth.rows("generationRun", { requestId: request.id });
-    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: run!.id, promptTemplateVersion: "dialogue/1" }, licence: "mojibun" });
+    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: run!.id, promptTemplateVersion: "dialogue/1" }, licence: "ibbun" });
     expect(provenance.inputs).toContain(t.grammarId);
     const records = [item, ...voiced, ...voiced.map((l) => l.sentence), ...examples];
     expect(new Set(records.map((r) => r.provenanceId))).toEqual(new Set([provenance.id]));

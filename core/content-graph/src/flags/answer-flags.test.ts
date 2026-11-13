@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { createAuthoring, type Authoring } from "../authoring/index.ts";
 import { emptyGraph } from "../graph.ts";
 import { createFakeAuthoring, migrateContentGraph } from "../testing.ts";

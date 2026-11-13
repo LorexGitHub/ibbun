@@ -1,18 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring, emptyGraph, type Graph } from "@mojibun/content-graph/testing";
-import { ContentGenerate, ContentReview } from "@mojibun/content-graph/jobs";
-import { MAX_ATTEMPTS } from "@mojibun/content-graph/authoring";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@mojibun/llm";
-import { createFakeNlp, type Token } from "@mojibun/nlp";
+import { createFakeAuthoring, emptyGraph, type Graph } from "@ibbun/content-graph/testing";
+import { ContentGenerate, ContentReview } from "@ibbun/content-graph/jobs";
+import { MAX_ATTEMPTS } from "@ibbun/content-graph/authoring";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@ibbun/llm";
+import { createFakeNlp, type Token } from "@ibbun/nlp";
 import { DEFAULT_CONFIG } from "./config.ts";
-import { createFakeProgress } from "@mojibun/progress/testing";
+import { createFakeProgress } from "@ibbun/progress/testing";
 import { DEFAULT_SAMPLING } from "../sampling/config.ts";
 import { createSampling } from "../sampling/sampler.ts";
 import { createMemoryStore } from "../sampling/store.ts";
 import { reviewRun } from "./review-job.ts";
-import { handler } from "@mojibun/jobs";
+import { handler } from "@ibbun/jobs";
 
 const noun = (surface: string, reading: string): Token => ({ surface, lemma: surface, reading, partOfSpeech: ["名詞", "普通名詞", "一般"], conjugation: null });
 const lexicon: Token[] = [
@@ -55,7 +55,7 @@ const world = async (options: Options = {}) => {
   const a = createFakeAuthoring(graph);
   const life = (provenanceId: string, approval: "approved" | "draft" = "approved") => ({ approval, retired: false, provenanceId });
   const authored = randomUUID();
-  graph.provenance.push({ id: authored, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: authored, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
 
   const word = (form: string) => {
     const id = randomUUID();
@@ -93,7 +93,7 @@ const world = async (options: Options = {}) => {
   for (let i = 0; i < (options.attempts ?? 0); i++) await a.failAttempt(request.id);
   const run = await a.recordGenerationRun({ requestId: request.id, model: "claude-sonnet-5-5", promptTemplateVersion: "p1", inputs: [water], tokens: 100, cost: 0.001 });
   const generated = randomUUID();
-  graph.provenance.push({ id: generated, source: { kind: "generated", model: "claude-sonnet-5-5", promptTemplateVersion: "p1", generationRunId: run.id }, licence: "mojibun", author: null, sourceUrl: null, inputs: [water] });
+  graph.provenance.push({ id: generated, source: { kind: "generated", model: "claude-sonnet-5-5", promptTemplateVersion: "p1", generationRunId: run.id }, licence: "ibbun", author: null, sourceUrl: null, inputs: [water] });
 
   const sentence = randomUUID();
   const example = randomUUID();
@@ -408,7 +408,7 @@ describe("content.review", () => {
     const unrelated = randomUUID();
     w.graph.importRun.push({ id: importRunId, dataset: "wiktionary-ja", upstreamVersion: "1", checksum: "x", status: "applied", counts: {}, appliedAt: null });
     w.graph.provenance.push({ id: wikt, source: { kind: "import", importRunId }, licence: "cc-by-sa-4.0", author: null, sourceUrl: null, inputs: [] });
-    w.graph.provenance.push({ id: unrelated, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+    w.graph.provenance.push({ id: unrelated, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
     const entry = (text: string, provenanceId: string) => ({ id: randomUUID(), wordSenseId: sense, grammarPointId: null, text, approval: "approved" as const, retired: false, provenanceId });
     w.graph.japaneseExplanation.push(entry("水の説明", wikt), entry("別の説明", unrelated));
     const { llm } = await run(w, explanationVerdicts);

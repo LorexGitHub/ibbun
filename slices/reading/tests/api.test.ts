@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createAuthGuards, createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@mojibun/content-graph/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { StudyItemId } from "@mojibun/shared";
+import { createAuthGuards, createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@ibbun/content-graph/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeLearners } from "@ibbun/learner/testing";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { StudyItemId } from "@ibbun/shared";
 import { createReadingApi } from "../server/reading-api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}`;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { Button, Card } from "@mojibun/ui";
-import type { JlptLevel } from "@mojibun/shared";
+import { Button, Card } from "@ibbun/ui";
+import type { JlptLevel } from "@ibbun/shared";
 import { ANY, LENGTHS, PASSAGE_TYPES, TOPICS, type Library, type PracticeOptions, type PracticeResult } from "../contract.ts";
 import { Shown, TextShown, useLoaded } from "../../web/screens.tsx";
 import { generate, loadLibrary, loadOptions, loadPracticeText } from "./practice-client.ts";

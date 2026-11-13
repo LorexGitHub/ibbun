@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/api",
+  "name": "@ibbun/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,10 +7,10 @@
   "scripts": { "dev": "node --env-file-if-exists=../../.env --watch src/main.ts", "start": "node --env-file-if-exists=../../.env src/main.ts" },
   "dependencies": {
     "@hono/node-server": "^1.19.0",
-    "@mojibun/db": "workspace:*",
-    "@mojibun/learner": "workspace:*",
-    "@mojibun/mail": "workspace:*",
-    "@mojibun/slice": "workspace:*",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/learner": "workspace:*",
+    "@ibbun/mail": "workspace:*",
+    "@ibbun/slice": "workspace:*",
     "hono": "^4.9.0"
   },
   "devDependencies": { "@types/node": "^24.0.0" }

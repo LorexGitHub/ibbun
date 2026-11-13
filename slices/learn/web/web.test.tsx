@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { Batch, QuizAnswer, QuizPrompt, State, TextView } from "../contract.ts";
 import { learnApi, type LearnApi } from "./learn-client.ts";
 import { notAnswers, shownByDefault, SWITCH_TO_JAPANESE } from "./check.ts";
@@ -105,6 +105,13 @@ describe("Learn opened for one level", () => {
     cleanup();
     history.replaceState(null, "", "/learn");
     expect((await open()).batch).toHaveBeenCalledWith(undefined);
+  });
+
+  it("shows that level in the chooser, not the active Tracks' level", async () => {
+    history.replaceState(null, "", "/learn?level=n3");
+    await open();
+    expect(checked("radio", "N3")).toBe(true);
+    expect(checked("radio", "N5")).toBe(false);
   });
 });
 
@@ -392,9 +399,12 @@ describe("a lesson", () => {
     expect(screen.queryByLabelText("Answer")).toBeNull();
   });
 
-  it("ends on the Tally when every item was marked as Known", async () => {
-    const api = await open(apiOf({ batch: vi.fn(async () => batchOf([waterItem])), startText: vi.fn(async () => true) }));
+  it("ends on the Tally when every item was marked as Known, with no story to read", async () => {
+    const text = vi.fn(async () => ({ status: "ready" as const, text: story }));
+    const api = await open(apiOf({ batch: vi.fn(async () => batchOf([waterItem])), startText: vi.fn(async () => true), text }));
     press("Start");
+    // The Batch Text was asked for, so only learning nothing keeps the story off the Tally
+    await act(async () => undefined);
     press("Not yet");
     press("Mark as Known");
     await waitFor(() => expect(api.skip).toHaveBeenCalledOnce());
@@ -537,6 +547,18 @@ describe("the quiz", () => {
     expect(answers[1]!.timeToAnswerMs).toBeGreaterThanOrEqual(0);
     expect(answers[1]!.timeToAnswerMs).toBeLessThan(60_000);
     expect(await learned(2)).toBeTruthy();
+  });
+
+  it("shows the reading, not the Kanji, after a wrong reading", async () => {
+    await toQuiz();
+    answerWater();
+    press("Next");
+    type("Reading in this sentence", "ちがう");
+    type("Meaning of the kanji", "water");
+    press("Check");
+    const miss = (await screen.findByRole("status")).querySelector(".answer--miss")!;
+    expect(miss.textContent).toContain("It is みず");
+    expect(miss.textContent).not.toContain("水");
   });
 
   it("names every answer field in sight, and marks each facet of a checked answer right or missed", async () => {

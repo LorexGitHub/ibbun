@@ -1,4 +1,4 @@
-import type { Row } from "@mojibun/content-graph/authoring";
+import type { Row } from "@ibbun/content-graph/authoring";
 
 /** A link as a derivation produces it: everything but the lifecycle fields the rebuild adds. */
 export type Desired<T extends { id: string; approval: unknown; retired: unknown; provenanceId: unknown }> = Omit<T, "id" | "approval" | "retired" | "provenanceId">;

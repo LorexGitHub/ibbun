@@ -1,4 +1,4 @@
-import type { SessionResolver } from "@mojibun/auth";
+import type { SessionResolver } from "@ibbun/auth";
 import type { Learners } from "./learners.ts";
 
 export const PREFERENCES_PATH = "/api/auth/preferences";

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import type { Dataset } from "@mojibun/content-graph/authoring";
-import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
+import type { Dataset } from "@ibbun/content-graph/authoring";
+import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
 import { checkStaleness } from "./staleness.ts";
 
 const NOW = new Date("2026-11-10T00:00:00Z");

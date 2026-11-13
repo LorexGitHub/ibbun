@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/listening",
+  "name": "@ibbun/listening",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,16 +7,16 @@
     "./register": "./register.ts"
   },
   "dependencies": {
-    "@mojibun/auth": "workspace:*",
-    "@mojibun/content-graph": "workspace:*",
-    "@mojibun/db": "workspace:*",
-    "@mojibun/jobs": "workspace:*",
-    "@mojibun/learner": "workspace:*",
-    "@mojibun/mail": "workspace:*",
-    "@mojibun/progress": "workspace:*",
-    "@mojibun/shared": "workspace:*",
-    "@mojibun/slice": "workspace:*",
-    "@mojibun/ui": "workspace:*",
+    "@ibbun/auth": "workspace:*",
+    "@ibbun/content-graph": "workspace:*",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/jobs": "workspace:*",
+    "@ibbun/learner": "workspace:*",
+    "@ibbun/mail": "workspace:*",
+    "@ibbun/progress": "workspace:*",
+    "@ibbun/shared": "workspace:*",
+    "@ibbun/slice": "workspace:*",
+    "@ibbun/ui": "workspace:*",
     "hono": "^4.9.0",
     "react": "^19.1.0",
     "zod": "^4.1.0"

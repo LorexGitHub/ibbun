@@ -1,6 +1,6 @@
 # Build plan
 
-Decided in [#40](https://github.com/LorexGitHub/mojibun/issues/40). Terms follow [CONTEXT.md](../CONTEXT.md). The slices, core modules and dependency rules are in [architecture.md](architecture.md).
+Decided in [#40](https://github.com/LorexGitHub/ibbun/issues/40). Terms follow [CONTEXT.md](../CONTEXT.md). The slices, core modules and dependency rules are in [architecture.md](architecture.md).
 
 This plan cuts the rebuild into issues that AI-agent engineers can each pick up on their own without colliding. The issues themselves are data in [`scripts/build-plan/issues.py`](../scripts/build-plan/issues.py). The table below is generated from it, so change the data and rerun the script; don't edit the table.
 
@@ -8,11 +8,11 @@ This plan cuts the rebuild into issues that AI-agent engineers can each pick up 
 
 - **Wave 0 builds the whole core** before any slice: every interface the specs name, with its fake and contract tests. That keeps a dozen slice agents from adding to `content-graph` at the same time. `content-graph` is split into parallel issues that each own a subfolder: schema and reads, authoring, `applySnapshot()`, levels, `grade()`, the automatic checks, licences and Attribution, and job contracts.
 - **The skeleton comes before the gates, and both come before any core code.** No core PR merges without dependency-cruiser, crapper, dryer and mutator in CI.
-- **A hand-made N5 fixture graph** lets Learner slices and their Playwright specs start without waiting for the importers and Content Approval. It is mojibun-owned with Provenance `fixture`, and loads in dev and test only.
+- **A hand-made N5 fixture graph** lets Learner slices and their Playwright specs start without waiting for the importers and Content Approval. It is ibbun-owned with Provenance `fixture`, and loads in dev and test only.
 - **Big slices get a base issue, then follow-ups in their own subfolders** (`slices/import/sources/<source>/`, `slices/content-generation/kinds/<kind>/`, `slices/content-approval/rubrics/<kind>/`, and so on). The follow-ups run in parallel and never touch each other's files.
 - **A generated kind is two issues:** its generator in `content-generation` and its rubric in `content-approval`, so each issue changes one slice folder.
 - **Generated seeds wait for Content Approval.** The Grammar Point seed and the ja Wiktionary seed are blocked by `approval-base` and the proposals generator. Plain importers depend only on `import-base`.
-- **Each issue states short acceptance criteria and links the spec section.** The docs stay authoritative. Every issue also requires the CI gates, its `verify-mojibun` feature file, and evidence from a separate verifier agent.
+- **Each issue states short acceptance criteria and links the spec section.** The docs stay authoritative. Every issue also requires the CI gates, its `verify-ibbun` feature file, and evidence from a separate verifier agent.
 
 ## Milestones
 
@@ -63,7 +63,7 @@ python3 scripts/build-plan/plan.py file    # create or update issues; idempotent
 | #54 Wave 0: licences and Attribution | `wave-0` | 3 | `core/content-graph (licensing)` | #47 |
 | #55 Wave 0: shared job contracts | `wave-0` | 3 | `core/content-graph (jobs)` | #47 |
 | #56 Wave 0: progress Review log, Scheduler, Mastery and Known | `wave-0` | 3 | `core/progress` | #47 |
-| #57 Wave 0: verify-mojibun skill | `wave-0` | 3 | `.agents/skills/verify-mojibun` | #45, #50 |
+| #57 Wave 0: verify-ibbun skill | `wave-0` | 3 | `.agents/skills/verify-ibbun` | #45, #50 |
 | #58 Wave 0: hand-made N5 fixture graph for dev and test | `wave-0` | 4 | `core/content-graph (fixtures)` | #51 |
 | #59 Wave 0: applySnapshot() and the refresh rules | `wave-0` | 4 | `core/content-graph (authoring/snapshot)` | #51 |
 | #60 Wave 0: Level Candidates, derived levels and computed levels | `wave-0` | 4 | `core/content-graph (levels)` | #51 |

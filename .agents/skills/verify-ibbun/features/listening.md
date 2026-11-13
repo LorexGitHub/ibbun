@@ -33,7 +33,7 @@ Sign in, then "Listening" in the nav (`/listening`). Press Play, pick an option.
 
 Preconditions:
 
-- The Compose stack, API and web app are up (the `verify-mojibun` skill does this) and the browser has a Learner session (the `learner` project's stored state).
+- The Compose stack, API and web app are up (the `verify-ibbun` skill does this) and the browser has a Learner session (the `learner` project's stored state).
 - The content graph holds approved Listening Clips with audio and a question at the level you choose. Without them the page shows "No N5 clips yet." and nothing else can be exercised; seed some with the `content-graph-fixture` feature first.
 
 Steps:

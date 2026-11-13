@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ItemProgress } from "@mojibun/progress";
-import { StudyItemId } from "@mojibun/shared";
+import type { ItemProgress } from "@ibbun/progress";
+import { StudyItemId } from "@ibbun/shared";
 import { nextDueOf } from "./next-due.ts";
 
 const NOW = new Date("2026-11-06T09:00:00.000Z");

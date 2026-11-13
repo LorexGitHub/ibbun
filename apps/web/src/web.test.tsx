@@ -1,7 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { StaticRouter } from "react-router";
 import { describe, expect, it } from "vitest";
-import type { Slice } from "@mojibun/slice";
+import type { Slice } from "@ibbun/slice";
 import { App, Slot } from "./App.tsx";
 import type { Who } from "./places.ts";
 import { buildShell, discoverSlices } from "./slices.ts";

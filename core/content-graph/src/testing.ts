@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { collectMigrations, migrate, type Db } from "@mojibun/db";
+import { collectMigrations, migrate, type Db } from "@ibbun/db";
 import type { Clock } from "./authoring/authoring.ts";
 import { memoryStore } from "./authoring/store.ts";
 import { tables, type Graph } from "./graph.ts";

@@ -16,7 +16,7 @@ const SPEECH_BITRATE = 32_000;
 const PRE_SKIP = 312;
 /** One stream per file, so a fixed serial number keeps the output deterministic. */
 const SERIAL = 0x6d6f6a69;
-const VENDOR = "mojibun opusscript";
+const VENDOR = "ibbun opusscript";
 
 const BEGINNING_OF_STREAM = 0x02;
 const END_OF_STREAM = 0x04;

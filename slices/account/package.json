@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/account",
+  "name": "@ibbun/account",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,9 +7,9 @@
     "./register": "./register.ts"
   },
   "dependencies": {
-    "@mojibun/learner": "workspace:*",
-    "@mojibun/slice": "workspace:*",
-    "@mojibun/ui": "workspace:*",
+    "@ibbun/learner": "workspace:*",
+    "@ibbun/slice": "workspace:*",
+    "@ibbun/ui": "workspace:*",
     "react": "^19.1.0",
     "react-router": "^7.9.0"
   },

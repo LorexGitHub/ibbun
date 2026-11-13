@@ -1,7 +1,7 @@
 import { and, eq, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
-import type { DbOrTx } from "@mojibun/db";
-import type { JlptLevel, StudyItemId } from "@mojibun/shared";
+import type { DbOrTx } from "@ibbun/db";
+import type { JlptLevel, StudyItemId } from "@ibbun/shared";
 import { emptyGraph, type Graph } from "./graph.ts";
 import { creditsOf, recordProvenance } from "./licensing.ts";
 import { DEFAULT_SEARCH_LIMIT, normaliseQuery, reader, type ContentGraph } from "./read.ts";

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createAuthGuards, createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@mojibun/content-graph/testing";
-import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
+import { createAuthGuards, createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@ibbun/content-graph/testing";
+import { createFakeLearners } from "@ibbun/learner/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
 import { createListeningApi } from "../server/listening-api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}`;

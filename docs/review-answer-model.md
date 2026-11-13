@@ -1,6 +1,6 @@
 # Review answer model
 
-Decided in [#18](https://github.com/LorexGitHub/mojibun/issues/18). Terms follow [CONTEXT.md](../CONTEXT.md). This document fixes what a Learner is asked, what they may type, and how the answer is graded into the single pass/fail that [ADR 0001](adr/0001-fsrs-6-and-anki-style-mastery.md) feeds to FSRS. Kanji are reviewed in context ([ADR 0005](adr/0005-kanji-reviewed-in-context.md)).
+Decided in [#18](https://github.com/LorexGitHub/ibbun/issues/18). Terms follow [CONTEXT.md](../CONTEXT.md). This document fixes what a Learner is asked, what they may type, and how the answer is graded into the single pass/fail that [ADR 0001](adr/0001-fsrs-6-and-anki-style-mastery.md) feeds to FSRS. Kanji are reviewed in context ([ADR 0005](adr/0005-kanji-reviewed-in-context.md)).
 
 ## Examples for every Study Item type
 
@@ -112,5 +112,5 @@ A Learner can flag a graded facet (`reviewId` plus facet). The flag goes into th
 
 ## Out of scope here
 
-- The text to read after each Learn batch: [#31](https://github.com/LorexGitHub/mojibun/issues/31).
+- The text to read after each Learn batch: [#31](https://github.com/LorexGitHub/ibbun/issues/31).
 - How alternates, known wrong answers and comprehension questions are generated and checked: #16.

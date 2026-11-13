@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Preferences, PreferencesChange } from "@mojibun/learner/client";
+import type { Preferences, PreferencesChange } from "@ibbun/learner/client";
 import { useClient } from "./client.ts";
 import { Field, Notice, useOutcome } from "./form.tsx";
 import { shows, switchLanguage, type Language } from "./explanations.ts";

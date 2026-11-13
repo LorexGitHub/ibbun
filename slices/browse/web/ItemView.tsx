@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Attribution, buttonClass, pillClass } from "@mojibun/ui";
+import { Attribution, buttonClass, pillClass } from "@ibbun/ui";
 import type { Detail, ItemPage } from "../contract.ts";
 import { itemPath, levelLabel } from "./BrowseView.tsx";
 

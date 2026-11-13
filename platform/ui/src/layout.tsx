@@ -27,7 +27,7 @@ export const Layout = ({
       </span>
     )}
     <header className="wrap app-nav">
-      <a className="brand" href="/" aria-label="mojibun">
+      <a className="brand" href="/" aria-label="ibbun">
         <Mark />
       </a>
       {nav && <div className="nav-links">{nav}</div>}

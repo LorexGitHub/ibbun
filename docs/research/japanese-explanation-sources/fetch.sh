@@ -27,6 +27,6 @@ curl -sL "https://github.com/scriptin/jmdict-simplified/releases/download/3.6.2%
 
 # Wikidata Lexemes in Japanese that have at least one sense with a Japanese gloss.
 curl -s -G https://query.wikidata.org/sparql -H 'Accept: text/tab-separated-values' \
-  -A 'mojibun-research/0.1 (https://github.com/LorexGitHub/mojibun)' \
+  -A 'ibbun-research/0.1 (https://github.com/LorexGitHub/ibbun)' \
   --data-urlencode 'query=SELECT ?lemma (COUNT(?s) AS ?n) (SAMPLE(?g) AS ?ex) WHERE { ?l dct:language wd:Q5287 ; wikibase:lemma ?lemma ; ontolex:sense ?s . ?s skos:definition ?g . FILTER(LANG(?g)="ja") } GROUP BY ?lemma' \
   > wd_ja_lemmas.tsv

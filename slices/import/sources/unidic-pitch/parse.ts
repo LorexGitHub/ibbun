@@ -1,4 +1,4 @@
-import type { UnidicRecord } from "@mojibun/content-graph/authoring";
+import type { UnidicRecord } from "@ibbun/content-graph/authoring";
 
 /** `lex.csv` columns of unidic-cwj (the 33-field MeCab layout). */
 const COLUMNS = 33;

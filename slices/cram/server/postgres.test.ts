@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createContentGraph } from "@mojibun/content-graph";
-import { migrateContentGraph, n5Fixture, seedContentGraph } from "@mojibun/content-graph/testing";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
-import { createProgress } from "@mojibun/progress";
-import { migrateProgress } from "@mojibun/progress/testing";
-import { LearnerId } from "@mojibun/shared";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createContentGraph } from "@ibbun/content-graph";
+import { migrateContentGraph, n5Fixture, seedContentGraph } from "@ibbun/content-graph/testing";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
+import { createProgress } from "@ibbun/progress";
+import { migrateProgress } from "@ibbun/progress/testing";
+import { LearnerId } from "@ibbun/shared";
 import { createCramApi } from "./api.ts";
 import type { Question, Verdict } from "../contract.ts";
 

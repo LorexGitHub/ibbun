@@ -1,6 +1,6 @@
-import type { ContentGraph, Example, StudyItemPage, Word } from "@mojibun/content-graph";
-import type { Learners } from "@mojibun/learner";
-import { StudyItemId, type LearnerId } from "@mojibun/shared";
+import type { ContentGraph, Example, StudyItemPage, Word } from "@ibbun/content-graph";
+import type { Learners } from "@ibbun/learner";
+import { StudyItemId, type LearnerId } from "@ibbun/shared";
 import type { DueResponse, ReviewPrompt } from "../contract.ts";
 import { explanationOf, isReviewable, promptOf } from "./prompt.ts";
 

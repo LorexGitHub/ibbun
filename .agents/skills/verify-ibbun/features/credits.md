@@ -1,6 +1,6 @@
 # credits
 
-The public Credits page at `/credits`. Anyone, signed in or not, sees every source mojibun uses with its licence, a link, and the version and date currently live. Below the table it says that JLPT levels are estimates and credits Jonathan Waller and stephenmk with links, then prints the UniDic BSD notice. Every `VOICEVOX:<character>` in use is listed after the sources. The footer's Credits link on every screen leads here.
+The public Credits page at `/credits`. Anyone, signed in or not, sees every source ibbun uses with its licence, a link, and the version and date currently live. Below the table it says that JLPT levels are estimates and credits Jonathan Waller and stephenmk with links, then prints the UniDic BSD notice. Every `VOICEVOX:<character>` in use is listed after the sources. The footer's Credits link on every screen leads here.
 
 ## Sub-features
 

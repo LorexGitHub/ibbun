@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 import type { Clock } from "../authoring/authoring.ts";
 import type { Row, Store } from "../authoring/store.ts";
 import type { LevelledTable } from "./schema.ts";

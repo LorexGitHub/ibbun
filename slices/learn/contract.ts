@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JLPT_LEVELS, StudyItemId } from "@mojibun/shared";
+import { JLPT_LEVELS, StudyItemId } from "@ibbun/shared";
 import { ClipLesson } from "./listening/contract.ts";
 
 /** One Study Item type at one level, as the Active Track grid shows it. Listening Clips are taught in `listening/`, not through this grid. */

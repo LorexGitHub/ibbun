@@ -1,6 +1,6 @@
 # Import and refresh pipeline
 
-Decided in [#23](https://github.com/LorexGitHub/mojibun/issues/23). Terms follow [CONTEXT.md](../CONTEXT.md). The shape of the data is in [content-graph.md](content-graph.md); why IDs work the way they do is in [ADR 0002](adr/0002-own-ids-and-override-layer.md) and [ADR 0004](adr/0004-owned-sub-entry-ids-and-derived-links-as-cache.md).
+Decided in [#23](https://github.com/LorexGitHub/ibbun/issues/23). Terms follow [CONTEXT.md](../CONTEXT.md). The shape of the data is in [content-graph.md](content-graph.md); why IDs work the way they do is in [ADR 0002](adr/0002-own-ids-and-override-layer.md) and [ADR 0004](adr/0004-owned-sub-entry-ids-and-derived-links-as-cache.md).
 
 ## Schedule
 
@@ -43,11 +43,11 @@ A rerun of the same upstream version changes nothing (idempotent).
 
 ## Mapping upstream changes
 
-Every record is found through the `source_key` table: (dataset, upstream key) → mojibun ID. Upstream keys: JMdict `ent_seq`, the Kanji literal, the Tatoeba sentence id, the KanjiVG code point. yomitan-jlpt-vocab rows point at JMdict `ent_seq`.
+Every record is found through the `source_key` table: (dataset, upstream key) → ibbun ID. Upstream keys: JMdict `ent_seq`, the Kanji literal, the Tatoeba sentence id, the KanjiVG code point. yomitan-jlpt-vocab rows point at JMdict `ent_seq`.
 
 ### New key
 
-A new record with a new mojibun ID. Its approval state is the default for its source (JMdict and KANJIDIC2 Approved, Tatoeba Draft).
+A new record with a new ibbun ID. Its approval state is the default for its source (JMdict and KANJIDIC2 Approved, Tatoeba Draft).
 
 ### Key gone: deletion or merge
 
@@ -69,10 +69,10 @@ JMdict keeps the old `ent_seq` on one half and gives the other half a new one. T
 
 ### Key changed
 
-The record keeps its mojibun ID. The imported data is replaced wholesale, then matched inside the record:
+The record keeps its ibbun ID. The imported data is replaced wholesale, then matched inside the record:
 
-- **Written forms and readings** have mojibun IDs and are matched by their text, which is a natural key. Pitch accent hangs off the reading ID.
-- **Senses** have mojibun IDs and are matched by a fingerprint (part of speech plus normalised glosses), falling back to closest similarity above a threshold. A sense with no confident match gets a new ID. The records hanging off the old sense (Japanese Explanation, Sentence uses Word links that name it, Examples, overrides) go back to Draft and are queued with reason `unmatched sense`. They are never re-pointed silently.
+- **Written forms and readings** have ibbun IDs and are matched by their text, which is a natural key. Pitch accent hangs off the reading ID.
+- **Senses** have ibbun IDs and are matched by a fingerprint (part of speech plus normalised glosses), falling back to closest similarity above a threshold. A sense with no confident match gets a new ID. The records hanging off the old sense (Japanese Explanation, Sentence uses Word links that name it, Examples, overrides) go back to Draft and are queued with reason `unmatched sense`. They are never re-pointed silently.
 
 ## Overrides
 

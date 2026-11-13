@@ -17,7 +17,7 @@ Through Learn and Browse once those slices are built. Until then, it can only be
 
 Preconditions: baseline stack, and a Learner signed up through the account slice.
 
-- **Seed stored once:** run `docker compose -p mojibun-verify exec postgres psql -U mojibun -c 'SELECT learner_id, seed, active_tracks FROM learning_path.learner_path'` after the Learner's first Learn screen. Expect one row with the four `N5:*` Tracks; a reload adds no second row and keeps the seed.
+- **Seed stored once:** run `docker compose -p ibbun-verify exec postgres psql -U ibbun -c 'SELECT learner_id, seed, active_tracks FROM learning_path.learner_path'` after the Learner's first Learn screen. Expect one row with the four `N5:*` Tracks; a reload adds no second row and keeps the seed.
 - **Learn batch order:** *Not built yet* (needs the `learn` slice).
 - **Locked badge and Learn now:** *Not built yet* (needs the `browse` slice).
 

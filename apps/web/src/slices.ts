@@ -1,4 +1,4 @@
-import { checkSlices, type NavEntry, type Slice, type Widget, type WebRoute } from "@mojibun/slice";
+import { checkSlices, type NavEntry, type Slice, type Widget, type WebRoute } from "@ibbun/slice";
 
 export type Shell = { nav: NavEntry[]; routes: WebRoute[]; widgets: Widget[] };
 

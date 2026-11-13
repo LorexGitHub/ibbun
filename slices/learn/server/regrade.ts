@@ -1,4 +1,4 @@
-import { grade, normalise, normaliseMeaning } from "@mojibun/content-graph/grade";
+import { grade, normalise, normaliseMeaning } from "@ibbun/content-graph/grade";
 import type { Facet } from "../contract.ts";
 import type { FacetData } from "./prompt.ts";
 

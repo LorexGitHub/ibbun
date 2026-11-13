@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Card, levelQuery, useLevelFilter } from "@mojibun/ui";
-import { StudyItemId, type JlptLevel } from "@mojibun/shared";
+import { Card, levelQuery, useLevelFilter } from "@ibbun/ui";
+import { StudyItemId, type JlptLevel } from "@ibbun/shared";
 import { DueResponse, SubmitResponse, type AnswerKind, type ReviewPrompt, type SubmitRequest } from "../contract.ts";
 import { loadDueClips, type LoadClips } from "../listening/web/clip-reviews-client.ts";
 import { ListeningReviews } from "../listening/web/ListeningReviews.tsx";

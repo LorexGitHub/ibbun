@@ -1,4 +1,4 @@
-import type { ItemProgress } from "@mojibun/progress";
+import type { ItemProgress } from "@ibbun/progress";
 
 /** When the soonest Review that is not due yet falls due, or null when nothing is scheduled later. */
 export const nextDueOf = (items: ItemProgress[], at: Date): string | null => {

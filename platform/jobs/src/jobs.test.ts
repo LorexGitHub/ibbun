@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createDb } from "@mojibun/db";
-import { startTestPostgres } from "@mojibun/db/testing";
+import { createDb } from "@ibbun/db";
+import { startTestPostgres } from "@ibbun/db/testing";
 import { createFakeJobs, createPgBossJobs, defineJob, handler, type FakeJobs, type Jobs } from "./index.ts";
 
 const Greet = defineJob("test.greet", z.object({ name: z.string().min(1), times: z.coerce.number().default(1) }));

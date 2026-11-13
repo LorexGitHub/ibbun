@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import type { Jobs } from "@mojibun/jobs";
-import type { Progress } from "@mojibun/progress";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import type { Jobs } from "@ibbun/jobs";
+import type { Progress } from "@ibbun/progress";
 import type { SamplingConfig } from "./config.ts";
 import type { Sample, SamplingStore } from "./types.ts";
 

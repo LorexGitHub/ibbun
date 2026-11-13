@@ -3,10 +3,10 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
 import { haveIBeenPwned } from "better-auth/plugins/haveibeenpwned";
 import { z } from "zod";
-import type { SessionResolver } from "@mojibun/auth";
-import type { Db } from "@mojibun/db";
-import type { Mail } from "@mojibun/mail";
-import { LearnerId } from "@mojibun/shared";
+import type { SessionResolver } from "@ibbun/auth";
+import type { Db } from "@ibbun/db";
+import type { Mail } from "@ibbun/mail";
+import { LearnerId } from "@ibbun/shared";
 import * as t from "../db/learner-tables.ts";
 import type { LearnerConfig } from "./config.ts";
 import { consoleAuthLog, type AuthLog } from "./events.ts";
@@ -38,7 +38,7 @@ const id = (raw: string) => LearnerId.parse(raw);
 
 type Deps = { db: Db; mail: Mail; config: LearnerConfig; log: AuthLog; now: () => Date; learners: Learners };
 
-/** Where Better Auth keeps its rows: the learner schema, under mojibun's names. */
+/** Where Better Auth keeps its rows: the learner schema, under ibbun's names. */
 const storage = (db: Db) =>
   ({
   database: drizzleAdapter(db, {
@@ -116,7 +116,7 @@ export const createLearnerAuth = ({ db, mail, config, log = consoleAuthLog, now 
   const deps: Deps = { db, mail, config, log, now, learners };
 
   const auth = betterAuth({
-    appName: "mojibun",
+    appName: "ibbun",
     baseURL: `${config.appUrl}/api/auth`,
     basePath: "/api/auth",
     secret: config.secret,

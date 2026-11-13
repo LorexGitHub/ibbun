@@ -1,6 +1,6 @@
-import { createAuthoring } from "@mojibun/content-graph/authoring";
-import type { Db } from "@mojibun/db";
-import { createPgBossJobs } from "@mojibun/jobs";
+import { createAuthoring } from "@ibbun/content-graph/authoring";
+import type { Db } from "@ibbun/db";
+import { createPgBossJobs } from "@ibbun/jobs";
 import type { MatcherRunsDeps } from "./index.ts";
 
 /** The job queue is only needed when a run opens a Generation Request, so it connects on first use. */

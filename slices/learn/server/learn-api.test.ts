@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeContentGraph, emptyGraph, n5Fixture, type Graph, type Token } from "@mojibun/content-graph/testing";
-import type { Word } from "@mojibun/content-graph";
-import { BatchTextGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeLearningPath } from "@mojibun/learning-path/testing";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { StudyItemId, type LearnerId } from "@mojibun/shared";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeContentGraph, emptyGraph, n5Fixture, type Graph, type Token } from "@ibbun/content-graph/testing";
+import type { Word } from "@ibbun/content-graph";
+import { BatchTextGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeLearners } from "@ibbun/learner/testing";
+import { createFakeLearningPath } from "@ibbun/learning-path/testing";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { StudyItemId, type LearnerId } from "@ibbun/shared";
 import { BATCH_TEXT_LIMIT_24H, type Batch, type BatchTextStatus, type CompleteRequest, type QuizPrompt, type State } from "../contract.ts";
 import { createLearnApi } from "./learn-api.ts";
 

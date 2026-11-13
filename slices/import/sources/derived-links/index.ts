@@ -1,4 +1,4 @@
-import type { Authoring } from "@mojibun/content-graph/authoring";
+import type { Authoring } from "@ibbun/content-graph/authoring";
 import { clipVoicesSentence, sentenceUsesWord, supersededBy, wordContainsKanji, type Inputs } from "./derive.ts";
 import { replaceDerivedLinks, type Changes } from "./replace.ts";
 
@@ -47,8 +47,8 @@ export const rebuildDerivedLinks = async ({ authoring }: { authoring: Authoring 
   const version = DERIVED_PROCESS_VERSION;
   const results = [
     await replaceDerivedLinks(authoring, "wordContainsKanji", { name: "word-contains-kanji", version, licence: "edrdg" }, wordContainsKanji(inputs)),
-    await replaceDerivedLinks(authoring, "sentenceUsesWord", { name: "sentence-uses-word", version, licence: "mojibun", keeps: [JPN_INDICES_PROCESS] }, sentenceUsesWord(inputs)),
-    await replaceDerivedLinks(authoring, "clipVoicesSentence", { name: "clip-voices-sentence", version, licence: "mojibun" }, clipVoicesSentence(inputs)),
+    await replaceDerivedLinks(authoring, "sentenceUsesWord", { name: "sentence-uses-word", version, licence: "ibbun", keeps: [JPN_INDICES_PROCESS] }, sentenceUsesWord(inputs)),
+    await replaceDerivedLinks(authoring, "clipVoicesSentence", { name: "clip-voices-sentence", version, licence: "ibbun" }, clipVoicesSentence(inputs)),
     await replaceDerivedLinks(authoring, "wordSupersededBy", { name: "superseded-by", version, licence: "edrdg" }, supersededBy(inputs)),
   ];
   return { added: results.reduce((n, r) => n + r.added, 0), removed: results.reduce((n, r) => n + r.removed, 0) };

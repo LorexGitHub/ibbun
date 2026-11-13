@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { LearnerId } from "@mojibun/shared";
+import { LearnerId } from "@ibbun/shared";
 import type { AuthEvent } from "./events.ts";
 import type { Learner, Learners, NewLearner } from "./learners.ts";
 import { DEFAULT_PREFERENCES } from "./preferences.ts";
@@ -12,7 +12,7 @@ export type LearnersHarness = {
   events: AuthEvent[];
 };
 
-const email = () => `${randomUUID()}@mojibun.test`;
+const email = () => `${randomUUID()}@ibbun.test`;
 const unknownId = () => LearnerId.parse(randomUUID());
 
 /** Behaviour the real module and the fake share. */
@@ -29,9 +29,9 @@ export const learnersContract = (make: () => Promise<LearnersHarness>) => {
 
     it("finds an email whatever its case", async () => {
       const { learners, add } = await make();
-      const added = await add({ email: "Mika.Tanaka@Mojibun.test" });
-      expect(added.email).toBe("mika.tanaka@mojibun.test");
-      expect((await learners.findByEmail("MIKA.tanaka@mojibun.TEST"))!.id).toBe(added.id);
+      const added = await add({ email: "Mika.Tanaka@Ibbun.test" });
+      expect(added.email).toBe("mika.tanaka@ibbun.test");
+      expect((await learners.findByEmail("MIKA.tanaka@ibbun.TEST"))!.id).toBe(added.id);
     });
 
     it("answers null for an unknown Learner", async () => {

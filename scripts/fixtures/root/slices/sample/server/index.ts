@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { defineJob, handler } from "@mojibun/jobs";
+import { defineJob, handler } from "@ibbun/jobs";
 
 export const Ping = defineJob("sample.ping", z.object({ who: z.string() }));
 export const pinged: string[] = [];

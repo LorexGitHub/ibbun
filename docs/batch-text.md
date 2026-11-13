@@ -1,6 +1,6 @@
 # Batch Texts
 
-Decided in [#31](https://github.com/LorexGitHub/mojibun/issues/31). Terms follow [CONTEXT.md](../CONTEXT.md). Why each Learner gets their own generated text is in [ADR 0008](adr/0008-batch-texts-generated-per-learner.md). The JLPT passage formats are summarised in [research/jlpt-reading-formats.md](research/jlpt-reading-formats.md).
+Decided in [#31](https://github.com/LorexGitHub/ibbun/issues/31). Terms follow [CONTEXT.md](../CONTEXT.md). Why each Learner gets their own generated text is in [ADR 0008](adr/0008-batch-texts-generated-per-learner.md). The JLPT passage formats are summarised in [research/jlpt-reading-formats.md](research/jlpt-reading-formats.md).
 
 After each Learn batch, the Learner reads a short text that uses every Study Item in that batch, so they meet new Kanji, Words and Grammar Points in context and not in isolation. The aim is for Learners to read as much as possible and enjoy it.
 
@@ -8,7 +8,7 @@ Batches are unique to each Learner, because order is shuffled per Learner ([lear
 
 ## Approval
 
-A Batch Text is approved the normal [#4](https://github.com/LorexGitHub/mojibun/issues/4) way ([content-approval.md](content-approval.md)), with no lighter tier. It arrives `draft`, must pass the automatic checks below, and then the reviewer agent must pass it. The supervisor spot-checks a sample. It reaches the Learner only once approved.
+A Batch Text is approved the normal [#4](https://github.com/LorexGitHub/ibbun/issues/4) way ([content-approval.md](content-approval.md)), with no lighter tier. It arrives `draft`, must pass the automatic checks below, and then the reviewer agent must pass it. The supervisor spot-checks a sample. It reaches the Learner only once approved.
 
 ## Storage
 

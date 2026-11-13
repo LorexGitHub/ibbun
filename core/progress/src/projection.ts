@@ -1,4 +1,4 @@
-import type { StudyItemId } from "@mojibun/shared";
+import type { StudyItemId } from "@ibbun/shared";
 import type { Review } from "./review.ts";
 import { Scheduler } from "./scheduler.ts";
 

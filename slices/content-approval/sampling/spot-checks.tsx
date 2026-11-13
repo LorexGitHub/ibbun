@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, Pill } from "@mojibun/ui";
+import { Button, Card, Pill } from "@ibbun/ui";
 
 export type KindReport = { kind: string; paused: boolean; calibrationLeft: number; sampled: number; errorRate: number };
 export type SampleItem = {

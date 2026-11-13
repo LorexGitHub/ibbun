@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import type { GrammarForm, Licence, Token } from "@mojibun/content-graph";
-import type { JlptLevel } from "@mojibun/shared";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import type { GrammarForm, Licence, Token } from "@ibbun/content-graph";
+import type { JlptLevel } from "@ibbun/shared";
 
 /** A hanabira example Sentence once Sudachi has split it. */
 export type SeedExample = { text: string; translationEn: string; tokens: Token[] };

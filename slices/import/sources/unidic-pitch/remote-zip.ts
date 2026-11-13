@@ -17,7 +17,7 @@ const text = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
 
 /** `bytes` is a range spec such as `0-99` or `-65558`. UniDic's full zip is 3 GB, so it is never fetched whole. */
 const range = async (fetchImpl: Fetch, url: string, bytes: string) => {
-  const response = await fetchImpl(url, { headers: { range: `bytes=${bytes}`, "user-agent": "mojibun-import" } });
+  const response = await fetchImpl(url, { headers: { range: `bytes=${bytes}`, "user-agent": "ibbun-import" } });
   if (response.status !== 206) throw new Error(`${url} answered ${response.status} to a range request for ${bytes}`);
   return new Uint8Array(await response.arrayBuffer());
 };

@@ -44,7 +44,7 @@ Output of `wikt_coverage.py`:
 
 ### Sense alignment
 
-A Japanese Explanation belongs to a **Word sense**. mojibun's senses come from JMdict. Wiktionary's senses do not line up with them.
+A Japanese Explanation belongs to a **Word sense**. ibbun's senses come from JMdict. Wiktionary's senses do not line up with them.
 
 - Covered Words have a median of 2 Wiktionary glosses and 1 JMdict sense. Wiktionary is usually finer-grained, or lists archaic and regional senses that JMdict leaves out.
 - 1,014 of 7,679 covered Words (13.2%) have **fewer** Wiktionary glosses than JMdict senses. At least one JMdict sense of each of these has no Wiktionary text.
@@ -65,7 +65,7 @@ Some glosses are a single synonym ("グレー: 灰色。") or start with labels 
 
 - ja Wiktionary page footers say text is available under the "クリエイティブ・コモンズ 表示-継承ライセンス" and link to CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/deed.ja . Terms of Use: https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use
 - **Attribution:** under the Terms of Use, a hyperlink or URL to the page is an acceptable credit **(unconfirmed for re-used dictionary data at this granularity; check with a lawyer)**. Store the page title in Provenance so every Japanese Explanation can link to its source page.
-- **ShareAlike:** a Japanese Explanation that is copied or adapted from Wiktionary is CC BY-SA 4.0. Rewording it, by hand or by model, is still an adaptation. mojibun already takes ShareAlike on through JMdict (EDRDG Licence = CC BY-SA 4.0), so this adds no new kind of obligation.
+- **ShareAlike:** a Japanese Explanation that is copied or adapted from Wiktionary is CC BY-SA 4.0. Rewording it, by hand or by model, is still an adaptation. ibbun already takes ShareAlike on through JMdict (EDRDG Licence = CC BY-SA 4.0), so this adds no new kind of obligation.
 - kaikki.org asks that research cite Ylonen (LREC 2022) and link to kaikki.org. This is a request, not a licence condition: https://kaikki.org/jawiktionary/rawdata.html
 
 ### Getting the data
@@ -108,7 +108,7 @@ Output of `grammar_coverage.py`. Each hanabira title is reduced to its Japanese 
 - **The 107 are an upper bound.** Many define the bare word, not the pattern. "Noun で～" matches the noun 甲斐 sense of で, and "～の" matches a counter for cloth widths. Good matches cluster in conjunctions (しかし, したがって, ところで), particles (ばかり, こそ, さえ) and suffixes (～がち, ～気味, ～だらけ). Set patterns such as ～ないではおかない, ～にかけて and ～ずにはすまない have no entry.
 - **Conclusion:** no open source covers JLPT Grammar Points in Japanese. Generate them through Content Approval. Matching ja Wiktionary entries can be shown to the reviewer as reference, about a hundred of them, mostly N5 to N3.
 
-## Consequences for mojibun
+## Consequences for ibbun
 
 - **Words: seed from ja Wiktionary.** Follow kanji → kana redirects, then pick the entry and gloss for the Word's reading. Align glosses to JMdict senses. A model proposes; Content Approval decides. Record Provenance as "ja Wiktionary, page title, dump date, CC BY-SA 4.0" per Japanese Explanation, plus "edited" or "generated" when it was changed.
 - **Gaps: generate.** About 7% of JLPT Words have no usable Wiktionary entry (608 of 8,293). Many more senses are missing: at least one JMdict sense in each of 1,014 Words. Generate these as drafts for Content Approval.

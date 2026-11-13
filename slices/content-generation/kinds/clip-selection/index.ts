@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import type { JlptLevel } from "@mojibun/shared";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import type { JlptLevel } from "@ibbun/shared";
 
 const PROCESS = "clip-selection";
 const VERSION = "1";
@@ -83,7 +83,7 @@ const make = async (auth: Authoring, voices: Voices, studyItemId: string, senten
   const provenanceId = randomUUID();
   const clipId = randomUUID();
   await auth.insert("provenance", [
-    { id: provenanceId, source: { kind: "derived", process: PROCESS, version: VERSION }, licence: "mojibun", author: null, sourceUrl: null, inputs: [studyItemId, sentenceId] },
+    { id: provenanceId, source: { kind: "derived", process: PROCESS, version: VERSION }, licence: "ibbun", author: null, sourceUrl: null, inputs: [studyItemId, sentenceId] },
   ]);
   const life = { approval: "approved", retired: false, provenanceId } as const;
   await auth.insert("studyItem", [{ id: clipId, type: "listening_clip", ...life }]);

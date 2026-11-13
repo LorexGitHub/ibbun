@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Review } from "@mojibun/progress";
-import { StudyItemId, type LearnerId } from "@mojibun/shared";
+import type { Review } from "@ibbun/progress";
+import { StudyItemId, type LearnerId } from "@ibbun/shared";
 import { GHOST_AFTER_MS, GHOST_UNTIL_MS, ghostsOf } from "./ghosts.ts";
 import { pickDifferent } from "./pick.ts";
 

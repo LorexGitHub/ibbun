@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { Button, ThemePicker } from "@mojibun/ui";
-import type { ActiveSession, CurrentLearner } from "@mojibun/learner/client";
+import { Button, ThemePicker } from "@ibbun/ui";
+import type { ActiveSession, CurrentLearner } from "@ibbun/learner/client";
 import { useClient } from "./client.ts";
 import { Field, Form, Notice, useOutcome } from "./form.tsx";
 import { PreferencesSection } from "./preferences.tsx";
@@ -51,10 +51,23 @@ const ChangePassword = () => {
   );
 };
 
+const BROWSERS: [RegExp, string][] = [[/Edg\//, "Edge"], [/OPR\/|Opera/, "Opera"], [/Firefox|FxiOS/, "Firefox"], [/Chrome|CriOS/, "Chrome"], [/Safari/, "Safari"]];
+const SYSTEMS: [RegExp, string][] = [[/Windows/, "Windows"], [/Android/, "Android"], [/iPhone|iPad|iOS/, "iOS"], [/Mac OS|Macintosh/, "macOS"], [/CrOS/, "ChromeOS"], [/Linux/, "Linux"]];
+
+/** "Chrome on Windows" from a raw user-agent string; the raw string never reaches the screen. */
+export const deviceName = (userAgent: string | null): string => {
+  // A missing user agent reads as "null", which names no browser and no system
+  const ua = String(userAgent);
+  const browser = BROWSERS.find(([re]) => re.test(ua))?.[1];
+  const system = SYSTEMS.find(([re]) => re.test(ua))?.[1];
+  if (browser && system) return `${browser} on ${system}`;
+  return browser ?? system ?? "Unknown device";
+};
+
 const SessionRow = ({ session, onEnd }: { session: ActiveSession; onEnd: () => void }) => (
   <li className="session-row">
     <span>
-      {session.userAgent || "Unknown device"}
+      {deviceName(session.userAgent)}
       {session.current ? " (this device)" : ""}, last used {session.lastUsedAt.slice(0, 10)}
     </span>
     {!session.current && <Button onClick={onEnd}>End session</Button>}

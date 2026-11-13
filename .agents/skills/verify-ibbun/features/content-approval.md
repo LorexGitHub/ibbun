@@ -25,7 +25,7 @@ The supervisor opens the Content Approval queue under `/admin/content-approval` 
 
 ## How to get to it (user POV)
 
-1. Log in as a Supervisor (a Learner account granted the role with `pnpm --filter @mojibun/learner grant-supervisor <email>`).
+1. Log in as a Supervisor (a Learner account granted the role with `pnpm --filter @ibbun/learner grant-supervisor <email>`).
 2. Open the "Approval" link in the nav, or go to `/admin/content-approval`.
 3. A Learner who opens the same URL sees "Supervisors only." and no entries.
 

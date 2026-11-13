@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createFakeSessionResolver, type LearnerSession } from "@mojibun/auth";
-import { createFakeContentGraph, n5Fixture } from "@mojibun/content-graph/testing";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { LearnerId } from "@mojibun/shared";
+import { createFakeSessionResolver, type LearnerSession } from "@ibbun/auth";
+import { createFakeContentGraph, n5Fixture } from "@ibbun/content-graph/testing";
+import { createFakeProgress } from "@ibbun/progress/testing";
+import { LearnerId } from "@ibbun/shared";
 import { PlacementList, PlacementResult } from "../contract.ts";
 import { createPlacementApi } from "../server/routes.ts";
 

@@ -1,5 +1,5 @@
-import type { CurrentLearner } from "@mojibun/learner/client";
-import type { NavEntry, Place } from "@mojibun/slice";
+import type { CurrentLearner } from "@ibbun/learner/client";
+import type { NavEntry, Place } from "@ibbun/slice";
 
 export type Who = { state: "loading" } | { state: "out" } | { state: "in"; learner: CurrentLearner };
 

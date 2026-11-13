@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createDb } from "@mojibun/db";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createDb } from "@ibbun/db";
 import slice from "../register.ts";
 
 describe("the cram slice as the API shell mounts it", () => {

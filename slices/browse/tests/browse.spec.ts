@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 // Runs in the `learner` project, so the Learner is already logged in (playwright.config.ts).
-// Needs the N5 fixture graph loaded (`pnpm --filter @mojibun/content-graph seed:fixture`).
+// Needs the N5 fixture graph loaded (`pnpm --filter @ibbun/content-graph seed:fixture`).
 test("a Learner sees the Mastery wall, searches it, and opens a tile as a sheet with Learn now", async ({ page }) => {
   await page.goto("/browse");
   await expect(page.getByRole("heading", { level: 1, name: "Library" })).toBeVisible();

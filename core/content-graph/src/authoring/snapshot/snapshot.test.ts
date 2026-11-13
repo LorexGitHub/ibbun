@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { getTableName } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import { emptyGraph, tables } from "../../graph.ts";
@@ -58,7 +58,7 @@ const contract = (make: () => Promise<Harness>) => {
   /** An Approved Sentence with an Approved Example of `item` on `span`, plus its Provenance. */
   const exampleOn = async (item: string, text = "パンを食べる。", span: [number, number] = [3, 6], targetSenseId: string | null = null) => {
     const provenanceId = randomUUID();
-    await h.a.insert("provenance", [{ id: provenanceId, source: { kind: "authored", by: "t" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] }]);
+    await h.a.insert("provenance", [{ id: provenanceId, source: { kind: "authored", by: "t" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] }]);
     const sentenceId = randomUUID();
     const life = { approval: "approved" as const, retired: false, provenanceId };
     await h.a.insert("sentence", [{ id: sentenceId, text, translationEn: null, tokens: [], audioKey: null, audioVoice: null, unlevelledWordCount: 0, ...life }]);
@@ -139,7 +139,7 @@ const contract = (make: () => Promise<Harness>) => {
       const levelled = async (wordKey: string) => {
         const wordId = await idOf("jmdict", wordKey);
         const provenanceId = randomUUID();
-        await h.a.insert("provenance", [{ id: provenanceId, source: { kind: "authored", by: "t" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] }]);
+        await h.a.insert("provenance", [{ id: provenanceId, source: { kind: "authored", by: "t" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] }]);
         await h.a.insert("levelCandidate", [{ id: randomUUID(), studyItemId: wordId, level: "N5", kind: "editorial", approval: "approved", retired: false, provenanceId }]);
         return wordId;
       };

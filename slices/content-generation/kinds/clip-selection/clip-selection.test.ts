@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring } from "@mojibun/content-graph/testing";
+import { createFakeAuthoring } from "@ibbun/content-graph/testing";
 import { world } from "../../server/world.ts";
 import { clipSelection, DEFAULT_BANDS, tieBreak, type ClipSelectionConfig } from "./index.ts";
 

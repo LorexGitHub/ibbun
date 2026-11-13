@@ -1,7 +1,7 @@
 // `pnpm content:import`: every import, once, in order. Needs DATABASE_URL and a running Sudachi (SUDACHI_URL).
-import { createAuthoring } from "@mojibun/content-graph/authoring";
-import { createLevels } from "@mojibun/content-graph/levels";
-import { createDb } from "@mojibun/db";
+import { createAuthoring } from "@ibbun/content-graph/authoring";
+import { createLevels } from "@ibbun/content-graph/levels";
+import { createDb } from "@ibbun/db";
 import { connectGrammarSeed } from "../sources/grammar-seed/connect.ts";
 import { connectMatcherRuns } from "../sources/matcher-runs/connect.ts";
 import { importEverything } from "./import-all.ts";

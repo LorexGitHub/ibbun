@@ -24,7 +24,7 @@ The supervisor sees every Import Run at `/admin/import`: dataset, upstream versi
 
 ## Driving it with Playwright
 
-Preconditions: baseline from the README, plus `verify.sh` must also start `pnpm --filter @mojibun/worker start` (it does not yet) and the API needs `AUTH_SECRET` and `APP_URL` set so the report API mounts. A supervisor must exist (`pnpm --filter @mojibun/learner grant-supervisor`, after sign-up in the account slice). JMdict is about 11 MB from GitHub, so the first run needs internet and takes a few minutes.
+Preconditions: baseline from the README, plus `verify.sh` must also start `pnpm --filter @ibbun/worker start` (it does not yet) and the API needs `AUTH_SECRET` and `APP_URL` set so the report API mounts. A supervisor must exist (`pnpm --filter @ibbun/learner grant-supervisor`, after sign-up in the account slice). JMdict is about 11 MB from GitHub, so the first run needs internet and takes a few minutes.
 
 - **Report is supervisor-only**: `curl -s -o /dev/null -w '%{http_code}' $WEB/api/import/runs` with no cookie. Expect `401`. With a plain Learner's cookie, expect `403`.
 - **Empty state**: as the supervisor, open `/admin/import` before any run. Expect the heading "Import Runs" and "No Import Run yet".

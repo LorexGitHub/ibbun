@@ -1,6 +1,6 @@
 import { afterAll, beforeAll } from "vitest";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { migrateLearningPath } from "../testing.ts";
 
 /** A fresh database with the learning_path tables for the calling test file. Read `.db` inside tests. */

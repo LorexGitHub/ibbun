@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import type { Nlp } from "@mojibun/nlp";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import type { Nlp } from "@ibbun/nlp";
 import type { GrammarSources } from "./download.ts";
 import { downloadGrammarSources } from "./download.ts";
 import { japaneseTitle, parseHanabira } from "./hanabira.ts";

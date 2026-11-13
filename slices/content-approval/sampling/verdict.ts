@@ -1,5 +1,5 @@
-import type { DecisionOutcome } from "@mojibun/content-graph/authoring";
-import { StudyItemId } from "@mojibun/shared";
+import type { DecisionOutcome } from "@ibbun/content-graph/authoring";
+import { StudyItemId } from "@ibbun/shared";
 import type { Rec } from "../src/drafts.ts";
 import { retry } from "../src/retry.ts";
 import type { Context } from "./context.ts";

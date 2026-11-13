@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/icon.svg" width="96" height="96" alt="mojibun icon">
+  <img src="assets/icon.svg" width="96" height="96" alt="ibbun icon">
 </p>
 
-<h1 align="center">mojibun</h1>
+<h1 align="center">ibbun</h1>
 
 <p align="center">
   Learn Japanese for the JLPT, N5 to N1, one sentence at a time.
@@ -10,14 +10,14 @@
 
 ---
 
-mojibun teaches **Kanji, Words, Grammar Points and Listening** through real example sentences. You review them on a spaced-repetition schedule (FSRS, with Anki-style New → Learning → Young → Mature stages), so things come back just before you'd forget them.
+ibbun teaches **Kanji, Words, Grammar Points and Listening** through real example sentences. You review them on a spaced-repetition schedule (FSRS, with Anki-style New → Learning → Young → Mature stages), so things come back just before you'd forget them.
 
-It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLPT-style reading passages that get longer as you progress and tell a continuing story. The suggested order is a guide, not a gate: you can always start any item you're curious about.
+It's built to be reading-heavy and fun. Alongside reviews, ibbun gives you JLPT-style reading passages that get longer as you progress and tell a continuing story. The suggested order is a guide, not a gate: you can always start any item you're curious about.
 
 > **Status:** a working showcase, still being built. Every issue in the [build plan](docs/build-plan.md) (M1 to M3) is merged, and a second pass is redesigning the screens one by one. What is not on `main` yet is marked **to be added** below. This is a side project, not a released product.
 
 <p align="center">
-  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through mojibun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
+  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through ibbun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
 </p>
 
 ## What's in it
@@ -27,11 +27,11 @@ It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLP
 | Today | How many Reviews are due, the next step, your streak and your way up from N5 to N1. | Done |
 | Learn | Batches of new Study Items: a lesson, a quiz, a Batch Text to read, and Listening Clip lessons. You can also learn any item now. | Done |
 | Reviews | Your due Reviews, then due Listening Clips, a Wrap-Up of what you missed, and Ghosts from earlier sessions. You can flag an answer you think was right. | Done |
-| Reading | Reading Passages, Batch Text episodes and Practice Texts. | Works. New layout to be added ([#222](https://github.com/LorexGitHub/mojibun/pull/222)) |
-| Listening | Free listening practice and Practice Text dialogues. | Works. New player to be added ([#223](https://github.com/LorexGitHub/mojibun/pull/223)) |
-| Cram | Extra practice on any items you pick. Cram never changes your schedule. | Works. New picker to be added ([#220](https://github.com/LorexGitHub/mojibun/pull/220)) |
-| Placement | Mark what you already know at a JLPT Level, so it skips your Reviews. | Works. Tile wall to be added ([#224](https://github.com/LorexGitHub/mojibun/pull/224)) |
-| Library | Every Kanji, Word and Grammar Point, with their links. | Works. Mastery wall to be added ([#221](https://github.com/LorexGitHub/mojibun/pull/221)) |
+| Reading | Reading Passages, Batch Text episodes and Practice Texts. | Works. New layout to be added ([#222](https://github.com/LorexGitHub/ibbun/pull/222)) |
+| Listening | Free listening practice and Practice Text dialogues. | Works. New player to be added ([#223](https://github.com/LorexGitHub/ibbun/pull/223)) |
+| Cram | Extra practice on any items you pick. Cram never changes your schedule. | Works. New picker to be added ([#220](https://github.com/LorexGitHub/ibbun/pull/220)) |
+| Placement | Mark what you already know at a JLPT Level, so it skips your Reviews. | Works. Tile wall to be added ([#224](https://github.com/LorexGitHub/ibbun/pull/224)) |
+| Library | Every Kanji, Word and Grammar Point, with their links. | Works. Mastery wall to be added ([#221](https://github.com/LorexGitHub/ibbun/pull/221)) |
 | Settings | Appearance (five looks, light or dark), your account and your study preferences. | Done |
 | Approval | Supervisor only: the Content Approval queue for generated content. | Done |
 | Import | Supervisor only: reports on Import Runs from the open datasets. | Done |
@@ -48,8 +48,8 @@ cp .env.example .env          # every script reads it; no need to load it into y
 
 docker compose up -d          # Postgres, Sudachi, VOICEVOX and Mailpit
 pnpm db:migrate
-pnpm --filter @mojibun/learner seed               # the two dev accounts
-pnpm --filter @mojibun/content-graph seed:fixture # a small N5 content graph to study
+pnpm --filter @ibbun/learner seed               # the two dev accounts
+pnpm --filter @ibbun/content-graph seed:fixture # a small N5 content graph to study
 pnpm dev
 ```
 
@@ -71,8 +71,8 @@ Log in with one of the dev accounts. The passwords come from `.env`:
 
 | Account                   | Password              | Role                                        |
 | ------------------------- | --------------------- | ------------------------------------------- |
-| `learner@mojibun.test`    | `learner-password`    | Learner                                     |
-| `supervisor@mojibun.test` | `supervisor-password` | Supervisor: also sees Approval and Import   |
+| `learner@ibbun.test`    | `learner-password`    | Learner                                     |
+| `supervisor@ibbun.test` | `supervisor-password` | Supervisor: also sees Approval and Import   |
 
 Then open:
 
@@ -104,7 +104,7 @@ The background worker starts with `pnpm dev` too.
 
 ## How the code is organised
 
-mojibun is a modular monolith: a small **core** with **feature slices** on top.
+ibbun is a modular monolith: a small **core** with **feature slices** on top.
 
 ```
 apps/       web (Vite + React), api (Hono), worker (pg-boss jobs). Shells only.
@@ -125,4 +125,4 @@ Each slice is self-contained and never imports another slice. To add one, create
 
 ## Contributing
 
-Most of mojibun is built by AI agents working in parallel, one issue per slice. If you're one of them, start with [CLAUDE.md](CLAUDE.md).
+Most of ibbun is built by AI agents working in parallel, one issue per slice. If you're one of them, start with [CLAUDE.md](CLAUDE.md).

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Word } from "@mojibun/content-graph";
+import type { Word } from "@ibbun/content-graph";
 import { lookupView } from "../server/reading-api.ts";
 
 const word = (parts: Partial<Pick<Word, "forms" | "readings" | "senses">>): Word =>

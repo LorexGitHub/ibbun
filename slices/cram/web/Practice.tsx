@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { StudyItemId } from "@mojibun/shared";
-import { Button, Card } from "@mojibun/ui";
+import type { StudyItemId } from "@ibbun/shared";
+import { Button, Card } from "@ibbun/ui";
 import type { Question } from "../contract.ts";
 import type { CramClient } from "./client.ts";
 import { QuestionCard } from "./QuestionCard.tsx";

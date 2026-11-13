@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JlptLevel } from "@mojibun/shared";
+import { JlptLevel } from "@ibbun/shared";
 
 /** How many Study Items are due, in total and by type (the Today screen's "11 kanji, 5 words and 2 grammar points"). */
 export const Due = z.object({

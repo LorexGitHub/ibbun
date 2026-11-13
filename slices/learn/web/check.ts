@@ -1,4 +1,4 @@
-import { grade, type AnswerData, type GradeResult } from "@mojibun/content-graph/grade";
+import { grade, type AnswerData, type GradeResult } from "@ibbun/content-graph/grade";
 import type { QuizPrompt } from "../contract.ts";
 
 export type PromptFacet = QuizPrompt["facets"][number];
@@ -26,7 +26,7 @@ export const tryFacet = (facet: PromptFacet, input: string, convertRomaji: boole
 /** The facets whose try was not an answer. When none is, the question can be checked. */
 export const notAnswers = (facets: PromptFacet[], inputs: Record<string, string>, convertRomaji: boolean) =>
   facets.flatMap((facet) => {
-    const input = inputs[facet.facet] ?? "";
+    const { [facet.facet]: input = "" } = inputs;
     const { note } = tryFacet(facet, input, convertRomaji);
     return note === undefined ? [] : [{ facet: facet.facet, input, note }];
   });
@@ -37,6 +37,8 @@ export const shownByDefault = (explanations: "english" | "japanese" | "both") =>
   explanation: explanations !== "english",
 });
 
-/** The accepted written forms, to show after a miss. */
+/** The accepted answers, to show after a miss: a reading facet asks for the reading, so it shows that, not the written form. */
 export const acceptedOf = (facet: PromptFacet): string[] =>
-  facet.answerData.facet === "japanese" ? facet.answerData.accepted.map((a) => a.written) : facet.answerData.meanings.map((m) => m.text);
+  facet.answerData.facet === "japanese"
+    ? facet.answerData.accepted.map((a) => (facet.facet === "reading" && a.reading ? a.reading : a.written))
+    : facet.answerData.meanings.map((m) => m.text);

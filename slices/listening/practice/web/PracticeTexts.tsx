@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Button, Card } from "@mojibun/ui";
-import type { JlptLevel } from "@mojibun/shared";
+import { Button, Card } from "@ibbun/ui";
+import type { JlptLevel } from "@ibbun/shared";
 import type { ClipView } from "../../contract.ts";
 import { ClipCard } from "../../web/ClipCard.tsx";
 import { LENGTHS, TOPICS, taskTypes, type LibraryEntry, type Options } from "../practice-contract.ts";

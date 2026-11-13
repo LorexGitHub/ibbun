@@ -1,4 +1,4 @@
-import type { Slice } from "@mojibun/slice";
+import type { Slice } from "@ibbun/slice";
 
 const slice: Slice = {
   name: "sample",

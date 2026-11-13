@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { createContentGraph } from "@mojibun/content-graph";
-import { createLearners } from "@mojibun/learner";
-import { createLearningPath } from "@mojibun/learning-path";
-import { createPgBossJobs } from "@mojibun/jobs";
-import { createProgress, createTexts } from "@mojibun/progress";
-import type { ServerContext, ServerPart } from "@mojibun/slice";
+import { createContentGraph } from "@ibbun/content-graph";
+import { createLearners } from "@ibbun/learner";
+import { createLearningPath } from "@ibbun/learning-path";
+import { createPgBossJobs } from "@ibbun/jobs";
+import { createProgress, createTexts } from "@ibbun/progress";
+import type { ServerContext, ServerPart } from "@ibbun/slice";
 import { lazyEnqueue } from "./enqueue.ts";
 import { createLearnApi } from "./learn-api.ts";
 

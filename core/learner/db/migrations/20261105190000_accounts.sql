@@ -4,7 +4,7 @@
 
 CREATE TABLE learners (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  -- Better Auth requires a name. mojibun does not ask for one.
+  -- Better Auth requires a name. ibbun does not ask for one.
   name text NOT NULL DEFAULT '',
   email text NOT NULL UNIQUE,
   email_verified boolean NOT NULL DEFAULT false,

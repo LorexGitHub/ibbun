@@ -1,5 +1,5 @@
-import type { Token as CoreToken } from "@mojibun/content-graph";
-import type { Nlp } from "@mojibun/nlp";
+import type { Token as CoreToken } from "@ibbun/content-graph";
+import type { Nlp } from "@ibbun/nlp";
 
 /** Sudachi tokens carry no offsets, so each one starts where the previous ended. They concatenate to the text. */
 export const withOffsets = (tokens: Awaited<ReturnType<Nlp["tokenize"]>>): CoreToken[] => {

@@ -13,19 +13,21 @@ export type PaletteKey = (typeof PALETTES)[number]["key"];
 export type ThemeMode = "light" | "dark" | "system";
 export type Theme = { palette: PaletteKey; mode: ThemeMode };
 
-export const MODES: { key: ThemeMode; label: string }[] = [
-  { key: "light", label: "Light" },
-  { key: "dark", label: "Dark" },
-  { key: "system", label: "Match my device" },
+/** `short` is what the segment shows; `label` is its accessible name. */
+export const MODES: { key: ThemeMode; label: string; short: string; glyph: string }[] = [
+  { key: "light", label: "Light", short: "Light", glyph: "明" },
+  { key: "dark", label: "Dark", short: "Dark", glyph: "暗" },
+  { key: "system", label: "Match my device", short: "Device", glyph: "機" },
 ];
 
-const KEY = "mojibun.theme";
+const KEY = "ibbun.theme";
 const DEFAULT: Theme = { palette: "shu", mode: "system" };
 
 /** Reads the saved theme; anything unreadable or unknown falls back to the default. */
 export const parseTheme = (raw: string | null): Theme => {
+  if (raw === null) return DEFAULT;
   try {
-    const t = JSON.parse(raw ?? "") as Partial<Theme>;
+    const t = JSON.parse(raw) as Partial<Theme>;
     return {
       palette: PALETTES.some((p) => p.key === t.palette) ? t.palette! : DEFAULT.palette,
       mode: MODES.some((m) => m.key === t.mode) ? t.mode! : DEFAULT.mode,
@@ -116,8 +118,18 @@ export const ThemePicker = () => {
       </div>
       <div role="radiogroup" aria-label="Mode" className="theme-modes">
         {MODES.map((m) => (
-          <button key={m.key} type="button" role="radio" aria-checked={theme.mode === m.key} className="theme-mode" onClick={() => setTheme({ mode: m.key })}>
-            {m.label}
+          <button
+            key={m.key}
+            type="button"
+            role="radio"
+            aria-checked={theme.mode === m.key}
+            aria-label={m.label}
+            title={m.label}
+            className="theme-mode"
+            onClick={() => setTheme({ mode: m.key })}
+          >
+            <span className="theme-mode-glyph" lang="ja" aria-hidden="true">{m.glyph}</span>
+            <span aria-hidden="true">{m.short}</span>
           </button>
         ))}
       </div>

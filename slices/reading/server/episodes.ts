@@ -1,6 +1,6 @@
-import type { ReadingPassage } from "@mojibun/content-graph";
-import type { BatchText } from "@mojibun/progress";
-import { JLPT_LEVELS } from "@mojibun/shared";
+import type { ReadingPassage } from "@ibbun/content-graph";
+import type { BatchText } from "@ibbun/progress";
+import { JLPT_LEVELS } from "@ibbun/shared";
 import type { EpisodeLists, TextLevel } from "../contract.ts";
 
 const LEVEL_ORDER: TextLevel[] = [...JLPT_LEVELS, "unlevelled"];

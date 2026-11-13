@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { ListeningSynthesise } from "@mojibun/content-graph/jobs";
-import type { Authoring, Row } from "@mojibun/content-graph/authoring";
-import { handler } from "@mojibun/jobs";
+import { ListeningSynthesise } from "@ibbun/content-graph/jobs";
+import type { Authoring, Row } from "@ibbun/content-graph/authoring";
+import { handler } from "@ibbun/jobs";
 import type { z } from "zod";
-import type { Tts } from "@mojibun/tts";
+import type { Tts } from "@ibbun/tts";
 import { audioKeyOf, type AudioStore } from "./audio-store.ts";
 import { kanaOf } from "./kana.ts";
 import { dialogueVoices, sentenceVoice, type Speaker, type Voice } from "./voices.ts";

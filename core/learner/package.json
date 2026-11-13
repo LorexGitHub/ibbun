@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/learner",
+  "name": "@ibbun/learner",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,10 +13,10 @@
     "grant-supervisor": "node --env-file-if-exists=../../.env src/learner-cli.ts grant-supervisor"
   },
   "dependencies": {
-    "@mojibun/auth": "workspace:*",
-    "@mojibun/db": "workspace:*",
-    "@mojibun/mail": "workspace:*",
-    "@mojibun/shared": "workspace:*",
+    "@ibbun/auth": "workspace:*",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/mail": "workspace:*",
+    "@ibbun/shared": "workspace:*",
     "@node-rs/argon2": "^2.0.2",
     "better-auth": "1.5.6",
     "drizzle-orm": "^0.44.0",

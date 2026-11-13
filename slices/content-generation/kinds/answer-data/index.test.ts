@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring } from "@mojibun/content-graph/testing";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { createFakeLlm, loadLlmConfig } from "@mojibun/llm";
+import { createFakeAuthoring } from "@ibbun/content-graph/testing";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { createFakeLlm, loadLlmConfig } from "@ibbun/llm";
 import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
 
@@ -61,7 +61,7 @@ describe("content.generate for answer data", () => {
       { kind: "known_wrong", written: "食べた", reading: "たべた", message: "That is the past tense; the sentence is in the present.", approval: "draft" },
     ]);
     const [provenance] = await t.auth.rows("provenance", { id: answers[0]!.provenanceId });
-    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: genRun!.id }, licence: "mojibun" });
+    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: genRun!.id }, licence: "ibbun" });
     expect(provenance!.inputs).toContain(t.exampleId);
     expect(provenance!.inputs).toContain(t.wordId);
     expect((await t.auth.rows("example", { id: t.exampleId }))[0]).toMatchObject({ hint: "to eat", approval: "draft" });

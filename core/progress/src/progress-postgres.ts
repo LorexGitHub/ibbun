@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { and, asc, eq, sql } from "drizzle-orm";
-import type { Db, DbOrTx } from "@mojibun/db";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import type { Db, DbOrTx } from "@ibbun/db";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import { reviews } from "../db/progress-tables.ts";
 import { createProgressOver, type Progress, type ReviewStore } from "./progress.ts";
 import { ReviewDetail, ReviewKind, type Review } from "./review.ts";

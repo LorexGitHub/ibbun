@@ -1,4 +1,4 @@
-import type { NavEntry } from "@mojibun/slice";
+import type { NavEntry } from "@ibbun/slice";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/vendor/ui/command";
@@ -94,7 +94,7 @@ export const CommandMenu = ({
       open={open}
       onOpenChange={change}
       title="Where to?"
-      description="Jump to any screen in mojibun, for every level or for one."
+      description="Jump to any screen in ibbun, for every level or for one."
       className="cmd zoom-in-100 zoom-out-100 sm:max-w-3xl"
     >
       {/* The doors come first in the document so the search field takes the focus; the levels show on the left */}

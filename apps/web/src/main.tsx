@@ -1,13 +1,13 @@
-import "@mojibun/ui/styles.css";
+import "@ibbun/ui/styles.css";
 import "./index.css";
 import "./shell.css";
-import { applyTheme } from "@mojibun/ui";
+import { applyTheme } from "@ibbun/ui";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { App } from "./App.tsx";
 import { buildShell, discoverSlices } from "./slices.ts";
 
-const modules = import.meta.glob<{ default: import("@mojibun/slice").Slice }>("../../../slices/*/register.ts", {
+const modules = import.meta.glob<{ default: import("@ibbun/slice").Slice }>("../../../slices/*/register.ts", {
   eager: true,
 });
 

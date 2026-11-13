@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { JlptLevel, StudyItemId } from "@mojibun/shared";
-import type { StudyItemSummary } from "@mojibun/content-graph";
-import type { AnswerData } from "@mojibun/content-graph/grade";
+import { JlptLevel, StudyItemId } from "@ibbun/shared";
+import type { StudyItemSummary } from "@ibbun/content-graph";
+import type { AnswerData } from "@ibbun/content-graph/grade";
 
 /** The Study Item types Cram practises through Examples. Listening Clips are practised in the `listening` slice. */
 export const CramType = z.enum(["kanji", "word", "grammar_point"]);

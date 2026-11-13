@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeJobs, handler } from "@mojibun/jobs";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeJobs, handler } from "@ibbun/jobs";
+import { createFakeProgress } from "@ibbun/progress/testing";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import { DEFAULT_SAMPLING, type SamplingConfig } from "./config.ts";
 import { createSampling, type Approval } from "./sampler.ts";
 import { createMemoryStore } from "./store.ts";
@@ -18,7 +18,7 @@ const setup = (config: Partial<SamplingConfig> = {}, random = () => 0.99) => {
   const sampling = createSampling({ store: createMemoryStore(), authoring, progress, jobs, config: { ...DEFAULT_SAMPLING, calibration: 0, ...config }, random });
   const provenance = (generationRunId: ReturnType<typeof randomUUID> = randomUUID()) => {
     const id = randomUUID();
-    graph.provenance.push({ id, source: { kind: "generated", model: "sonnet", promptTemplateVersion: "p1", generationRunId }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+    graph.provenance.push({ id, source: { kind: "generated", model: "sonnet", promptTemplateVersion: "p1", generationRunId }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
     return { id, generationRunId };
   };
 

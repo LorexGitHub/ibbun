@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import type { ContentGraph } from "@mojibun/content-graph";
-import type { DbOrTx } from "@mojibun/db";
-import type { Progress } from "@mojibun/progress";
-import type { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
+import type { ContentGraph } from "@ibbun/content-graph";
+import type { DbOrTx } from "@ibbun/db";
+import type { Progress } from "@ibbun/progress";
+import type { JlptLevel, LearnerId, StudyItemId } from "@ibbun/shared";
 import { DEFAULT_CONFIG, type LearningPathConfig } from "./config.ts";
 import { STRATEGIES, type Plan } from "./strategy.ts";
 import { DEFAULT_ACTIVE_TRACKS, normaliseTracks, type Track } from "./track.ts";

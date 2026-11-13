@@ -24,7 +24,7 @@ Where a logged-in Learner reads about Study Items without studying them. `/brows
 
 Preconditions:
 
-- Baseline, plus a verified Learner logged in (account slice) and the N5 fixture graph loaded: `DATABASE_URL=<verify db url> pnpm --filter @mojibun/content-graph seed:fixture`.
+- Baseline, plus a verified Learner logged in (account slice) and the N5 fixture graph loaded: `DATABASE_URL=<verify db url> pnpm --filter @ibbun/content-graph seed:fixture`.
 - For the redirect journey, a Retired Word with a superseded-by link: in `psql`, mark one fixture Word's `content_graph.study_item` row `retired = true` and insert a `content_graph.word_superseded_by` row from it to another approved Word. Say so in the evidence.
 
 - **Wall.** Open `/browse`. `verify.sh shot /browse browse/wall`. The heading reads "Library", the tabs N5 and Kanji are selected, and the list "N5 Kanji" holds 10 tiles under "10 Kanji at N5. None started yet." for a new Learner. **Words** and **Grammar** show 10 tiles each. Click **N1**: the page reads "No Kanji at N1 yet. Pick another level or Track above."

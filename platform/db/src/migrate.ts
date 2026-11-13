@@ -14,10 +14,16 @@ export const migrate = async (pool: pg.Pool, migrations: Migration[]): Promise<s
   try {
     await client.query("SELECT pg_advisory_lock($1)", [LOCK_KEY]);
     await client.query(
-      "CREATE TABLE IF NOT EXISTS public.mojibun_migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())",
+      "CREATE TABLE IF NOT EXISTS public.ibbun_migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())",
     );
+    // A database made before the project was called ibbun keeps its record under the old name
+    if ((await client.query("SELECT to_regclass('public.mojibun_migrations') AS old")).rows[0].old) {
+      await client.query(
+        "INSERT INTO public.ibbun_migrations (id, applied_at) SELECT id, applied_at FROM public.mojibun_migrations ON CONFLICT (id) DO NOTHING",
+      );
+    }
     const done = new Set(
-      (await client.query<{ id: string }>("SELECT id FROM public.mojibun_migrations")).rows.map((r) => r.id),
+      (await client.query<{ id: string }>("SELECT id FROM public.ibbun_migrations")).rows.map((r) => r.id),
     );
     for (const m of migrations.filter((m) => !done.has(m.id))) {
       await client.query("BEGIN");
@@ -25,7 +31,7 @@ export const migrate = async (pool: pg.Pool, migrations: Migration[]): Promise<s
         await client.query(`CREATE SCHEMA IF NOT EXISTS "${m.schema}"`);
         await client.query(`SET LOCAL search_path TO "${m.schema}", public`);
         await client.query(m.sql);
-        await client.query("INSERT INTO public.mojibun_migrations (id) VALUES ($1)", [m.id]);
+        await client.query("INSERT INTO public.ibbun_migrations (id) VALUES ($1)", [m.id]);
         await client.query("COMMIT");
       } catch (error) {
         await client.query("ROLLBACK");

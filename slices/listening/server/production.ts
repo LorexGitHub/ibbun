@@ -1,10 +1,10 @@
-import { createAuthGuards } from "@mojibun/auth";
-import { createContentGraph } from "@mojibun/content-graph";
-import { createDb } from "@mojibun/db";
-import { createLearnerAuth, learnerConfigFromEnv } from "@mojibun/learner";
-import type { Mail } from "@mojibun/mail";
-import { createPgBossJobs, type Jobs } from "@mojibun/jobs";
-import { createProgress, createTexts } from "@mojibun/progress";
+import { createAuthGuards } from "@ibbun/auth";
+import { createContentGraph } from "@ibbun/content-graph";
+import { createDb } from "@ibbun/db";
+import { createLearnerAuth, learnerConfigFromEnv } from "@ibbun/learner";
+import type { Mail } from "@ibbun/mail";
+import { createPgBossJobs, type Jobs } from "@ibbun/jobs";
+import { createProgress, createTexts } from "@ibbun/progress";
 import type { ListeningDeps } from "./listening-api.ts";
 
 /** Resolving a session never sends mail. */

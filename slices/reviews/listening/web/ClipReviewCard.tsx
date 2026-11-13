@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { AudioPlayer, Button, Card, KanaInput, Pill } from "@mojibun/ui";
+import { AudioPlayer, Button, Card, KanaInput, Pill } from "@ibbun/ui";
 import type { ClipAnswerResponse, ClipReview } from "../contract.ts";
 import type { AnswerClip } from "./clip-reviews-client.ts";
 import { ClipReviewPlayer } from "./ClipReviewPlayer.tsx";

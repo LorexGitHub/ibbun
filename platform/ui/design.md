@@ -1,4 +1,4 @@
-# Design: mojibun
+# Design: ibbun
 
 The locked system. Every screen shares it; change it on purpose. The reasoning is in [ADR 0014](../../docs/adr/0014-ma-visual-design.md), which supersedes the Hum look of ADR 0011.
 
@@ -20,7 +20,7 @@ The locked system. Every screen shares it; change it on purpose. The reasoning i
 
 [`src/tokens.css`](src/tokens.css) derives every `--color-*` token from those six (paper steps, card, ink steps, rule, accent and its deep and ink). **Screens use the `--color-*` tokens, never a fixed colour,** so they follow every look in both modes. Growth (`--color-mint*`) and a wrong answer (`--color-error`) keep their hue in every look, because they carry meaning.
 
-The theme module ([`src/theme.tsx`](src/theme.tsx)) owns the choice: `applyTheme()` runs before the first render, `ThemePicker` is the Settings control, and "Match my device" follows `prefers-color-scheme` live. The choice is saved per device in `localStorage` under `mojibun.theme`.
+The theme module ([`src/theme.tsx`](src/theme.tsx)) owns the choice: `applyTheme()` runs before the first render, `ThemePicker` is the Settings control, and "Match my device" follows `prefers-color-scheme` live. The choice is saved per device in `localStorage` under `ibbun.theme`.
 
 ## Type
 - Shippori Mincho B1 (`--font-display`, `--font-jp`) for headings, big numbers and anything Japanese (`lang="ja"` or `.jp`).
@@ -33,11 +33,11 @@ The theme module ([`src/theme.tsx`](src/theme.tsx)) owns the choice: `applyTheme
 - Cards are quiet: a lifted surface with a hairline, `--radius-card` 20px.
 
 ## Frame and wayfinding
-- `Layout`: the screen's kanji large and faint at the bottom right (`kanji`, ink at 6%, hidden from assistive technology), a quiet top line with the seal alone as the way home (its accessible name is "mojibun"; there is no wordmark), what the app puts beside it (`nav`: the five levels, or a session's name), an aside (the Where to? field, account), the screen, the EDRDG footer, and the dock.
+- `Layout`: the screen's kanji large and faint at the bottom right (`kanji`, ink at 6%, hidden from assistive technology), a quiet top line with the seal alone as the way home (its accessible name is "ibbun"; there is no wordmark), what the app puts beside it (`nav`: the five levels, or a session's name), an aside (the Where to? field, account), the screen, the EDRDG footer, and the dock.
 - `SessionCountSlot` and `SessionCount`: a session screen renders `<SessionCount at={2} of={5} />` anywhere and the frame's header shows "2 / 5" where the slot is. Without a slot it shows in place.
 - The dock is for logged-in Learners only. It holds Today and every study, practice and library place as a glyph (今 復 新 測 詰 聞 読 辞), the name on hover and focus, a dot under the current one. A slice joins it through its nav entry's `place` and `glyph`; `apps/web/src/places.ts` is the map.
 - A session screen hides the dock and shows its glyph and name with "Done for now".
-- Any screen can open the ⌘K menu with `openGoTo()` from `@mojibun/ui`.
+- Any screen can open the ⌘K menu with `openGoTo()` from `@ibbun/ui`.
 
 ## Logo
 文 in four strokes on an accent seal (`Mark`), rounded like a name stamp. It takes the current look. [`assets/icon.svg`](../../assets/icon.svg) and the favicon are the Shu seal.

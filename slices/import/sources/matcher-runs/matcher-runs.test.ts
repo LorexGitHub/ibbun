@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import { createFakeAuthoring, emptyGraph, type Graph } from "@mojibun/content-graph/testing";
-import { createFakeJobs, type FakeJobs } from "@mojibun/jobs";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import { createFakeAuthoring, emptyGraph, type Graph } from "@ibbun/content-graph/testing";
+import { createFakeJobs, type FakeJobs } from "@ibbun/jobs";
 import { EXAMPLES_PER_GRAMMAR_POINT, matcherRunsJob, MatcherRuns, runMatchers } from "./index.ts";
 
 const RULE = { pattern: [{ lemma: "食べる" }] };
@@ -12,7 +12,7 @@ type Lifecycle = { approval: "draft" | "approved" | "rejected"; retired: boolean
 const build = () => {
   const graph = emptyGraph();
   const provenanceId = randomUUID();
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const life: Lifecycle = { approval: "approved", retired: false, provenanceId };
   const point = (rule: unknown = RULE, lifecycle: Partial<Lifecycle> = {}) => {
     const id = randomUUID();

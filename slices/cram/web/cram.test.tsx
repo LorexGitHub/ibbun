@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { CramItem, Question } from "../contract.ts";
 import type { CramClient } from "./client.ts";
 import { askedFor, CramScreen } from "./CramScreen.tsx";
