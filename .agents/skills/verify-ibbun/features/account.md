@@ -18,7 +18,7 @@ A visitor signs up with an email and password, verifies the address through a ma
 ## How to get to it (user POV)
 
 - Open `http://localhost:5173/signup`, `/login`, `/forgot-password` or `/settings`. The account menu (the initial at the top right) has a Settings link.
-- Verification and reset links arrive in Mailpit at `http://localhost:8025`.
+- Verification and reset links arrive in Mailpit at `http://localhost:8025`. Leave `MAIL_TRANSPORT` unset; `MAIL_TRANSPORT=ses` sends through SES instead and nothing reaches Mailpit.
 - Without a session, `/settings` sends the visitor to `/login`.
 
 ## Driving it with Playwright
