@@ -353,6 +353,16 @@ describe("practising", () => {
     expect(await screen.findByText(/1 of 1 right/)).toBeTruthy();
     expect(screen.getByText("No Example to practise yet for 山.")).toBeTruthy();
   });
+
+  it("says there was nothing to practise, not 0 of 0 right, when no item had an Example", async () => {
+    const client = fakeClient({ question: async () => ({ ok: false, status: 404, message: "nothing" }) });
+    render(<CramScreen client={client} />);
+    await choose("山", "川");
+    expect(await screen.findByRole("heading", { level: 1, name: "Nothing to practise" })).toBeTruthy();
+    expect(screen.getByText("No Example to practise yet for 山, 川.")).toBeTruthy();
+    expect(screen.queryByText(/0 of 0/)).toBeNull();
+    expect(screen.getByRole("button", { name: /Choose others/ })).toBeTruthy();
+  });
 });
 
 describe("the HTTP client", () => {
