@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, Pill } from "@ibbun/ui";
+import { Button, Card, Pill, State } from "@ibbun/ui";
 
 export type KindReport = { kind: string; paused: boolean; calibrationLeft: number; sampled: number; errorRate: number };
 export type SampleItem = {
@@ -131,7 +131,7 @@ export const SpotChecksScreen = ({
       ))}
     </ul>
     <h2>Waiting for you</h2>
-    {!error && samples.length === 0 && <p>No samples are waiting.</p>}
+    {!error && samples.length === 0 && <State inline heading={3} title="No samples are waiting." note="Reviewer approvals drawn for a spot-check land here." />}
     <ul>
       {samples.map((sample) => (
         <SampleCard key={sample.id} sample={sample} onVerdict={onVerdict} />

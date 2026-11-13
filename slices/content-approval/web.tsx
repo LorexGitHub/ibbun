@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, Pill } from "@ibbun/ui";
+import { Button, Card, Pill, State } from "@ibbun/ui";
 import { SpotChecksRoute } from "./sampling/spot-checks.tsx";
 
 export type Lane = "supervisor" | "reviewer";
@@ -61,7 +61,7 @@ export const QueueScreen = ({
       </label>
     </div>
     {error && <p role="alert">{error}</p>}
-    {!error && items.length === 0 && <p>Nothing is waiting.</p>}
+    {!error && items.length === 0 && <State inline heading={2} title="Nothing is waiting." note="Escalated reviews and failed generation land here." />}
     <ul>
       {items.map((item) => (
         <li key={item.id}>
