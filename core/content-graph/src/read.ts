@@ -179,7 +179,7 @@ const context = (graph: Graph, links: Map<string, string>): Ctx => {
   const overrideIds = new Map<string, string[]>();
   for (const o of graph.override.filter((o) => visible(o) && o.state === "active").sort(byId)) {
     overrides.set(o.recordId, { ...overrides.get(o.recordId), [o.field]: o.value });
-    overrideIds.set(o.recordId, [...(overrideIds.get(o.recordId) ?? []), o.id]);
+    overrideIds.set(o.recordId, [...(overrideIds.get(o.recordId) || []), o.id]);
   }
   const items = new Map(graph.studyItem.filter(visible).map((s) => [s.id, s]));
   return { graph, overrides, overrideIds, items, licensing: licensing(graph, links), indexes: new Map() };
@@ -199,7 +199,7 @@ const where = <R extends object, K extends keyof R>(ctx: Ctx, rows: R[], key: K,
 
 /** The Attribution of records as shown: each record plus the active overrides applied to it. */
 const attributionOf = (ctx: Ctx, recordIds: string[]): Attribution =>
-  ctx.licensing.attributionOf(recordIds.flatMap((id) => [id, ...(ctx.overrideIds.get(id) ?? [])]));
+  ctx.licensing.attributionOf(recordIds.flatMap((id) => [id, ...(ctx.overrideIds.get(id) || [])]));
 
 const current = <T extends object>(ctx: Ctx, row: T, recordId: string): T => ({ ...row, ...ctx.overrides.get(recordId) });
 
@@ -434,7 +434,7 @@ const pathItemOf = (ctx: Ctx, row: Row<"studyItem">): PathItem => ({
 /** The visible Word a Retired Word is superseded by; the first link by ID if there are several. */
 const successorOf = (ctx: Ctx, id: string): StudyItemId | null => {
   const link = ctx.graph.wordSupersededBy.filter((l) => l.retiredWordId === id && visible(l) && ctx.items.has(l.wordId)).sort(byId)[0];
-  return (link?.wordId as StudyItemId | undefined) ?? null;
+  return (link?.wordId as StudyItemId | undefined) || null;
 };
 
 /** The visible Reading Passage with its visible Sentences in order, each with the Words linked to it. */

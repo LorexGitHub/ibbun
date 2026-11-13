@@ -28,7 +28,7 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
       .where(and(eq(t.wordSupersededBy.retiredWordId, id), visible(t.wordSupersededBy), visible(t.studyItem)))
       .orderBy(t.wordSupersededBy.id)
       .limit(1);
-    return (link?.id as StudyItemId | undefined) ?? null;
+    return (link?.id as StudyItemId | undefined) || null;
   },
 
   async levelList(level, type) {
