@@ -43,5 +43,5 @@ Preconditions:
 - Levels shown on a page are the current JLPT Level from core `content-graph/levels` (Editorial > List > Derived, else Unlevelled). To check a page's level against the store: `psql "$DATABASE_URL" -c "select level from content_graph.computed_level where record_id = '<study item id>'"`. Sentence, Reading Passage and Listening Clip levels sit in the same table, keyed by their own id.
 - Listening Clips are not browsable: `/browse/items/<clip id>` is a 404.
 - The Learn slice reads `?now=`; until it is merged **Learn now** lands on `/learn` without starting the item.
-- `/api/browse/search` returns at most 50 results, exact matches first. The wall's own search is not capped: it only dims.
+- `/api/browse/search` returns at most 50 results, exact matches first. Within a tier, items on a JLPT Level come first (easiest first), then the shorter label: `q=water` starts with 水. A romaji query is also searched as hiragana: `q=taberu` finds 食べる. The wall's own search is not capped: it only dims.
 - A level list holds every Study Item of the level. With the real import that is thousands of Words at N1; the wall draws them all as tiles.

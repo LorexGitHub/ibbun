@@ -95,6 +95,26 @@ describe("ThemePicker", () => {
     expect(screen.getByRole("radio", { name: /^Shu/ }).getAttribute("aria-checked")).toBe("false");
   });
 
+  it("draws every swatch in the mode it would show, and checks only the chosen mode", () => {
+    const deviceIsDark = (dark: boolean) => vi.stubGlobal("matchMedia", () => ({ matches: dark, addEventListener: () => {}, removeEventListener: () => {} }));
+    const { container } = render(<ThemePicker />);
+    const modes = () => [...new Set([...container.querySelectorAll<HTMLElement>(".swatch")].map((s) => s.dataset.mode))];
+    const pick = (name: string) => fireEvent.click(screen.getByRole("radio", { name }));
+    deviceIsDark(true);
+    pick("Light");
+    expect(modes()).toEqual(["light"]);
+    expect(screen.getByRole("radio", { name: "Light" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: "Dark" }).getAttribute("aria-checked")).toBe("false");
+    pick("Dark");
+    expect(modes()).toEqual(["dark"]);
+    pick("Match my device");
+    expect(modes()).toEqual(["dark"]);
+    deviceIsDark(false);
+    pick("Dark");
+    pick("Match my device");
+    expect(modes()).toEqual(["light"]);
+  });
+
   it("follows the device's light or dark setting when asked to", () => {
     render(<ThemePicker />);
     fireEvent.click(screen.getByRole("radio", { name: "Match my device" }));
