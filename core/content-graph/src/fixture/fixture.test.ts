@@ -15,6 +15,10 @@ describe("the N5 fixture graph", () => {
     expect(new Set(graph.levelCandidate.map((l) => l.level))).toEqual(new Set(["N5"]));
   });
 
+  it("labels its Words by their Kanji form, since none is usually written in kana", async () => {
+    expect((await createFakeContentGraph(graph).search("日本")).map((s) => s.label)).toContain("日本");
+  });
+
   it("is ibbun-owned content with fixture Provenance", () => {
     expect(graph.provenance).toEqual([expect.objectContaining({ source: { kind: "fixture" }, licence: "ibbun" })]);
   });
