@@ -121,8 +121,8 @@ describe("ses mail", () => {
 });
 
 describe("mail config", () => {
-  it("defaults to Mailpit over SMTP", () => {
-    expect(mailConfigFromEnv({})).toEqual({ transport: "smtp", from: "ibbun <noreply@ibbun.test>", url: "smtp://localhost:1025" });
+  it.each([{}, { MAIL_TRANSPORT: "", MAIL_FROM: "", SMTP_URL: "" }])("defaults to Mailpit over SMTP when unset or empty", (env) => {
+    expect(mailConfigFromEnv(env)).toEqual({ transport: "smtp", from: "ibbun <noreply@ibbun.test>", url: "smtp://localhost:1025" });
   });
 
   it("rejects an unknown transport instead of silently using SMTP", () => {
