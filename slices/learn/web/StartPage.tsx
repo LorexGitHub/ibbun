@@ -14,11 +14,11 @@ export const StartPage = ({ state, batch, onTracks, onStart }: Props) => (
       <>
         <ul aria-label="Next up" className="face-list">
           {batch.items.map(faceOf).map((face) => (
-            <li key={face.id} className="card face">
+            <li key={face.id} className="face">
               <strong className="jp" lang="ja">
                 {face.title}
               </strong>
-              <span className="muted small">{face.type}</span>
+              <span className="caps">{face.type}</span>
             </li>
           ))}
         </ul>
@@ -28,7 +28,7 @@ export const StartPage = ({ state, batch, onTracks, onStart }: Props) => (
       </>
     ) : (
       <>
-        <p>Nothing new is left at this level. Choose another level or type above, or keep what you learned fresh.</p>
+        <p className="learn-empty">Nothing new is left at this level. Choose another level or type above, or keep what you learned fresh.</p>
         <a className={buttonClass()} href="/reviews">
           Start Reviews
         </a>

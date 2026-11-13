@@ -21,18 +21,18 @@ const InSentence = ({ prompt, turned }: { prompt: QuizPrompt; turned: Said | nul
 const Facts = ({ lesson }: { lesson: Lesson }) => (
   <>
     {lesson.reading && (
-      <p className="jp" lang="ja">
+      <p className="jp lesson-reading" lang="ja">
         {lesson.reading}
       </p>
     )}
-    <ul>
+    <ul className="lesson-meanings">
       {lesson.meanings.map((m) => (
         <li key={m} lang="en">
           {m}
         </li>
       ))}
     </ul>
-    <dl>
+    <dl className="lesson-details">
       {lesson.details.map((d) => (
         <div key={d.label}>
           <dt>{d.label}</dt>
@@ -41,7 +41,7 @@ const Facts = ({ lesson }: { lesson: Lesson }) => (
       ))}
     </dl>
     {lesson.japaneseExplanation && (
-      <p lang="ja" className="jp">
+      <p lang="ja" className="jp lesson-explanation">
         {lesson.japaneseExplanation}
       </p>
     )}
@@ -49,19 +49,23 @@ const Facts = ({ lesson }: { lesson: Lesson }) => (
 );
 
 const Example = ({ lesson }: { lesson: Lesson }) => (
-  <>
+  <div className="lesson-example">
     <p className="jp" lang="ja">
       {lesson.example.japanese}
     </p>
     {lesson.example.translationEn && <p lang="en">{lesson.example.translationEn}</p>}
-  </>
+  </div>
 );
 
 /** The taught side. A card that led with the Example has shown it already, so it adds only the translation. */
 const Back = ({ lesson, prompt, inSentence }: { lesson: Lesson; prompt: QuizPrompt; inSentence: boolean }) =>
   inSentence ? (
     <>
-      {prompt.translationEn && <p lang="en">{prompt.translationEn}</p>}
+      {prompt.translationEn && (
+        <p lang="en" className="lesson-translation">
+          {prompt.translationEn}
+        </p>
+      )}
       <Facts lesson={lesson} />
     </>
   ) : (
@@ -94,7 +98,7 @@ export const LessonCard = ({ lesson, prompt, inSentence, last, onNext, onKnown }
       </h2>
       {said ? (
         <>
-          <p className="muted small">You said: {said === "known" ? "I know this" : "not yet"}</p>
+          <p className="caps">You said: {said === "known" ? "I know this" : "not yet"}</p>
           <Back lesson={lesson} prompt={prompt} inSentence={inSentence} />
           <div className="lesson-actions">
             <Button onClick={onKnown}>Mark as Known</Button>

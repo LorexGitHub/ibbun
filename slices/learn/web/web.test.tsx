@@ -531,6 +531,20 @@ describe("the quiz", () => {
     expect(await learned(2)).toBeTruthy();
   });
 
+  it("names every answer field in sight, and marks each facet of a checked answer right or missed", async () => {
+    await toQuiz();
+    const named = () => [...document.querySelectorAll(".field > .caps")].map((label) => label.textContent);
+    expect(named()).toEqual(["Answer"]);
+    answerWater();
+    press("Next");
+    expect(named()).toEqual(["Reading in this sentence", "Meaning of the kanji"]);
+    type("Reading in this sentence", "みず");
+    type("Meaning of the kanji", "wine");
+    press("Check");
+    const lines = [...(await screen.findByRole("status")).querySelectorAll(".answer")];
+    expect(lines.map((line) => line.className)).toEqual(["answer answer--right", "answer answer--miss"]);
+  });
+
   it("asks a Kanji again when only one facet is wrong", async () => {
     await toQuiz();
     answerWater();

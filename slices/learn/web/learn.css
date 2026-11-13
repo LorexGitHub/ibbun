@@ -1,4 +1,4 @@
-/* The Learn screens: the start page, a lesson card with two sides, and the Tally. */
+/* The Learn screens: the start page, a lesson card with two sides, the quiz, and the Tally. */
 
 .learn-start,
 .learn-session,
@@ -7,15 +7,25 @@
   gap: var(--space-lg);
   justify-items: start;
 }
-
-.source {
-  display: grid;
-  gap: var(--space-xs);
+.learn-start {
+  gap: var(--space-xl);
 }
-.source fieldset {
+.learn-empty {
+  max-width: 44ch;
+  color: var(--color-ink-2);
+  font-size: var(--text-lead);
+}
+
+/* The source: one level out of six as a single ruled strip, the types as switches beside it */
+.source {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
+}
+.source fieldset {
+  display: inline-flex;
+  flex-wrap: wrap;
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
@@ -24,8 +34,52 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  color: var(--color-muted);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--dur-micro), background-color var(--dur-micro);
+}
+.source-choice:hover {
+  color: var(--color-ink);
+}
+.source-choice:has(:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -3px;
+}
+.source-levels {
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  overflow: hidden;
+}
+.source-levels .source-choice:has(:checked) {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.source-types {
+  gap: var(--space-xs);
+}
+.source-types .source-choice {
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+}
+.source-types .source-choice::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--color-muted);
+}
+.source-types .source-choice:has(:checked) {
+  color: var(--color-ink);
+}
+.source-types .source-choice:has(:checked)::before {
+  background: var(--color-accent);
+  box-shadow: none;
 }
 
+/* Next up: the batch as one line of print between two rules, not a row of boxes */
 .face-list,
 .tally-list {
   margin: 0;
@@ -35,62 +89,118 @@
 .face-list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-md);
+  justify-self: stretch;
+  gap: var(--space-lg) var(--space-xl);
+  padding-block: var(--space-lg);
+  border-block: 1px solid var(--color-rule);
 }
 .face {
   display: grid;
-  gap: var(--space-xs);
-  justify-items: center;
-  min-width: 6rem;
-  padding: var(--space-sm) var(--space-md);
+  gap: var(--space-2xs);
 }
 .face strong {
   font-family: var(--font-jp);
-  font-size: var(--text-title);
+  font-size: var(--text-section);
   font-weight: 400;
+  line-height: 1.2;
+}
+.face .caps {
+  font-size: var(--text-xs);
 }
 
 .session-count:empty {
   display: none;
 }
 
-.lesson-card {
+/* A lesson: the item large and alone, then what there is to know about it under a rule */
+.lesson-card,
+.question {
   display: grid;
   gap: var(--space-md);
-  justify-self: stretch;
+  justify-self: center;
+  width: min(100%, 44rem);
   padding: var(--space-xl);
 }
 .lesson-card h2 {
   margin: 0;
+  padding-block: var(--space-lg);
   font-size: var(--text-hero);
   font-weight: 400;
   line-height: 1.2;
 }
 .lesson-card h2.in-sentence {
-  font-size: var(--text-display);
-  line-height: 1.8;
+  padding-block: var(--space-xs);
+  font-size: var(--text-section);
+  line-height: 2;
 }
 .lesson-card ul,
 .lesson-card dl,
 .lesson-card p {
   margin: 0;
 }
-.lesson-card ul {
-  padding-left: var(--space-lg);
-}
-.lesson-card dl div {
-  display: flex;
-  gap: var(--space-md);
-}
-.lesson-card dt {
-  color: var(--color-muted);
-}
-.lesson-card dd {
-  margin: 0;
-}
-.lesson-card mark {
+.lesson-card mark,
+.question mark {
+  padding: 0;
   background: none;
   color: var(--color-accent);
+}
+.lesson-reading {
+  font-size: var(--text-title);
+  color: var(--color-ink-2);
+}
+.lesson-translation {
+  font-size: var(--text-lead);
+  color: var(--color-ink-2);
+}
+.lesson-meanings {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  line-height: 1.3;
+}
+.lesson-meanings li:not(:last-child)::after {
+  content: ",";
+  margin-right: 0.3em;
+}
+.lesson-details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-xs) var(--space-lg);
+  padding-block: var(--space-md);
+  border-block: 1px solid var(--color-rule);
+}
+.lesson-details:empty {
+  display: none;
+}
+.lesson-details div {
+  display: contents;
+}
+.lesson-details dt {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: calc(var(--text-md) * 1.55);
+}
+.lesson-details dd {
+  margin: 0;
+  font-family: var(--font-jp);
+}
+.lesson-explanation,
+.lesson-example .jp {
+  font-size: var(--text-lead);
+  line-height: 1.7;
+}
+.lesson-explanation {
+  color: var(--color-ink-2);
+}
+.lesson-example {
+  display: grid;
+  gap: var(--space-2xs);
+}
+.lesson-example [lang="en"] {
+  color: var(--color-muted);
 }
 .lesson-actions,
 .tally-doors {
@@ -98,6 +208,86 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-md);
+}
+.lesson-card .lesson-actions,
+.question .lesson-actions {
+  justify-content: flex-end;
+  padding-top: var(--space-md);
+}
+
+/* The quiz: the count beside its name, the Sentence at reading size, every field under its own name */
+.quiz {
+  display: grid;
+  gap: var(--space-lg);
+  justify-self: stretch;
+}
+.quiz-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  justify-self: center;
+  width: min(100%, 44rem);
+}
+.quiz-head h2 {
+  font-size: var(--text-title);
+}
+.quiz-head p {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.question form,
+.feedback {
+  display: grid;
+  gap: var(--space-md);
+}
+.question p {
+  margin: 0;
+}
+.question .sentence {
+  padding-block: var(--space-md);
+  font-size: var(--text-section);
+  line-height: 1.6;
+}
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-md);
+}
+.field {
+  display: grid;
+  align-content: start;
+  gap: var(--space-xs);
+}
+.field .caps {
+  font-size: var(--text-xs);
+}
+.field [role="alert"] {
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+.feedback {
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-rule);
+}
+.answer--right {
+  color: var(--color-success);
+}
+.answer--miss {
+  color: var(--color-error);
+}
+
+@media (max-width: 640px) {
+  .lesson-card,
+  .question {
+    padding: var(--space-lg);
+  }
+  .source-choice {
+    padding: 0 12px;
+  }
+  .lesson-card .lesson-actions .btn,
+  .question .lesson-actions .btn {
+    flex: 1;
+  }
 }
 
 .tally h1 {

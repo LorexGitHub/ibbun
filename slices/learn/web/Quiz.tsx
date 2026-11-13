@@ -12,9 +12,11 @@ export const Quiz = ({ prompts, preferences, onPassed }: { prompts: QuizPrompt[]
   const prompt = quiz.queue[0];
   if (!prompt) return null;
   return (
-    <section>
-      <h2>Quiz</h2>
-      <p>{quiz.queue.length} left</p>
+    <section className="quiz">
+      <header className="quiz-head">
+        <h2>Quiz</h2>
+        <p className="muted">{quiz.queue.length} left</p>
+      </header>
       <QuestionCard
         key={asked}
         prompt={prompt}
