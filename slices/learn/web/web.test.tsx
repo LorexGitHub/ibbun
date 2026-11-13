@@ -305,14 +305,19 @@ describe("the Learn screen", () => {
   });
 
   it("shows a failure instead of the screen", async () => {
-    render(<LearnScreen api={apiOf({ state: vi.fn(async () => Promise.reject(new Error("no session"))) })} />);
-    expect((await screen.findByRole("alert")).textContent).toBe("no session");
+    const state = vi.fn(async (): Promise<never> => Promise.reject(new Error("no session")));
+    render(<LearnScreen api={apiOf({ state })} />);
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByRole("heading", { level: 1 }).textContent).toBe("Learn did not load");
+    expect(within(alert).getByText("no session")).toBeTruthy();
+    fireEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(state).toHaveBeenCalledTimes(2));
   });
 
   it("shows a failure to save the Tracks", async () => {
     await open(apiOf({ saveTracks: vi.fn(async () => Promise.reject(new Error("not saved"))) }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Kanji" }));
-    expect((await screen.findByRole("alert")).textContent).toBe("not saved");
+    expect(within(await screen.findByRole("alert")).getByText("not saved")).toBeTruthy();
   });
 });
 
@@ -497,13 +502,17 @@ describe("Learn now", () => {
   });
 
   it("shows a failure to load the item", async () => {
-    render(<LearnScreen api={apiOf({ now: vi.fn(async () => Promise.reject(new Error("no such Study Item"))) })} nowId={idOf(2)} />);
-    expect((await screen.findByRole("alert")).textContent).toBe("no such Study Item");
+    const now = vi.fn(async (): Promise<never> => Promise.reject(new Error("no such Study Item")));
+    render(<LearnScreen api={apiOf({ now })} nowId={idOf(2)} />);
+    expect(within(await screen.findByRole("alert")).getByText("no such Study Item")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(now).toHaveBeenCalledTimes(2));
   });
 
   it("says so when the item has nothing to teach", async () => {
     render(<LearnScreen api={apiOf({ now: vi.fn(async () => batchOf([])) })} nowId={idOf(2)} />);
-    expect(await screen.findByText("This item cannot be taught yet.")).toBeTruthy();
+    expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("This item cannot be taught yet");
+    expect(screen.getByRole("link", { name: "Learn something else" }).getAttribute("href")).toBe("/learn");
   });
 });
 
