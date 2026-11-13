@@ -16,18 +16,18 @@ export const SourceChooser = ({ tracks, onChange }: { tracks: Track[]; onChange:
   };
   return (
     <div className="source">
-      <fieldset role="radiogroup" aria-label="Level">
+      <fieldset role="radiogroup" aria-label="Level" className="source-levels">
         {SOURCE_LEVELS.map((level) => (
           <label key={level} className="source-choice">
-            <input type="radio" name="learn-level" checked={source.level === level} onChange={() => choose(atLevel(source, level))} />
+            <input type="radio" className="visually-hidden" name="learn-level" checked={source.level === level} onChange={() => choose(atLevel(source, level))} />
             {labelOf(level)}
           </label>
         ))}
       </fieldset>
-      <fieldset aria-label="Types">
+      <fieldset aria-label="Types" className="source-types">
         {SOURCE_TYPES.map(({ type, label }) => (
           <label key={type} className="source-choice">
-            <input type="checkbox" checked={source.types.includes(type)} onChange={() => choose(toggled(source, type))} />
+            <input type="checkbox" className="visually-hidden" checked={source.types.includes(type)} onChange={() => choose(toggled(source, type))} />
             {label}
           </label>
         ))}

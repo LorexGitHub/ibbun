@@ -9,12 +9,13 @@ type Notes = Partial<Record<Facet, string>>;
 type Marked = { facet: PromptFacet; input: string; passed: boolean; message?: string };
 
 const LABEL: Record<Facet, string> = { cloze: "Answer", reading: "Reading in this sentence", meaning: "Meaning of the kanji" };
+const perFacet = <T,>(empty: () => T): Record<Facet, T> => ({ cloze: empty(), reading: empty(), meaning: empty() });
 
 const Sentence = ({ prompt, answered }: { prompt: QuizPrompt; answered: boolean }) => {
   const { before, target, after } = prompt.sentence;
   const blank = answered ? <strong>{target}</strong> : <span aria-label="blank">＿＿＿</span>;
   return (
-    <p className="jp" lang="ja">
+    <p className="jp sentence" lang="ja">
       {before}
       {prompt.mode === "highlight" ? <mark>{target}</mark> : blank}
       {after}
@@ -32,19 +33,23 @@ const FacetInput = (props: { facet: PromptFacet; value: string; convertRomaji: b
 const Feedback = ({ prompt, marked }: { prompt: QuizPrompt; marked: Marked[] }) => {
   const passed = marked.every((m) => m.passed);
   return (
-    <div role="status">
+    <div role="status" className="feedback">
       <p>
         <Pill ink={passed}>{passed ? "Correct" : "Not quite. You will be asked again."}</Pill>
       </p>
       {marked.map((m) => (
-        <p key={m.facet.facet}>
+        <p key={m.facet.facet} className={m.passed ? "answer answer--right" : "answer answer--miss"}>
           {LABEL[m.facet.facet]}: {m.passed ? "correct" : `wrong. It is ${acceptedOf(m.facet).join(" / ")}`}
           {m.message ? ` — ${m.message}` : ""}
         </p>
       ))}
-      {prompt.translationEn && <p lang="en">{prompt.translationEn}</p>}
+      {prompt.translationEn && (
+        <p lang="en" className="muted">
+          {prompt.translationEn}
+        </p>
+      )}
       {prompt.japaneseExplanation && (
-        <p lang="ja" className="jp">
+        <p lang="ja" className="jp muted">
           {prompt.japaneseExplanation}
         </p>
       )}
@@ -55,15 +60,15 @@ const Feedback = ({ prompt, marked }: { prompt: QuizPrompt; marked: Marked[] }) 
 /** The state of one question: what is typed, what was tried before, and how it was marked. */
 const useQuestion = (prompt: QuizPrompt, preferences: Preferences, onDone: (given: Given[], timeToAnswerMs: number) => void) => {
   const started = useRef(Date.now());
-  const attempts = useRef<Partial<Record<Facet, string[]>>>({});
-  const [inputs, setInputs] = useState<Record<string, string>>({});
+  const attempts = useRef(perFacet<string[]>(() => []));
+  const [inputs, setInputs] = useState(perFacet(() => ""));
   const [notes, setNotes] = useState<Notes>({});
   const [marked, setMarked] = useState<Marked[] | null>(null);
 
   /** Not an answer, or an alternate's nudge: the try is kept in attempts[], never graded, and the field is cleared. */
   const refuse = (refused: ReturnType<typeof notAnswers>) => {
     setNotes(Object.fromEntries(refused.map((r) => [r.facet, r.note])));
-    for (const r of refused) attempts.current[r.facet] = [...(attempts.current[r.facet] ?? []), r.input];
+    for (const r of refused) attempts.current[r.facet] = [...attempts.current[r.facet], r.input];
     setInputs((now) => ({ ...now, ...Object.fromEntries(refused.map((r) => [r.facet, ""])) }));
   };
 
@@ -71,7 +76,7 @@ const useQuestion = (prompt: QuizPrompt, preferences: Preferences, onDone: (give
     setNotes({});
     setMarked(
       prompt.facets.map((facet) => {
-        const input = inputs[facet.facet] ?? "";
+        const input = inputs[facet.facet];
         const { result } = tryFacet(facet, input, preferences.convertRomaji);
         return { facet, input, passed: result.outcome === "pass", message: result.message };
       }),
@@ -91,7 +96,7 @@ const useQuestion = (prompt: QuizPrompt, preferences: Preferences, onDone: (give
     },
     next: () =>
       onDone(
-        marked!.map((m) => ({ facet: m.facet.facet, input: m.input, passed: m.passed, attempts: attempts.current[m.facet.facet] ?? [] })),
+        marked!.map((m) => ({ facet: m.facet.facet, input: m.input, passed: m.passed, attempts: attempts.current[m.facet.facet] })),
         Date.now() - started.current,
       ),
   };
@@ -103,40 +108,53 @@ export const QuestionCard = (props: { prompt: QuizPrompt; preferences: Preferenc
   const q = useQuestion(prompt, preferences, onDone);
   const shown = shownByDefault(preferences.explanations);
   return (
-    <Card>
+    <Card className="question">
       <form onSubmit={q.check}>
         <Sentence prompt={prompt} answered={q.marked !== null} />
-        {shown.translation && prompt.translationEn && <p lang="en">{prompt.translationEn}</p>}
+        {shown.translation && prompt.translationEn && (
+          <p lang="en" className="muted">
+            {prompt.translationEn}
+          </p>
+        )}
         {shown.explanation && prompt.japaneseExplanation && (
-          <p lang="ja" className="jp">
+          <p lang="ja" className="jp muted">
             {prompt.japaneseExplanation}
           </p>
         )}
-        {prompt.facets.map((facet, i) => (
-          <div key={facet.facet}>
-            <FacetInput
-              autoFocus={i === 0}
-              facet={facet}
-              value={q.inputs[facet.facet] ?? ""}
-              convertRomaji={preferences.convertRomaji}
-              disabled={q.marked !== null}
-              onChange={(value) => q.type(facet.facet, value)}
-            />
-            {q.notes[facet.facet] && <p role="alert">{q.notes[facet.facet]}</p>}
-          </div>
-        ))}
+        <div className="fields">
+          {prompt.facets.map((facet, i) => (
+            <div key={facet.facet} className="field">
+              <span className="caps" aria-hidden="true">
+                {LABEL[facet.facet]}
+              </span>
+              <FacetInput
+                autoFocus={i === 0}
+                facet={facet}
+                value={q.inputs[facet.facet]}
+                convertRomaji={preferences.convertRomaji}
+                disabled={q.marked !== null}
+                onChange={(value) => q.type(facet.facet, value)}
+              />
+              {q.notes[facet.facet] && <p role="alert">{q.notes[facet.facet]}</p>}
+            </div>
+          ))}
+        </div>
         {q.marked === null && (
-          <Button variant="primary" type="submit" hotkey="Enter">
-            Check
-          </Button>
+          <div className="lesson-actions">
+            <Button variant="primary" type="submit" hotkey="Enter">
+              Check
+            </Button>
+          </div>
         )}
       </form>
       {q.marked && (
         <>
           <Feedback prompt={prompt} marked={q.marked} />
-          <Button variant="primary" hotkey="Enter" onClick={q.next}>
-            Next
-          </Button>
+          <div className="lesson-actions">
+            <Button variant="primary" hotkey="Enter" onClick={q.next}>
+              Next
+            </Button>
+          </div>
         </>
       )}
     </Card>
