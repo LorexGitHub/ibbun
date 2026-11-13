@@ -36,6 +36,28 @@ const group = <T>(rows: T[], key: (row: T) => string) => {
   return groups;
 };
 
+type Use = ReturnType<typeof sentenceUsesWord>[number];
+type Found = { sentence: Row<"sentence">; start: number; end: number };
+
+const isTodo = (have: Set<string>, candidatesOf: Map<string, Row<"levelCandidate">[]>) => (i: Row<"studyItem">) =>
+  (i.type === "word" || i.type === "kanji") && !have.has(i.id) && currentLevel(candidatesOf.get(i.id) ?? []) === LEVEL;
+
+const usable = (s: Row<"sentence">) => s.approval !== "rejected" && !!s.translationEn && s.text.length <= MAX_SENTENCE_LENGTH;
+
+/** The shortest distinct Sentences that use any of the Words, at most `EXAMPLES_PER_ITEM`. */
+const shortestUses = (wordIds: string[], usesOf: Map<string, Use[]>, sentenceById: Map<string, Row<"sentence">>): Found[] => {
+  const taken = new Set<string>();
+  return wordIds
+    .flatMap((id) => usesOf.get(id) ?? [])
+    .flatMap((u) => {
+      const sentence = sentenceById.get(u.sentenceId);
+      return sentence && u.spanEnd > u.spanStart ? [{ sentence, start: u.spanStart, end: u.spanEnd }] : [];
+    })
+    .sort((a, b) => a.sentence.text.length - b.sentence.text.length)
+    .filter(({ sentence }) => !taken.has(sentence.id) && taken.add(sentence.id))
+    .slice(0, EXAMPLES_PER_ITEM);
+};
+
 /**
  * Draft Examples for every N5 Word and Kanji that has none, from the Tatoeba Sentences that use the Word (the Kanji's
  * Words, for a Kanji). The target is the Word's span and the one accepted answer is what the Sentence's own tokens
@@ -52,35 +74,23 @@ export const deriveExamples = async ({ authoring }: { authoring: Authoring }): P
     authoring.rows("wordReading", { retired: false }),
     authoring.rows("wordContainsKanji", { retired: false }),
   ]);
-  const candidatesOf = group(candidates, (c) => c.studyItemId);
   const have = new Set(examples.filter((e) => e.approval !== "rejected").map((e) => e.studyItemId));
-  const todo = items.filter((i) => (i.type === "word" || i.type === "kanji") && !have.has(i.id) && currentLevel(candidatesOf.get(i.id) ?? []) === LEVEL);
+  const todo = items.filter(isTodo(have, group(candidates, (c) => c.studyItemId)));
 
-  const sentenceById = new Map(sentences.filter((s) => s.approval !== "rejected" && s.translationEn && s.text.length <= MAX_SENTENCE_LENGTH).map((s) => [s.id, s]));
+  const sentenceById = new Map(sentences.filter(usable).map((s) => [s.id, s]));
   // Tatoeba Sentences are Drafts, which the derived-links rebuild skips, so match their tokens to Words here.
   const wordIds = new Set(items.filter((i) => i.type === "word").map((i) => i.id));
   const uses = sentenceUsesWord({ words: wordIds, retiredWords: new Set(), kanji: [], forms, readings, sentences: [...sentenceById.values()], coveredSentences: new Set(), clips: new Set(), examples: [] });
   const usesOf = group(uses, (u) => u.wordId);
   const wordsOf = group(contains, (c) => c.kanjiId);
+  const wordsOfItem = (item: Row<"studyItem">) => (item.type === "word" ? [item.id] : (wordsOf.get(item.id) ?? []).map((c) => c.wordId));
 
-  const provenanceId = await provenanceFor(authoring);
-  const life = { approval: "draft", retired: false, provenanceId } as const;
+  const life = { approval: "draft", retired: false, provenanceId: await provenanceFor(authoring) } as const;
   const newExamples: Row<"example">[] = [];
   const newAnswers: Row<"exampleAnswer">[] = [];
   let uncovered = 0;
-
   for (const item of todo) {
-    const ofItem = item.type === "word" ? [item.id] : (wordsOf.get(item.id) ?? []).map((c) => c.wordId);
-    const taken = new Set<string>();
-    const found = ofItem
-      .flatMap((id) => usesOf.get(id) ?? [])
-      .flatMap((u) => {
-        const sentence = sentenceById.get(u.sentenceId);
-        return sentence && u.spanEnd > u.spanStart ? [{ sentence, start: u.spanStart, end: u.spanEnd }] : [];
-      })
-      .sort((a, b) => a.sentence.text.length - b.sentence.text.length)
-      .filter(({ sentence }) => !taken.has(sentence.id) && taken.add(sentence.id))
-      .slice(0, EXAMPLES_PER_ITEM);
+    const found = shortestUses(wordsOfItem(item), usesOf, sentenceById);
     if (!found.length) uncovered++;
     for (const { sentence, start, end } of found) {
       const id = randomUUID();
