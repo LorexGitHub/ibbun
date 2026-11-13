@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
-import { LearnerId } from "@mojibun/shared";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
+import { LearnerId } from "@ibbun/shared";
 import { createQueueApi } from "./queue-api.ts";
 
 const setup = async () => {

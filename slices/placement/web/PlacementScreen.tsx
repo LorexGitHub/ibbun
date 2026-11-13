@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useLevelFilter } from "@mojibun/ui";
+import { useLevelFilter } from "@ibbun/ui";
 import { PlacementList, PlacementResult, type JlptLevel } from "../contract.ts";
 import { PlacementView, type Track } from "./PlacementView.tsx";
 

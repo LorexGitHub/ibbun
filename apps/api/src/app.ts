@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { checkSlices, loadServerParts, type ServerContext, type Slice } from "@mojibun/slice";
+import { checkSlices, loadServerParts, type ServerContext, type Slice } from "@ibbun/slice";
 
 export type AppOptions = {
   /** Core `learner`'s `authHandler`: mounted at `/api/auth/*`. */

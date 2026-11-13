@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@mojibun/ui";
+import { Button } from "@ibbun/ui";
 
 /** Slow speed is `playbackRate` 0.75 with the pitch kept, so there is no second file (listening.md#playback). */
 export const SLOW_RATE = 0.75;

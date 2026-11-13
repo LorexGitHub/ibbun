@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
-import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
-import { createFakeJobs } from "@mojibun/jobs";
+import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
+import { createFakeJobs } from "@ibbun/jobs";
 import { importJobs, refreshJob, refreshes, type Refresh } from "./jobs.ts";
 import { memoryRawFiles } from "./raw-files.ts";
 import { memorySnapshots } from "./snapshots.ts";

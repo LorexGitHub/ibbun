@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { DbOrTx } from "@mojibun/db";
+import type { DbOrTx } from "@ibbun/db";
 import { learnerPath } from "../db/learning-path-tables.ts";
 import { createLearningPathOver, type LearningPath, type LearningPathDeps, type LearnerPathStore } from "./learning-path.ts";
 import { parseTrackKey, trackKey } from "./track.ts";

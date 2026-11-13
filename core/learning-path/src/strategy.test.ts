@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { PathItem } from "@mojibun/content-graph";
+import type { PathItem } from "@ibbun/content-graph";
 import { DEFAULT_BANDS, frequencyV1, tieBreak, type Bands } from "./strategy.ts";
 import { pathItem } from "./tests/items.ts";
-import type { StudyItemId } from "@mojibun/shared";
+import type { StudyItemId } from "@ibbun/shared";
 import { TRACKS, type Track } from "./track.ts";
 
 const plan = (items: PathItem[], { seed = "seed", introduced = [] as string[], bands = DEFAULT_BANDS as Bands } = {}) =>

@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import type { ServerContext, ServerPart } from "@mojibun/slice";
-import { createAuthoring } from "@mojibun/content-graph/authoring";
+import type { ServerContext, ServerPart } from "@ibbun/slice";
+import { createAuthoring } from "@ibbun/content-graph/authoring";
 import { connectGrammarSeed } from "../sources/grammar-seed/connect.ts";
 import { grammarSeedJob, type GrammarSeedDeps } from "../sources/grammar-seed/index.ts";
 import { connectMatcherRuns } from "../sources/matcher-runs/connect.ts";

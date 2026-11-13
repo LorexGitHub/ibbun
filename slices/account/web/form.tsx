@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type InputHTMLAttributes, type ReactNode } from "react";
-import { Button, Card, Input } from "@mojibun/ui";
-import type { Result } from "@mojibun/learner/client";
+import { Button, Card, Input } from "@ibbun/ui";
+import type { Result } from "@ibbun/learner/client";
 import "./account.css";
 
 /** What the Learner is told after an action: a success or the server's own message. */

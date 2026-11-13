@@ -20,7 +20,7 @@ Cram lets a Learner choose Study Items, including ones still Locked, and practis
 Preconditions:
 
 - `verify.sh doctor` reports every line `ok`.
-- The N5 fixture is loaded (`DATABASE_URL=<verify db url> pnpm --filter @mojibun/content-graph seed:fixture`).
+- The N5 fixture is loaded (`DATABASE_URL=<verify db url> pnpm --filter @ibbun/content-graph seed:fixture`).
 - A verified Learner is logged in (account slice) with no Reviews.
 
 - **Choose.** Open `/cram`. `verify.sh shot /cram cram/choose`. The aria snapshot lists a `Study Items` list with checkboxes and a disabled `Practise 0 items` button. Click `Choose all shown`; the button reads `Practise 30 items` or the count of the filtered list.
@@ -30,7 +30,7 @@ Preconditions:
 - **Show answer.** Click `Show answer`: `Not quite.` and `Answer: …`.
 - **From a link.** Open `/cram?items=<a Study Item id>`: `1 of 1` shows at once and no `Practise` button. An id that is not a Study Item id is dropped; with none left the chooser shows. After **Choose more** the chooser shows.
 - **Finish.** After the last item, `x of N right. Mastery and statistics are unchanged.` shows.
-- **Stored value.** `docker compose -p mojibun-verify exec postgres psql -U mojibun -c "select kind, passed from progress.review order by at"` lists only `cram` rows for the answers given (check the table name with `\dt progress.*`).
+- **Stored value.** `docker compose -p ibbun-verify exec postgres psql -U ibbun -c "select kind, passed from progress.review order by at"` lists only `cram` rows for the answers given (check the table name with `\dt progress.*`).
 - **Mastery untouched.** The Learner's dashboard (or `psql` count of rows whose kind is `srs`, `manual` or `learn`) shows no change.
 - **Slice spec.** `env -u CI pnpm exec playwright test --project=learner slices/cram/tests` passes.
 

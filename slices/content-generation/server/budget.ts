@@ -1,4 +1,4 @@
-import type { Authoring } from "@mojibun/content-graph/authoring";
+import type { Authoring } from "@ibbun/content-graph/authoring";
 import type { GenerationConfig } from "./config.ts";
 
 export type Pool = "learner" | "general";

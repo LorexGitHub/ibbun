@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { createContentGraph } from "@mojibun/content-graph";
-import { createLearningPath } from "@mojibun/learning-path";
-import { createProgress } from "@mojibun/progress";
-import type { ServerContext, ServerPart } from "@mojibun/slice";
+import { createContentGraph } from "@ibbun/content-graph";
+import { createLearningPath } from "@ibbun/learning-path";
+import { createProgress } from "@ibbun/progress";
+import type { ServerContext, ServerPart } from "@ibbun/slice";
 import { createBrowseApi } from "./api.ts";
 
 export const createServerPart = ({ db, sessions }: ServerContext): ServerPart => {

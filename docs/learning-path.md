@@ -1,6 +1,6 @@
 # Learning Path
 
-Decided in [#15](https://github.com/LorexGitHub/mojibun/issues/15), with the level and order rules set in [#12](https://github.com/LorexGitHub/mojibun/issues/12). Terms follow [CONTEXT.md](../CONTEXT.md). Why the path is code with a per-Learner seed and no stored order is in [ADR 0009](adr/0009-learning-path-as-versioned-strategy.md).
+Decided in [#15](https://github.com/LorexGitHub/ibbun/issues/15), with the level and order rules set in [#12](https://github.com/LorexGitHub/ibbun/issues/12). Terms follow [CONTEXT.md](../CONTEXT.md). Why the path is code with a per-Learner seed and no stored order is in [ADR 0009](adr/0009-learning-path-as-versioned-strategy.md).
 
 The Learning Path decides which New Study Items Learn offers next, and which are locked. The Content Graph holds no order ([content-graph.md](content-graph.md)), so every rule here is computed from fact links, frequency data and the Learner's own history.
 

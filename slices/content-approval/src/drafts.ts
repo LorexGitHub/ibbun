@@ -1,4 +1,4 @@
-import type { Authoring, RecordTable, Row } from "@mojibun/content-graph/authoring";
+import type { Authoring, RecordTable, Row } from "@ibbun/content-graph/authoring";
 import { grammarFieldsDrafts, type GrammarFieldsDraft } from "../rubrics/grammar-fields/index.ts";
 
 export type Rec = { table: RecordTable; id: string };

@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/web",
+  "name": "@ibbun/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,9 +9,9 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@mojibun/learner": "workspace:*",
-    "@mojibun/slice": "workspace:*",
-    "@mojibun/ui": "workspace:*",
+    "@ibbun/learner": "workspace:*",
+    "@ibbun/slice": "workspace:*",
+    "@ibbun/ui": "workspace:*",
     "@number-flow/react": "^0.6.2",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",

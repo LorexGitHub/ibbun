@@ -1,4 +1,4 @@
-import type { Preferences } from "@mojibun/learner/client";
+import type { Preferences } from "@ibbun/learner/client";
 
 export type Explanations = Preferences["explanations"];
 export type Language = "english" | "japanese";

@@ -1,5 +1,5 @@
-import { Button, pillClass } from "@mojibun/ui";
-import { JLPT_LEVELS } from "@mojibun/shared";
+import { Button, pillClass } from "@ibbun/ui";
+import { JLPT_LEVELS } from "@ibbun/shared";
 import type { PlacementItem, PlacementList } from "../contract.ts";
 import "./placement.css";
 

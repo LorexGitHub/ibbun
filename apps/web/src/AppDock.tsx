@@ -1,4 +1,4 @@
-import type { NavEntry } from "@mojibun/slice";
+import type { NavEntry } from "@ibbun/slice";
 import { NavLink } from "react-router";
 import { Dock, DockIcon } from "@/vendor/ui/dock";
 

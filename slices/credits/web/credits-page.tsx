@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card } from "@mojibun/ui";
+import { Card } from "@ibbun/ui";
 import { CreditsResponse, type CreditEntry } from "../contract.ts";
 import { LEVEL_CREDITS, LEVEL_NOTE, UNIDIC_NOTICE } from "./notices.ts";
 
@@ -9,7 +9,7 @@ const live = ({ version, appliedAt }: CreditEntry) =>
 export const CreditsView = ({ credits }: { credits: readonly CreditEntry[] }) => (
   <article className="credits">
     <h1>Credits</h1>
-    <p>mojibun is built on open data. Each source below keeps its own licence; the version and date are the ones live in the app today.</p>
+    <p>ibbun is built on open data. Each source below keeps its own licence; the version and date are the ones live in the app today.</p>
     <Card>
       <table>
         <thead>

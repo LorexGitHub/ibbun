@@ -1,6 +1,6 @@
 # Listening
 
-Decided in [#38](https://github.com/LorexGitHub/mojibun/issues/38). Terms follow [CONTEXT.md](../CONTEXT.md). This builds on [#5](https://github.com/LorexGitHub/mojibun/issues/5) (what a Listening Clip is), [#11](https://github.com/LorexGitHub/mojibun/issues/11) (VOICEVOX and voice credits), [#18](https://github.com/LorexGitHub/mojibun/issues/18) (dictation and comprehension grading) and [#15](https://github.com/LorexGitHub/mojibun/issues/15) (Listening Tracks). Why Learners can generate their own practice is in [ADR 0013](adr/0013-practice-texts-after-a-cleared-level.md).
+Decided in [#38](https://github.com/LorexGitHub/ibbun/issues/38). Terms follow [CONTEXT.md](../CONTEXT.md). This builds on [#5](https://github.com/LorexGitHub/ibbun/issues/5) (what a Listening Clip is), [#11](https://github.com/LorexGitHub/ibbun/issues/11) (VOICEVOX and voice credits), [#18](https://github.com/LorexGitHub/ibbun/issues/18) (dictation and comprehension grading) and [#15](https://github.com/LorexGitHub/ibbun/issues/15) (Listening Tracks). Why Learners can generate their own practice is in [ADR 0013](adr/0013-practice-texts-after-a-cleared-level.md).
 
 ## Sentence Audio and Listening Clips
 
@@ -11,7 +11,7 @@ Two things are kept apart:
 
 There are two kinds of Listening Clip.
 
-| Kind | Made from | Made by | Example kind ([#18](https://github.com/LorexGitHub/mojibun/issues/18)) |
+| Kind | Made from | Made by | Example kind ([#18](https://github.com/LorexGitHub/ibbun/issues/18)) |
 |---|---|---|---|
 | `sentence` | one approved Sentence | derived, no LLM | dictation |
 | `dialogue` | 2 speakers, an ordered run of Sentences | generated, Content Approval | comprehension, **2** per dialogue |
@@ -46,7 +46,7 @@ Unchanged from #12 and #15. A clip's level is computed from the Words and Gramma
 
 ## Voices
 
-- An **allow-list of 4–6 calm, adult-sounding VOICEVOX voices**. The supervisor picks them by listening. No.7, ユーレイちゃん and voices that need approval when a company is involved are left out ([#11](https://github.com/LorexGitHub/mojibun/issues/11)).
+- An **allow-list of 4–6 calm, adult-sounding VOICEVOX voices**. The supervisor picks them by listening. No.7, ユーレイちゃん and voices that need approval when a company is involved are left out ([#11](https://github.com/LorexGitHub/ibbun/issues/11)).
 - Sentence Audio and single-Sentence clips use the voice at `hash(Sentence ID) mod allow-list`, so Learners hear several voices over time.
 - A dialogue gets two different voices, one male-sounding and one female-sounding, so the speakers are easy to tell apart. They are picked by hash too.
 - Every voice on the allow-list is credited on the credits page as `VOICEVOX:<character>` (#19).
@@ -92,7 +92,7 @@ Once a Learner has a **Cleared Level**, they can generate their own reading or l
 
 ### Cleared Level
 
-A JLPT Level is cleared for a Learner when **every levelled Kanji of that level is Known** to them ([#13](https://github.com/LorexGitHub/mojibun/issues/13)). Suspended and Retired Kanji don't count. Words and Grammar Points are not required. Being introduced in Learn is not enough. Once cleared, a level stays cleared, as Known is permanent. Unlevelled has no cleared state.
+A JLPT Level is cleared for a Learner when **every levelled Kanji of that level is Known** to them ([#13](https://github.com/LorexGitHub/ibbun/issues/13)). Suspended and Retired Kanji don't count. Words and Grammar Points are not required. Being introduced in Learn is not enough. Once cleared, a level stays cleared, as Known is permanent. Unlevelled has no cleared state.
 
 `isLevelCleared(levelKanjiIds, knownIds)` is a pure function in core `progress`. The caller reads the level's Kanji from `content-graph`.
 
@@ -124,7 +124,7 @@ The same rules as Batch Texts ([batch-text.md](batch-text.md#automatic-checks)):
 ### Limits
 
 - **Per Learner:** at most **5** Practice Texts in any rolling 24 h (config). This is counted separately from the Batch Text limit.
-- **Budget:** Practice Texts draw on the Learner-triggered budget pool with Batch Texts ([accounts.md, #39](https://github.com/LorexGitHub/mojibun/issues/39)), never on the pool that Content Approval needs.
+- **Budget:** Practice Texts draw on the Learner-triggered budget pool with Batch Texts ([accounts.md, #39](https://github.com/LorexGitHub/ibbun/issues/39)), never on the pool that Content Approval needs.
 - When either limit is reached, the Learner sees "try again tomorrow". Nothing is queued silently.
 
 ## Wiring
@@ -145,4 +145,4 @@ The same rules as Batch Texts ([batch-text.md](batch-text.md#automatic-checks)):
 
 ## What a Listening Review records
 
-On top of [#18](https://github.com/LorexGitHub/mojibun/issues/18): `replays`, `slow` (whether slow speed was used) and `examMode`.
+On top of [#18](https://github.com/LorexGitHub/ibbun/issues/18): `replays`, `slow` (whether slow speed was used) and `examMode`.

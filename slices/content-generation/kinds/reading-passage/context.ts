@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
+import { JlptLevel, LearnerId, StudyItemId } from "@ibbun/shared";
 import { reasonCodec } from "../passage/reason.ts";
 
 /** The batch a Batch Text is for: the `batch-text.generate` payload, kept on the Generation Request for retries. */

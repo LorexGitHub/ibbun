@@ -1,5 +1,5 @@
-import type { JlptLevel } from "@mojibun/shared";
-import { levelQuery } from "@mojibun/ui";
+import type { JlptLevel } from "@ibbun/shared";
+import { levelQuery } from "@ibbun/ui";
 import { Batch, BatchTextStart, BatchTextStatus, CompleteResponse, LookupView, State, type CompleteRequest, type Track } from "../contract.ts";
 import { ClipVerdict, type ClipAnswer } from "../listening/contract.ts";
 

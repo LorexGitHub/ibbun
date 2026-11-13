@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { onGoTo } from "@mojibun/ui";
+import { onGoTo } from "@ibbun/ui";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Today } from "../contract.ts";

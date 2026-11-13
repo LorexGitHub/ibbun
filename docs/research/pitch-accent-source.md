@@ -122,7 +122,7 @@ The compound errors follow patterns. Open JTalk is often one mora off for suffix
 
 - NHK日本語発音アクセント新辞典 (NHK出版, 2016), 新明解日本語アクセント辞典 (三省堂, 2nd ed. 2014) and 大辞林 are commercial publications. We found no open licence and did not ask the publishers **(unconfirmed)**. A licence from one of them is the only route to authoritative accents for compounds.
 
-## Consequences for mojibun
+## Consequences for ibbun
 
 - **Approve UniDic cwj 202512 (BSD option) as the pitch-accent source for Words.** Fill the field when the Word's written form is one UniDic token whose kana matches the reading. That covers about 80 % of common Words.
 - **Store a list, not one number.** `aType` can hold several accents in order of frequency (`日` → `0,1`), and so do dictionaries. The field per reading should be an ordered list of accent numbers. Show the first and offer the others.

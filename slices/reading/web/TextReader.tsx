@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Attribution, Furigana, Pill, pillClass } from "@mojibun/ui";
+import { Attribution, Furigana, Pill, pillClass } from "@ibbun/ui";
 import type { LookupView, Run, TextView } from "../contract.ts";
 import { levelName } from "./EpisodeList.tsx";
 import "./reading.css";

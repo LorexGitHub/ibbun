@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@mojibun/ui";
+import { Button } from "@ibbun/ui";
 import type { Facet, SubmitResponse } from "../contract.ts";
 import { FLAGGABLE_FACETS, type FlagRequest } from "./contract.ts";
 

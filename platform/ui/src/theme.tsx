@@ -19,7 +19,7 @@ export const MODES: { key: ThemeMode; label: string }[] = [
   { key: "system", label: "Match my device" },
 ];
 
-const KEY = "mojibun.theme";
+const KEY = "ibbun.theme";
 const DEFAULT: Theme = { palette: "shu", mode: "system" };
 
 /** Reads the saved theme; anything unreadable or unknown falls back to the default. */

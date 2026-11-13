@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeContentGraph, n5Fixture } from "@mojibun/content-graph/testing";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { LearnerId } from "@mojibun/shared";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeContentGraph, n5Fixture } from "@ibbun/content-graph/testing";
+import { createFakeProgress } from "@ibbun/progress/testing";
+import { LearnerId } from "@ibbun/shared";
 import { createCramApi } from "./api.ts";
 import type { Question, Verdict } from "../contract.ts";
 

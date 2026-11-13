@@ -28,7 +28,7 @@ describe("encodeOggOpus", () => {
     expect(packet.toString("latin1", 0, 8)).toBe("OpusHead");
     expect([packet[8], packet[9], packet.readUInt16LE(10), packet.readUInt32LE(12)]).toEqual([1, 1, 312, 24_000]);
     expect([packet.readInt16LE(16), packet[18], packet.length]).toEqual([0, 0, 19]);
-    expect(tags!.packets[0]!.toString("latin1")).toBe("OpusTags\x12\0\0\0mojibun opusscript\0\0\0\0");
+    expect(tags!.packets[0]!.toString("latin1")).toBe("OpusTags\x10\0\0\0ibbun opusscript\0\0\0\0");
     expect([head!.granule, tags!.granule, tags!.flags]).toEqual([0n, 0n, 0]);
   });
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 
 const Example = z.object({ jp: z.string().min(1), en: z.string() });
 

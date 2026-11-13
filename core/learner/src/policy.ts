@@ -1,6 +1,6 @@
 // The account rules Better Auth does not enforce on its own (accounts.md#security-standards).
 import { APIError } from "better-auth/api";
-import type { DbOrTx } from "@mojibun/db";
+import type { DbOrTx } from "@ibbun/db";
 import type { AuthLog } from "./events.ts";
 import { normalizeEmail } from "./learners.ts";
 import { hitRateLimit, type RateLimitRule } from "./rate-limit.ts";

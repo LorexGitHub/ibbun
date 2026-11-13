@@ -1,5 +1,5 @@
-import type { ContentGraph, StudyItemPage, Word } from "@mojibun/content-graph";
-import { StudyItemId } from "@mojibun/shared";
+import type { ContentGraph, StudyItemPage, Word } from "@ibbun/content-graph";
+import { StudyItemId } from "@ibbun/shared";
 import { lessonOf } from "./lesson.ts";
 import { explanationOf, isTaught, promptOf } from "./prompt.ts";
 

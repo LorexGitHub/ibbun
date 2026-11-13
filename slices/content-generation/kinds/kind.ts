@@ -1,6 +1,6 @@
 import type { z } from "zod";
-import type { Authoring, GenerationRequest, GenerationRun } from "@mojibun/content-graph/authoring";
-import type { Progress, Texts } from "@mojibun/progress";
+import type { Authoring, GenerationRequest, GenerationRun } from "@ibbun/content-graph/authoring";
+import type { Progress, Texts } from "@ibbun/progress";
 
 /** What one LLM call for a request needs, and what to do with the answer. */
 export type Plan<S extends z.ZodType = z.ZodType> = {

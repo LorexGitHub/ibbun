@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { z } from "zod";
-import type { AuthEnv } from "@mojibun/auth";
-import { normalise } from "@mojibun/content-graph";
-import { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
+import type { AuthEnv } from "@ibbun/auth";
+import { normalise } from "@ibbun/content-graph";
+import { JlptLevel, LearnerId, StudyItemId } from "@ibbun/shared";
 import { AnswerRequest, type AnswerResponse, type ClipList } from "../contract.ts";
 import { createPracticeApi, type PracticeDeps } from "../practice/server/practice.ts";
 import { gradingOf, nextExample, playable, transcriptOf, viewOf, type Asked, type Playable } from "./clip.ts";

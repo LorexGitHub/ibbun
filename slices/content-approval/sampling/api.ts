@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { Authoring, Row } from "@mojibun/content-graph/authoring";
+import { createAuthGuards, type AuthEnv, type SessionResolver } from "@ibbun/auth";
+import type { Authoring, Row } from "@ibbun/content-graph/authoring";
 import type { Rec } from "../src/drafts.ts";
 import type { Sampling } from "./sampler.ts";
 import { SAMPLE_KINDS, type Sample } from "./types.ts";

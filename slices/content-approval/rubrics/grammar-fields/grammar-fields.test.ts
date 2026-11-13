@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import type { Row } from "@mojibun/content-graph/authoring";
-import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
-import { ContentGenerate, ContentReview } from "@mojibun/content-graph/jobs";
-import { createFakeJobs, handler } from "@mojibun/jobs";
-import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@mojibun/llm";
-import { createFakeNlp } from "@mojibun/nlp";
-import { createFakeProgress } from "@mojibun/progress/testing";
+import type { Row } from "@ibbun/content-graph/authoring";
+import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
+import { ContentGenerate, ContentReview } from "@ibbun/content-graph/jobs";
+import { createFakeJobs, handler } from "@ibbun/jobs";
+import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@ibbun/llm";
+import { createFakeNlp } from "@ibbun/nlp";
+import { createFakeProgress } from "@ibbun/progress/testing";
 import { DEFAULT_CONFIG } from "../../src/config.ts";
 import { grammarFieldsDrafts, grammarFieldsValues } from "./index.ts";
 import { rubricFor } from "../../src/rubrics.ts";
@@ -25,7 +25,7 @@ const world = async (point: Partial<Row<"grammarPoint">> = {}) => {
   const a = createFakeAuthoring(graph);
   const authored = randomUUID();
   const life = (provenanceId: string, approval: "approved" | "draft" = "approved") => ({ approval, retired: false, provenanceId });
-  graph.provenance.push({ id: authored, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: authored, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const item = randomUUID();
   graph.studyItem.push({ id: item, type: "grammar_point", ...life(authored, "draft") });
   graph.grammarPoint.push({ studyItemId: item, ...fields(), ...point });

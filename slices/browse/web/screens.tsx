@@ -1,6 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { Navigate, useParams } from "react-router";
-import { buttonClass, useLevelFilter } from "@mojibun/ui";
+import { buttonClass, useLevelFilter } from "@ibbun/ui";
 import { ItemResponse, LevelList, type BrowseType, type JlptLevel, type Tile } from "../contract.ts";
 import { BrowseView } from "./BrowseView.tsx";
 import { ItemView } from "./ItemView.tsx";

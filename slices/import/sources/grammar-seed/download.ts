@@ -1,4 +1,4 @@
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 import { get, patient, type Fetch } from "../release.ts";
 import { parseHanabira, type HanabiraPoint } from "./hanabira.ts";
 import { parseTanos, type TanosEntry } from "./tanos.ts";

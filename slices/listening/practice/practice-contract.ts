@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JlptLevel } from "@mojibun/shared";
+import { JlptLevel } from "@ibbun/shared";
 
 /** The wire shapes of Practice Text dialogues. A dialogue plays through the same `ClipView` and `AnswerResponse` as a clip. */
 

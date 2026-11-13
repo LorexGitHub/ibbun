@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/icon.svg" width="96" height="96" alt="mojibun icon">
+  <img src="assets/icon.svg" width="96" height="96" alt="ibbun icon">
 </p>
 
-<h1 align="center">mojibun</h1>
+<h1 align="center">ibbun</h1>
 
 <p align="center">
   Learn Japanese for the JLPT, N5 to N1, one sentence at a time.
@@ -10,9 +10,9 @@
 
 ---
 
-mojibun teaches **Kanji, Words, Grammar Points and Listening** through real example sentences. You review them on a spaced-repetition schedule (FSRS, with Anki-style New → Learning → Young → Mature stages), so things come back just before you'd forget them.
+ibbun teaches **Kanji, Words, Grammar Points and Listening** through real example sentences. You review them on a spaced-repetition schedule (FSRS, with Anki-style New → Learning → Young → Mature stages), so things come back just before you'd forget them.
 
-It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLPT-style reading passages that get longer as you progress and tell a continuing story. The suggested order is a guide, not a gate: you can always start any item you're curious about.
+It's built to be reading-heavy and fun. Alongside reviews, ibbun gives you JLPT-style reading passages that get longer as you progress and tell a continuing story. The suggested order is a guide, not a gate: you can always start any item you're curious about.
 
 > **Status:** a working showcase, still being built. Every issue in the [build plan](docs/build-plan.md) (M1 to M3) is merged, and a second pass is redesigning the screens one by one. What is not on `main` yet is marked **to be added** below. This is a side project, not a released product.
 
@@ -23,11 +23,11 @@ It's built to be reading-heavy and fun. Alongside reviews, mojibun gives you JLP
 | Today | How many Reviews are due, the next step, your streak and your way up from N5 to N1. | Done |
 | Learn | Batches of new Study Items: a lesson, a quiz, a Batch Text to read, and Listening Clip lessons. You can also learn any item now. | Done |
 | Reviews | Your due Reviews, then due Listening Clips, a Wrap-Up of what you missed, and Ghosts from earlier sessions. You can flag an answer you think was right. | Done |
-| Reading | Reading Passages, Batch Text episodes and Practice Texts. | Works. New layout to be added ([#222](https://github.com/LorexGitHub/mojibun/pull/222)) |
-| Listening | Free listening practice and Practice Text dialogues. | Works. New player to be added ([#223](https://github.com/LorexGitHub/mojibun/pull/223)) |
-| Cram | Extra practice on any items you pick. Cram never changes your schedule. | Works. New picker to be added ([#220](https://github.com/LorexGitHub/mojibun/pull/220)) |
-| Placement | Mark what you already know at a JLPT Level, so it skips your Reviews. | Works. Tile wall to be added ([#224](https://github.com/LorexGitHub/mojibun/pull/224)) |
-| Library | Every Kanji, Word and Grammar Point, with their links. | Works. Mastery wall to be added ([#221](https://github.com/LorexGitHub/mojibun/pull/221)) |
+| Reading | Reading Passages, Batch Text episodes and Practice Texts. | Works. New layout to be added ([#222](https://github.com/LorexGitHub/ibbun/pull/222)) |
+| Listening | Free listening practice and Practice Text dialogues. | Works. New player to be added ([#223](https://github.com/LorexGitHub/ibbun/pull/223)) |
+| Cram | Extra practice on any items you pick. Cram never changes your schedule. | Works. New picker to be added ([#220](https://github.com/LorexGitHub/ibbun/pull/220)) |
+| Placement | Mark what you already know at a JLPT Level, so it skips your Reviews. | Works. Tile wall to be added ([#224](https://github.com/LorexGitHub/ibbun/pull/224)) |
+| Library | Every Kanji, Word and Grammar Point, with their links. | Works. Mastery wall to be added ([#221](https://github.com/LorexGitHub/ibbun/pull/221)) |
 | Settings | Appearance (five looks, light or dark), your account and your study preferences. | Done |
 | Approval | Supervisor only: the Content Approval queue for generated content. | Done |
 | Import | Supervisor only: reports on Import Runs from the open datasets. | Done |
@@ -40,23 +40,23 @@ These are being worked on now and are not on `main` yet. Each one replaces a scr
 
 | What | Where |
 | --- | --- |
-| Cram: a picker with a basket of chosen items | [#220](https://github.com/LorexGitHub/mojibun/pull/220) |
-| Library: a wall of tiles shaded by Mastery, in place of the lists | [#221](https://github.com/LorexGitHub/mojibun/pull/221) |
-| Reading: the newest story first, and switches for Furigana, Translation and Words | [#222](https://github.com/LorexGitHub/mojibun/pull/222) |
-| Listening: the player is the screen, and the answer is one of four options | [#223](https://github.com/LorexGitHub/mojibun/pull/223) |
-| Placement: a wall of tiles per level and Track, and a whole level in one press | [#224](https://github.com/LorexGitHub/mojibun/pull/224) |
+| Cram: a picker with a basket of chosen items | [#220](https://github.com/LorexGitHub/ibbun/pull/220) |
+| Library: a wall of tiles shaded by Mastery, in place of the lists | [#221](https://github.com/LorexGitHub/ibbun/pull/221) |
+| Reading: the newest story first, and switches for Furigana, Translation and Words | [#222](https://github.com/LorexGitHub/ibbun/pull/222) |
+| Listening: the player is the screen, and the answer is one of four options | [#223](https://github.com/LorexGitHub/ibbun/pull/223) |
+| Placement: a wall of tiles per level and Track, and a whole level in one press | [#224](https://github.com/LorexGitHub/ibbun/pull/224) |
 | One command that imports every open dataset, so you can study the real content instead of the small fixture | branch `content-import` |
 
 ## What it looks like
 
 <p align="center">
-  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through mojibun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
+  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through ibbun: logging in, the Today screen, a Learn batch of seven Study Items, the quiz that asks a missed item again, the Library, and the five looks in Settings"></a>
 </p>
 
 <p align="center"><sub>A Learn batch on the small N5 fixture, then the Library and the five looks. Click for the <a href="assets/demo.mp4">full-size video</a>.</sub></p>
 
 <p align="center">
-  <img src="assets/screenshot-today.png" width="49%" alt="The mojibun Today screen in the Shu look, light: a large 0 in Mincho type, Nothing waits for you today, a vermilion Learn something new button, a Where to? search, and the way up from N5 to N1">
+  <img src="assets/screenshot-today.png" width="49%" alt="The ibbun Today screen in the Shu look, light: a large 0 in Mincho type, Nothing waits for you today, a vermilion Learn something new button, a Where to? search, and the way up from N5 to N1">
   <img src="assets/screenshot-today-dark.png" width="49%" alt="The same Today screen in the Ai look, dark: navy page, pale ink and a light blue button">
 </p>
 
@@ -74,8 +74,8 @@ cp .env.example .env          # every script reads it; no need to load it into y
 
 docker compose up -d          # Postgres, Sudachi, VOICEVOX and Mailpit
 pnpm db:migrate
-pnpm --filter @mojibun/learner seed               # the two dev accounts
-pnpm --filter @mojibun/content-graph seed:fixture # a small N5 content graph to study
+pnpm --filter @ibbun/learner seed               # the two dev accounts
+pnpm --filter @ibbun/content-graph seed:fixture # a small N5 content graph to study
 pnpm dev
 ```
 
@@ -97,8 +97,8 @@ Log in with one of the dev accounts. The passwords come from `.env`:
 
 | Account                   | Password              | Role                                        |
 | ------------------------- | --------------------- | ------------------------------------------- |
-| `learner@mojibun.test`    | `learner-password`    | Learner                                     |
-| `supervisor@mojibun.test` | `supervisor-password` | Supervisor: also sees Approval and Import   |
+| `learner@ibbun.test`    | `learner-password`    | Learner                                     |
+| `supervisor@ibbun.test` | `supervisor-password` | Supervisor: also sees Approval and Import   |
 
 Then open:
 
@@ -121,11 +121,11 @@ The background worker starts with `pnpm dev` too.
 
 ### If port 5432 is taken
 
-If you already run PostgreSQL locally, it answers on port 5432 instead of the container, and `pnpm db:migrate` fails with `role "mojibun" does not exist`. Move the container to another port by changing these two lines in `.env`:
+If you already run PostgreSQL locally, it answers on port 5432 instead of the container, and `pnpm db:migrate` fails with `role "ibbun" does not exist`. Move the container to another port by changing these two lines in `.env`:
 
 ```sh
 POSTGRES_PORT=5433
-DATABASE_URL=postgres://mojibun:mojibun@localhost:5433/mojibun
+DATABASE_URL=postgres://ibbun:ibbun@localhost:5433/ibbun
 ```
 
 Then run `docker compose up -d` again to recreate the container on the new port.
@@ -141,7 +141,7 @@ Then run `docker compose up -d` again to recreate the container on the new port.
 
 ## How the code is organised
 
-mojibun is a modular monolith: a small **core** with **feature slices** on top.
+ibbun is a modular monolith: a small **core** with **feature slices** on top.
 
 ```
 apps/       web (Vite + React), api (Hono), worker (pg-boss jobs). Shells only.
@@ -162,4 +162,4 @@ Each slice is self-contained and never imports another slice. To add one, create
 
 ## Contributing
 
-Most of mojibun is built by AI agents working in parallel, one issue per slice. If you're one of them, start with [CLAUDE.md](CLAUDE.md).
+Most of ibbun is built by AI agents working in parallel, one issue per slice. If you're one of them, start with [CLAUDE.md](CLAUDE.md).

@@ -1,4 +1,4 @@
-import type { KanjiStrokesRecord } from "@mojibun/content-graph/authoring";
+import type { KanjiStrokesRecord } from "@ibbun/content-graph/authoring";
 
 const KANJI = /<kanji id="kvg:kanji_([0-9a-f]{5})">([\s\S]*?)<\/kanji>/g;
 const STROKE = /<path\b[^>]*?\sd="([^"]+)"/g;

@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { collectMigrations, createDb, migrate, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { collectMigrations, createDb, migrate, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { createPostgresStore } from "./postgres.ts";
 import { createMemoryStore } from "./store.ts";
 import { freshState, type Sample, type SamplingStore } from "./types.ts";

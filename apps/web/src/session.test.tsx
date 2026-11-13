@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import type { Slice } from "@mojibun/slice";
+import type { Slice } from "@ibbun/slice";
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router";
 import { toast } from "sonner";

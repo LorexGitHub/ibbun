@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { StudyItemId } from "@mojibun/shared";
-import { useLevelFilter } from "@mojibun/ui";
+import { StudyItemId } from "@ibbun/shared";
+import { useLevelFilter } from "@ibbun/ui";
 import type { EpisodeLists, TextView } from "../contract.ts";
 import { loadBatchText, loadEpisodes, loadPassage, lookUp } from "./api.ts";
 import { EpisodeList } from "./EpisodeList.tsx";

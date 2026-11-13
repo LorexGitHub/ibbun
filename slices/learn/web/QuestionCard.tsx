@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
-import { Button, Card, Input, KanaInput, Pill } from "@mojibun/ui";
+import { Button, Card, Input, KanaInput, Pill } from "@ibbun/ui";
 import type { Facet, QuizPrompt } from "../contract.ts";
 import { acceptedOf, isJapanese, notAnswers, shownByDefault, tryFacet, type PromptFacet } from "./check.ts";
 import type { Given } from "./queue.ts";

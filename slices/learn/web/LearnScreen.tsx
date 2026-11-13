@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useLevelFilter } from "@mojibun/ui";
+import { useLevelFilter } from "@ibbun/ui";
 import type { Batch, State, Track } from "../contract.ts";
 import { isTaught, type Tally } from "./batch-view.ts";
 import { learnApi, type LearnApi } from "./learn-client.ts";

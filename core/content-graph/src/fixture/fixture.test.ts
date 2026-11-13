@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { emptyGraph } from "../graph.ts";
 import { createAuthoring, loadN5Fixture } from "../authoring/index.ts";
 import { createFakeAuthoring, createFakeContentGraph, migrateContentGraph, n5Fixture } from "../testing.ts";
@@ -15,8 +15,8 @@ describe("the N5 fixture graph", () => {
     expect(new Set(graph.levelCandidate.map((l) => l.level))).toEqual(new Set(["N5"]));
   });
 
-  it("is mojibun-owned content with fixture Provenance", () => {
-    expect(graph.provenance).toEqual([expect.objectContaining({ source: { kind: "fixture" }, licence: "mojibun" })]);
+  it("is ibbun-owned content with fixture Provenance", () => {
+    expect(graph.provenance).toEqual([expect.objectContaining({ source: { kind: "fixture" }, licence: "ibbun" })]);
   });
 
   it("gives every Study Item two approved Examples that meet the approval rule", () => {

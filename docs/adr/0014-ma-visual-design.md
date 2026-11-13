@@ -31,7 +31,7 @@ Each look is six colours (`--p-bg`, `--p-ink`, `--p-accent`, `--p-on-accent`, `-
 
 ## Consequences
 
-- `docs/design/mojibun-mock.html` is now history: it shows the Hum look, not the target. The prototypes live on the `prototype/redesign` branch.
+- `docs/design/ibbun-mock.html` is now history: it shows the Hum look, not the target. The prototypes live on the `prototype/redesign` branch.
 - Slice CSS must use the kit's colour tokens, never fixed colours, or it breaks in dark mode and in the other looks. `tokens.test.ts` checks that every look sets all six roles in both modes.
 - The palette variables are prefixed `--p-` because shadcn already uses `--accent`, `--background` and similar names.
 - Hallmark's `sloplint` was tuned for Hum's genre. `design.md` no longer claims a Hallmark theme.

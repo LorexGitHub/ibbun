@@ -22,7 +22,7 @@ A logged-in Learner opens Placement, picks a JLPT Level and a Track, and taps th
 Preconditions:
 
 - `verify.sh doctor` reports every line `ok`.
-- The N5 fixture is loaded: `DATABASE_URL=<verify db url> pnpm --filter @mojibun/content-graph seed:fixture`.
+- The N5 fixture is loaded: `DATABASE_URL=<verify db url> pnpm --filter @ibbun/content-graph seed:fixture`.
 - A verified Learner exists and is logged in (account slice).
 
 - **Wall.** Open `/placement`. Run `verify.sh shot /placement placement/wall`. The ARIA snapshot has a `group "JLPT Level"` with `N5` pressed, a `group "Track"` with `Kanji` pressed, the button `All of N5 Kanji`, and a `list "N5 Kanji"` of buttons, none pressed.

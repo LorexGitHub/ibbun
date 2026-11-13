@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import type { Db } from "@mojibun/db";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import type { Db } from "@ibbun/db";
 import { connectMatcherRuns } from "./connect.ts";
 
 const db = {} as Db;

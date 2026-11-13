@@ -1,5 +1,5 @@
-import { grade, type AnswerData, type ContentGraph, type Example, type GradeResult, type StudyItemLink, type StudyItemPage } from "@mojibun/content-graph";
-import type { StudyItemId } from "@mojibun/shared";
+import { grade, type AnswerData, type ContentGraph, type Example, type GradeResult, type StudyItemLink, type StudyItemPage } from "@ibbun/content-graph";
+import type { StudyItemId } from "@ibbun/shared";
 import type { ClipLesson, ClipQuestion } from "../contract.ts";
 
 type Line = Extract<StudyItemLink, { kind: "voices" }>;

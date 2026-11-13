@@ -1,6 +1,6 @@
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import type { Jobs } from "@mojibun/jobs";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import type { Jobs } from "@ibbun/jobs";
 
 /** One rejection in the run uses the request's one attempt; the reasons go to the generator as feedback. */
 export const retry = async (d: { authoring: Authoring; jobs: Jobs }, requestId: string, reasons: string[]) => {

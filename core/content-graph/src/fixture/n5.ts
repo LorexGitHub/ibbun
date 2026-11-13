@@ -1,8 +1,8 @@
-import type { StudyItemId } from "@mojibun/shared";
+import type { StudyItemId } from "@ibbun/shared";
 import { emptyGraph, type Graph } from "../graph.ts";
 
 /**
- * The hand-made N5 fixture graph for dev and test (#58): mojibun-owned content, all rights
+ * The hand-made N5 fixture graph for dev and test (#58): ibbun-owned content, all rights
  * reserved, written by an agent. Every Study Item has two approved Examples that meet the
  * approval rule (docs/review-answer-model.md#approval-rule).
  */
@@ -114,7 +114,7 @@ export const n5Fixture = (): N5Fixture => {
   const next = () => fixtureId(++n);
   const graph = emptyGraph();
   const life = { approval: "approved" as const, retired: false, provenanceId: FIXTURE_PROVENANCE_ID };
-  graph.provenance.push({ id: FIXTURE_PROVENANCE_ID, source: { kind: "fixture" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: FIXTURE_PROVENANCE_ID, source: { kind: "fixture" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
 
   const studyItem = (type: Graph["studyItem"][number]["type"]) => {
     const id = next() as StudyItemId;

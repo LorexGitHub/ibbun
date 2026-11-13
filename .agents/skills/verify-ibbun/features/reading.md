@@ -21,7 +21,7 @@ Sign in, then "Reading" in the nav (`/reading`). Press **Read** on the newest st
 
 Preconditions:
 
-- The Compose stack, API and web app are up (the `verify-mojibun` skill does this) and the browser has a Learner session.
+- The Compose stack, API and web app are up (the `verify-ibbun` skill does this) and the browser has a Learner session.
 - A fresh Learner has no Batch Texts, so the page shows "No stories yet." with **Learn a batch**. To exercise the text screen, seed an approved Reading Passage (with Sentences, tokens and `sentence_uses_word` links) and a `progress` Batch Text row for the Learner pointing at it. `/reading/passages/<id>` needs only the passage.
 
 Steps:

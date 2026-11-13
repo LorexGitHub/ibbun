@@ -35,7 +35,7 @@ export default defineConfig({
       : []),
   ],
   webServer: [
-    { command: "pnpm --filter @mojibun/api start", url: `${API}/api/health`, reuseExistingServer: !process.env.CI },
-    { command: "pnpm --filter @mojibun/web dev --port 5173 --strictPort", url: WEB, reuseExistingServer: !process.env.CI },
+    { command: "pnpm --filter @ibbun/api start", url: `${API}/api/health`, reuseExistingServer: !process.env.CI },
+    { command: "pnpm --filter @ibbun/web dev --port 5173 --strictPort", url: WEB, reuseExistingServer: !process.env.CI },
   ],
 });

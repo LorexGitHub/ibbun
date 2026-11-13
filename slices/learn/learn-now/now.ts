@@ -1,5 +1,5 @@
-import type { LearningPath } from "@mojibun/learning-path";
-import { StudyItemId } from "@mojibun/shared";
+import type { LearningPath } from "@ibbun/learning-path";
+import { StudyItemId } from "@ibbun/shared";
 import type { Refusal } from "../server/actions.ts";
 import type { Teacher } from "../server/teach.ts";
 

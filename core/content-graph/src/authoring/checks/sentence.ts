@@ -1,4 +1,4 @@
-import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
+import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
 import { matchRule, type MatcherRule, type Span } from "./matcher.ts";
 import { fail, isContent, withinLevel, type CheckedSentence, type Failure, type Level } from "./types.ts";
 

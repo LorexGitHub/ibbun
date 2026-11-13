@@ -1,6 +1,6 @@
-import type { ContentGraph, ReadingPassage, Token, Word } from "@mojibun/content-graph";
-import { showsFurigana, type FuriganaSetting, type Mastery } from "@mojibun/progress";
-import { JLPT_LEVELS, type StudyItemId } from "@mojibun/shared";
+import type { ContentGraph, ReadingPassage, Token, Word } from "@ibbun/content-graph";
+import { showsFurigana, type FuriganaSetting, type Mastery } from "@ibbun/progress";
+import { JLPT_LEVELS, type StudyItemId } from "@ibbun/shared";
 import type { LookupView, Run, SentenceView, TextView } from "../contract.ts";
 
 const HAS_KANJI = /[㐀-鿿々]/u;

@@ -1,4 +1,4 @@
-import { grade, type AnswerData, type GradeResult } from "@mojibun/content-graph/grade";
+import { grade, type AnswerData, type GradeResult } from "@ibbun/content-graph/grade";
 import type { QuizPrompt } from "../contract.ts";
 
 export type PromptFacet = QuizPrompt["facets"][number];

@@ -12,7 +12,7 @@ describe("Layout", () => {
         <h1>Today</h1>
       </Layout>,
     );
-    const home = screen.getByRole("link", { name: "mojibun" });
+    const home = screen.getByRole("link", { name: "ibbun" });
     expect(home.getAttribute("href")).toBe("/");
     expect(home.textContent).toBe("");
     expect(container.querySelector(".nav-links")!.textContent).toBe("Reviews");
@@ -90,7 +90,7 @@ describe("ThemePicker", () => {
     fireEvent.click(screen.getByRole("radio", { name: "Dark" }));
     expect(document.documentElement.dataset.palette).toBe("ai");
     expect(document.documentElement.dataset.mode).toBe("dark");
-    expect(JSON.parse(localStorage.getItem("mojibun.theme")!)).toEqual({ palette: "ai", mode: "dark" });
+    expect(JSON.parse(localStorage.getItem("ibbun.theme")!)).toEqual({ palette: "ai", mode: "dark" });
     expect(screen.getByRole("radio", { name: /^Ai/ }).getAttribute("aria-checked")).toBe("true");
     expect(screen.getByRole("radio", { name: /^Shu/ }).getAttribute("aria-checked")).toBe("false");
   });
@@ -99,7 +99,7 @@ describe("ThemePicker", () => {
     render(<ThemePicker />);
     fireEvent.click(screen.getByRole("radio", { name: "Match my device" }));
     expect(["light", "dark"]).toContain(document.documentElement.dataset.mode);
-    expect(JSON.parse(localStorage.getItem("mojibun.theme")!).mode).toBe("system");
+    expect(JSON.parse(localStorage.getItem("ibbun.theme")!).mode).toBe("system");
   });
 });
 

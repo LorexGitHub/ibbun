@@ -166,10 +166,10 @@ importers:
 
   .:
     devDependencies:
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:platform/jobs
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:platform/slice
       '@playwright/test':
@@ -208,16 +208,16 @@ importers:
       '@hono/node-server':
         specifier: ^1.19.0
         version: 1.19.18(hono@4.13.16)
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/learner':
+      '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
-      '@mojibun/mail':
+      '@ibbun/mail':
         specifier: workspace:*
         version: link:../../platform/mail
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
       hono:
@@ -230,13 +230,13 @@ importers:
 
   apps/web:
     dependencies:
-      '@mojibun/learner':
+      '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       '@number-flow/react':
@@ -306,13 +306,13 @@ importers:
 
   apps/worker:
     dependencies:
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
     devDependencies:
@@ -322,13 +322,13 @@ importers:
 
   core/content-graph:
     dependencies:
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
       drizzle-orm:
@@ -344,16 +344,16 @@ importers:
 
   core/learner:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/mail':
+      '@ibbun/mail':
         specifier: workspace:*
         version: link:../../platform/mail
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
       '@node-rs/argon2':
@@ -375,16 +375,16 @@ importers:
 
   core/learning-path:
     dependencies:
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../content-graph
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
       drizzle-orm:
@@ -400,10 +400,10 @@ importers:
 
   core/progress:
     dependencies:
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
       drizzle-orm:
@@ -422,7 +422,7 @@ importers:
 
   platform/auth:
     dependencies:
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../shared
       hono:
@@ -460,7 +460,7 @@ importers:
         specifier: ^4.1.0
         version: 4.6.7
     devDependencies:
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../db
       '@types/node':
@@ -517,13 +517,13 @@ importers:
 
   platform/slice:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../auth
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../db
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:../jobs
       react:
@@ -552,7 +552,7 @@ importers:
 
   platform/ui:
     dependencies:
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../shared
       wanakana:
@@ -580,13 +580,13 @@ importers:
 
   slices/account:
     dependencies:
-      '@mojibun/learner':
+      '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       react:
@@ -611,25 +611,25 @@ importers:
 
   slices/browse:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/learning-path':
+      '@ibbun/learning-path':
         specifier: workspace:*
         version: link:../../core/learning-path
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       hono:
@@ -663,40 +663,40 @@ importers:
 
   slices/content-approval:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
-      '@mojibun/learner':
+      '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
-      '@mojibun/llm':
+      '@ibbun/llm':
         specifier: workspace:*
         version: link:../../platform/llm
-      '@mojibun/mail':
+      '@ibbun/mail':
         specifier: workspace:*
         version: link:../../platform/mail
-      '@mojibun/nlp':
+      '@ibbun/nlp':
         specifier: workspace:*
         version: link:../../platform/nlp
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       drizzle-orm:
@@ -727,28 +727,28 @@ importers:
 
   slices/content-generation:
     dependencies:
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
-      '@mojibun/llm':
+      '@ibbun/llm':
         specifier: workspace:*
         version: link:../../platform/llm
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/tts':
+      '@ibbun/tts':
         specifier: workspace:*
         version: link:../../platform/tts
       zod:
@@ -761,22 +761,22 @@ importers:
 
   slices/cram:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       hono:
@@ -789,7 +789,7 @@ importers:
         specifier: ^4.1.0
         version: 4.6.7
     devDependencies:
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
       '@testing-library/react':
@@ -807,16 +807,16 @@ importers:
 
   slices/credits:
     dependencies:
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       hono:
@@ -841,28 +841,28 @@ importers:
 
   slices/dashboard:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/learner':
+      '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       '@number-flow/react':
@@ -899,28 +899,28 @@ importers:
 
   slices/import:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
-      '@mojibun/nlp':
+      '@ibbun/nlp':
         specifier: workspace:*
         version: link:../../platform/nlp
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       drizzle-orm:
@@ -954,31 +954,31 @@ importers:
 
   slices/learn:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
-      '@mojibun/learner':
+      '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
-      '@mojibun/learning-path':
+      '@ibbun/learning-path':
         specifier: workspace:*
         version: link:../../core/learning-path
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       hono:
@@ -1012,34 +1012,34 @@ importers:
 
   slices/listening:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
-      '@mojibun/learner':
+      '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
-      '@mojibun/mail':
+      '@ibbun/mail':
         specifier: workspace:*
         version: link:../../platform/mail
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       hono:
@@ -1067,25 +1067,25 @@ importers:
 
   slices/placement:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       hono:
@@ -1116,34 +1116,34 @@ importers:
 
   slices/reading:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/db':
+      '@ibbun/db':
         specifier: workspace:*
         version: link:../../platform/db
-      '@mojibun/jobs':
+      '@ibbun/jobs':
         specifier: workspace:*
         version: link:../../platform/jobs
-      '@mojibun/learner':
+      '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
-      '@mojibun/mail':
+      '@ibbun/mail':
         specifier: workspace:*
         version: link:../../platform/mail
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       hono:
@@ -1180,25 +1180,25 @@ importers:
 
   slices/reviews:
     dependencies:
-      '@mojibun/auth':
+      '@ibbun/auth':
         specifier: workspace:*
         version: link:../../platform/auth
-      '@mojibun/content-graph':
+      '@ibbun/content-graph':
         specifier: workspace:*
         version: link:../../core/content-graph
-      '@mojibun/learner':
+      '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
-      '@mojibun/progress':
+      '@ibbun/progress':
         specifier: workspace:*
         version: link:../../core/progress
-      '@mojibun/shared':
+      '@ibbun/shared':
         specifier: workspace:*
         version: link:../../platform/shared
-      '@mojibun/slice':
+      '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
-      '@mojibun/ui':
+      '@ibbun/ui':
         specifier: workspace:*
         version: link:../../platform/ui
       hono:

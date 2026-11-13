@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/progress",
+  "name": "@ibbun/progress",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,8 +8,8 @@
     "./testing": "./src/testing.ts"
   },
   "dependencies": {
-    "@mojibun/db": "workspace:*",
-    "@mojibun/shared": "workspace:*",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/shared": "workspace:*",
     "drizzle-orm": "^0.44.0",
     "ts-fsrs": "5.4.2",
     "zod": "^4.1.0"

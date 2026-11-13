@@ -1,4 +1,4 @@
-import type { WebRoute, Widget } from "@mojibun/slice";
+import type { WebRoute, Widget } from "@ibbun/slice";
 import { ForgotPassword, Login, ResetPassword, SignUp } from "./auth-screens.tsx";
 import { Settings } from "./settings.tsx";
 import { TryReview } from "./try.tsx";

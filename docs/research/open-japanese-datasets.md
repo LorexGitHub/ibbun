@@ -20,7 +20,7 @@ Researched 2026-10-30/31. Counts marked "measured" come from files downloaded on
 | **yomitan-jlpt-vocab** (stephenmk) | Waller's vocab lists **mapped to JMdict entry IDs**, with spelling fixes | Yomitan dictionary zip (JSON) | Waller's lists | Occasional | CC BY-SA 4.0 | Attribution, ShareAlike. |
 | **open-anki-jlpt-decks** | Waller-derived vocab decks, edited | CSV → apkg | — | Occasional | MIT for the repo (but data originates from CC BY Tanos) | Credit Waller as upstream. |
 | **hanabira.org-japanese-content** | **Grammar Points N5–N1** with title, short and long explanation, formation, example Sentences (jp/romaji/en) | JSON + Markdown | 828 grammar points: N5 136, N4 124, N3 132, N2 191, N1 245 (measured) | Active (last push 2026-09-24) | CC BY 4.0 | Attribution **with a link to https://hanabira.org**. No ShareAlike. |
-| **Tae Kim's Guide to Learning Japanese** | Grammar explanations (not JLPT-tagged) | HTML/PDF | ~one book | Static | CC BY-NC-SA (version unconfirmed) | **NonCommercial**. Avoid it if mojibun might ever charge. |
+| **Tae Kim's Guide to Learning Japanese** | Grammar explanations (not JLPT-tagged) | HTML/PDF | ~one book | Static | CC BY-NC-SA (version unconfirmed) | **NonCommercial**. Avoid it if ibbun might ever charge. |
 | **Kanjium** | Pitch accent for 124,137 words; kanji data | SQLite + text | — | Last push 2026-10-03 | CC BY-SA 4.0 for "everything*" | Attribution, ShareAlike. Upstream origin of the pitch data is **unclear**. |
 | **BCCWJ word frequency list** (NINJAL) | Word frequency in a 104M-word balanced written corpus | Zipped TSV | — | Static | "Free for use for research or educational purposes". No open licence. | **Commercial use unclear.** Ask NINJAL. |
 | **FrequencyWords** (hermitdave) | Frequency lists from OpenSubtitles | Text | — | Static (2016/2018) | CC BY-SA 4.0 (content), MIT (code) | Attribution, ShareAlike. Japanese tokenisation quality unverified. |
@@ -116,7 +116,7 @@ Sources: https://tatoeba.org/en/terms_of_use, https://tatoeba.org/en/downloads, 
 6. **Commercially clean frequency.** BCCWJ terms are unclear. The open alternatives are ShareAlike or newspaper-biased.
 7. **Pitch accent** has uncertain upstream provenance.
 
-## Implications for mojibun
+## Implications for ibbun
 
 ### Attribution conflicts with hidden Provenance
 The CONTEXT.md decision ("Provenance … recorded internally, never shown to a Learner") **cannot hold as stated** if we use these datasets:
@@ -132,7 +132,7 @@ Suggested reconciliation for the supervisor: keep **Provenance** as the internal
 - **Our derived database.** CC 4.0 licences cover sui generis database rights (§4). If we extract a substantial part of JMdict into our Postgres tables, those tables are Adapted Material whenever we Share them. We are not required to publish a dump. But we may not add terms or technical measures that stop people reusing the BY-SA content we display (§2(a)(5)(C), no downstream restrictions). Our terms of service must not claim exclusive rights over it.
 - **Generated content.** Content we write or generate independently (our own Grammar Point explanations, generated Sentences, TTS audio) is not Adapted Material if it does not adapt BY-SA content. We can license it however we like, and it can sit next to BY-SA data as a Collection. Where it is derived from BY-SA material (for example an LLM rewrite of JMdict glosses, or a Sentence edited from a CC BY-SA source), it inherits BY-SA. Keeping Provenance per record makes this boundary auditable. That is a strong reason to keep the field even though it is hidden.
 - **Closed-source app.** Yes. The licences apply to the data, not to our TypeScript code. jmdict-simplified's npm packages are MIT. The only ShareAlike code is jmdict-simplified's own repo source (CC BY-SA 4.0), and we only need its released data. AGPL does not apply (hanabira's code is MIT and we would not use it anyway).
-- **NonCommercial sources must be excluded** if mojibun may ever charge: Tae Kim's Guide, CC BY-NC Tatoeba audio, and BCCWJ (unclear).
+- **NonCommercial sources must be excluded** if ibbun may ever charge: Tae Kim's Guide, CC BY-NC Tatoeba audio, and BCCWJ (unclear).
 
 ### Operational obligations
 - **Monthly refresh** of EDRDG data (licence condition for web dictionary servers). jmdict-simplified's weekly releases make an automated monthly re-import easy. Plan for entry IDs changing and being merged.

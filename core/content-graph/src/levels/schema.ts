@@ -1,5 +1,5 @@
 import { integer, text, uuid } from "drizzle-orm/pg-core";
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 import { contentGraph } from "../schema.ts";
 
 export const LEVELLED_TABLES = ["study_item", "sentence", "reading_passage", "listening_clip"] as const;

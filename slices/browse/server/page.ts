@@ -1,4 +1,4 @@
-import type { Attribution, Example as CoreExample, StudyItem, StudyItemLink, StudyItemPage, StudyItemSummary } from "@mojibun/content-graph";
+import type { Attribution, Example as CoreExample, StudyItem, StudyItemLink, StudyItemPage, StudyItemSummary } from "@ibbun/content-graph";
 import type { Credit, Detail, Example, ItemPage, Related, Summary } from "../contract.ts";
 
 /** Only credits whose licence asks for one beside the content; the rest go on the Credits page. */

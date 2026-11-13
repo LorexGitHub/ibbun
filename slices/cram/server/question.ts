@@ -1,5 +1,5 @@
-import type { AnswerData, JapaneseAnswerData, MeaningAnswerData } from "@mojibun/content-graph/grade";
-import type { Example, Kanji, StudyItem, StudyItemPage } from "@mojibun/content-graph";
+import type { AnswerData, JapaneseAnswerData, MeaningAnswerData } from "@ibbun/content-graph/grade";
+import type { Example, Kanji, StudyItem, StudyItemPage } from "@ibbun/content-graph";
 import { CramType, type FacetName, type Question, type QuestionFacet } from "../contract.ts";
 
 const japanese = (example: Example): JapaneseAnswerData => ({

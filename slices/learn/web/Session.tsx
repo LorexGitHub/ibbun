@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SessionCount } from "@mojibun/ui";
+import { SessionCount } from "@ibbun/ui";
 import type { Batch, QuizAnswer } from "../contract.ts";
 import { ClipLessonCard } from "../listening/web/ClipLessonCard.tsx";
 import { isOver, quizOf, sentenceFirst, tallyOf, type Tally } from "./batch-view.ts";

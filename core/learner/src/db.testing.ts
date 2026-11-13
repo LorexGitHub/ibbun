@@ -1,8 +1,8 @@
 import { resolve } from "node:path";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll } from "vitest";
-import { collectMigrations, createDb, migrate, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { collectMigrations, createDb, migrate, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 
 /**
  * A fresh database with this package's tables for the calling test file, in Tokyo time:

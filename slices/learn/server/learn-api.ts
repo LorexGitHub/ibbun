@@ -1,12 +1,12 @@
 import { Hono } from "hono";
-import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { ContentGraph } from "@mojibun/content-graph";
-import { BatchTextGenerate } from "@mojibun/content-graph/jobs";
-import type { Jobs } from "@mojibun/jobs";
-import type { Learners } from "@mojibun/learner";
-import type { LearningPath } from "@mojibun/learning-path";
-import type { Progress, Texts } from "@mojibun/progress";
-import { JlptLevel, type LearnerId, type StudyItemId } from "@mojibun/shared";
+import { createAuthGuards, type AuthEnv, type SessionResolver } from "@ibbun/auth";
+import type { ContentGraph } from "@ibbun/content-graph";
+import { BatchTextGenerate } from "@ibbun/content-graph/jobs";
+import type { Jobs } from "@ibbun/jobs";
+import type { Learners } from "@ibbun/learner";
+import type { LearningPath } from "@ibbun/learning-path";
+import type { Progress, Texts } from "@ibbun/progress";
+import { JlptLevel, type LearnerId, type StudyItemId } from "@ibbun/shared";
 import {
   BATCH_TEXT_LIMIT_24H,
   BatchTextRequest,

@@ -1,4 +1,4 @@
-import type { NavEntry } from "@mojibun/slice";
+import type { NavEntry } from "@ibbun/slice";
 import { describe, expect, it } from "vitest";
 import { dockEntries, doorPath, groups, kanjiAt, levelAt, levelPath, LEVELS, sessionAt, takesLevel, visibleTo, welcomeEntries, type Who } from "./places.ts";
 

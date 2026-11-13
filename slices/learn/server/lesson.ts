@@ -1,4 +1,4 @@
-import type { Example, GrammarPoint, Kanji, Word } from "@mojibun/content-graph";
+import type { Example, GrammarPoint, Kanji, Word } from "@ibbun/content-graph";
 import type { Lesson } from "../contract.ts";
 import type { TaughtPage } from "./prompt.ts";
 

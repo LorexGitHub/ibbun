@@ -21,7 +21,7 @@ The Today screen a Learner lands on at `/`. In the Ma look (ADR 0014) it shows t
 
 Preconditions:
 
-- Baseline, plus a verified Learner logged in (account slice) and the N5 fixture graph loaded: `DATABASE_URL=<verify db url> pnpm --filter @mojibun/content-graph seed:fixture`.
+- Baseline, plus a verified Learner logged in (account slice) and the N5 fixture graph loaded: `DATABASE_URL=<verify db url> pnpm --filter @ibbun/content-graph seed:fixture`.
 - To see non-zero figures the Learner needs Reviews. Until the Learn and Reviews slices exist, add them in `psql` through `progress.reviews`, and say so in the evidence.
 
 - **Empty day.** Open `/`. `verify.sh shot / dashboard/empty`. The number reads 0 under the time-of-day greeting, the line reads "Nothing waits for you today.", "Learn 5 new" is the accent button, and "Your way up to N1" lists N5 first with "0% · 30 items" and N4 to N1 "not started".

@@ -1,4 +1,4 @@
-import type { WebRoute, Widget } from "@mojibun/slice";
+import type { WebRoute, Widget } from "@ibbun/slice";
 import { LevelScreen } from "./level.tsx";
 import { TodayWidget } from "./today.tsx";
 

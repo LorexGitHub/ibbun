@@ -1,9 +1,9 @@
 import { z } from "zod";
-import type { Authoring, GenerationRequest } from "@mojibun/content-graph/authoring";
-import type { Jobs } from "@mojibun/jobs";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import type { PracticeText, Texts } from "@mojibun/progress";
-import { LearnerId } from "@mojibun/shared";
+import type { Authoring, GenerationRequest } from "@ibbun/content-graph/authoring";
+import type { Jobs } from "@ibbun/jobs";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import type { PracticeText, Texts } from "@ibbun/progress";
+import { LearnerId } from "@ibbun/shared";
 import { definePlan, type Kind, type Services } from "../kind.ts";
 import { factsOf, subjects, writePassageDraft, type PassageDraft } from "../passage/draft.ts";
 import { reasonCodec } from "../passage/reason.ts";

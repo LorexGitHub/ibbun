@@ -1,7 +1,7 @@
 import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { buttonClass, openGoTo } from "@mojibun/ui";
+import { buttonClass, openGoTo } from "@ibbun/ui";
 import { Today } from "../contract.ts";
 import { levelHref } from "./doors.ts";
 import { levelNote, pathRows } from "./path.ts";

@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ActiveSession, LearnerClient, Preferences, Result } from "@mojibun/learner/client";
+import type { ActiveSession, LearnerClient, Preferences, Result } from "@ibbun/learner/client";
 import { ClientContext } from "../web/client.ts";
 import { routes, widgets } from "../web/index.ts";
 

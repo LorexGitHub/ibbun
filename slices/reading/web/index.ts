@@ -1,4 +1,4 @@
-import type { WebPart } from "@mojibun/slice";
+import type { WebPart } from "@ibbun/slice";
 import { PracticeScreen, PracticeTextScreen } from "../practice/web/PracticeScreens.tsx";
 import { BatchTextScreen, EpisodesScreen, PassageScreen } from "./screens.tsx";
 

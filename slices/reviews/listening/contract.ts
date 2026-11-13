@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 
 /** The wire shapes of scheduled Listening Clip Reviews, shared by the web screens and the Hono routes. */
 

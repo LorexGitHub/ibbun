@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JlptLevel, StudyItemId } from "@mojibun/shared";
+import { JlptLevel, StudyItemId } from "@ibbun/shared";
 
 export { JlptLevel };
 

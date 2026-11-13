@@ -1,4 +1,4 @@
-import type { Authoring, Counts, Dataset, Records, SnapshotReport } from "@mojibun/content-graph/authoring";
+import type { Authoring, Counts, Dataset, Records, SnapshotReport } from "@ibbun/content-graph/authoring";
 import { diff, type Diff } from "./diff.ts";
 import type { RawFiles } from "./raw-files.ts";
 import { checksum, type Source } from "./source.ts";

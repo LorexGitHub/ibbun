@@ -1,9 +1,9 @@
-import { BatchTextGenerate, ContentGenerate, ContentReview, PracticeGenerate } from "@mojibun/content-graph/jobs";
-import type { Authoring, GenerationRequest } from "@mojibun/content-graph/authoring";
-import { handler, type JobHandler, type Jobs } from "@mojibun/jobs";
-import { LlmError, type Llm } from "@mojibun/llm";
-import type { Progress, Texts } from "@mojibun/progress";
-import type { LearnerId } from "@mojibun/shared";
+import { BatchTextGenerate, ContentGenerate, ContentReview, PracticeGenerate } from "@ibbun/content-graph/jobs";
+import type { Authoring, GenerationRequest } from "@ibbun/content-graph/authoring";
+import { handler, type JobHandler, type Jobs } from "@ibbun/jobs";
+import { LlmError, type Llm } from "@ibbun/llm";
+import type { Progress, Texts } from "@ibbun/progress";
+import type { LearnerId } from "@ibbun/shared";
 import { KINDS } from "../kinds/index.ts";
 import type { Plan } from "../kinds/kind.ts";
 import { reasonOf, type BatchContext } from "../kinds/reading-passage/context.ts";

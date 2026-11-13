@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { matchRule, type Authoring, type MatcherRule, type Row } from "@mojibun/content-graph/authoring";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import { defineJob, handler, type JobHandler, type Jobs } from "@mojibun/jobs";
+import { matchRule, type Authoring, type MatcherRule, type Row } from "@ibbun/content-graph/authoring";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import { defineJob, handler, type JobHandler, type Jobs } from "@ibbun/jobs";
 
 export type MatcherRunsDeps = { authoring: Authoring; jobs: Pick<Jobs, "enqueue"> };
 export type MatcherRunsReport = { proposed: number; requested: number };
@@ -23,7 +23,7 @@ const provenanceFor = async (authoring: Authoring) => {
   const found = (await authoring.rows("provenance")).find(({ source }) => source.kind === "derived" && source.process === PROCESS.name && source.version === PROCESS.version);
   if (found) return found.id;
   const id = randomUUID();
-  await authoring.insert("provenance", [{ id, source: { kind: "derived", process: PROCESS.name, version: PROCESS.version }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] }]);
+  await authoring.insert("provenance", [{ id, source: { kind: "derived", process: PROCESS.name, version: PROCESS.version }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] }]);
   return id;
 };
 

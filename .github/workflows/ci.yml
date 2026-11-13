@@ -38,12 +38,12 @@ jobs:
     services:
       postgres:
         image: postgres:17
-        env: { POSTGRES_USER: mojibun, POSTGRES_PASSWORD: mojibun, POSTGRES_DB: mojibun }
+        env: { POSTGRES_USER: ibbun, POSTGRES_PASSWORD: ibbun, POSTGRES_DB: ibbun }
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U mojibun" --health-interval 5s --health-retries 10
+          --health-cmd "pg_isready -U ibbun" --health-interval 5s --health-retries 10
     env:
-      TEST_DATABASE_URL: postgres://mojibun:mojibun@localhost:5432/mojibun
+      TEST_DATABASE_URL: postgres://ibbun:ibbun@localhost:5432/ibbun
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -58,12 +58,12 @@ jobs:
     services:
       postgres:
         image: postgres:17
-        env: { POSTGRES_USER: mojibun, POSTGRES_PASSWORD: mojibun, POSTGRES_DB: mojibun }
+        env: { POSTGRES_USER: ibbun, POSTGRES_PASSWORD: ibbun, POSTGRES_DB: ibbun }
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U mojibun" --health-interval 5s --health-retries 10
+          --health-cmd "pg_isready -U ibbun" --health-interval 5s --health-retries 10
     env:
-      TEST_DATABASE_URL: postgres://mojibun:mojibun@localhost:5432/mojibun
+      TEST_DATABASE_URL: postgres://ibbun:ibbun@localhost:5432/ibbun
     steps:
       - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
@@ -121,7 +121,7 @@ jobs:
     name: playwright
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgres://mojibun:mojibun@localhost:5432/mojibun
+      DATABASE_URL: postgres://ibbun:ibbun@localhost:5432/ibbun
       APP_URL: http://localhost:5173
       AUTH_SECRET: ci-only-secret-0123456789abcdefghijklmnop
       SEED_LEARNER_PASSWORD: learner-password
@@ -136,8 +136,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm db:migrate
-      - run: pnpm --filter @mojibun/learner seed
-      - run: pnpm --filter @mojibun/content-graph seed:fixture
+      - run: pnpm --filter @ibbun/learner seed
+      - run: pnpm --filter @ibbun/content-graph seed:fixture
       - run: pnpm e2e
       - uses: actions/upload-artifact@v4
         if: failure()

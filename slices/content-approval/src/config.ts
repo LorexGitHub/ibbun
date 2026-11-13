@@ -1,4 +1,4 @@
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 
 /** The numbers the checks and the reviewer's outcome use (docs/content-approval.md). */
 export type ApprovalConfig = {

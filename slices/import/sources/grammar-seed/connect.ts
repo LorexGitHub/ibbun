@@ -1,7 +1,7 @@
-import { createAuthoring } from "@mojibun/content-graph/authoring";
-import { transaction, type Db } from "@mojibun/db";
-import { createPgBossJobs } from "@mojibun/jobs";
-import { createSudachiNlp } from "@mojibun/nlp";
+import { createAuthoring } from "@ibbun/content-graph/authoring";
+import { transaction, type Db } from "@ibbun/db";
+import { createPgBossJobs } from "@ibbun/jobs";
+import { createSudachiNlp } from "@ibbun/nlp";
 import type { GrammarSeedDeps } from "./index.ts";
 
 const required = (env: Record<string, string | undefined>, name: string): string => {

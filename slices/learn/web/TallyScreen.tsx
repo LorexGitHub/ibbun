@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, buttonClass, Pill } from "@mojibun/ui";
+import { Button, buttonClass, Pill } from "@ibbun/ui";
 import type { Batch } from "../contract.ts";
 import type { Tally } from "./batch-view.ts";
 import type { LearnApi } from "./learn-client.ts";

@@ -1,9 +1,9 @@
 import { useSyncExternalStore, type MouseEvent } from "react";
-import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
+import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
 
 // A door opened for one level carries it in its address as `?level=n3`. It is never stored: leaving the screen drops it.
 const PARAM = "level";
-const CHANGED = "mojibun:level-filter";
+const CHANGED = "ibbun:level-filter";
 
 /** The level an address's query names, if it names one. */
 export const levelIn = (search: string): JlptLevel | undefined => {

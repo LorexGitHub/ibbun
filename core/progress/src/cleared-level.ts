@@ -1,4 +1,4 @@
-import type { StudyItemId } from "@mojibun/shared";
+import type { StudyItemId } from "@ibbun/shared";
 
 /**
  * A JLPT Level is cleared when every levelled Kanji of it is Known (listening.md#cleared-level).

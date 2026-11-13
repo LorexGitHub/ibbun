@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { Button, ThemePicker } from "@mojibun/ui";
-import type { ActiveSession, CurrentLearner } from "@mojibun/learner/client";
+import { Button, ThemePicker } from "@ibbun/ui";
+import type { ActiveSession, CurrentLearner } from "@ibbun/learner/client";
 import { useClient } from "./client.ts";
 import { Field, Form, Notice, useOutcome } from "./form.tsx";
 import { PreferencesSection } from "./preferences.tsx";

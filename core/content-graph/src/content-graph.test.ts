@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { StudyItemId } from "@mojibun/shared";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import type { StudyItemId } from "@ibbun/shared";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { createContentGraph, type ContentGraph } from "./index.ts";
 import { createFakeContentGraph, migrateContentGraph, seedContentGraph, type Graph } from "./testing.ts";
 import { fixture } from "./tests/fixture.ts";

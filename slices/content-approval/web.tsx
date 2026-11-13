@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, Pill } from "@mojibun/ui";
+import { Button, Card, Pill } from "@ibbun/ui";
 import { SpotChecksRoute } from "./sampling/spot-checks.tsx";
 
 export type Lane = "supervisor" | "reviewer";

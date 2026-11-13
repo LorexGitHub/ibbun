@@ -1,4 +1,4 @@
-import type { DbOrTx } from "@mojibun/db";
+import type { DbOrTx } from "@ibbun/db";
 import { authoring, type Authoring, type Clock } from "./authoring.ts";
 import { postgresStore } from "./store.ts";
 

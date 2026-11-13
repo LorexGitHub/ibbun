@@ -1,4 +1,4 @@
-import type { JlptLevel, StudyItemId } from "@mojibun/shared";
+import type { JlptLevel, StudyItemId } from "@ibbun/shared";
 import type { Graph } from "./graph.ts";
 import { currentLevel } from "./levels/levels.ts";
 import { creditsOf, licensing, recordProvenance, type Attribution, type CreditsEntry } from "./licensing.ts";

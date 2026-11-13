@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { buttonClass, Card } from "@mojibun/ui";
+import { buttonClass, Card } from "@ibbun/ui";
 import type { Episode, EpisodeLists, TextLevel } from "../contract.ts";
 import "./reading.css";
 

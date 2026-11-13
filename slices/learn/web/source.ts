@@ -1,4 +1,4 @@
-import { JLPT_LEVELS } from "@mojibun/shared";
+import { JLPT_LEVELS } from "@ibbun/shared";
 import type { Track } from "../contract.ts";
 
 export const SOURCE_LEVELS = [...JLPT_LEVELS, "unlevelled"] as const;

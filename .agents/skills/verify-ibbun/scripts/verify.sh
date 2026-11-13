@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# verify-mojibun helper. Usage: verify.sh up|doctor|down|shot <route> <name>
+# verify-ibbun helper. Usage: verify.sh up|doctor|down|shot <route> <name>
 # Run from anywhere inside the repo. State and evidence live in target/verify/.
 set -euo pipefail
 ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT"
 OUT=target/verify
 RUN=$OUT/run
-PROJECT=mojibun-verify
+PROJECT=ibbun-verify
 API_PORT=${API_PORT:-3000}
 WEB=http://localhost:5173
-export API_PORT DATABASE_URL=${DATABASE_URL:-postgres://mojibun:mojibun@localhost:5432/mojibun}
+export API_PORT DATABASE_URL=${DATABASE_URL:-postgres://ibbun:ibbun@localhost:5432/ibbun}
 # The account slice's auth config and the dev accounts the seed creates (accounts.md#testing).
 export APP_URL=${APP_URL:-http://localhost:5173}
 export AUTH_SECRET=${AUTH_SECRET:-verify-only-secret-0123456789abcdefghij}
@@ -34,9 +34,9 @@ up() {
   pnpm install --frozen-lockfile >"$RUN/install.log" 2>&1
   pnpm gen >/dev/null
   pnpm db:migrate >"$RUN/migrate.log" 2>&1
-  pnpm --filter @mojibun/learner seed >"$RUN/seed.log" 2>&1
-  nohup pnpm --filter @mojibun/api start >"$RUN/api.log" 2>&1 & echo $! >"$RUN/api.pid"
-  nohup pnpm --filter @mojibun/web dev --port 5173 --strictPort >"$RUN/web.log" 2>&1 & echo $! >"$RUN/web.pid"
+  pnpm --filter @ibbun/learner seed >"$RUN/seed.log" 2>&1
+  nohup pnpm --filter @ibbun/api start >"$RUN/api.log" 2>&1 & echo $! >"$RUN/api.pid"
+  nohup pnpm --filter @ibbun/web dev --port 5173 --strictPort >"$RUN/web.log" 2>&1 & echo $! >"$RUN/web.pid"
   wait_http "http://localhost:$API_PORT/api/health" 60
   wait_http "$WEB/api/health" 60
   echo "ready: web $WEB  api http://localhost:$API_PORT  mail http://localhost:8025"

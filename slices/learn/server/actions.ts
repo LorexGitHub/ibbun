@@ -1,5 +1,5 @@
-import type { Progress } from "@mojibun/progress";
-import type { LearnerId, StudyItemId } from "@mojibun/shared";
+import type { Progress } from "@ibbun/progress";
+import type { LearnerId, StudyItemId } from "@ibbun/shared";
 import { CompleteRequest, SkipRequest } from "../contract.ts";
 import { gradeQuiz, recordQuiz, type Refusal } from "./complete.ts";
 import type { Teacher } from "./teach.ts";

@@ -1,4 +1,4 @@
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 import { CHARACTERS_PER_EARLIER_ITEM, LENGTHS, PASSAGE_TYPES, UNLEVELLED_BAND_SIZE, UNLEVELLED_BANDS } from "./config.ts";
 
 export type BatchLevel = JlptLevel | "unlevelled";

@@ -1,5 +1,5 @@
-import type { Review } from "@mojibun/progress";
-import type { StudyItemId } from "@mojibun/shared";
+import type { Review } from "@ibbun/progress";
+import type { StudyItemId } from "@ibbun/shared";
 
 /** A Ghost comes after the session that missed it, not inside it. */
 export const GHOST_AFTER_MS = 60 * 60_000;

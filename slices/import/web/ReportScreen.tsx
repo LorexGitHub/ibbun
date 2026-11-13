@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Pill } from "@mojibun/ui";
+import { Card, Pill } from "@ibbun/ui";
 import { RunsResponse, type RunReport } from "../contract.ts";
 
 const COUNT_LABELS: [string, string][] = [

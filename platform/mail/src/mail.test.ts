@@ -71,10 +71,10 @@ describe("smtp mail", () => {
   afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
 
   it("delivers the rendered template to the recipient from the configured sender", async () => {
-    const mail: Mail = createSmtpMail({ url: `smtp://127.0.0.1:${port}`, from: "mojibun <noreply@mojibun.test>" });
+    const mail: Mail = createSmtpMail({ url: `smtp://127.0.0.1:${port}`, from: "ibbun <noreply@ibbun.test>" });
     await mail.send(every[0]!);
     expect(received).toHaveLength(1);
-    expect(received[0]!.from).toBe("noreply@mojibun.test");
+    expect(received[0]!.from).toBe("noreply@ibbun.test");
     expect(received[0]!.to).toEqual(["a@x.test"]);
     expect(received[0]!.raw).toContain(`Subject: ${render(every[0]!).subject}`);
     expect(quotedPrintableBody(received[0]!.raw)).toContain(render(every[0]!).text);

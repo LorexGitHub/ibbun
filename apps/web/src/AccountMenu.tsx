@@ -1,4 +1,4 @@
-import type { NavEntry } from "@mojibun/slice";
+import type { NavEntry } from "@ibbun/slice";
 import { Link, useNavigate } from "react-router";
 import {
   DropdownMenu,

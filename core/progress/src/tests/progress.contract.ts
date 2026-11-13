@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import type { Progress } from "../progress.ts";
 import type { NewReview } from "../review.ts";
 

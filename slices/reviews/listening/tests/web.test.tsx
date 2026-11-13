@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { ClipAnswerRequest, ClipAnswerResponse, ClipReview } from "../contract.ts";
 import { answerClip, loadDueClips } from "../web/clip-reviews-client.ts";
 import { ListeningReviews } from "../web/ListeningReviews.tsx";

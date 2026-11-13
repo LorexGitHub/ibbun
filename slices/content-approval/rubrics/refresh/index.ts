@@ -1,5 +1,5 @@
-import type { Authoring, Decider, DecisionOutcome, QueueEntry, QueueReason, Row } from "@mojibun/content-graph/authoring";
-import type { Llm } from "@mojibun/llm";
+import type { Authoring, Decider, DecisionOutcome, QueueEntry, QueueReason, Row } from "@ibbun/content-graph/authoring";
+import type { Llm } from "@ibbun/llm";
 import { levelOf } from "../../src/checks.ts";
 import type { ApprovalConfig } from "../../src/config.ts";
 import { exampleDraft, type Rec } from "../../src/drafts.ts";

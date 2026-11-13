@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Link, MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { ItemPage, Tile } from "../contract.ts";
 import slice from "../register.ts";
 import { BrowseView, type BrowseViewProps } from "../web/BrowseView.tsx";

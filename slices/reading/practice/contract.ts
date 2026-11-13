@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JlptLevel } from "@mojibun/shared";
+import { JlptLevel } from "@ibbun/shared";
 import { TextView } from "../contract.ts";
 
 export { TextView };

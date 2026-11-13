@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { createFakeContentGraph, n5Fixture } from "@mojibun/content-graph/testing";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import { createFakeContentGraph, n5Fixture } from "@ibbun/content-graph/testing";
+import { createFakeProgress } from "@ibbun/progress/testing";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import { LevelPage } from "../contract.ts";
 import { buildLevel } from "./level.ts";
 

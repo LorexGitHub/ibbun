@@ -1,4 +1,4 @@
-import type { Jobs } from "@mojibun/jobs";
+import type { Jobs } from "@ibbun/jobs";
 
 /** The queue connects on the first enqueue, so the worker, which loads every slice, never needs it for Learn. */
 export const lazyEnqueue = (url: string | undefined, connect: (url: string) => Promise<Jobs>): Pick<Jobs, "enqueue"> => {

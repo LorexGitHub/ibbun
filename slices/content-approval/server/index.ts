@@ -1,13 +1,13 @@
 import { Hono } from "hono";
-import { createAuthoring } from "@mojibun/content-graph/authoring";
-import { ContentReview } from "@mojibun/content-graph/jobs";
-import { createDb } from "@mojibun/db";
-import { createPgBossJobs, handler, type Jobs } from "@mojibun/jobs";
-import { createLearnerAuth, learnerConfigFromEnv } from "@mojibun/learner";
-import { createAnthropicLlm, loadLlmConfig } from "@mojibun/llm";
-import { createSmtpMail } from "@mojibun/mail";
-import { createSudachiNlp } from "@mojibun/nlp";
-import { createProgress } from "@mojibun/progress";
+import { createAuthoring } from "@ibbun/content-graph/authoring";
+import { ContentReview } from "@ibbun/content-graph/jobs";
+import { createDb } from "@ibbun/db";
+import { createPgBossJobs, handler, type Jobs } from "@ibbun/jobs";
+import { createLearnerAuth, learnerConfigFromEnv } from "@ibbun/learner";
+import { createAnthropicLlm, loadLlmConfig } from "@ibbun/llm";
+import { createSmtpMail } from "@ibbun/mail";
+import { createSudachiNlp } from "@ibbun/nlp";
+import { createProgress } from "@ibbun/progress";
 import { createSamplingApi } from "../sampling/api.ts";
 import { DEFAULT_SAMPLING } from "../sampling/config.ts";
 import { createPostgresStore } from "../sampling/postgres.ts";
@@ -47,7 +47,7 @@ const sessions = once(
   () =>
     createLearnerAuth({
       db,
-      mail: createSmtpMail({ url: env.SMTP_URL ?? "smtp://localhost:1025", from: "mojibun <noreply@mojibun.test>" }),
+      mail: createSmtpMail({ url: env.SMTP_URL ?? "smtp://localhost:1025", from: "ibbun <noreply@ibbun.test>" }),
       config: learnerConfigFromEnv(env),
     }).sessions,
 );

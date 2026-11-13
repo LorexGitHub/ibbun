@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { ItemProgress, Mastery } from "@mojibun/progress";
-import type { JlptLevel } from "@mojibun/shared";
-import { StudyItemId } from "@mojibun/shared";
+import type { ItemProgress, Mastery } from "@ibbun/progress";
+import type { JlptLevel } from "@ibbun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import { randomUUID } from "node:crypto";
 import { contextOf, reasonOf } from "./context.ts";
 import { earlierItems, levelProgress } from "./earlier.ts";

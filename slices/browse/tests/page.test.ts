@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Attribution, StudyItemPage } from "@mojibun/content-graph";
-import { StudyItemId } from "@mojibun/shared";
+import type { Attribution, StudyItemPage } from "@ibbun/content-graph";
+import { StudyItemId } from "@ibbun/shared";
 import { creditsOf, itemPageOf } from "../server/page.ts";
 
 const id = StudyItemId.parse("00000058-0000-7000-8000-000000000001");

@@ -1,5 +1,5 @@
-import type { LearnerId } from "@mojibun/shared";
-import type { Role } from "@mojibun/auth";
+import type { LearnerId } from "@ibbun/shared";
+import type { Role } from "@ibbun/auth";
 
 /**
  * An auth event, logged with the Learner ID and IP (accounts.md#security-standards).

@@ -16,7 +16,7 @@ CREATE TABLE provenance (
   source jsonb NOT NULL CHECK (source->>'kind' IN ('import', 'derived', 'generated', 'authored')),
   licence text NOT NULL CHECK (licence IN (
     'edrdg', 'cc-by-sa-4.0', 'cc-by-sa-3.0', 'cc-by-2.0-fr', 'cc-by-4.0', 'cc-by',
-    'bsd-3-clause', 'voicevox', 'cc0', 'mojibun')),
+    'bsd-3-clause', 'voicevox', 'cc0', 'ibbun')),
   author text,
   source_url text,
   inputs uuid[] NOT NULL DEFAULT '{}'

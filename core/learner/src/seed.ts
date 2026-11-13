@@ -1,5 +1,5 @@
-import type { Role } from "@mojibun/auth";
-import type { DbOrTx } from "@mojibun/db";
+import type { Role } from "@ibbun/auth";
+import type { DbOrTx } from "@ibbun/db";
 import { addLearner, normalizeEmail, type Learners } from "./learners.ts";
 import { hashPassword } from "./password.ts";
 
@@ -12,8 +12,8 @@ export type SeedEnv = {
 };
 
 const DEV_ACCOUNTS: { email: string; role: Role; password: keyof SeedEnv }[] = [
-  { email: "learner@mojibun.test", role: "learner", password: "SEED_LEARNER_PASSWORD" },
-  { email: "supervisor@mojibun.test", role: "supervisor", password: "SEED_SUPERVISOR_PASSWORD" },
+  { email: "learner@ibbun.test", role: "learner", password: "SEED_LEARNER_PASSWORD" },
+  { email: "supervisor@ibbun.test", role: "supervisor", password: "SEED_SUPERVISOR_PASSWORD" },
 ];
 
 const seedDevAccounts = async (db: DbOrTx, learners: Learners, env: SeedEnv) => {
@@ -29,7 +29,7 @@ const seedDevAccounts = async (db: DbOrTx, learners: Learners, env: SeedEnv) => 
 };
 
 /**
- * Creates `learner@mojibun.test` and `supervisor@mojibun.test` outside production, and makes
+ * Creates `learner@ibbun.test` and `supervisor@ibbun.test` outside production, and makes
  * SUPERVISOR_EMAIL a Supervisor. Safe to run again. Returns what it did, one line each.
  */
 export const seedAccounts = async (db: DbOrTx, learners: Learners, env: SeedEnv): Promise<string[]> => {
@@ -51,7 +51,7 @@ export const seedAccounts = async (db: DbOrTx, learners: Learners, env: SeedEnv)
   return report;
 };
 
-/** `pnpm --filter @mojibun/learner grant-supervisor <email>`. Logged like every role change. */
+/** `pnpm --filter @ibbun/learner grant-supervisor <email>`. Logged like every role change. */
 export const grantSupervisor = async (learners: Learners, email: string): Promise<void> => {
   const learner = await learners.findByEmail(email);
   if (!learner) throw new Error(`no account for ${normalizeEmail(email)}`);

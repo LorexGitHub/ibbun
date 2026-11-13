@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import type { NavEntry } from "@mojibun/slice";
+import type { NavEntry } from "@ibbun/slice";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";

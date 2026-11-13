@@ -14,7 +14,7 @@ export const LICENCE_TERMS: Record<Licence, LicenceTerms> = {
   "bsd-3-clause": { name: "BSD-3-Clause", shareAlike: false, inline: false, credited: true },
   voicevox: { name: "VOICEVOX voice terms", shareAlike: false, inline: true, credited: true },
   cc0: { name: "CC0", shareAlike: false, inline: false, credited: false },
-  mojibun: { name: "mojibun-owned", shareAlike: false, inline: false, credited: false },
+  ibbun: { name: "ibbun-owned", shareAlike: false, inline: false, credited: false },
 };
 
 export const isLicence = (value: unknown): value is Licence => (LICENCES as readonly unknown[]).includes(value);
@@ -69,7 +69,7 @@ const licenceOfProvenance = (l: Lookup, p: Provenance, seen: Set<string>): Licen
   const path = new Set(seen).add(p.id);
   const inputs = inputsOf(l, p, path).map((input) => licenceOfProvenance(l, input, path));
   if (!inputs.length) return p.licence;
-  return [p.licence, ...inputs].some((licence) => LICENCE_TERMS[licence].shareAlike) ? "cc-by-sa-4.0" : "mojibun";
+  return [p.licence, ...inputs].some((licence) => LICENCE_TERMS[licence].shareAlike) ? "cc-by-sa-4.0" : "ibbun";
 };
 
 const creditsOfProvenance = (l: Lookup, p: Provenance, seen: Set<string>): Credit[] => {
@@ -88,7 +88,7 @@ export const licensing = (graph: Graph, links: Map<string, string> = recordProve
     links,
   };
   return {
-    /** The record's licence: its source's when it has no inputs, else CC BY-SA 4.0 if anything is ShareAlike, else mojibun-owned. */
+    /** The record's licence: its source's when it has no inputs, else CC BY-SA 4.0 if anything is ShareAlike, else ibbun-owned. */
     licenceOf(recordId: string): Licence | null {
       const p = provenanceOf(l, recordId);
       return p ? licenceOfProvenance(l, p, new Set()) : null;

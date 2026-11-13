@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { Batch, QuizPrompt } from "../../contract.ts";
 import { LearnScreen } from "../../web/LearnScreen.tsx";
 import type { LearnApi } from "../../web/learn-client.ts";

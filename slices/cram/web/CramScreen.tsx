@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import { createCramClient, type CramClient } from "./client.ts";
 import { Picker } from "./Picker.tsx";
 import { Practice, type PracticeItem } from "./Practice.tsx";

@@ -1,6 +1,6 @@
 # Content generation and Content Approval
 
-Decided in [#16](https://github.com/LorexGitHub/mojibun/issues/16). Terms follow [CONTEXT.md](../CONTEXT.md). Why the reviewer agent has the final say is in [ADR 0010](adr/0010-reviewer-agent-approves-supervisor-samples.md). The policy comes from [#4](https://github.com/LorexGitHub/mojibun/issues/4): generated content uses the same schema as dataset content, passes automatic checks, is approved by a reviewer agent, and the supervisor spot-checks a sample.
+Decided in [#16](https://github.com/LorexGitHub/ibbun/issues/16). Terms follow [CONTEXT.md](../CONTEXT.md). Why the reviewer agent has the final say is in [ADR 0010](adr/0010-reviewer-agent-approves-supervisor-samples.md). The policy comes from [#4](https://github.com/LorexGitHub/ibbun/issues/4): generated content uses the same schema as dataset content, passes automatic checks, is approved by a reviewer agent, and the supervisor spot-checks a sample.
 
 ## Pipeline
 
@@ -25,8 +25,8 @@ Every Generation Request gets **3 attempts** (config). Each failed check or revi
 
 | Kind | Target | Needed by |
 |---|---|---|
-| Example Sentence | a Word, a levelled Kanji or a Grammar Point | Suspended items ([import-pipeline.md](import-pipeline.md#suspended-study-items)), Kanji Examples ([#18](https://github.com/LorexGitHub/mojibun/issues/18)), Grammar Point top-ups to 5 ([grammar-points.md](grammar-points.md)) |
-| Answer data | an Example: alternates, known wrong answers, hint, comprehension questions | every Example, Tatoeba ones included ([#18](https://github.com/LorexGitHub/mojibun/issues/18)) |
+| Example Sentence | a Word, a levelled Kanji or a Grammar Point | Suspended items ([import-pipeline.md](import-pipeline.md#suspended-study-items)), Kanji Examples ([#18](https://github.com/LorexGitHub/ibbun/issues/18)), Grammar Point top-ups to 5 ([grammar-points.md](grammar-points.md)) |
+| Answer data | an Example: alternates, known wrong answers, hint, comprehension questions | every Example, Tatoeba ones included ([#18](https://github.com/LorexGitHub/ibbun/issues/18)) |
 | Japanese Explanation | a Word sense or Grammar Point | gaps left by ja Wiktionary, and every Grammar Point (#24) |
 | Grammar Point fields and Matcher Rule | a Grammar Point | missing or rejected fields after the seed ([grammar-points.md](grammar-points.md)) |
 | Proposal | hanabira↔Tanos merges, Wiktionary gloss → JMdict sense alignment | the Grammar Point seed and the Japanese Explanation seed |
@@ -75,7 +75,7 @@ Deterministic, run over stored Sudachi tokens before the reviewer sees anything.
 **Sentences** (generated Examples, and each Sentence of a Reading Passage):
 
 1. Every content token links to a JMdict Word.
-2. **Readings.** The generator returns its own kana reading. Where it disagrees with Sudachi, the draft still goes to the reviewer, with both readings shown. Sudachi misreads numbers and counters ([#11](https://github.com/LorexGitHub/mojibun/issues/11)), so a disagreement is not a failure.
+2. **Readings.** The generator returns its own kana reading. Where it disagrees with Sudachi, the draft still goes to the reviewer, with both readings shown. Sudachi misreads numbers and counters ([#11](https://github.com/LorexGitHub/ibbun/issues/11)), so a disagreement is not a failure.
 3. **Level.** The computed level is at or below the target's JLPT Level.
 4. **Unlevelled Words.** None, except at N1, where one is allowed (the target itself may be Unlevelled).
 5. **Target.** It appears exactly once and its span resolves.
@@ -107,9 +107,9 @@ Each content kind has its own rubric, kept as a versioned prompt template in the
 
 ### What it handles
 
-Every content draft, whatever made it: generated content, Tatoeba Examples, hanabira Sentences, Matcher Rule proposals, merge and sense-alignment proposals, `level disagreement`, `stale override`, `orphaned override`, `superseded`, `example redrafted`, `unmatched sense`, and Learner answer flags (`answer flag`, [#18](https://github.com/LorexGitHub/mojibun/issues/18)).
+Every content draft, whatever made it: generated content, Tatoeba Examples, hanabira Sentences, Matcher Rule proposals, merge and sense-alignment proposals, `level disagreement`, `stale override`, `orphaned override`, `superseded`, `example redrafted`, `unmatched sense`, and Learner answer flags (`answer flag`, [#18](https://github.com/LorexGitHub/ibbun/issues/18)).
 
-These reasons are operational and always go straight to the supervisor: `breaker tripped`, `budget exhausted`, `generation failed`, and the staleness alarm ([#19](https://github.com/LorexGitHub/mojibun/issues/19)).
+These reasons are operational and always go straight to the supervisor: `breaker tripped`, `budget exhausted`, `generation failed`, and the staleness alarm ([#19](https://github.com/LorexGitHub/ibbun/issues/19)).
 
 ### When it escalates
 
@@ -125,7 +125,7 @@ These reasons are operational and always go straight to the supervisor: `breaker
 
 ## Listening Clips
 
-A dialogue's text and questions are generated and reviewed like any draft ([listening.md](listening.md#dialogues)). Single-Sentence clips are picked from approved Examples by a fixed rule, with no LLM. The **audio** for either never involves an LLM. Audio is built from its Sentence's **approved** reading with a voice from the allow-list ([#11](https://github.com/LorexGitHub/mojibun/issues/11)). It is approved automatically when the kana string sent to VOICEVOX equals the approved reading, like a Derived record, with Provenance "derived by process X, version Y" plus engine, voice and speed. The reviewer agent can't judge pitch or audio, so the supervisor samples clips by listening.
+A dialogue's text and questions are generated and reviewed like any draft ([listening.md](listening.md#dialogues)). Single-Sentence clips are picked from approved Examples by a fixed rule, with no LLM. The **audio** for either never involves an LLM. Audio is built from its Sentence's **approved** reading with a voice from the allow-list ([#11](https://github.com/LorexGitHub/ibbun/issues/11)). It is approved automatically when the kana string sent to VOICEVOX equals the approved reading, like a Derived record, with Provenance "derived by process X, version Y" plus engine, voice and speed. The reviewer agent can't judge pitch or audio, so the supervisor samples clips by listening.
 
 ## Approval Decisions
 
@@ -149,7 +149,7 @@ All four numbers are config.
 
 ## Provenance of generated content
 
-`generated` Provenance holds the model, the prompt-template version, the Generation Run and the inputs: every record or text placed in the prompt. The licence rules of [#19](https://github.com/LorexGitHub/mojibun/issues/19) derive the licence from those inputs; a Wiktionary gloss in the prompt makes the output ShareAlike. The Approval Decisions say who approved it. Both are kept forever and never shown to Learners.
+`generated` Provenance holds the model, the prompt-template version, the Generation Run and the inputs: every record or text placed in the prompt. The licence rules of [#19](https://github.com/LorexGitHub/ibbun/issues/19) derive the licence from those inputs; a Wiktionary gloss in the prompt makes the output ShareAlike. The Approval Decisions say who approved it. Both are kept forever and never shown to Learners.
 
 ## Wiring
 

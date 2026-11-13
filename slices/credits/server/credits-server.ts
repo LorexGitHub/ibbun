@@ -1,5 +1,5 @@
-import { createContentGraph, type ContentGraph } from "@mojibun/content-graph";
-import { createDb } from "@mojibun/db";
+import { createContentGraph, type ContentGraph } from "@ibbun/content-graph";
+import { createDb } from "@ibbun/db";
 import { creditsApi } from "./credits-api.ts";
 
 let graph: ContentGraph | undefined;

@@ -5,7 +5,7 @@ import { render } from "./templates.ts";
 export type SmtpConfig = {
   /** For example `smtp://localhost:1025` for Mailpit. */
   url: string;
-  /** The sender, for example `mojibun <noreply@mojibun.test>`. */
+  /** The sender, for example `ibbun <noreply@ibbun.test>`. */
   from: string;
 };
 

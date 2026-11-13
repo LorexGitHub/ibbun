@@ -1,9 +1,9 @@
 import { Hono } from "hono";
-import type { AuthEnv, createAuthGuards } from "@mojibun/auth";
-import type { ContentGraph, Word } from "@mojibun/content-graph";
-import type { Learners } from "@mojibun/learner";
-import type { Progress, Texts } from "@mojibun/progress";
-import { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
+import type { AuthEnv, createAuthGuards } from "@ibbun/auth";
+import type { ContentGraph, Word } from "@ibbun/content-graph";
+import type { Learners } from "@ibbun/learner";
+import type { Progress, Texts } from "@ibbun/progress";
+import { JlptLevel, LearnerId, StudyItemId } from "@ibbun/shared";
 import { LookupRequest, type EpisodeLists, type LookupView, type TextView } from "../contract.ts";
 import { episodeLists } from "./episodes.ts";
 import { textView, type Reader } from "./text.ts";

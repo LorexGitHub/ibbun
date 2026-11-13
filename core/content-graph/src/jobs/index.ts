@@ -1,5 +1,5 @@
-import { defineJob } from "@mojibun/jobs";
-import { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
+import { defineJob } from "@ibbun/jobs";
+import { JlptLevel, LearnerId, StudyItemId } from "@ibbun/shared";
 import { z } from "zod";
 
 /**

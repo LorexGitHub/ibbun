@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Card } from "@mojibun/ui";
-import type { StudyItemId } from "@mojibun/shared";
+import { Card } from "@ibbun/ui";
+import type { StudyItemId } from "@ibbun/shared";
 import type { DueResponse, ReviewPrompt, SubmitResponse } from "../contract.ts";
 import { ReviewCard, type Submit } from "../web/ReviewCard.tsx";
 

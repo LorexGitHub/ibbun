@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { DueResponse, ReviewPrompt, SubmitRequest, SubmitResponse } from "../contract.ts";
 import { ReviewCard } from "./ReviewCard.tsx";
 import { loadDue, ReviewsScreen, submitAnswer } from "./ReviewsScreen.tsx";

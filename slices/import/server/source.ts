@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Dataset, Records } from "@mojibun/content-graph/authoring";
+import type { Dataset, Records } from "@ibbun/content-graph/authoring";
 
 /** One upstream file as downloaded. */
 export type RawFile = { name: string; bytes: Uint8Array };

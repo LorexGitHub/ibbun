@@ -1,5 +1,5 @@
-import type { KanjiLevelRecord } from "@mojibun/content-graph/authoring";
-import { JLPT_LEVELS, type JlptLevel } from "@mojibun/shared";
+import type { KanjiLevelRecord } from "@ibbun/content-graph/authoring";
+import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
 import { easiestLevels } from "../easiest.ts";
 
 /** Easiest first: the order the lists are read in, and the order a collision is settled in. */

@@ -1,4 +1,4 @@
-import type { ApprovalDecision, RecordTable } from "@mojibun/content-graph/authoring";
+import type { ApprovalDecision, RecordTable } from "@ibbun/content-graph/authoring";
 import { exampleDraft, type Rec } from "../src/drafts.ts";
 import { newSample, openFor, type Context } from "./context.ts";
 import type { SampleKind } from "./types.ts";

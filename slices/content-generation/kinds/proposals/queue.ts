@@ -1,4 +1,4 @@
-import type { Authoring, GenerationRun, QueueReason } from "@mojibun/content-graph/authoring";
+import type { Authoring, GenerationRun, QueueReason } from "@ibbun/content-graph/authoring";
 
 export const CONFIDENCE = ["high", "medium", "low"] as const;
 

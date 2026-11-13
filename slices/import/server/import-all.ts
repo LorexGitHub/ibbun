@@ -1,5 +1,5 @@
-import { FIXTURE_PROVENANCE_ID } from "@mojibun/content-graph/authoring";
-import type { Levels } from "@mojibun/content-graph/levels";
+import { FIXTURE_PROVENANCE_ID } from "@ibbun/content-graph/authoring";
+import type { Levels } from "@ibbun/content-graph/levels";
 import { rebuildDerivedLinks } from "../sources/derived-links/index.ts";
 import { runGrammarSeed, type GrammarSeedDeps } from "../sources/grammar-seed/index.ts";
 import { runMatchers, type MatcherRunsDeps } from "../sources/matcher-runs/index.ts";

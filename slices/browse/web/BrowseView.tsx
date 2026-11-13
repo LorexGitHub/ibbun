@@ -1,5 +1,5 @@
-import { Button, Input } from "@mojibun/ui";
-import { JLPT_LEVELS } from "@mojibun/shared";
+import { Button, Input } from "@ibbun/ui";
+import { JLPT_LEVELS } from "@ibbun/shared";
 import type { BrowseType, JlptLevel, Mastery, Tile } from "../contract.ts";
 import "./browse.css";
 

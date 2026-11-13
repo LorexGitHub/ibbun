@@ -1,5 +1,5 @@
 import { AnswerResponse, ClipList, ClipView, type AnswerRequest } from "../contract.ts";
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 
 const BASE = "/api/listening";
 

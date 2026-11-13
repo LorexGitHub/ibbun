@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JlptLevel } from "@mojibun/shared";
+import { JlptLevel } from "@ibbun/shared";
 
 /** The wire shapes of the listening slice, shared by the web screens and the Hono routes. */
 

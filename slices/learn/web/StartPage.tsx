@@ -1,4 +1,4 @@
-import { Button, buttonClass } from "@mojibun/ui";
+import { Button, buttonClass } from "@ibbun/ui";
 import type { Batch, State, Track } from "../contract.ts";
 import { faceOf } from "./batch-view.ts";
 import { SourceChooser } from "./SourceChooser.tsx";

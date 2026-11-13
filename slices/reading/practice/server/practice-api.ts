@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import type { AuthEnv } from "@mojibun/auth";
-import type { ContentGraph } from "@mojibun/content-graph";
-import { PracticeGenerate } from "@mojibun/content-graph/jobs";
-import type { Jobs } from "@mojibun/jobs";
-import { isLevelCleared, type Progress, type Texts } from "@mojibun/progress";
-import { JLPT_LEVELS, LearnerId, type JlptLevel } from "@mojibun/shared";
+import type { AuthEnv } from "@ibbun/auth";
+import type { ContentGraph } from "@ibbun/content-graph";
+import { PracticeGenerate } from "@ibbun/content-graph/jobs";
+import type { Jobs } from "@ibbun/jobs";
+import { isLevelCleared, type Progress, type Texts } from "@ibbun/progress";
+import { JLPT_LEVELS, LearnerId, type JlptLevel } from "@ibbun/shared";
 import { textView, type Reader } from "../../server/text.ts";
 import { PracticeRequest, type Library, type PracticeOptions, type PracticeResult } from "../contract.ts";
 

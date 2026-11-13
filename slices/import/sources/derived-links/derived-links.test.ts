@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import { createFakeAuthoring, emptyGraph, type Graph } from "@mojibun/content-graph/testing";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import { createFakeAuthoring, emptyGraph, type Graph } from "@ibbun/content-graph/testing";
 import { DERIVED_PROCESS_VERSION, rebuildDerivedLinks } from "./index.ts";
 import { chunks } from "./replace.ts";
 
@@ -12,7 +12,7 @@ const build = () => {
   const graph = emptyGraph();
   const provenance = (source: Source) => {
     const id = randomUUID();
-    graph.provenance.push({ id, source, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+    graph.provenance.push({ id, source, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
     return id;
   };
   const life = { approval: "approved" as const, retired: false, provenanceId: provenance({ kind: "authored", by: "test" }) };

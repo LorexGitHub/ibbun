@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
-import type { DbOrTx } from "@mojibun/db";
+import type { DbOrTx } from "@ibbun/db";
 import { tables, type Graph } from "../graph.ts";
 
 export type TableName = keyof Graph;

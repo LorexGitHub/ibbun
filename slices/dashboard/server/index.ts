@@ -1,7 +1,7 @@
-import { createContentGraph } from "@mojibun/content-graph";
-import { createLearners } from "@mojibun/learner";
-import { createProgress } from "@mojibun/progress";
-import type { ServerContext, ServerPart } from "@mojibun/slice";
+import { createContentGraph } from "@ibbun/content-graph";
+import { createLearners } from "@ibbun/learner";
+import { createProgress } from "@ibbun/progress";
+import type { ServerContext, ServerPart } from "@ibbun/slice";
 import { createDashboardApi } from "./api.ts";
 
 export const createServerPart = ({ db, sessions }: ServerContext): ServerPart => {

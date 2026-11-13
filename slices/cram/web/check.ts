@@ -1,4 +1,4 @@
-import { grade, type AnswerData } from "@mojibun/content-graph/grade";
+import { grade, type AnswerData } from "@ibbun/content-graph/grade";
 import type { FacetName, FacetOutcome, QuestionFacet } from "../contract.ts";
 
 export type Inputs = Partial<Record<FacetName, string>>;

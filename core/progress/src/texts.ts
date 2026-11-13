@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { DbOrTx } from "@mojibun/db";
-import { JlptLevel, LearnerId, StudyItemId, Timestamp } from "@mojibun/shared";
+import type { DbOrTx } from "@ibbun/db";
+import { JlptLevel, LearnerId, StudyItemId, Timestamp } from "@ibbun/shared";
 
 const common = { learnerId: LearnerId, passageId: z.uuid(), at: Timestamp };
 

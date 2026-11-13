@@ -18,7 +18,7 @@ import urllib.request
 CATEGORY = re.compile(
     r"Japanese terms with (Heiban|Atamadaka|Nakadaka|Odaka) pitch accent \(Tōkyō\)"
 )
-USER_AGENT = "mojibun-research/0.1 (https://github.com/LorexGitHub/mojibun)"
+USER_AGENT = "ibbun-research/0.1 (https://github.com/LorexGitHub/ibbun)"
 
 
 def headwords_with_accent(path):

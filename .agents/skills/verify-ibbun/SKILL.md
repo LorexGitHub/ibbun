@@ -1,11 +1,11 @@
 ---
-name: verify-mojibun
-description: Launch mojibun's local stack (Compose Postgres + Mailpit, Hono API, Vite web app), check it is healthy, drive the web app in a real browser with Playwright and capture evidence. Use to verify a PR branch's slice journeys before merge, or whenever you need proof that a mojibun screen or API route works for a Learner or admin.
+name: verify-ibbun
+description: Launch ibbun's local stack (Compose Postgres + Mailpit, Hono API, Vite web app), check it is healthy, drive the web app in a real browser with Playwright and capture evidence. Use to verify a PR branch's slice journeys before merge, or whenever you need proof that a ibbun screen or API route works for a Learner or admin.
 ---
 
-# verify-mojibun
+# verify-ibbun
 
-Proves mojibun behaviour by driving the real app the way a Learner does. Read cold: every command here is literal and runs from the repo root.
+Proves ibbun behaviour by driving the real app the way a Learner does. Read cold: every command here is literal and runs from the repo root.
 
 The verifier is never the PR author ([architecture.md](../../../docs/architecture.md#verification-flow-pstack)). Check out the PR branch (`gh pr checkout <n>`), then follow Launch → Doctor → Drive → Evidence → Cleanup.
 
@@ -14,17 +14,17 @@ The verifier is never the PR author ([architecture.md](../../../docs/architectur
 Needs Node 24+, pnpm (`corepack enable`), Docker you can talk to without sudo, and Chromium for Playwright (`pnpm exec playwright install chromium` once).
 
 ```sh
-.agents/skills/verify-mojibun/scripts/verify.sh up
+.agents/skills/verify-ibbun/scripts/verify.sh up
 ```
 
 It refuses to start if ports 5432, 1025, 8025, 3000 or 5173 are taken: stop your dev stack (`docker compose down`, `pnpm dev`) first. Never drive an instance this script did not start. One verify run per machine; the ports are fixed by `compose.yaml` and `vite.config.ts`.
 
-What `up` does: starts `postgres` and `mailpit` in a separate Compose project `mojibun-verify` with `--wait` (healthcheck green), runs `pnpm install --frozen-lockfile`, `pnpm gen`, `pnpm db:migrate` against an empty volume, then starts the API (`:3000`) and web app (`:5173`) in the background. **Ready** means it printed `ready: web http://localhost:5173 ...`, which needs `GET /api/health` to answer both directly and through the web proxy. Logs and pids go to `target/verify/run/`. Sudachi and VOICEVOX are not started; only admin slices use them, through fakes in tests.
+What `up` does: starts `postgres` and `mailpit` in a separate Compose project `ibbun-verify` with `--wait` (healthcheck green), runs `pnpm install --frozen-lockfile`, `pnpm gen`, `pnpm db:migrate` against an empty volume, then starts the API (`:3000`) and web app (`:5173`) in the background. **Ready** means it printed `ready: web http://localhost:5173 ...`, which needs `GET /api/health` to answer both directly and through the web proxy. Logs and pids go to `target/verify/run/`. Sudachi and VOICEVOX are not started; only admin slices use them, through fakes in tests.
 
 ## Doctor
 
 ```sh
-.agents/skills/verify-mojibun/scripts/verify.sh doctor
+.agents/skills/verify-ibbun/scripts/verify.sh doctor
 ```
 
 Read-only. Every line must say `ok`: the API and web processes were started by `up`, Compose Postgres is healthy, Mailpit answers, `/api/health` is `{"ok":true}` directly and via the proxy, the web root serves the SPA. It prints the commit under test; it must match the PR head (`gh pr view <n> --json headRefOid`). Run it first whenever anything looks off. On `FAIL`, read the matching log in `target/verify/run/`.
@@ -49,7 +49,7 @@ The harness is Playwright (`@playwright/test`, already a dev dependency). Base U
 Everything goes under `target/verify/evidence/<slice>/` (gitignored, survives Cleanup).
 
 ```sh
-.agents/skills/verify-mojibun/scripts/verify.sh shot <route> <slice>/<step>
+.agents/skills/verify-ibbun/scripts/verify.sh shot <route> <slice>/<step>
 # e.g. verify.sh shot / shell/home  ->  target/verify/evidence/shell/home.png + home.aria.txt
 ```
 
@@ -57,7 +57,7 @@ Proof standards:
 
 - Drive the real user path: the form, the button, the link. No test-only endpoints, no direct DB writes to set up state the UI can create.
 - Capture the action and the resulting state (before and after), not only the final screen.
-- Check side effects the user can't see: rows via `docker compose -p mojibun-verify exec postgres psql -U mojibun -c '...'`, mails in Mailpit, jobs enqueued.
+- Check side effects the user can't see: rows via `docker compose -p ibbun-verify exec postgres psql -U ibbun -c '...'`, mails in Mailpit, jobs enqueued.
 - Fakes only where a production boundary already isolates the service (`nlp`, `tts`, `llm`).
 - If a journey's precondition is missing, report the step as failed with the reason; never weaken the journey.
 
@@ -66,15 +66,15 @@ Attach to the PR as one comment: the commit SHA, the Doctor output, each feature
 ## Cleanup
 
 ```sh
-.agents/skills/verify-mojibun/scripts/verify.sh down
+.agents/skills/verify-ibbun/scripts/verify.sh down
 ```
 
-Kills only the pids `up` recorded (and their children), then `docker compose -p mojibun-verify down -v`, which deletes the verify database volume. `target/verify/evidence/` stays. Run `down` after every failed attempt too.
+Kills only the pids `up` recorded (and their children), then `docker compose -p ibbun-verify down -v`, which deletes the verify database volume. `target/verify/evidence/` stays. Run `down` after every failed attempt too.
 
 ## Helpers
 
 - `scripts/verify.sh up|doctor|down|shot <route> <name>`: the lifecycle above.
-- `scripts/shot.ts <url> <outPrefix>`: screenshot plus ARIA snapshot of one page (`node .agents/skills/verify-mojibun/scripts/shot.ts http://localhost:5173/ target/verify/evidence/x`).
+- `scripts/shot.ts <url> <outPrefix>`: screenshot plus ARIA snapshot of one page (`node .agents/skills/verify-ibbun/scripts/shot.ts http://localhost:5173/ target/verify/evidence/x`).
 
 ## Feature map
 

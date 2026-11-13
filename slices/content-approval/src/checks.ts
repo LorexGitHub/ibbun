@@ -11,11 +11,11 @@ import {
   type MatcherRule,
   type Span,
   type ReadingDisagreement,
-} from "@mojibun/content-graph/authoring";
-import { currentLevel } from "@mojibun/content-graph/levels";
-import type { Authoring, Row } from "@mojibun/content-graph/authoring";
-import type { Nlp, Token as NlpToken } from "@mojibun/nlp";
-import type { JlptLevel } from "@mojibun/shared";
+} from "@ibbun/content-graph/authoring";
+import { currentLevel } from "@ibbun/content-graph/levels";
+import type { Authoring, Row } from "@ibbun/content-graph/authoring";
+import type { Nlp, Token as NlpToken } from "@ibbun/nlp";
+import type { JlptLevel } from "@ibbun/shared";
 import type { ApprovalConfig } from "./config.ts";
 import type { ExampleDraft, ExplanationDraft } from "./drafts.ts";
 

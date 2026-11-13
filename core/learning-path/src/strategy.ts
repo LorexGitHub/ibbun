@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import type { PathItem } from "@mojibun/content-graph";
-import type { StudyItemId } from "@mojibun/shared";
+import type { PathItem } from "@ibbun/content-graph";
+import type { StudyItemId } from "@ibbun/shared";
 import { normaliseTracks, trackKey, trackOfItem, type Track } from "./track.ts";
 
 /** Band sizes of the sort keys. Config, not code. */

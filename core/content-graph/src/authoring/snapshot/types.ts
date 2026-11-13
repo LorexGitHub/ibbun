@@ -1,4 +1,4 @@
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 import type { Licence, Token } from "../../schema.ts";
 
 /** One JMdict entry, keyed by `ent_seq`. Forms and readings in upstream order. */

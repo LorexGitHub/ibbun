@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { emptyGraph, type Graph } from "../graph.ts";
 import type { Approval } from "../schema.ts";
 import { createFakeAuthoring, migrateContentGraph, seedContentGraph } from "../testing.ts";
@@ -22,7 +22,7 @@ const world = (...examples: Approval[]) => {
   const graph = emptyGraph();
   const provenanceId = randomUUID();
   const life = (approval: Approval = "approved") => ({ approval, retired: false, provenanceId });
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const item = randomUUID();
   graph.studyItem.push({ id: item, type: "word", ...life() });
   graph.word.push({ studyItemId: item, priorityTags: [] });
@@ -88,7 +88,7 @@ const contract = (make: () => Promise<Harness>) => {
     it("hard-deletes derived links by id and leaves the rest", async () => {
       const w = world();
       const derived = randomUUID();
-      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
       const [gone, kept] = [link(w.item, derived), link(w.item, derived)];
       w.graph.wordSupersededBy.push(gone, kept);
       await h.seed(w.graph);
@@ -99,7 +99,7 @@ const contract = (make: () => Promise<Harness>) => {
     it("refuses to delete a link that is not derived, and deletes nothing", async () => {
       const w = world();
       const derived = randomUUID();
-      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
       const [fine, authored] = [link(w.item, derived), link(w.item, w.graph.provenance[0]!.id)];
       w.graph.wordSupersededBy.push(fine, authored);
       await h.seed(w.graph);

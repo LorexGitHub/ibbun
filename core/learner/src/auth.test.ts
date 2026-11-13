@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createFakeMail, type FakeMail } from "@mojibun/mail";
+import { createFakeMail, type FakeMail } from "@ibbun/mail";
 import * as t from "../db/learner-tables.ts";
 import { createLearnerAuth, type LearnerAuth } from "./auth.ts";
 import { createLearnerClient, type LearnerClient } from "./learner-client.ts";
@@ -71,7 +71,7 @@ const browser = (auth: LearnerAuth, ip = `10.${rand()}.${rand()}.${rand()}`): Br
 };
 const rand = () => Math.floor(Math.random() * 250) + 1;
 
-const newEmail = () => `${randomUUID()}@mojibun.test`;
+const newEmail = () => `${randomUUID()}@ibbun.test`;
 
 const linkIn = (mail: FakeMail, to: string) => {
   const message = mail.last(to);

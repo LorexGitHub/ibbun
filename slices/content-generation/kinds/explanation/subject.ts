@@ -1,5 +1,5 @@
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import type { JlptLevel } from "@mojibun/shared";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import type { JlptLevel } from "@ibbun/shared";
 import { subjectOf } from "../example-sentence/subject.ts";
 
 /** What a Japanese Explanation explains: one Word sense or one Grammar Point. */

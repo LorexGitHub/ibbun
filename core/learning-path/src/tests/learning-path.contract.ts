@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import type { ContentGraph, PathItem } from "@mojibun/content-graph";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import type { ContentGraph, PathItem } from "@ibbun/content-graph";
+import { createFakeProgress } from "@ibbun/progress/testing";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import type { LearningPathConfig } from "../config.ts";
 import type { LearningPath, LearningPathDeps } from "../learning-path.ts";
 import { tieBreak } from "../strategy.ts";

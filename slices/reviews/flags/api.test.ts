@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeAuthoring, emptyGraph } from "@mojibun/content-graph/testing";
-import { createFakeAnswerFlags } from "@mojibun/content-graph/flags/testing";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
+import { createFakeAnswerFlags } from "@ibbun/content-graph/flags/testing";
+import { createFakeProgress } from "@ibbun/progress/testing";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import { createFlagsApi } from "./api.ts";
 
 const WORD = StudyItemId.parse("00000000-0000-4000-8000-000000000001");

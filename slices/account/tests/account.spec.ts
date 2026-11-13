@@ -22,7 +22,7 @@ test.describe("a visitor", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test("signs up, verifies through the mailed link, and logs in", async ({ page, request }) => {
-    const email = `e2e-${Date.now()}@mojibun.test`;
+    const email = `e2e-${Date.now()}@ibbun.test`;
     await page.goto("/signup");
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password").fill(PASSWORD);
@@ -52,7 +52,7 @@ test.describe("a visitor", () => {
 
   test("gets the same login failure for an unknown address", async ({ page }) => {
     await page.goto("/login");
-    await page.getByLabel("Email").fill("nobody@mojibun.test");
+    await page.getByLabel("Email").fill("nobody@ibbun.test");
     await page.getByLabel("Password").fill("not the password");
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page.getByRole("alert")).toHaveText("email or password is wrong");
@@ -62,7 +62,7 @@ test.describe("a visitor", () => {
 test("settings shows the Learner, their session and their preferences", async ({ page }) => {
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
-  await expect(page.getByText("learner@mojibun.test")).toBeVisible();
+  await expect(page.getByText("learner@ibbun.test")).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Devices" }).getByText("(this device)")).toBeVisible();
   for (const name of ["Look", "Study", "Account"]) await expect(page.getByRole("region", { name })).toBeVisible();
 

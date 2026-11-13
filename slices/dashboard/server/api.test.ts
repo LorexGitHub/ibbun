@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeContentGraph, n5Fixture } from "@mojibun/content-graph/testing";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeContentGraph, n5Fixture } from "@ibbun/content-graph/testing";
+import { createFakeProgress } from "@ibbun/progress/testing";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import { LevelPage, Today } from "../contract.ts";
 import { createDashboardApi } from "./api.ts";
 

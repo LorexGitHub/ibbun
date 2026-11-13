@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { buttonClass } from "@mojibun/ui";
+import { buttonClass } from "@ibbun/ui";
 import { useClient } from "./client.ts";
 import { Field, Form, Notice, Screen, Split, useOutcome } from "./form.tsx";
 

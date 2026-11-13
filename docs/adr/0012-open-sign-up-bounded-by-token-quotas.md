@@ -1,6 +1,6 @@
 # Open sign-up, bounded by token quotas
 
-mojibun is a showcase with one supervisor, and every Learner costs LLM tokens: each Learn batch asks for a Batch Text generated for that Learner ([ADR 0008](0008-batch-texts-generated-per-learner.md)). Those tokens come out of the same daily budget that content generation and the reviewer agent use ([ADR 0010](0010-reviewer-agent-approves-supervisor-samples.md)). If that budget runs out, Content Approval stops for everyone.
+ibbun is a showcase with one supervisor, and every Learner costs LLM tokens: each Learn batch asks for a Batch Text generated for that Learner ([ADR 0008](0008-batch-texts-generated-per-learner.md)). Those tokens come out of the same daily budget that content generation and the reviewer agent use ([ADR 0010](0010-reviewer-agent-approves-supervisor-samples.md)). If that budget runs out, Content Approval stops for everyone.
 
 Sign-up is still open to anyone. The cost is kept bounded rather than limiting who can join. Email verification is required before login, so each account costs a real inbox. Each Learner gets at most 5 Batch Texts in any rolling 24 h. Batch Texts may use at most 50% of the daily token budget, so content generation and review always keep the other half. Rate limits and a `SIGNUP_OPEN` switch let the supervisor stop abuse at once. Details are in [accounts.md](../accounts.md).
 

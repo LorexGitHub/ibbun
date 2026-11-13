@@ -1,4 +1,4 @@
-import type { LearnerId } from "@mojibun/shared";
+import type { LearnerId } from "@ibbun/shared";
 
 /** Every account has exactly one role. A Supervisor is also a Learner. */
 export type Role = "learner" | "supervisor";

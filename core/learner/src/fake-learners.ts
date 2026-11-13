@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { LearnerId } from "@mojibun/shared";
+import { LearnerId } from "@ibbun/shared";
 import type { AuthLog } from "./events.ts";
 import { LearnerNotFound, normalizeEmail, type Learner, type Learners, type NewLearner } from "./learners.ts";
 import { changePreferences, DEFAULT_PREFERENCES, type Preferences } from "./preferences.ts";

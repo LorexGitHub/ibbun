@@ -1,5 +1,5 @@
 {
-  "name": "mojibun",
+  "name": "ibbun",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@12.16.1",
@@ -9,8 +9,9 @@
   "scripts": {
     "gen": "node scripts/gen-slice-index.mjs",
     "dev": "pnpm gen && pnpm -r --parallel --filter \"./apps/*\" dev",
-    "db:migrate": "pnpm --filter @mojibun/db migrate",
+    "db:migrate": "pnpm --filter @ibbun/db migrate",
     "content:import": "node --env-file-if-exists=.env slices/import/server/import-cli.ts",
+    "content:examples": "node --env-file-if-exists=.env slices/import/server/examples-cli.ts",
     "test": "pnpm gen && vitest run",
     "typecheck": "pnpm gen && tsc -p . && tsc -p apps/web",
     "test:packages": "pnpm gen && node scripts/gates/vitest-per-package.ts",
@@ -20,8 +21,8 @@
     "e2e": "pnpm gen && playwright test"
   },
   "devDependencies": {
-    "@mojibun/jobs": "workspace:*",
-    "@mojibun/slice": "workspace:*",
+    "@ibbun/jobs": "workspace:*",
+    "@ibbun/slice": "workspace:*",
     "@playwright/test": "^1.64.1",
     "@types/node": "^24.0.0",
     "@types/react": "^19.1.0",

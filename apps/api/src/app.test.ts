@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ServerContext } from "@mojibun/slice";
+import type { ServerContext } from "@ibbun/slice";
 import { createApp } from "./app.ts";
 
 const ctx = {} as ServerContext;

@@ -1,10 +1,10 @@
-# mojibun verification map
+# ibbun verification map
 
-The maintained source for verifying what mojibun's Learners and admins can do. One file per slice, plus the shell. Read this index, then the slice's file, before driving the app with [`../SKILL.md`](../SKILL.md).
+The maintained source for verifying what ibbun's Learners and admins can do. One file per slice, plus the shell. Read this index, then the slice's file, before driving the app with [`../SKILL.md`](../SKILL.md).
 
 ## Baseline preconditions
 
-- The stack was started by `verify.sh up` on the branch under test, from an empty `mojibun-verify` database.
+- The stack was started by `verify.sh up` on the branch under test, from an empty `ibbun-verify` database.
 - `verify.sh doctor` reports every line `ok` and the PR head commit.
 - No Learner exists yet. Journeys that need one create it through sign-up (account slice) and confirm the mail in Mailpit.
 
@@ -12,7 +12,7 @@ The maintained source for verifying what mojibun's Learners and admins can do. O
 
 - Start each file from the baseline unless its preconditions say otherwise.
 - Locate by role and accessible name, never by CSS position.
-- Commands are literal; `verify.sh` means `.agents/skills/verify-mojibun/scripts/verify.sh`.
+- Commands are literal; `verify.sh` means `.agents/skills/verify-ibbun/scripts/verify.sh`.
 - Use the terms in [CONTEXT.md](../../../../CONTEXT.md): Learner, Study Item, Review, Mastery.
 
 ## Proof and skip reporting

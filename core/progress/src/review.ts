@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LearnerId, StudyItemId, Timestamp } from "@mojibun/shared";
+import { LearnerId, StudyItemId, Timestamp } from "@ibbun/shared";
 
 /**
  * Every Review `kind` (ADR 0001). Only `srs` and `manual` feed the Scheduler;

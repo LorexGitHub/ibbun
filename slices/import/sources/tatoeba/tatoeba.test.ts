@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createFakeNlp, type Token } from "@mojibun/nlp";
+import { createFakeNlp, type Token } from "@ibbun/nlp";
 import { buildSentences, decodeExports, tatoebaSource, type Exports } from "./index.ts";
 import { chooseTranslation, parseDetailed, parseIndexLine, parseIndices, parseNativeSpeakers } from "./parse.ts";
 import { mapLimited, sudachiLinks, toStoredTokens } from "./tokens.ts";

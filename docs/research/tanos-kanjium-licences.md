@@ -72,7 +72,7 @@ Researched 2026-11-03. tanos.co.uk did not resolve (DNS failure) on that date, s
 - If issue #24's guess is right, both named works are commercial dictionaries from Sanseido (大辞林) and NHK Publishing (NHK日本語発音アクセント辞典). We found no open licence for either, but we did not check publisher terms **(unconfirmed)**.
 - Whether bare accent positions (word + reading + number) are protectable is a legal question we did not research. That includes copyright in the selection and EU sui generis database right. **(unconfirmed)**
 
-## Consequences for mojibun
+## Consequences for ibbun
 
 - **Tanos grammar lists → JLPT Level on Grammar Points: usable.** The plain level lists of Grammar Point names fall under Waller's CC BY statement. Commercial use is allowed and there is no ShareAlike. Treat the level as an estimate, especially N2/N3, which Waller says "have to be estimated". Record Provenance as "Tanos (Waller), CC BY, version unstated" on each JLPT Level assignment.
 - **Do not ingest the Tanos N1/N2 "grammar usage" pages.** Their explanations and example Sentences are "Taken from Kanzen Master" and are not Waller's to license. Write Grammar Point explanations ourselves or take them from hanabira (CC BY 4.0).

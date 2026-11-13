@@ -1,4 +1,4 @@
-import type { WordRecord } from "@mojibun/content-graph/authoring";
+import type { WordRecord } from "@ibbun/content-graph/authoring";
 import { z } from "zod";
 
 const Form = z.object({ common: z.boolean(), text: z.string().min(1) });

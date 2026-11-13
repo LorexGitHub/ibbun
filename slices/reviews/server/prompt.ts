@@ -1,4 +1,4 @@
-import type { Example, Kanji, StudyItemPage, Word } from "@mojibun/content-graph";
+import type { Example, Kanji, StudyItemPage, Word } from "@ibbun/content-graph";
 import type { AnswerData, ReviewPrompt } from "../contract.ts";
 
 export type ReviewableType = ReviewPrompt["type"];

@@ -1,8 +1,8 @@
 import type { Hono } from "hono";
 import type { ComponentType } from "react";
-import type { SessionResolver } from "@mojibun/auth";
-import type { Db } from "@mojibun/db";
-import type { JobHandler } from "@mojibun/jobs";
+import type { SessionResolver } from "@ibbun/auth";
+import type { Db } from "@ibbun/db";
+import type { JobHandler } from "@ibbun/jobs";
 
 /**
  * Where a destination sits on the app's map, which decides how a Learner finds it:

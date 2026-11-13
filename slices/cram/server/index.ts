@@ -1,7 +1,7 @@
 import { Hono } from "hono";
-import { createContentGraph } from "@mojibun/content-graph";
-import { createProgress } from "@mojibun/progress";
-import type { ServerContext, ServerPart } from "@mojibun/slice";
+import { createContentGraph } from "@ibbun/content-graph";
+import { createProgress } from "@ibbun/progress";
+import type { ServerContext, ServerPart } from "@ibbun/slice";
 import { createCramApi } from "./api.ts";
 
 /** Mounted at `/api/cram`. Wrapped in a plain Hono so the shell sees a route table, not Cram's auth variables. */

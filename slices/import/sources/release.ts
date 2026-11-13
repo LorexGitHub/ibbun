@@ -22,7 +22,7 @@ export const patient = (fetchImpl: Fetch): Fetch => async (input, init) => {
 };
 
 export const get = async (fetchImpl: Fetch, url: string, accept: string) => {
-  const response = await fetchImpl(url, { headers: { accept, "user-agent": "mojibun-import" } });
+  const response = await fetchImpl(url, { headers: { accept, "user-agent": "ibbun-import" } });
   if (!response.ok) throw new Error(`${url} answered ${response.status}`);
   return response;
 };
