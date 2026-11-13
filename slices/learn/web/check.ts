@@ -37,6 +37,8 @@ export const shownByDefault = (explanations: "english" | "japanese" | "both") =>
   explanation: explanations !== "english",
 });
 
-/** The accepted written forms, to show after a miss. */
+/** The accepted answers, to show after a miss: a reading facet asks for the reading, so it shows that, not the written form. */
 export const acceptedOf = (facet: PromptFacet): string[] =>
-  facet.answerData.facet === "japanese" ? facet.answerData.accepted.map((a) => a.written) : facet.answerData.meanings.map((m) => m.text);
+  facet.answerData.facet === "japanese"
+    ? facet.answerData.accepted.map((a) => (facet.facet === "reading" ? (a.reading ?? a.written) : a.written))
+    : facet.answerData.meanings.map((m) => m.text);

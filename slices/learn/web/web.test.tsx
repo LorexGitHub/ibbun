@@ -106,6 +106,13 @@ describe("Learn opened for one level", () => {
     history.replaceState(null, "", "/learn");
     expect((await open()).batch).toHaveBeenCalledWith(undefined);
   });
+
+  it("shows that level in the chooser, not the active Tracks' level", async () => {
+    history.replaceState(null, "", "/learn?level=n3");
+    await open();
+    expect(checked("radio", "N3")).toBe(true);
+    expect(checked("radio", "N5")).toBe(false);
+  });
 });
 
 const lessons = async () => {
@@ -537,6 +544,18 @@ describe("the quiz", () => {
     expect(answers[1]!.timeToAnswerMs).toBeGreaterThanOrEqual(0);
     expect(answers[1]!.timeToAnswerMs).toBeLessThan(60_000);
     expect(await learned(2)).toBeTruthy();
+  });
+
+  it("shows the reading, not the Kanji, after a wrong reading", async () => {
+    await toQuiz();
+    answerWater();
+    press("Next");
+    type("Reading in this sentence", "ちがう");
+    type("Meaning of the kanji", "water");
+    press("Check");
+    const miss = (await screen.findByRole("status")).querySelector(".answer--miss")!;
+    expect(miss.textContent).toContain("It is みず");
+    expect(miss.textContent).not.toContain("水");
   });
 
   it("names every answer field in sight, and marks each facet of a checked answer right or missed", async () => {
