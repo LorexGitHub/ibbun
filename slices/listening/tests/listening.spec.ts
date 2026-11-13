@@ -10,7 +10,7 @@ test("a Learner opens Listening on a clip to hear, or is told there are none", a
   await expect(page.getByRole("button", { name: "N5" })).toHaveAttribute("aria-pressed", "true");
 
   const play = page.getByRole("button", { name: "Play", exact: true });
-  const empty = page.getByText("No N5 clips yet.");
+  const empty = page.getByRole("heading", { name: "No N5 clips yet" });
   await expect(play.or(empty)).toBeVisible();
 
   if (await play.isVisible()) {
