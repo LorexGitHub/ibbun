@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { Hono } from "hono";
+import { describe, expect, it, vi } from "vitest";
 import type { ServerContext } from "@ibbun/slice";
 import { createApp } from "./app.ts";
 
@@ -24,5 +25,17 @@ describe("api app", () => {
 
   it("has no /api/auth without a handler", async () => {
     expect((await (await createApp([], ctx)).request("/api/auth/get-session")).status).toBe(404);
+  });
+
+  it("leaves out the Supervisor slices and Credits in showcase mode only", async () => {
+    const slices = ["credits", "import", "learn"].map((name) => ({ name, server: async () => ({ api: new Hono().get("/", (c) => c.text(name)) }) }));
+    const status = async (name: string) => (await (await createApp(slices, ctx)).request(`/api/${name}`)).status;
+    expect([await status("credits"), await status("import"), await status("learn")]).toEqual([200, 200, 200]);
+    vi.stubEnv("SHOWCASE", "1");
+    try {
+      expect([await status("credits"), await status("import"), await status("learn")]).toEqual([404, 404, 200]);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JlptLevel, LearnerId, StudyItemId, Timestamp, compareLevels } from "./index.ts";
+import { JlptLevel, LearnerId, StudyItemId, Timestamp, compareLevels, isShowcase } from "./index.ts";
 
 describe("shared primitives", () => {
   it("accepts a UUID as an Id and rejects other strings", () => {
@@ -24,5 +24,10 @@ describe("shared primitives", () => {
     expect(Timestamp.safeParse("2026-11-05T10:00:00+09:00").success).toBe(true);
     expect(Timestamp.safeParse("2026-11-05").success).toBe(false);
     expect(Timestamp.safeParse("2026-11-05T10:00:00").success).toBe(false);
+  });
+
+  it("reads showcase mode from 1 or true only", () => {
+    expect(["1", "true"].map(isShowcase)).toEqual([true, true]);
+    expect([undefined, "", "0", "false", "yes"].map(isShowcase)).toEqual([false, false, false, false, false]);
   });
 });
