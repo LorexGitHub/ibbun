@@ -525,6 +525,9 @@ importers:
 
   platform/nlp:
     dependencies:
+      '@aws-sdk/credential-providers':
+        specifier: ^3.1168.0
+        version: 3.1168.0
       aws4fetch:
         specifier: ^1.0.20
         version: 1.0.20
@@ -941,6 +944,9 @@ importers:
 
   slices/import:
     dependencies:
+      '@aws-sdk/client-ecs':
+        specifier: ^3.1168.0
+        version: 3.1168.0
       '@aws-sdk/client-s3':
         specifier: ^3.1167.0
         version: 3.1168.0
@@ -1292,6 +1298,10 @@ packages:
 
   '@aws-sdk/checksums@3.1002.5':
     resolution: {integrity: sha512-OHlfkNzDFjYnwNPABhwAkDTUi0HPjfsKUHJDR0bSMORpCXNzRpInPCNCIT08xKDhjaPlcLJ+2Av+Sk7hHnuC8A==}
+    engines: {node: '>=20.0.0'}
+
+  '@aws-sdk/client-ecs@3.1168.0':
+    resolution: {integrity: sha512-Zv28U29tztrCEQIUH2XNkxsH6n3rpmEDvIIpwlqE19vqdEUVKEkwv9YChCyrwIy2j6CZrcvseWkq9UEnk+ZDAA==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/client-s3@3.1168.0':
@@ -4875,6 +4885,17 @@ snapshots:
       '@aws-sdk/core': 3.981.0
       '@aws-sdk/types': 3.975.1
       '@smithy/core': 3.40.0
+      '@smithy/types': 4.20.0
+      tslib: 2.9.1
+
+  '@aws-sdk/client-ecs@3.1168.0':
+    dependencies:
+      '@aws-sdk/core': 3.981.0
+      '@aws-sdk/credential-provider-node': 3.972.97
+      '@aws-sdk/types': 3.975.1
+      '@smithy/core': 3.40.0
+      '@smithy/fetch-http-handler': 5.8.1
+      '@smithy/node-http-handler': 4.14.2
       '@smithy/types': 4.20.0
       tslib: 2.9.1
 
