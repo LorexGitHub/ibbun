@@ -33,5 +33,14 @@ services:
       - "1025:1025" # SMTP
       - "8025:8025" # web inbox
 
+  # S3 for the audio store and raw import files (AUDIO_DIR / IMPORT_RAW_DIR as s3://bucket/prefix, AWS_ENDPOINT_URL_S3=http://localhost:8333).
+  # MinIO no longer publishes images; SeaweedFS without an identity file accepts any credentials.
+  s3:
+    image: chrislusf/seaweedfs:4.53
+    command: server -s3 -dir=/data
+    ports: ["8333:8333"]
+    volumes: ["s3-data:/data"]
+
 volumes:
   postgres-data:
+  s3-data:

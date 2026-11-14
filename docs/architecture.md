@@ -10,7 +10,7 @@ One TypeScript monorepo (#2) with three thin entry points:
 
 - `apps/web`: the Vite + React SPA. Learner screens, plus admin screens under `/admin` behind a role check.
 - `apps/api`: the Hono HTTP API.
-- `apps/worker`: background jobs from SQS (ElasticMQ locally, [ADR 0015](adr/0015-serverless-on-aws.md)), with the schedules run in-process: re-imports, derived-link rebuilds, generation, TTS, the reviewer agent. Audio files go to object storage (a local volume in dev).
+- `apps/worker`: background jobs from SQS (ElasticMQ locally, [ADR 0015](adr/0015-serverless-on-aws.md)), with the schedules run in-process: re-imports, derived-link rebuilds, generation, TTS, the reviewer agent. Audio files go to object storage: a local directory in dev, S3 on AWS (`AUDIO_DIR=s3://bucket/audio/`), served by CloudFront under `/audio/*`.
 
 Docker Compose also runs Postgres, the Sudachi sidecar, VOICEVOX (#11) and Mailpit ([accounts.md](accounts.md#email)).
 

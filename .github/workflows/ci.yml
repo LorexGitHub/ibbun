@@ -47,7 +47,11 @@ jobs:
         ports: ["9324:9324"]
     env:
       TEST_DATABASE_URL: postgres://ibbun:ibbun@localhost:5432/ibbun
+      TEST_S3_ENDPOINT: http://localhost:8333
     steps:
+      # A service container cannot take a command, and SeaweedFS needs one. Same image as compose.yaml.
+      - name: Start S3 for the audio store and raw import file contract tests
+        run: docker run -d -p 8333:8333 chrislusf/seaweedfs:4.53 server -s3 -dir=/data
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
@@ -70,7 +74,11 @@ jobs:
         ports: ["9324:9324"]
     env:
       TEST_DATABASE_URL: postgres://ibbun:ibbun@localhost:5432/ibbun
+      TEST_S3_ENDPOINT: http://localhost:8333
     steps:
+      # A service container cannot take a command, and SeaweedFS needs one. Same image as compose.yaml.
+      - name: Start S3 for the audio store and raw import file contract tests
+        run: docker run -d -p 8333:8333 chrislusf/seaweedfs:4.53 server -s3 -dir=/data
       - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
       - uses: pnpm/action-setup@v4
