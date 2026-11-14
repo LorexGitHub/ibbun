@@ -51,6 +51,7 @@ Preconditions:
 - A level in the address narrows Reviews, Learn, Reading, Listening and Placement, and sets the level of Cram's picker.
 - The shell reads the session again on every navigation, so the top line catches up after the Login screen navigates to `/`.
 - If login says "email or password is wrong" for a seeded account, or sign-up fails with a 500, check that `DATABASE_URL` reaches the container: a local PostgreSQL on 5432 answers first and has no `ibbun` role. `/api/health` does not touch the database, so it stays green.
+- The API connects as `ibbun_app`, the app role from `platform/db`'s grants migration: it reads and writes but cannot create or drop tables. A `permission denied` in `api.log` means a migration's table missed the grants; migrations and seeds run as `ibbun`.
 - Better Auth only trusts the configured web origin. A second Vite on another port can log in but gets 403 on **Log out**.
 - The `learner` Playwright project exists only once `slices/account/register.ts` does.
 

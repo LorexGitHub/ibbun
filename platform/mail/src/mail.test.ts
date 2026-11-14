@@ -1,6 +1,7 @@
+import { createServer, type Server } from "node:http";
 import { SMTPServer } from "smtp-server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createFakeMail, createSmtpMail, render, type Mail, type Message } from "./index.ts";
+import { createFakeMail, createMail, mailConfigFromEnv, render, type Mail, type Message } from "./index.ts";
 
 /** The body of a raw mail, quoted-printable decoded, with CRLF as LF. */
 const quotedPrintableBody = (raw: string) =>
@@ -71,12 +72,60 @@ describe("smtp mail", () => {
   afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
 
   it("delivers the rendered template to the recipient from the configured sender", async () => {
-    const mail: Mail = createSmtpMail({ url: `smtp://127.0.0.1:${port}`, from: "ibbun <noreply@ibbun.test>" });
+    const mail: Mail = createMail(mailConfigFromEnv({ SMTP_URL: `smtp://127.0.0.1:${port}` }));
     await mail.send(every[0]!);
     expect(received).toHaveLength(1);
     expect(received[0]!.from).toBe("noreply@ibbun.test");
     expect(received[0]!.to).toEqual(["a@x.test"]);
     expect(received[0]!.raw).toContain(`Subject: ${render(every[0]!).subject}`);
     expect(quotedPrintableBody(received[0]!.raw)).toContain(render(every[0]!).text);
+  });
+});
+
+describe("ses mail", () => {
+  const requests: { path: string; authorization: string; body: { FromEmailAddress?: string; Content: { Raw: { Data: string } } } }[] = [];
+  let server: Server;
+  let endpoint: string;
+
+  beforeAll(async () => {
+    server = createServer((req, res) => {
+      let body = "";
+      req.on("data", (chunk: Buffer) => (body += chunk.toString()));
+      req.on("end", () => {
+        requests.push({ path: req.url ?? "", authorization: req.headers.authorization ?? "", body: JSON.parse(body) });
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify({ MessageId: "ses-1" }));
+      });
+    });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    endpoint = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+    process.env.AWS_ACCESS_KEY_ID = "test";
+    process.env.AWS_SECRET_ACCESS_KEY = "test";
+  });
+  afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
+
+  it("sends the rendered template as a signed SESv2 raw mail from the configured sender", async () => {
+    const mail = createMail(
+      mailConfigFromEnv({ MAIL_TRANSPORT: "ses", AWS_REGION: "eu-central-1", SES_ENDPOINT: endpoint, MAIL_FROM: "ibbun <noreply@ibbun.test>" }),
+    );
+    await mail.send(every[2]!);
+    expect(requests).toHaveLength(1);
+    expect(requests[0]!.path).toBe("/v2/email/outbound-emails");
+    expect(requests[0]!.authorization).toContain("/eu-central-1/ses/aws4_request");
+    const raw = Buffer.from(requests[0]!.body.Content.Raw.Data, "base64").toString();
+    expect(raw).toContain("From: ibbun <noreply@ibbun.test>");
+    expect(raw).toContain("To: a@x.test");
+    expect(raw).toContain(`Subject: ${render(every[2]!).subject}`);
+    expect(quotedPrintableBody(raw)).toContain(render(every[2]!).text);
+  });
+});
+
+describe("mail config", () => {
+  it.each([{}, { MAIL_TRANSPORT: "", MAIL_FROM: "", SMTP_URL: "" }])("defaults to Mailpit over SMTP when unset or empty", (env) => {
+    expect(mailConfigFromEnv(env)).toEqual({ transport: "smtp", from: "ibbun <noreply@ibbun.test>", url: "smtp://localhost:1025" });
+  });
+
+  it("rejects an unknown transport instead of silently using SMTP", () => {
+    expect(() => mailConfigFromEnv({ MAIL_TRANSPORT: "sendgrid" })).toThrow(/MAIL_TRANSPORT/);
   });
 });

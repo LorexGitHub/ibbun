@@ -131,3 +131,64 @@ describe("Sudachi nlp, replaying recorded answers", () => {
 describe.runIf(process.env.SUDACHI_URL)("Sudachi nlp, against the sidecar at SUDACHI_URL", () => {
   nlpContract(() => createSudachiNlp({ url: process.env.SUDACHI_URL! }));
 });
+
+describe("Sudachi nlp, on a Lambda function URL", () => {
+  const FUNCTION_URL = "https://abc123.lambda-url.eu-central-1.on.aws";
+  const env = { AWS_ACCESS_KEY_ID: "AKIDEXAMPLE", AWS_SECRET_ACCESS_KEY: "secret", AWS_SESSION_TOKEN: "session" };
+  const headersOf = async (text: string, credentials = env) => {
+    const sidecar = replay();
+    await createSudachiNlp({ url: FUNCTION_URL, fetch: sidecar.fetch, env: credentials }).tokenize(text);
+    return sidecar.seen[0]!.init.headers as Record<string, string>;
+  };
+
+  it("signs each call with SigV4 for the lambda service in the URL's region", async () => {
+    const headers = await headersOf(SENTENCE);
+    expect(headers["authorization"]).toMatch(
+      /^AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE\/\d{8}\/eu-central-1\/lambda\/aws4_request, SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=[0-9a-f]{64}$/,
+    );
+    expect(headers).toMatchObject({ "content-type": "application/json", "x-amz-security-token": "session" });
+  });
+
+  it("signs the body, so a different text carries a different signature", async () => {
+    const signature = async (text: string) => (await headersOf(text))["authorization"]!.split("Signature=")[1];
+    expect(await signature("打合せ")).not.toBe(await signature(SENTENCE));
+  });
+
+  it("refuses to call without credentials, naming the URL", () => {
+    expect(() => createSudachiNlp({ url: FUNCTION_URL, env: { AWS_ACCESS_KEY_ID: "AKIDEXAMPLE" } })).toThrow(
+      new NlpError(`Sudachi at ${FUNCTION_URL} needs AWS credentials to sign its calls`),
+    );
+    expect(() => createSudachiNlp({ url: FUNCTION_URL, env: { AWS_SECRET_ACCESS_KEY: "secret" } })).toThrow(NlpError);
+  });
+
+  it("calls a plain HTTP sidecar unsigned, even with credentials around", async () => {
+    const sidecar = replay();
+    await createSudachiNlp({ url: "http://sudachi.test", fetch: sidecar.fetch, env }).tokenize(SENTENCE);
+    expect(sidecar.seen[0]!.init.headers).toEqual({ "Content-Type": "application/json" });
+  });
+});
+
+/** What a function URL does on AWS: wrap the HTTP request in a payload 2.0 event, invoke, unwrap the answer. */
+const viaFunctionUrl =
+  (invocations: string): typeof fetch =>
+  async (url, init = {}) => {
+    const { pathname } = new URL(String(url));
+    const method = init.method ?? "GET";
+    const event = {
+      version: "2.0",
+      rawPath: pathname,
+      rawQueryString: "",
+      headers: init.headers,
+      requestContext: { http: { method, path: pathname, protocol: "HTTP/1.1", sourceIp: "127.0.0.1", userAgent: "nlp-test" } },
+      body: init.body,
+      isBase64Encoded: false,
+    };
+    const answer = (await (await fetch(invocations, { method: "POST", body: JSON.stringify(event) })).json()) as { statusCode: number; body: string };
+    return new Response(answer.body, { status: answer.statusCode });
+  };
+
+// Run the image under the emulator with SUDACHI_RIE_URL=http://localhost:9000, after
+// docker run -p 9000:8080 -v <dir with aws-lambda-rie>:/rie --entrypoint /rie/aws-lambda-rie <docker/sudachi image> python server.py
+describe.runIf(process.env.SUDACHI_RIE_URL)("Sudachi nlp, against the Lambda image under the Runtime Interface Emulator at SUDACHI_RIE_URL", () => {
+  nlpContract(() => createSudachiNlp({ url: "http://sudachi.lambda", fetch: viaFunctionUrl(`${process.env.SUDACHI_RIE_URL}/2015-03-31/functions/function/invocations`) }));
+});

@@ -5,7 +5,7 @@ import { createDb } from "@ibbun/db";
 import { createSqsJobsFromEnv, handler } from "@ibbun/jobs";
 import { createLearnerAuth, learnerConfigFromEnv } from "@ibbun/learner";
 import { createAnthropicLlm, loadLlmConfig } from "@ibbun/llm";
-import { createSmtpMail } from "@ibbun/mail";
+import { createMail, mailConfigFromEnv } from "@ibbun/mail";
 import { createSudachiNlp } from "@ibbun/nlp";
 import { createProgress } from "@ibbun/progress";
 import { createSamplingApi } from "../sampling/api.ts";
@@ -41,7 +41,7 @@ const sessions = once(
   () =>
     createLearnerAuth({
       db,
-      mail: createSmtpMail({ url: env.SMTP_URL ?? "smtp://localhost:1025", from: "ibbun <noreply@ibbun.test>" }),
+      mail: createMail(mailConfigFromEnv(env)),
       config: learnerConfigFromEnv(env),
     }).sessions,
 );
