@@ -4,7 +4,7 @@ import { createLevels } from "@ibbun/content-graph/levels";
 import { createDb } from "@ibbun/db";
 import { connectGrammarSeed } from "../sources/grammar-seed/connect.ts";
 import { connectMatcherRuns } from "../sources/matcher-runs/connect.ts";
-import { importEverything } from "./import-all.ts";
+import { importEverything, timedSay } from "./import-all.ts";
 import { DEFAULT_RAW_DIR } from "./import-server.ts";
 import { refreshes } from "./jobs.ts";
 import { rawFilesAt } from "./raw-files.ts";
@@ -23,7 +23,7 @@ try {
       matcherRuns: connectMatcherRuns(db, process.env),
       levels: createLevels(db),
     },
-    (line) => console.log(line),
+    timedSay((line) => console.log(line), () => performance.now()),
   );
 } finally {
   await db.$client.end();

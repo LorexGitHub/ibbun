@@ -134,10 +134,10 @@ describe.runIf(process.env.SUDACHI_URL)("Sudachi nlp, against the sidecar at SUD
 
 describe("Sudachi nlp, on a Lambda function URL", () => {
   const FUNCTION_URL = "https://abc123.lambda-url.eu-central-1.on.aws";
-  const env = { AWS_ACCESS_KEY_ID: "AKIDEXAMPLE", AWS_SECRET_ACCESS_KEY: "secret", AWS_SESSION_TOKEN: "session" };
-  const headersOf = async (text: string, credentials = env) => {
+  const credentials = async () => ({ accessKeyId: "AKIDEXAMPLE", secretAccessKey: "secret", sessionToken: "session" });
+  const headersOf = async (text: string) => {
     const sidecar = replay();
-    await createSudachiNlp({ url: FUNCTION_URL, fetch: sidecar.fetch, env: credentials }).tokenize(text);
+    await createSudachiNlp({ url: FUNCTION_URL, fetch: sidecar.fetch, credentials }).tokenize(text);
     return sidecar.seen[0]!.init.headers as Record<string, string>;
   };
 
@@ -154,16 +154,26 @@ describe("Sudachi nlp, on a Lambda function URL", () => {
     expect(await signature("打合せ")).not.toBe(await signature(SENTENCE));
   });
 
-  it("refuses to call without credentials, naming the URL", () => {
-    expect(() => createSudachiNlp({ url: FUNCTION_URL, env: { AWS_ACCESS_KEY_ID: "AKIDEXAMPLE" } })).toThrow(
-      new NlpError(`Sudachi at ${FUNCTION_URL} needs AWS credentials to sign its calls`),
-    );
-    expect(() => createSudachiNlp({ url: FUNCTION_URL, env: { AWS_SECRET_ACCESS_KEY: "secret" } })).toThrow(NlpError);
+  it("asks for credentials on every call, so a Fargate task's rotated container credentials are picked up", async () => {
+    const keys = ["AKIDFIRST", "AKIDSECOND"];
+    const sidecar = replay();
+    const nlp = createSudachiNlp({ url: FUNCTION_URL, fetch: sidecar.fetch, credentials: async () => ({ accessKeyId: keys.shift()!, secretAccessKey: "secret" }) });
+    await nlp.tokenize(SENTENCE);
+    await nlp.tokenize(SENTENCE);
+    const ids = sidecar.seen.map(({ init }) => /Credential=(\w+)\//.exec((init.headers as Record<string, string>)["authorization"]!)?.[1]);
+    expect(ids).toEqual(["AKIDFIRST", "AKIDSECOND"]);
+  });
+
+  it("refuses to call without credentials, naming the URL, and sends nothing", async () => {
+    const sidecar = replay();
+    const nlp = createSudachiNlp({ url: FUNCTION_URL, fetch: sidecar.fetch, credentials: () => Promise.reject(new Error("no provider")) });
+    await expect(nlp.tokenize(SENTENCE)).rejects.toThrow(new NlpError(`Sudachi at ${FUNCTION_URL} needs AWS credentials to sign its calls`));
+    expect(sidecar.seen).toEqual([]);
   });
 
   it("calls a plain HTTP sidecar unsigned, even with credentials around", async () => {
     const sidecar = replay();
-    await createSudachiNlp({ url: "http://sudachi.test", fetch: sidecar.fetch, env }).tokenize(SENTENCE);
+    await createSudachiNlp({ url: "http://sudachi.test", fetch: sidecar.fetch, credentials }).tokenize(SENTENCE);
     expect(sidecar.seen[0]!.init.headers).toEqual({ "Content-Type": "application/json" });
   });
 });

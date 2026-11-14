@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "exports": { ".": "./src/index.ts" },
-  "dependencies": { "aws4fetch": "^1.0.20", "zod": "^4.1.0" },
+  "dependencies": { "@aws-sdk/credential-providers": "^3.1168.0", "aws4fetch": "^1.0.20", "zod": "^4.1.0" },
   "devDependencies": { "@types/node": "^24.0.0" }
 }

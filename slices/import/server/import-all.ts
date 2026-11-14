@@ -44,3 +44,13 @@ export const importEverything = async ({ imports, refreshes, grammarSeed, matche
   const matched = await runMatchers(matcherRuns);
   say(`matchers: ${matched.proposed} links proposed, ${matched.requested} Generation Requests opened`);
 };
+
+/** A `say` that ends each line with the time since the previous one, which is how long that step took (#258 picks each source's home by it). */
+export const timedSay = (log: (line: string) => void, clock: () => number): ((line: string) => void) => {
+  let last = clock();
+  return (line) => {
+    const now = clock();
+    log(`${line} (${((now - last) / 1000).toFixed(1)} s)`);
+    last = now;
+  };
+};

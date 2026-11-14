@@ -49,6 +49,7 @@ describe("the import slice, registered", () => {
     const refresh: Refresh = {
       cron: "0 12 * * *",
       monthly: false,
+    home: "lambda",
       source: {
         dataset: "jmdict",
         latest: async () => "3.6.2+1",
