@@ -3,7 +3,8 @@ import { migrateContentGraph, n5Fixture, seedContentGraph } from "@ibbun/content
 import { createDb, type Db } from "@ibbun/db";
 import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { NotFound, type S3Client } from "@aws-sdk/client-s3";
-import { copyContent, publishAudio, requireEnv, s3AudioTarget, type AudioTarget } from "./publish.ts";
+import { required } from "../sources/grammar-seed/connect.ts";
+import { copyContent, publishAudio, s3AudioTarget, type AudioTarget } from "./publish.ts";
 
 const memoryTarget = () => {
   const files = new Map<string, Uint8Array>();
@@ -91,7 +92,7 @@ describe("publishing local content to a stage", () => {
   });
 
   it("names the missing setting", () => {
-    expect(requireEnv({ A: "1" }, "A")).toBe("1");
-    expect(() => requireEnv({}, "TARGET_DATABASE_URL")).toThrow("TARGET_DATABASE_URL is not set");
+    expect(required({ A: "1" }, "A")).toBe("1");
+    expect(() => required({}, "TARGET_DATABASE_URL")).toThrow("TARGET_DATABASE_URL is not set");
   });
 });

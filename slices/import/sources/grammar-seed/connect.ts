@@ -4,7 +4,7 @@ import { createSqsJobsFromEnv } from "@ibbun/jobs";
 import { createSudachiNlp } from "@ibbun/nlp";
 import type { GrammarSeedDeps } from "./index.ts";
 
-const required = (env: Record<string, string | undefined>, name: string): string => {
+export const required = (env: Record<string, string | undefined>, name: string): string => {
   const value = env[name];
   if (!value) throw new Error(`${name} is not set`);
   return value;
