@@ -324,7 +324,7 @@ importers:
     devDependencies:
       '@aws-sdk/client-sqs':
         specifier: ^3.1167.0
-        version: 3.1167.0
+        version: 3.1168.0
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.2
