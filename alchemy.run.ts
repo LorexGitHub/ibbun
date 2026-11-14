@@ -49,6 +49,23 @@ const localFunctionUrlId = (region: string, functionName: string) => {
   return b.toString("hex");
 };
 
+// Aurora's settings (ADR 0015). Constants, not code in the stack's functions, so there is nothing for a mutation test to reach.
+const AURORA_CLUSTER = {
+  engine: "aurora-postgresql",
+  engineVersion: "17.5",
+  databaseName: DATABASE_NAME,
+  enableIAMDatabaseAuthentication: true,
+  storageEncrypted: true,
+  masterUsername: OWNER_ROLE,
+  manageMasterUserPassword: true,
+  serverlessV2ScalingConfiguration: { MinCapacity: 0, MaxCapacity: AURORA_MAX_ACU, SecondsUntilAutoPause: AURORA_PAUSE_SECONDS },
+  backupRetentionPeriod: Duration.days(7),
+};
+const AURORA_WRITER = { dbInstanceClass: "db.serverless", engine: AURORA_CLUSTER.engine, engineVersion: AURORA_CLUSTER.engineVersion, publiclyAccessible: true };
+
+// The import container runs the import task's entry point, not the image's own (which starts Lambda's runtime emulator).
+const IMPORT_CONTAINER = { name: "import", essential: true, entryPoint: ["node"], command: ["slices/import/server/import-task.ts"] };
+
 /** `import.jmdict` becomes `ImportJmdict`: a resource id. */
 const pascal = (jobName: string) => jobName.replace(/(^|[^a-z0-9]+)([a-z0-9])/gi, (_, __, c: string) => c.toUpperCase());
 
@@ -103,26 +120,15 @@ const aurora = (network: Network) =>
       },
     });
     const cluster = yield* AWS.RDS.DBCluster("Database", {
-      engine: "aurora-postgresql",
-      engineVersion: "17.5",
-      databaseName: DATABASE_NAME,
+      ...AURORA_CLUSTER,
       dbSubnetGroupName: subnetGroup.dbSubnetGroupName,
       dbClusterParameterGroupName: parameters.identifier as unknown as string,
       vpcSecurityGroupIds: [firewall.groupId] as any,
-      enableIAMDatabaseAuthentication: true,
-      storageEncrypted: true,
-      masterUsername: OWNER_ROLE,
-      manageMasterUserPassword: true,
-      serverlessV2ScalingConfiguration: { MinCapacity: 0, MaxCapacity: AURORA_MAX_ACU, SecondsUntilAutoPause: AURORA_PAUSE_SECONDS },
-      backupRetentionPeriod: Duration.days(7),
     });
     yield* AWS.RDS.DBInstance("DatabaseWriter", {
+      ...AURORA_WRITER,
       dbClusterIdentifier: cluster.dbClusterIdentifier,
-      dbInstanceClass: "db.serverless",
-      engine: "aurora-postgresql",
-      engineVersion: "17.5",
       dbSubnetGroupName: subnetGroup.dbSubnetGroupName,
-      publiclyAccessible: true,
     });
     return {
       url: Output.interpolate`postgres://${APP_ROLE}@${cluster.endpoint}:5432/${DATABASE_NAME}` as unknown,
@@ -440,12 +446,9 @@ function importTask(input: ImportTaskInput) {
       awslogs: { streamPrefix: "import" },
       containerDefinitions: [
         {
-          name: "import",
+          ...IMPORT_CONTAINER,
           image: image.imageUri as unknown as string,
-          essential: true,
-          // The image's own entry point starts Lambda's runtime emulator. The dataset and release come with each RunTask.
-          entryPoint: ["node"],
-          command: ["slices/import/server/import-task.ts"],
+          // The dataset and release come with each RunTask.
           environment: Object.entries({ DATABASE_URL: database.url, ...database.env, ...input.env }).map(([key, value]) => ({ name: key, value: value as string })),
         },
       ],
