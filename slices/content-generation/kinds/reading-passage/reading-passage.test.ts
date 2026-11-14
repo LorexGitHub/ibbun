@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring } from "@mojibun/content-graph/testing";
-import { BatchTextGenerate, ContentGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeLlm, loadLlmConfig } from "@mojibun/llm";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import { createFakeAuthoring } from "@ibbun/content-graph/testing";
+import { BatchTextGenerate, ContentGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeLlm, loadLlmConfig } from "@ibbun/llm";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
 
@@ -59,7 +59,7 @@ const setup = ({ dailyTokenBudget = 1_000_000 }: { dailyTokenBudget?: number } =
   const addWord = (text: string, level: "N5" | null = "N5") => {
     const id = randomUUID();
     w.graph.studyItem.push({ id, type: "word", ...w.life });
-    w.graph.word.push({ studyItemId: id, priorityTags: [] });
+    w.graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana: false });
     w.graph.wordForm.push({ id: randomUUID(), wordId: id, position: 0, text, ...w.life });
     w.graph.wordReading.push({ id: randomUUID(), wordId: id, position: 0, text, pitchAccent: null, ...w.life });
     w.graph.wordSense.push({ id: randomUUID(), wordId: id, position: 0, partsOfSpeech: ["n"], glosses: [`gloss of ${text}`], ...w.life });
@@ -89,7 +89,7 @@ describe("batch-text.generate", () => {
     const [provenance] = await t.auth.rows("provenance", { id: draft!.provenanceId });
     expect(provenance).toMatchObject({
       source: { kind: "generated", generationRunId: run!.id, promptTemplateVersion: "reading-passage/1" },
-      licence: "mojibun",
+      licence: "ibbun",
     });
     expect(provenance!.inputs).toEqual(expect.arrayContaining([t.wordId, t.senseId, t.grammarId]));
 

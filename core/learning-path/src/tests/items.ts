@@ -1,5 +1,5 @@
-import type { PathItem } from "@mojibun/content-graph";
-import type { StudyItemId } from "@mojibun/shared";
+import type { PathItem } from "@ibbun/content-graph";
+import type { StudyItemId } from "@ibbun/shared";
 
 let n = 0;
 /** A fresh UUID-shaped Study Item ID. */

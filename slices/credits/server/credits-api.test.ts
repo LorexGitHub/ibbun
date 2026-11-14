@@ -1,4 +1,4 @@
-import { createFakeContentGraph, emptyGraph } from "@mojibun/content-graph/testing";
+import { createFakeContentGraph, emptyGraph } from "@ibbun/content-graph/testing";
 import { describe, expect, it } from "vitest";
 import { CreditsResponse } from "../contract.ts";
 import { creditsApi } from "./credits-api.ts";

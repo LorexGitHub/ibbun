@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Button, Card, Input, KanaInput } from "@mojibun/ui";
+import { Button, Card, Input, KanaInput } from "@ibbun/ui";
 import type { FacetName, Question, Verdict } from "../contract.ts";
 import { checkLocally, retryMessage, revealedAnswer, type Inputs } from "./check.ts";
 import type { CramClient } from "./client.ts";

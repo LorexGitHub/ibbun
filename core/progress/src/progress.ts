@@ -1,5 +1,5 @@
-import type { DbOrTx } from "@mojibun/db";
-import type { LearnerId, StudyItemId } from "@mojibun/shared";
+import type { DbOrTx } from "@ibbun/db";
+import type { LearnerId, StudyItemId } from "@ibbun/shared";
 import { project, type ItemProgress } from "./projection.ts";
 import { NewReview, type Review } from "./review.ts";
 

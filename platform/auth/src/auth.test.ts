@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
-import { LearnerId } from "@mojibun/shared";
+import { LearnerId } from "@ibbun/shared";
 import { createAuthGuards, createFakeSessionResolver, type AuthEnv, type LearnerSession } from "./index.ts";
 
 const learner: LearnerSession = { learnerId: LearnerId.parse("4f1c2a3e-0000-4000-8000-000000000001"), role: "learner" };

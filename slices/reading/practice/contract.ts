@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JlptLevel } from "@mojibun/shared";
+import { JlptLevel } from "@ibbun/shared";
 import { TextView } from "../contract.ts";
 
 export { TextView };
@@ -40,6 +40,7 @@ export const PracticeResult = z.discriminatedUnion("status", [
   z.object({ status: z.literal("ready"), id: z.uuid() }),
   z.object({ status: z.literal("waiting") }),
   z.object({ status: z.literal("limit") }),
+  z.object({ status: z.literal("showcase") }),
 ]);
 export type PracticeResult = z.infer<typeof PracticeResult>;
 

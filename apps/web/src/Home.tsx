@@ -1,5 +1,5 @@
-import { buttonClass } from "@mojibun/ui";
-import type { NavEntry } from "@mojibun/slice";
+import { buttonClass } from "@ibbun/ui";
+import type { NavEntry } from "@ibbun/slice";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { BlurFade } from "@/vendor/ui/blur-fade";

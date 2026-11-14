@@ -1,4 +1,4 @@
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 import type { LevelPage, Mastery } from "../contract.ts";
 
 const slug = (level: JlptLevel) => level.toLowerCase();

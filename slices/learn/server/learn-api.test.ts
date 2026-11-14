@@ -1,13 +1,13 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeContentGraph, emptyGraph, n5Fixture, type Graph, type Token } from "@mojibun/content-graph/testing";
-import type { Word } from "@mojibun/content-graph";
-import { BatchTextGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeLearningPath } from "@mojibun/learning-path/testing";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { StudyItemId, type LearnerId } from "@mojibun/shared";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeContentGraph, emptyGraph, n5Fixture, type Graph, type Token } from "@ibbun/content-graph/testing";
+import type { Word } from "@ibbun/content-graph";
+import { BatchTextGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeLearners } from "@ibbun/learner/testing";
+import { createFakeLearningPath } from "@ibbun/learning-path/testing";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { StudyItemId, type LearnerId } from "@ibbun/shared";
 import { BATCH_TEXT_LIMIT_24H, type Batch, type BatchTextStatus, type CompleteRequest, type QuizPrompt, type State } from "../contract.ts";
 import { createLearnApi } from "./learn-api.ts";
 
@@ -286,7 +286,7 @@ const buildGraph = (): Graph => {
   });
   const word = (id: string, form: string, level: "N5" | "N3" | null, n: number) => {
     graph.studyItem.push({ id, type: "word", ...life });
-    graph.word.push({ studyItemId: id, priorityTags: [] });
+    graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana: false });
     graph.wordForm.push({ id: ID(n), wordId: id, position: 0, text: form, ...life });
     graph.wordReading.push({ id: ID(n + 1), wordId: id, position: 0, text: form, pitchAccent: null, ...life });
     graph.wordSense.push({ id: ID(n + 2), wordId: id, position: 0, partsOfSpeech: ["v1"], glosses: [`to ${form}`], ...life });
@@ -333,6 +333,16 @@ describe("the Batch Text hand-off", () => {
   });
 
   describe("enqueueing", () => {
+    it("queues nothing in showcase mode", async () => {
+      vi.stubEnv("SHOWCASE", "1");
+      try {
+        expect(await (await t.post("/batch-text", { studyItemIds: [TABERU, MIRU] })).json()).toEqual({ enqueued: false });
+        expect(t.jobs.pending()).toEqual([]);
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
     it("queues batch-text.generate for the picked batch", async () => {
       const body = await (await t.post("/batch-text", { studyItemIds: [TABERU, MIRU] })).json();
       expect(body).toEqual({ enqueued: true });

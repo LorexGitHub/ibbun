@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Example, Word } from "@mojibun/content-graph";
+import type { Example, Word } from "@ibbun/content-graph";
 import { lessonOf } from "./lesson.ts";
 import type { TaughtPage } from "./prompt.ts";
 

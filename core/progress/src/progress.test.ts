@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { transaction } from "@mojibun/db";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import { transaction } from "@ibbun/db";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import { useProgressDb } from "./tests/db.testing.ts";
 import { createFakeProgress } from "./fake-progress.ts";
 import { createProgress } from "./progress-postgres.ts";

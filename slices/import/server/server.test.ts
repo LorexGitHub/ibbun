@@ -3,15 +3,15 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createAuthoring } from "@mojibun/content-graph/authoring";
-import { migrateContentGraph } from "@mojibun/content-graph/testing";
-import { collectMigrations, createDb, migrate, transaction, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import type { Nlp } from "@mojibun/nlp";
-import { LearnerId } from "@mojibun/shared";
-import { checkSlices } from "@mojibun/slice";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createAuthoring } from "@ibbun/content-graph/authoring";
+import { migrateContentGraph } from "@ibbun/content-graph/testing";
+import { collectMigrations, createDb, migrate, transaction, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import type { Nlp } from "@ibbun/nlp";
+import { LearnerId } from "@ibbun/shared";
+import { checkSlices } from "@ibbun/slice";
 import slice from "../register.ts";
 import { createImportServer } from "./import-server.ts";
 import type { GrammarSources } from "../sources/grammar-seed/download.ts";
@@ -49,11 +49,12 @@ describe("the import slice, registered", () => {
     const refresh: Refresh = {
       cron: "0 12 * * *",
       monthly: false,
+    home: "lambda",
       source: {
         dataset: "jmdict",
         latest: async () => "3.6.2+1",
         download: async () => [{ name: "f", bytes: new Uint8Array() }],
-        parse: () => [{ key: "1", forms: ["食べる"], readings: [{ text: "たべる", pitchAccent: null }], senses: [{ partsOfSpeech: ["v1"], glosses: ["to eat"] }], priorityTags: [] }],
+        parse: () => [{ key: "1", forms: ["食べる"], readings: [{ text: "たべる", pitchAccent: null }], senses: [{ partsOfSpeech: ["v1"], glosses: ["to eat"] }], priorityTags: [], usuallyKana: false }],
       },
     };
     const sessions = createFakeSessionResolver();

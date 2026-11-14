@@ -1,4 +1,4 @@
-import { compareLevels, type JlptLevel } from "@mojibun/shared";
+import { compareLevels, type JlptLevel } from "@ibbun/shared";
 import type { Token } from "../../schema.ts";
 
 /** A current JLPT Level, or null for Unlevelled. */

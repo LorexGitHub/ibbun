@@ -1,6 +1,6 @@
-import type { ContentGraph, StudyItemSummary } from "@mojibun/content-graph";
-import type { Progress } from "@mojibun/progress";
-import type { JlptLevel, LearnerId, StudyItemId } from "@mojibun/shared";
+import type { ContentGraph, StudyItemSummary } from "@ibbun/content-graph";
+import type { Progress } from "@ibbun/progress";
+import type { JlptLevel, LearnerId, StudyItemId } from "@ibbun/shared";
 import type { LevelPage, Mastery } from "../contract.ts";
 
 export type LevelDeps = { progress: Progress; contentGraph: ContentGraph; learnerId: LearnerId; now: Date; level: JlptLevel };

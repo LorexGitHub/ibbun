@@ -1,8 +1,9 @@
-import type { WordRecord } from "@mojibun/content-graph/authoring";
+import type { WordRecord } from "@ibbun/content-graph/authoring";
 import { z } from "zod";
 
 const Form = z.object({ common: z.boolean(), text: z.string().min(1) });
 const Sense = z.object({
+  misc: z.array(z.string()).default([]),
   partOfSpeech: z.array(z.string()),
   gloss: z.array(z.object({ lang: z.string(), text: z.string() })),
 });
@@ -13,12 +14,16 @@ const Dictionary = z.object({ words: z.array(z.unknown()) });
 const priorityTags = (entry: z.output<typeof Entry>): string[] =>
   [...entry.kanji, ...entry.kana].some((form) => form.common) ? ["common"] : [];
 
+/** Full-width digits and letters fold to the ones a Learner types; two spellings that fold together are one form. */
+const formsOf = (entry: z.output<typeof Entry>): string[] => [...new Set(entry.kanji.map((f) => f.text.normalize("NFKC")))];
+
 const record = (entry: z.output<typeof Entry>): WordRecord => ({
   key: entry.id,
-  forms: entry.kanji.map((f) => f.text),
+  forms: formsOf(entry),
   readings: entry.kana.map((f) => ({ text: f.text, pitchAccent: null })),
   senses: entry.sense.map((s) => ({ partsOfSpeech: s.partOfSpeech, glosses: s.gloss.filter((g) => g.lang === "eng").map((g) => g.text) })),
   priorityTags: priorityTags(entry),
+  usuallyKana: entry.kanji.length > 0 && entry.sense.every((s) => s.misc.includes("uk")),
 });
 
 /**

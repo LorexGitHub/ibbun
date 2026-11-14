@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { Authoring, Decider, QueueEntry, Row } from "@mojibun/content-graph/authoring";
-import type { Llm } from "@mojibun/llm";
+import type { Authoring, Decider, QueueEntry, Row } from "@ibbun/content-graph/authoring";
+import type { Llm } from "@ibbun/llm";
 import { levelOf } from "../../src/checks.ts";
 import type { ApprovalConfig } from "../../src/config.ts";
 import { judge, ReviewerAnswer, type Judgement } from "../../src/reviewer.ts";
@@ -27,7 +27,7 @@ const lines = (answers: Row<"exampleAnswer">[]) => answers.map((x) => `- ${x.wri
 /** An Accepted Answer is an authored override: it has its own Provenance, so a refresh keeps it. */
 const addAcceptedAnswer = async (a: Authoring, exampleId: string, written: string): Promise<string> => {
   const provenanceId = randomUUID();
-  await a.insert("provenance", [{ id: provenanceId, source: { kind: "authored", by: "learner answer flag" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] }]);
+  await a.insert("provenance", [{ id: provenanceId, source: { kind: "authored", by: "learner answer flag" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] }]);
   const id = randomUUID();
   await a.insert("exampleAnswer", [{ id, exampleId, kind: "accepted", written, reading: null, message: null, approval: "draft", retired: false, provenanceId }]);
   return id;

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { LearnerId, StudyItemId } from "@mojibun/shared";
+import { LearnerId, StudyItemId } from "@ibbun/shared";
 import type { NewBatchText, NewPracticeText, Texts } from "../texts.ts";
 
 const learner = () => LearnerId.parse(randomUUID());

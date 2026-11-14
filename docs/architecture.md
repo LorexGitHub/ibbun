@@ -1,8 +1,8 @@
 # Architecture
 
-Decided in [#14](https://github.com/LorexGitHub/mojibun/issues/14). Terms follow [CONTEXT.md](../CONTEXT.md). Why the rules are what they are is in [ADR 0003](adr/0003-feature-slices-over-core-modules.md).
+Decided in [#14](https://github.com/LorexGitHub/ibbun/issues/14). Terms follow [CONTEXT.md](../CONTEXT.md). Why the rules are what they are is in [ADR 0003](adr/0003-feature-slices-over-core-modules.md).
 
-mojibun is a **modular monolith of feature slices on top of a small core**. Many AI agents build it in parallel, and one human supervisor oversees without reading code. Every rule below exists so that one agent working on one issue changes one folder, and CI, not a person, catches anything that breaks the rules.
+ibbun is a **modular monolith of feature slices on top of a small core**. Many AI agents build it in parallel, and one human supervisor oversees without reading code. Every rule below exists so that one agent working on one issue changes one folder, and CI, not a person, catches anything that breaks the rules.
 
 ## Processes
 
@@ -10,7 +10,7 @@ One TypeScript monorepo (#2) with three thin entry points:
 
 - `apps/web`: the Vite + React SPA. Learner screens, plus admin screens under `/admin` behind a role check.
 - `apps/api`: the Hono HTTP API.
-- `apps/worker`: background jobs from a Postgres-backed queue (pg-boss): re-imports, derived-link rebuilds, generation, TTS, the reviewer agent. Audio files go to object storage (a local volume in dev).
+- `apps/worker`: background jobs from SQS (ElasticMQ locally, [ADR 0015](adr/0015-serverless-on-aws.md)), with the schedules run in-process: re-imports, derived-link rebuilds, generation, TTS, the reviewer agent. Audio files go to object storage: a local directory in dev, S3 on AWS (`AUDIO_DIR=s3://bucket/audio/`), served by CloudFront under `/audio/*`. On AWS the same handlers run in the worker Lambda (`src/lambda.ts`, built by `docker/worker-lambda`), one job per invocation; `apps/worker/smoke/smoke.sh` runs a job through it locally under the Runtime Interface Emulator. Imports that may pass Lambda's 15 minutes (JMdict, Tatoeba) run as a Fargate task from the same image, which their job starts through `ECS.RunTask` (`slices/import/server/tasks.ts`).
 
 Docker Compose also runs Postgres, the Sudachi sidecar, VOICEVOX (#11) and Mailpit ([accounts.md](accounts.md#email)).
 
@@ -49,7 +49,7 @@ Allowed dependencies between core modules: `learning-path` → `content-graph`, 
 
 ## Platform packages
 
-Plumbing with no domain logic: `db` (client, migration runner, transactions), `jobs` (queue), `auth` (`requireLearner()` and `requireRole()` middleware against `learner`'s `SessionResolver`), `mail` (templates, with Mailpit locally), `ui` (the Ma kit: tokens, five looks, `design.md`), and shared Zod primitives.
+Plumbing with no domain logic: `db` (client, migration runner, transactions, and the `ibbun_app` role the app connects as; migrations run as the schema owner), `jobs` (queue), `auth` (`requireLearner()` and `requireRole()` middleware against `learner`'s `SessionResolver`), `mail` (templates, with Mailpit locally), `ui` (the Ma kit: tokens, five looks, `design.md`), and shared Zod primitives.
 
 Each external service has an adapter package with an interface and a fake: `nlp` (Sudachi), `tts` (VOICEVOX), `llm` (generation and the reviewer agent). Only admin slices may use them.
 
@@ -102,7 +102,7 @@ Each slice exports one `register` object from `register.ts`: its API routes, job
 
 ## Changing the core
 
-- **Wave 0 builds the core first:** the four core modules with their tables, interfaces, fakes and contract tests, the platform packages, the app shells and `verify-mojibun`. Slices are built in parallel after that.
+- **Wave 0 builds the core first:** the four core modules with their tables, interfaces, fakes and contract tests, the platform packages, the app shells and `verify-ibbun`. Slices are built in parallel after that.
 - **Additive** core changes (a new function, a new optional field, a new table) may go in the slice PR that needs them. They merge on CI plus a reviewer agent.
 - **Breaking** changes (changing or removing something that existing callers use) and **new core modules** get their own issue and need supervisor approval.
 - **Duplication beats coupling.** Small logic is copied between slices until a third slice needs it. Domain rules (what counts as Known, what is visible) always live in core. Cross-package duplication found by `dryer` is reported. When three or more packages share it, the reviewer agent opens a "move into core" issue.
@@ -120,14 +120,14 @@ Agents work in [ub-mode](../.agents/skills/ub-mode/SKILL.md), which includes TDD
 | `mutator` on changed files: no surviving mutants, no uncovered code | CI |
 | dependency-cruiser [rules](#dependency-rules) | CI |
 | One Playwright spec per Learner-facing slice | CI |
-| `verify-mojibun` journeys for every slice the PR touches | Verifier agent, on the PR |
+| `verify-ibbun` journeys for every slice the PR touches | Verifier agent, on the PR |
 
 There is no coverage percentage; CRAP and mutation testing are stricter.
 
 ### Verification flow (pstack)
 
-1. **Wave 0:** `/create-verification-skill` (from [pstack-claude](https://github.com/michael-denyer/pstack-claude)) generates `.agents/skills/verify-mojibun/`: launch and teardown of the Compose stack, a doctor check, a browser-driving recipe and a feature map.
-2. **Before opening a PR:** the author adds or updates its slice's file in `verify-mojibun/features/` with `/maintain-verification-skill`.
-3. **After the PR opens:** a separate verifier agent, never the author, runs `verify-mojibun` on the PR branch and attaches the evidence. The PR merges only when that evidence passes.
+1. **Wave 0:** `/create-verification-skill` (from [pstack-claude](https://github.com/michael-denyer/pstack-claude)) generates `.agents/skills/verify-ibbun/`: launch and teardown of the Compose stack, a doctor check, a browser-driving recipe and a feature map.
+2. **Before opening a PR:** the author adds or updates its slice's file in `verify-ibbun/features/` with `/maintain-verification-skill`.
+3. **After the PR opens:** a separate verifier agent, never the author, runs `verify-ibbun` on the PR branch and attaches the evidence. The PR merges only when that evidence passes.
 
 The supervisor doesn't review code; they spot-check samples.

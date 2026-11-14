@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring } from "@mojibun/content-graph/testing";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { createFakeLlm, loadLlmConfig } from "@mojibun/llm";
+import { createFakeAuthoring } from "@ibbun/content-graph/testing";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { createFakeLlm, loadLlmConfig } from "@ibbun/llm";
 import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
 

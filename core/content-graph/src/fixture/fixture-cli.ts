@@ -1,5 +1,5 @@
-// `pnpm --filter @mojibun/content-graph seed:fixture`. Needs DATABASE_URL; refused when NODE_ENV=production.
-import { createDb } from "@mojibun/db";
+// `pnpm --filter @ibbun/content-graph seed:fixture`. Needs DATABASE_URL; refused when NODE_ENV=production.
+import { createDb } from "@ibbun/db";
 import { createAuthoring } from "../authoring/index.ts";
 import { loadN5Fixture } from "./load.ts";
 

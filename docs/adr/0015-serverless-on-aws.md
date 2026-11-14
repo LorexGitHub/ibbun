@@ -1,8 +1,8 @@
 # Serverless on AWS, with Aurora Serverless v2
 
-mojibun runs only on a laptop today: a Hono API and a pg-boss worker as long-running Node processes, Postgres, and the Sudachi and VOICEVOX containers. Hosted in that shape, it would be RDS plus Fargate, which bills every hour whether anyone studies or not. mojibun is a showcase that will be idle most of the time, so it should cost little when idle and grow with use.
+ibbun runs only on a laptop today: a Hono API and a pg-boss worker as long-running Node processes, Postgres, and the Sudachi and VOICEVOX containers. Hosted in that shape, it would be RDS plus Fargate, which bills every hour whether anyone studies or not. ibbun is a showcase that will be idle most of the time, so it should cost little when idle and grow with use.
 
-mojibun gets the shape it needs to run serverless on AWS in eu-central-1, entirely on AWS services, defined with Alchemy v2 and Effect like the archived prototype (`archive/alchemy-scaffold`). Postgres becomes Aurora Serverless v2, which pauses when nobody uses it and stays real Postgres.
+ibbun gets the shape it needs to run serverless on AWS in eu-central-1, entirely on AWS services, defined with Alchemy v2 and Effect like the archived prototype (`archive/alchemy-scaffold`). Postgres becomes Aurora Serverless v2, which pauses when nobody uses it and stays real Postgres.
 
 | Concern | Service | Notes |
 | --- | --- | --- |

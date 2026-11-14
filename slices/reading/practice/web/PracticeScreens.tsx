@@ -1,19 +1,25 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { Button, Card } from "@mojibun/ui";
-import type { JlptLevel } from "@mojibun/shared";
+import { Button, State } from "@ibbun/ui";
+import { SHOWCASE_NO_TEXTS, type JlptLevel } from "@ibbun/shared";
 import { ANY, LENGTHS, PASSAGE_TYPES, TOPICS, type Library, type PracticeOptions, type PracticeResult } from "../contract.ts";
 import { Shown, TextShown, useLoaded } from "../../web/screens.tsx";
+import "../../web/reading.css";
 import { generate, loadLibrary, loadOptions, loadPracticeText } from "./practice-client.ts";
 
 const LENGTH_LABEL = { short: "Short", medium: "Medium", exam: "Exam length" } as const;
 
 type Outcome = Exclude<PracticeResult, { status: "ready" }> | { status: "failed" } | null;
 
+const NOTICES = {
+  limit: "Try again tomorrow.",
+  showcase: SHOWCASE_NO_TEXTS,
+  waiting: "Your text is still being made. It will appear in your library when it is ready.",
+  failed: "Could not start your text. Try again.",
+};
+
 const Notice = ({ outcome }: { outcome: Outcome }) => {
-  if (outcome?.status === "limit") return <p role="status">Try again tomorrow.</p>;
-  if (outcome?.status === "waiting") return <p role="status">Your text is still being made. It will appear in your library when it is ready.</p>;
-  if (outcome?.status === "failed") return <p role="status">Could not start your text. Try again.</p>;
+  if (outcome) return <p role="status">{NOTICES[outcome.status]}</p>;
   return null;
 };
 
@@ -70,15 +76,14 @@ const GenerateForm = ({ options, onOutcome }: { options: PracticeOptions; onOutc
         </select>
       </label>
       <p>{options.remaining} left in the next 24 hours.</p>
-      <Button type="submit" disabled={busy}>{busy ? "Writing your text…" : "Generate"}</Button>
+      <Button type="submit" variant="primary" disabled={busy}>{busy ? "Writing your text…" : "Generate"}</Button>
     </form>
   );
 };
 
 const LibraryList = ({ library }: { library: Library }) => (
-  <section>
-    <h2>Your library</h2>
-    {library.texts.length === 0 && <p>Nothing here yet.</p>}
+  <>
+    {library.texts.length === 0 && <State heading={3} inline title="Nothing here yet" note="Texts you generate are kept here." />}
     <ul>
       {library.texts.map((t) => (
         <li key={t.id}>
@@ -87,7 +92,7 @@ const LibraryList = ({ library }: { library: Library }) => (
         </li>
       ))}
     </ul>
-  </section>
+  </>
 );
 
 export const PracticeScreen = () => {
@@ -96,9 +101,9 @@ export const PracticeScreen = () => {
   const options = useLoaded(loadOptions, `options:${round}`);
   const library = useLoaded(loadLibrary, `library:${round}`);
   return (
-    <Card>
+    <section className="practice-texts">
       <h1>Practice texts</h1>
-      <Shown loaded={options}>
+      <Shown loaded={options} inline>
         {(o) =>
           o.clearedLevels.length === 0 ? (
             <p>Practice texts open once you know every kanji of a JLPT level.</p>
@@ -108,8 +113,13 @@ export const PracticeScreen = () => {
         }
       </Shown>
       <Notice outcome={outcome} />
-      <Shown loaded={library}>{(l) => <LibraryList library={l} />}</Shown>
-    </Card>
+      <section aria-labelledby="practice-library" className="practice-library">
+        <h2 id="practice-library">Your library</h2>
+        <Shown loaded={library} inline>
+          {(l) => <LibraryList library={l} />}
+        </Shown>
+      </section>
+    </section>
   );
 };
 

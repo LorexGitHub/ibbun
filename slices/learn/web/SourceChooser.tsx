@@ -1,6 +1,7 @@
 import { useState } from "react";
+import type { JlptLevel } from "@ibbun/shared";
 import type { Track } from "../contract.ts";
-import { atLevel, SOURCE_LEVELS, SOURCE_TYPES, sourceOf, toggled, tracksOf, type Source } from "./source.ts";
+import { atLevel, SOURCE_LEVELS, SOURCE_TYPES, sourceOf, toggled, tracksOf, typesAt, type Source } from "./source.ts";
 
 const labelOf = (level: Track["level"]) => (level === "unlevelled" ? "Unlevelled" : level);
 
@@ -8,8 +9,10 @@ const labelOf = (level: Track["level"]) => (level === "unlevelled" ? "Unlevelled
  * Where Learn draws from, in one place: a level and the types taken from it. The level is kept here, so it stays
  * chosen while no type is ticked and no Track says it.
  */
-export const SourceChooser = ({ tracks, onChange }: { tracks: Track[]; onChange: (tracks: Track[]) => void }) => {
-  const [source, setSource] = useState<Source>(() => sourceOf(tracks));
+export const SourceChooser = ({ tracks, filter, onChange }: { tracks: Track[]; filter?: JlptLevel; onChange: (tracks: Track[]) => void }) => {
+  const [chosen, setSource] = useState<Source>(() => sourceOf(tracks));
+  // A door opened for one level draws from it, so the chooser says that level, not the saved Tracks'.
+  const source: Source = filter ? { level: filter, types: typesAt(tracks, filter) } : chosen;
   const choose = (next: Source) => {
     setSource(next);
     onChange(tracksOf(next));

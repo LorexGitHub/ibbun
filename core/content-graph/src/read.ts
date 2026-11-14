@@ -1,4 +1,5 @@
-import type { JlptLevel, StudyItemId } from "@mojibun/shared";
+import { JLPT_LEVELS, type JlptLevel, type StudyItemId } from "@ibbun/shared";
+import { isKana, isRomaji, toHiragana } from "wanakana";
 import type { Graph } from "./graph.ts";
 import { currentLevel } from "./levels/levels.ts";
 import { creditsOf, licensing, recordProvenance, type Attribution, type CreditsEntry } from "./licensing.ts";
@@ -35,6 +36,7 @@ export type Kanji = Common & {
 export type Word = Common & {
   type: "word";
   priorityTags: string[];
+  usuallyKana: boolean;
   forms: { id: string; text: string }[];
   readings: { id: string; text: string; pitchAccent: number[] | null }[];
   senses: { id: string; partsOfSpeech: string[]; glosses: string[]; japaneseExplanation: string | null }[];
@@ -116,7 +118,7 @@ export type PathItem = {
   /** Kanji: KANJIDIC2 `freq` and grade. Null for other types. */
   frequency: number | null;
   grade: number | null;
-  /** Words: the Kanji in the first written form. Listening Clips: the Words and Grammar Points their Sentences link to. */
+  /** Words: the Kanji in the first written form (none for a usually-kana Word). Listening Clips: the Words and Grammar Points their Sentences link to. */
   dependsOn: StudyItemId[];
   /** Grammar Points: the other Grammar Points their approved Examples demonstrate. */
   demonstrates: StudyItemId[];
@@ -153,7 +155,13 @@ const byId = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id, 
 const byPosition = (a: { position: number }, b: { position: number }) => a.position - b.position;
 const present = <T>(value: T | null | undefined): value is T => value != null;
 
-export const normaliseQuery = (query: string) => query.trim().toLowerCase();
+/** What a query is searched as: itself, and its kana too when it is romaji, so "taberu" finds 食べる. */
+export const searchTerms = (query: string): string[] => {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const kana = toHiragana(q);
+  return isRomaji(q) && isKana(kana) ? [q, kana] : [q];
+};
 
 /** Exact 0, prefix 1, anywhere 2; null when `text` does not match. */
 export const matchTier = (text: string, query: string): number | null => {
@@ -224,6 +232,10 @@ const kanjiOf = (ctx: Ctx, id: StudyItemId): Kanji | null => {
   return { type: "kanji", id, level: levelOf(ctx, id), ...fields };
 };
 
+/** The form a Learner is shown: the first written form, or the reading for a word JMdict marks usually-kana. */
+export const headword = (w: Pick<Word, "forms" | "readings" | "usuallyKana">): string =>
+  (w.usuallyKana ? null : w.forms[0]?.text) ?? w.readings[0]?.text ?? "";
+
 const wordOf = (ctx: Ctx, id: StudyItemId): Word | null => {
   const row = where(ctx, ctx.graph.word, "studyItemId", id)[0];
   if (!row) return null;
@@ -232,6 +244,7 @@ const wordOf = (ctx: Ctx, id: StudyItemId): Word | null => {
     id,
     level: levelOf(ctx, id),
     priorityTags: current(ctx, row, id).priorityTags,
+    usuallyKana: row.usuallyKana,
     forms: subEntries(ctx, ctx.graph.wordForm, id).map(({ id, text }) => ({ id, text })),
     readings: subEntries(ctx, ctx.graph.wordReading, id).map(({ id, text, pitchAccent }) => ({ id, text, pitchAccent })),
     senses: subEntries(ctx, ctx.graph.wordSense, id).map(({ id, partsOfSpeech, glosses }) => ({
@@ -268,7 +281,7 @@ const byType = <R>(table: ByType<R>, item: StudyItem): R => (table[item.type] as
 type SummaryFields = Pick<StudyItemSummary, "label" | "reading" | "meaning">;
 const SUMMARY: ByType<SummaryFields | null> = {
   kanji: (k) => ({ label: k.literal, reading: [...k.onReadings, ...k.kunReadings][0] ?? null, meaning: k.meanings[0] ?? null }),
-  word: (w) => ({ label: w.forms[0]?.text ?? w.readings[0]?.text ?? "", reading: w.readings[0]?.text ?? null, meaning: w.senses[0]?.glosses[0] ?? null }),
+  word: (w) => ({ label: headword(w), reading: w.readings[0]?.text ?? null, meaning: w.senses[0]?.glosses[0] ?? null }),
   grammar_point: (g) => ({ label: g.title, reading: null, meaning: g.meaning }),
   listening_clip: () => null,
 };
@@ -374,8 +387,17 @@ const SEARCH_TEXTS: ByType<string[]> = {
   listening_clip: () => [],
 };
 
-const bestTier = (item: StudyItem, query: string) =>
-  Math.min(...byType(SEARCH_TEXTS, item).map((text) => matchTier(text, query) ?? Infinity));
+const bestTier = (item: StudyItem, terms: string[]) =>
+  Math.min(...byType(SEARCH_TEXTS, item).flatMap((text) => terms.map((term) => matchTier(text, term) ?? Infinity)));
+
+/** Items on a level before those on none, easiest level first. */
+export const levelRank = (level: JlptLevel | null) => (level ? JLPT_LEVELS.indexOf(level) : JLPT_LEVELS.length);
+
+type Match = { tier: number; summary: StudyItemSummary };
+
+/** Best match first; within a tier, items on a level before the rest, then the shorter label (水 before お水). */
+export const byRank = (a: Match, b: Match) =>
+  a.tier - b.tier || levelRank(a.summary.level) - levelRank(b.summary.level) || a.summary.label.length - b.summary.label.length || byId(a.summary, b.summary);
 
 const distinct = (ids: string[]) => [...new Set(ids)].sort() as StudyItemId[];
 
@@ -390,6 +412,7 @@ const linkedFrom = <R extends Lifecycle & { sentenceId: string }>(ctx: Ctx, rows
 const exampleSentences = (ctx: Ctx, id: string) => sentencesOf(ctx, where(ctx, ctx.graph.example, "studyItemId", id));
 
 const firstFormKanji = (ctx: Ctx, id: string) => {
+  if (where(ctx, ctx.graph.word, "studyItemId", id)[0]?.usuallyKana) return [];
   const first = subEntries(ctx, ctx.graph.wordForm, id)[0];
   const inFirst = new Set([...new Set(first?.text)].flatMap((literal) => where(ctx, ctx.graph.kanji, "literal", literal)).map((k) => k.studyItemId));
   return where(ctx, ctx.graph.wordContainsKanji, "wordId", id).filter((l) => visible(l) && ctx.items.has(l.kanjiId) && inFirst.has(l.kanjiId)).map((l) => l.kanjiId);
@@ -500,15 +523,16 @@ export const reader = (graph: Graph, links: Map<string, string> = recordProvenan
     },
 
     search(query: string, limit = DEFAULT_SEARCH_LIMIT): StudyItemSummary[] {
-      const q = normaliseQuery(query);
-      if (!q) return [];
+      const terms = searchTerms(query);
       return visibleItems()
-        .map((item) => ({ item, tier: bestTier(item, q) }))
-        .filter((m) => m.tier !== Infinity)
-        .sort((a, b) => a.tier - b.tier || byId(a.item, b.item))
+        .flatMap((item): Match[] => {
+          const tier = bestTier(item, terms);
+          const summary = summaryOf(item);
+          return tier !== Infinity && summary ? [{ tier, summary }] : [];
+        })
+        .sort(byRank)
         .slice(0, limit)
-        .map((m) => summaryOf(m.item))
-        .filter(present);
+        .map((m) => m.summary);
     },
 
     credits(): CreditsEntry[] {

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import type { Authoring, GenerationRun } from "@mojibun/content-graph/authoring";
+import type { Authoring, GenerationRun } from "@ibbun/content-graph/authoring";
 import { definePlan, type Kind } from "../kind.ts";
 import { subjectOf } from "../example-sentence/subject.ts";
 
@@ -28,7 +28,7 @@ const write = async (auth: Authoring, exampleId: string, inputRecordIds: string[
     {
       id: provenanceId,
       source: { kind: "generated", model: run.model, promptTemplateVersion: run.promptTemplateVersion, generationRunId: run.id },
-      licence: "mojibun",
+      licence: "ibbun",
       author: null,
       sourceUrl: null,
       inputs: inputRecordIds,

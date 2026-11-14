@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { StudyItemId } from "@mojibun/shared";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import type { StudyItemId } from "@ibbun/shared";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { createContentGraph, type ContentGraph } from "./index.ts";
 import { createFakeContentGraph, migrateContentGraph, seedContentGraph, type Graph } from "./testing.ts";
 import { fixture } from "./tests/fixture.ts";
@@ -47,6 +47,7 @@ const contract = (make: () => Promise<ContentGraph>) => {
         id: id("taberu"),
         level: "N5",
         priorityTags: ["ichi1"],
+        usuallyKana: false,
         forms: [
           { id: g.ids.taberuForm, text: "食べる" },
           { id: g.ids.taberuSecondForm, text: "喰べる" },
@@ -211,6 +212,11 @@ const contract = (make: () => Promise<ContentGraph>) => {
       expect(await labels("飲")).toEqual(["飲", "飲む"]);
     });
 
+    it("reads a romaji query as kana too", async () => {
+      expect(await labels("taberu")).toEqual(["食べる"]);
+      expect(await labels(" NOMU ")).toEqual(["飲む"]);
+    });
+
     it("matches the overridden text, not the text it replaced", async () => {
       expect(await labels("to devour")).toEqual([]);
       expect(await labels("to consume")).toEqual(["食べる"]);
@@ -259,5 +265,10 @@ describe.each([
     await seedContentGraph(db, graph);
     return createContentGraph(db);
   });
+
+  it("reads a list of ids longer than one query can name", async () => {
+    const absent = Array.from({ length: 130_000 }, (_, i) => `10000000-0000-4000-8000-${i.toString(16).padStart(12, "0")}` as StudyItemId);
+    expect(await createContentGraph(db).atLevel([...absent, id("taberu")], "N5")).toEqual([id("taberu")]);
+  }, 60_000);
   });
 });

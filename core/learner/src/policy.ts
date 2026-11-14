@@ -1,17 +1,19 @@
 // The account rules Better Auth does not enforce on its own (accounts.md#security-standards).
 import { APIError } from "better-auth/api";
-import type { DbOrTx } from "@mojibun/db";
+import type { DbOrTx } from "@ibbun/db";
 import type { AuthLog } from "./events.ts";
 import { normalizeEmail } from "./learners.ts";
 import { hitRateLimit, type RateLimitRule } from "./rate-limit.ts";
 
 const LOGIN = "/sign-in/email";
+export const GUEST = "/sign-in/anonymous";
 const LOGIN_FAILED = "email or password is wrong";
 
-/** Login: 5 tries per 15 min per IP and per email. Sign-up, reset and resending verification: 3 per hour per IP. */
+/** Login: 5 tries per 15 min per IP and per email. Guest login: 10 per hour per IP. Sign-up, reset and resending verification: 3 per hour per IP. */
 const PER_IP: Record<string, RateLimitRule> = {
   [LOGIN]: { windowSeconds: 15 * 60, max: 5 },
   "/sign-up/email": { windowSeconds: 3600, max: 3 },
+  [GUEST]: { windowSeconds: 3600, max: 10 },
   "/request-password-reset": { windowSeconds: 3600, max: 3 },
   "/send-verification-email": { windowSeconds: 3600, max: 3 },
 };

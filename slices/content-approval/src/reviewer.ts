@@ -1,6 +1,6 @@
-import type { ReadingDisagreement } from "@mojibun/content-graph/authoring";
-import type { Verdict } from "@mojibun/content-graph/authoring";
-import type { Llm } from "@mojibun/llm";
+import type { ReadingDisagreement } from "@ibbun/content-graph/authoring";
+import type { Verdict } from "@ibbun/content-graph/authoring";
+import type { Llm } from "@ibbun/llm";
 import { z } from "zod";
 import type { ExampleCheck, ExplanationCheck } from "./checks.ts";
 import type { ExampleDraft, ExplanationDraft } from "./drafts.ts";

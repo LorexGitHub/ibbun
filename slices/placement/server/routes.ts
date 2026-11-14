@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { BrowsableType, ContentGraph } from "@mojibun/content-graph";
-import type { Progress } from "@mojibun/progress";
-import { JlptLevel, type LearnerId } from "@mojibun/shared";
+import { createAuthGuards, type AuthEnv, type SessionResolver } from "@ibbun/auth";
+import type { BrowsableType, ContentGraph } from "@ibbun/content-graph";
+import type { Progress } from "@ibbun/progress";
+import { JlptLevel, type LearnerId } from "@ibbun/shared";
 import { PlacementSubmission, type PlacementItem, type PlacementList, type PlacementResult } from "../contract.ts";
 
 const TYPES: BrowsableType[] = ["kanji", "word", "grammar_point"];

@@ -73,11 +73,41 @@ describe("Practice texts screen", () => {
     await screen.findByText("Try again tomorrow.");
   });
 
+  it("says texts are off in a showcase", async () => {
+    stub({ clearedLevels: ["N5"], remaining: 5 }, { status: "showcase" });
+    open();
+    fireEvent.click(await screen.findByRole("button", { name: "Generate" }));
+    await screen.findByText(/in this showcase/);
+  });
+
   it("says try again tomorrow when none are left", async () => {
     stub({ clearedLevels: ["N5"], remaining: 0 });
     open();
     await screen.findByText(/Try again tomorrow/);
     expect(screen.queryByRole("button", { name: "Generate" })).toBeNull();
+  });
+
+  it("names an empty library under its own heading", async () => {
+    stub({ clearedLevels: ["N5"], remaining: 5 });
+    open();
+    expect(await screen.findByRole("heading", { level: 3, name: "Nothing here yet" })).toBeTruthy();
+    expect(screen.getByText("Texts you generate are kept here.")).toBeTruthy();
+  });
+
+  it("reads a failed load of the options as an error with Try again, apart from the library", async () => {
+    let fail = true;
+    vi.stubGlobal("fetch", async (url: string) => {
+      if (url.endsWith("/options") && fail) return { ok: false, status: 500, json: async () => ({}) };
+      return { ok: true, status: 200, json: async () => (url.endsWith("/options") ? { clearedLevels: ["N5"], remaining: 5 } : { texts: [] }) };
+    });
+    open();
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("This did not load");
+    expect(await screen.findByRole("heading", { name: "Nothing here yet" })).toBeTruthy();
+    fail = false;
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("button", { name: "Generate" })).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("links a ready text from the library", async () => {

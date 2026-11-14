@@ -11,7 +11,7 @@ Researched 2026-11-05 from primary sources only: the site https://www.usehallmar
 - **Hum is a playful, light, cut-paper theme.** Grained cream paper, torn edges, card-stock buttons that press down, blue-black ink, Chillax for everything, pear-yellow for the action, blue for links and focus, coral for one loud moment, mint for growth. Radii are 24px (cards), 16px (buttons) and 14px (inputs). Its keywords already include learning, reading, streak, habit and practice.
 - **To get Hum, name it.** A prompt that names a theme skips the deal and is stamped `theme: Hum (by request)`. Then `node <skill-dir>/scripts/theme.mjs scaffold hum --scope app` writes the tokens beside `src/index.css`.
 - **To pin Hum for every agent, lock it.** After the first Hum build, say "lock the system". Hallmark writes `design.md` at the repo root. Every later run reads it first, skips the deal and follows it.
-- **Gaps for mojibun:** Chillax has no kana or kanji, so Japanese text needs a second font that Hallmark does not supply. The Hum token block does not define `--grain` and `--fibre`, though its build hint uses them. Hum's 54px controls and torn-paper ornament clash with Hallmark's app-screen rules (32 to 40px controls, no ornament), so the prototype has to choose.
+- **Gaps for ibbun:** Chillax has no kana or kanji, so Japanese text needs a second font that Hallmark does not supply. The Hum token block does not define `--grain` and `--fibre`, though its build hint uses them. Hum's 54px controls and torn-paper ornament clash with Hallmark's app-screen rules (32 to 40px controls, no ornament), so the prototype has to choose.
 
 ---
 
@@ -233,13 +233,13 @@ From `hum.md`: never a serif, never pure white paper, never a square corner; nev
 ### 5.6 How to select and install Hum
 
 1. Install the skill: `npx skills add nutlope/hallmark -g --agent claude-code` (README, "Install"). Optional: `npm i -g puppeteer-core` for the browser checks, and `node ~/.claude/skills/hallmark/scripts/install-hook.mjs` for the edit-time hook.
-2. Name the theme in the prompt, for example `/hallmark build the mojibun dashboard in the Hum theme`. A named theme skips the deal and is stamped `theme: Hum (by request)` (`SKILL.md`, step 3).
+2. Name the theme in the prompt, for example `/hallmark build the ibbun dashboard in the Hum theme`. A named theme skips the deal and is stamped `theme: Hum (by request)` (`SKILL.md`, step 3).
 3. Scaffold from the project root: `node ~/.claude/skills/hallmark/scripts/theme.mjs scaffold hum --scope app`. It writes `src/tokens.css` and `src/base.css` beside `src/index.css` and prints the stamp and the two `@import` lines (`theme.mjs`, function `scaffold`). Add `--force` to overwrite existing files.
 4. Look at `skills/hallmark/references/themes/hum.jpg` for palette balance, type voice and surfaces, never layout (`SKILL.md`, step 4).
 5. Add the Chillax `<link>` to `index.html`.
 6. After the first screen exists, say "lock the system". Hallmark writes `design.md` at the root from `tokens.css` (https://github.com/Nutlope/hallmark/blob/main/skills/hallmark/references/design-md.md). A hand-written `design.md` in the same format should also work, since pre-flight only looks for the file. **Unconfirmed:** that a hand-written one behaves identically.
 
-## 6. Notes for mojibun
+## 6. Notes for ibbun
 
 These are practical notes for the prototype ticket #17 ("UI prototypes in Hallmark": dashboard, review session, the 男 → 男性 → 男は仕事に行った drill-down, and a reading passage with tap-to-lookup and mark-as-Known). Statements about Hallmark carry their sources; the rest are suggestions.
 
@@ -251,7 +251,7 @@ These are practical notes for the prototype ticket #17 ("UI prototypes in Hallma
 - Name Hallmark in every UI prompt. The skill does not run on an existing design unless named, and "Any other change to an existing design is not a Hallmark run: do it as asked, in the project's own system" (`SKILL.md`, front matter and "Flow"). Edits outside Hallmark must still use the Hum tokens.
 - Commit `design.md`, `src/tokens.css`, `src/base.css` and `.hallmark/log.json`. The stamp and the log are "the durable memory" across long sessions (flow.md, "Harnesses").
 
-**All four screens are app screens.** Use `scaffold hum --scope app` and `sloplint --scope app --url http://localhost:5173/<route>` (5173 is Vite's usual port; check the dev server). App scope needs loading, empty, error and full states for each data region, keeps state in the URL, and has a "signature" object (flow.md, "App screens"). For mojibun that object is plausibly the review card or the drill-down chain.
+**All four screens are app screens.** Use `scaffold hum --scope app` and `sloplint --scope app --url http://localhost:5173/<route>` (5173 is Vite's usual port; check the dev server). App scope needs loading, empty, error and full states for each data region, keeps state in the URL, and has a "signature" object (flow.md, "App screens"). For ibbun that object is plausibly the review card or the drill-down chain.
 
 **Decide where Hum yields to app scope.** App scope wants 32 to 40px controls and borrows the theme's palette, faces, radius and surfaces but "never its layout, navigation or ornament" (flow.md, "App screens"). Hum wants 54px card-stock buttons, torn edges, hills and soil (`hum.md`). Suggestion: keep the palette, Chillax, the radii, grain and fibre, and the pressable card-stock answer buttons in the review session, where pressing is the job. Keep torn edges and grounds for a few surfaces (the session-complete moment, an empty state). Write the decision into `design.md` so every agent makes the same call. Hallmark says a page that needs something else amends `design.md` with a `## Variants` section (design-md.md).
 

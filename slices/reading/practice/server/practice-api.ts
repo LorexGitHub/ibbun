@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import type { AuthEnv } from "@mojibun/auth";
-import type { ContentGraph } from "@mojibun/content-graph";
-import { PracticeGenerate } from "@mojibun/content-graph/jobs";
-import type { Jobs } from "@mojibun/jobs";
-import { isLevelCleared, type Progress, type Texts } from "@mojibun/progress";
-import { JLPT_LEVELS, LearnerId, type JlptLevel } from "@mojibun/shared";
+import type { AuthEnv } from "@ibbun/auth";
+import type { ContentGraph } from "@ibbun/content-graph";
+import { PracticeGenerate } from "@ibbun/content-graph/jobs";
+import type { Jobs } from "@ibbun/jobs";
+import { isLevelCleared, type Progress, type Texts } from "@ibbun/progress";
+import { isShowcase, JLPT_LEVELS, LearnerId, type JlptLevel } from "@ibbun/shared";
 import { textView, type Reader } from "../../server/text.ts";
 import { PracticeRequest, type Library, type PracticeOptions, type PracticeResult } from "../contract.ts";
 
@@ -69,6 +69,7 @@ export const createPracticeApi = ({ contentGraph, progress, texts, jobs, now, ne
     .post("/texts", async (c) => {
       const request = PracticeRequest.safeParse(await c.req.json().catch(() => null));
       if (!request.success) return c.json({ message: "not a practice request" }, 400);
+      if (isShowcase(process.env.SHOWCASE)) return c.json({ status: "showcase" } satisfies PracticeResult);
       const learnerId = LearnerId.parse(c.get("learner").learnerId);
       if (!(await clearedLevels(learnerId)).includes(request.data.level)) return c.json({ message: "level not cleared" }, 403);
       if ((await used(learnerId)) >= config.dailyLimit) return c.json({ status: "limit" } satisfies PracticeResult);

@@ -1,4 +1,4 @@
-import type { SentenceLink } from "@mojibun/content-graph/authoring";
+import type { SentenceLink } from "@ibbun/content-graph/authoring";
 
 const NULL = "\\N";
 

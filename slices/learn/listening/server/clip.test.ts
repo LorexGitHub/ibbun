@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeContentGraph, n5Fixture, type Graph, type Token } from "@mojibun/content-graph/testing";
-import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeLearningPath } from "@mojibun/learning-path/testing";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import type { LearnerId } from "@mojibun/shared";
+import { createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeContentGraph, n5Fixture, type Graph, type Token } from "@ibbun/content-graph/testing";
+import { createFakeLearners } from "@ibbun/learner/testing";
+import { createFakeLearningPath } from "@ibbun/learning-path/testing";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import type { LearnerId } from "@ibbun/shared";
 import type { Batch } from "../../contract.ts";
 import { createLearnApi } from "../../server/learn-api.ts";
 import type { ClipLesson, ClipVerdict } from "../contract.ts";
@@ -21,7 +21,7 @@ const token = (surface: string, reading: string, start: number): Token => ({
 
 const addClips = (graph: Graph, wordId: string, grammarId: string, kanaWordId: string) => {
   const life = { approval: "approved" as const, retired: false, provenanceId: ID(1) };
-  graph.provenance.push({ id: ID(1), source: { kind: "fixture" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: ID(1), source: { kind: "fixture" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const sentence = (id: number, text: string, tokens: Token[], en: string, key: string | null) =>
     graph.sentence.push({ id: ID(id), text, translationEn: en, tokens, audioKey: key, audioVoice: "四国めたん", unlevelledWordCount: 0, ...life });
   const clip = (id: string, kind: "sentence" | "dialogue") => {

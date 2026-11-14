@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { WiktionaryRecord } from "@mojibun/content-graph/authoring";
+import type { WiktionaryRecord } from "@ibbun/content-graph/authoring";
 
 /** Hard redirects (`{title, redirect, pos}`) carry no language; they are the only lines without one. */
 const Language = z

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { Authoring } from "@mojibun/content-graph/authoring";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import { defineJob, handler, type JobHandler, type Jobs } from "@mojibun/jobs";
-import type { Nlp } from "@mojibun/nlp";
+import type { Authoring } from "@ibbun/content-graph/authoring";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import { defineJob, handler, type JobHandler, type Jobs } from "@ibbun/jobs";
+import type { Nlp } from "@ibbun/nlp";
 import { downloadGrammarSources, type GrammarSources } from "./download.ts";
 import { seedGrammar, type SeedExample, type SeedPoint } from "./seed.ts";
 import { mapLimited } from "../tatoeba/tokens.ts";

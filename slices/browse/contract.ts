@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JlptLevel, StudyItemId } from "@mojibun/shared";
+import { JlptLevel, StudyItemId } from "@ibbun/shared";
 
 export { JlptLevel };
 
@@ -51,6 +51,7 @@ const Kanji = z.object({
 const Word = z.object({
   type: z.literal("word"),
   forms: z.array(z.string()),
+  usuallyKana: z.boolean(),
   readings: z.array(z.object({ text: z.string(), pitchAccent: z.array(z.number().int()).nullable() })),
   senses: z.array(z.object({ partsOfSpeech: z.array(z.string()), glosses: z.array(z.string()), japaneseExplanation: z.string().nullable() })),
 });

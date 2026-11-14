@@ -5,11 +5,11 @@
 
 ## Context
 
-mojibun needs one visual direction before screens are built, so each screen doesn't invent its own look. We made a static mock of the Today and Review screens and the logo, and agreed it is what the finished app should look like.
+ibbun needs one visual direction before screens are built, so each screen doesn't invent its own look. We made a static mock of the Today and Review screens and the logo, and agreed it is what the finished app should look like.
 
 ## Decision
 
-[`docs/design/mojibun-mock.html`](../design/mojibun-mock.html) is the visual target for the app. Open it in a browser. When a real screen and the mock disagree, the mock wins unless this ADR is superseded.
+[`docs/design/ibbun-mock.html`](../design/ibbun-mock.html) is the visual target for the app. Open it in a browser. When a real screen and the mock disagree, the mock wins unless this ADR is superseded.
 
 The mock uses the **Hum** theme from [nutlope/hallmark](https://github.com/nutlope/hallmark) (`skills/hallmark/references/themes/hum.md`):
 

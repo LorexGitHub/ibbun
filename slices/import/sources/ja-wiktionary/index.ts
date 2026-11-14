@@ -17,7 +17,7 @@ const versionOf = (response: Response): string => {
 /** ja Wiktionary glosses via kaikki.org. The upstream version is the extraction date. */
 export const wiktionarySource = (fetchImpl: Fetch = fetch): Source<"wiktionary-ja"> => ({
   dataset: "wiktionary-ja",
-  latest: async () => versionOf(await fetchImpl(DUMP, { method: "HEAD", headers: { "user-agent": "mojibun-import" } })),
+  latest: async () => versionOf(await fetchImpl(DUMP, { method: "HEAD", headers: { "user-agent": "ibbun-import" } })),
   download: async (version) => {
     const response = await get(fetchImpl, DUMP, "application/gzip");
     if (versionOf(response) !== version) throw new Error(`kaikki.org now serves ${versionOf(response)}, not ${version}`);

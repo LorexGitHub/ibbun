@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Card, levelQuery, useLevelFilter } from "@mojibun/ui";
-import { StudyItemId, type JlptLevel } from "@mojibun/shared";
+import { levelQuery, useLevelFilter } from "@ibbun/ui";
+import { StudyItemId, type JlptLevel } from "@ibbun/shared";
 import { DueResponse, SubmitResponse, type AnswerKind, type ReviewPrompt, type SubmitRequest } from "../contract.ts";
 import { loadDueClips, type LoadClips } from "../listening/web/clip-reviews-client.ts";
 import { ListeningReviews } from "../listening/web/ListeningReviews.tsx";
@@ -39,7 +39,7 @@ const Ghosts = ({ load, submit, onFinish }: { load: () => Promise<DueResponse>; 
   return (
     <section aria-label="Ghosts">
       <h2>Ghosts</h2>
-      <Card>Missed in an earlier session. These do not change your Mastery.</Card>
+      <p className="muted">Missed in an earlier session. These do not change your Mastery.</p>
       <Run prompts={ghosts.reviews} preferences={ghosts.preferences} submit={asKind(submit, "ghost")} onFinish={onFinish} />
     </section>
   );

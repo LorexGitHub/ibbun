@@ -1,21 +1,23 @@
 {
-  "name": "@mojibun/credits",
+  "name": "@ibbun/credits",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {},
   "dependencies": {
-    "@mojibun/content-graph": "workspace:*",
-    "@mojibun/db": "workspace:*",
-    "@mojibun/slice": "workspace:*",
-    "@mojibun/ui": "workspace:*",
+    "@ibbun/content-graph": "workspace:*",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/slice": "workspace:*",
+    "@ibbun/ui": "workspace:*",
     "hono": "^4.9.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zod": "^4.1.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.0",
     "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0"
+    "@types/react-dom": "^19.1.0",
+    "happy-dom": "^20.0.0"
   }
 }

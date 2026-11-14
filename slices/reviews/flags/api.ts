@@ -1,7 +1,7 @@
 import { Hono } from "hono";
-import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { AnswerFlags } from "@mojibun/content-graph/flags";
-import type { Progress, Review } from "@mojibun/progress";
+import { createAuthGuards, type AuthEnv, type SessionResolver } from "@ibbun/auth";
+import type { AnswerFlags } from "@ibbun/content-graph/flags";
+import type { Progress, Review } from "@ibbun/progress";
 import { FlagRequest, FLAGGABLE_FACETS } from "./contract.ts";
 
 export type FlagsDeps = { sessions: SessionResolver; progress: Progress; answerFlags: AnswerFlags };

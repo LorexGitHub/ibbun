@@ -1,13 +1,13 @@
 import { Hono } from "hono";
-import { createAuthoring } from "@mojibun/content-graph/authoring";
-import { ContentReview } from "@mojibun/content-graph/jobs";
-import { createDb } from "@mojibun/db";
-import { createPgBossJobs, handler, type Jobs } from "@mojibun/jobs";
-import { createLearnerAuth, learnerConfigFromEnv } from "@mojibun/learner";
-import { createAnthropicLlm, loadLlmConfig } from "@mojibun/llm";
-import { createSmtpMail } from "@mojibun/mail";
-import { createSudachiNlp } from "@mojibun/nlp";
-import { createProgress } from "@mojibun/progress";
+import { createAuthoring } from "@ibbun/content-graph/authoring";
+import { ContentReview } from "@ibbun/content-graph/jobs";
+import { createDb } from "@ibbun/db";
+import { createSqsJobsFromEnv, handler } from "@ibbun/jobs";
+import { createLearnerAuth, learnerConfigFromEnv } from "@ibbun/learner";
+import { createAnthropicLlm, loadLlmConfig } from "@ibbun/llm";
+import { createMail, mailConfigFromEnv } from "@ibbun/mail";
+import { createSudachiNlp } from "@ibbun/nlp";
+import { createProgress } from "@ibbun/progress";
 import { createSamplingApi } from "../sampling/api.ts";
 import { DEFAULT_SAMPLING } from "../sampling/config.ts";
 import { createPostgresStore } from "../sampling/postgres.ts";
@@ -24,13 +24,7 @@ const required = (name: string) => requiredSetting(env, name);
 const db = createDb(required("DATABASE_URL"));
 const authoring = createAuthoring(db);
 
-const queue = once(() => createPgBossJobs(required("DATABASE_URL")));
-const queueJobs: Jobs = {
-  enqueue: async (contract, payload) => (await queue()).enqueue(contract, payload),
-  work: async (handlers) => (await queue()).work(handlers),
-  schedule: async (contract, cron, payload) => (await queue()).schedule(contract, cron, payload),
-  stop: async () => (await queue()).stop(),
-};
+const queueJobs = createSqsJobsFromEnv(env);
 
 const sampling = createSampling({ store: createPostgresStore(db), authoring, progress: createProgress(db), jobs: queueJobs, config: DEFAULT_SAMPLING });
 
@@ -47,7 +41,7 @@ const sessions = once(
   () =>
     createLearnerAuth({
       db,
-      mail: createSmtpMail({ url: env.SMTP_URL ?? "smtp://localhost:1025", from: "mojibun <noreply@mojibun.test>" }),
+      mail: createMail(mailConfigFromEnv(env)),
       config: learnerConfigFromEnv(env),
     }).sessions,
 );

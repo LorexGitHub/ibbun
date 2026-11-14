@@ -18,7 +18,7 @@ import urllib.request
 CATEGORY = re.compile(
     r"Japanese terms with (Heiban|Atamadaka|Nakadaka|Odaka) pitch accent \(Tōkyō\)"
 )
-USER_AGENT = "mojibun-research/0.1 (https://github.com/LorexGitHub/mojibun)"
+USER_AGENT = "ibbun-research/0.1 (https://github.com/LorexGitHub/ibbun)"
 
 
 def headwords_with_accent(path):
@@ -30,15 +30,12 @@ def headwords_with_accent(path):
 
 
 def fetch_wikitext(titles):
-    query = urllib.parse.urlencode({
+    url = "https://en.wiktionary.org/w/api.php?" + urllib.parse.urlencode({
         "action": "query", "prop": "revisions", "rvprop": "content",
         "rvslots": "main", "format": "json", "formatversion": "2",
         "titles": "|".join(titles),
     })
-    request = urllib.request.Request(
-        "https://en.wiktionary.org/w/api.php?" + query,
-        headers={"User-Agent": USER_AGENT},
-    )
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     pages = json.load(urllib.request.urlopen(request))["query"]["pages"]
     return {p["title"]: p["revisions"][0]["slots"]["main"]["content"]
             for p in pages if "revisions" in p}

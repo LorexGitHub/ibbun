@@ -1,8 +1,8 @@
-import type { NavEntry } from "@mojibun/slice";
-import { buttonClass, KeyMark, Layout, LevelFilter, onGoTo, SessionCountSlot, useKey, useLevelFilter, useSystemModeSync } from "@mojibun/ui";
+import type { NavEntry } from "@ibbun/slice";
+import { buttonClass, KeyMark, Layout, LevelFilter, onGoTo, SessionCountSlot, useKey, useLevelFilter, useSystemModeSync } from "@ibbun/ui";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
-import { Link, Route, Routes, useLocation, useNavigate } from "react-router";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Toaster } from "@/vendor/ui/sonner";
 import { AccountMenu } from "./AccountMenu.tsx";
@@ -63,6 +63,25 @@ const useLevels = (nav: NavEntry[], who: Who, pathname: string, map: boolean) =>
   return map ? <LevelLinks /> : undefined;
 };
 
+/** A session is the Learner's own: a visitor goes to Log in and comes back here afterwards. */
+const LogInFirst = () => {
+  const { pathname, search } = useLocation();
+  return <Navigate replace to={`/login?next=${encodeURIComponent(pathname + search)}`} />;
+};
+
+/** The screen at the address: a slice's route, or Home. */
+const Screens = ({ shell, who, session }: { shell: Shell; who: Who; session: NavEntry | undefined }) => {
+  if (session && who.state === "out") return <LogInFirst />;
+  return (
+    <Routes>
+      {shell.routes.map((r) => (
+        <Route key={r.path} path={r.path} element={<r.component />} />
+      ))}
+      <Route path="*" element={<Home shell={shell} who={who} />} />
+    </Routes>
+  );
+};
+
 export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -101,12 +120,7 @@ export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) =
   return (
     <MotionConfig reducedMotion="user">
       <Layout nav={(sessionName || levels) && <>{sessionName}{levels}</>} aside={aside} dock={dock} kanji={kanjiAt(nav, pathname)}>
-        <Routes>
-          {shell.routes.map((r) => (
-            <Route key={r.path} path={r.path} element={<r.component />} />
-          ))}
-          <Route path="*" element={<Home shell={shell} who={who} />} />
-        </Routes>
+        <Screens shell={shell} who={who} session={session} />
       </Layout>
       <CommandMenu open={menuOpen} onOpenChange={setMenuOpen} nav={nav} who={who} onSignOut={signOut} />
       <Toaster position="top-center" />

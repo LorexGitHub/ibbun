@@ -1,9 +1,9 @@
 import { Hono, type Context } from "hono";
-import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { ContentGraph, Example, StudyItem, StudyItemSummary } from "@mojibun/content-graph";
-import { grade, normalise, normaliseMeaning, type AnswerData } from "@mojibun/content-graph/grade";
-import type { Progress } from "@mojibun/progress";
-import { StudyItemId, type LearnerId } from "@mojibun/shared";
+import { createAuthGuards, type AuthEnv, type SessionResolver } from "@ibbun/auth";
+import type { ContentGraph, Example, StudyItem, StudyItemSummary } from "@ibbun/content-graph";
+import { grade, normalise, normaliseMeaning, type AnswerData } from "@ibbun/content-graph/grade";
+import type { Progress } from "@ibbun/progress";
+import { StudyItemId, type LearnerId } from "@ibbun/shared";
 import { CramType, ItemQuery, Submission, type CramItem, type FacetName, type FacetOutcome, type SubmissionData, type Verdict } from "../contract.ts";
 import { answerDataFor, questionFor } from "./question.ts";
 

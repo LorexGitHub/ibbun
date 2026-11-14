@@ -1,14 +1,23 @@
 {
-  "name": "@mojibun/worker",
+  "name": "@ibbun/worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {},
-  "scripts": { "dev": "node --env-file-if-exists=../../.env --watch src/main.ts", "start": "node --env-file-if-exists=../../.env src/main.ts" },
-  "dependencies": {
-    "@mojibun/db": "workspace:*",
-    "@mojibun/jobs": "workspace:*",
-    "@mojibun/slice": "workspace:*"
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env --watch src/main.ts",
+    "start": "node --env-file-if-exists=../../.env src/main.ts"
   },
-  "devDependencies": { "@types/node": "^24.0.0" }
+  "dependencies": {
+    "@aws-sdk/client-ssm": "^3.1168.0",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/jobs": "workspace:*",
+    "@ibbun/slice": "workspace:*"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-sqs": "^3.1167.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.23.1",
+    "pg": "^8.23.1"
+  }
 }

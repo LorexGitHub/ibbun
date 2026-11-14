@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring, emptyGraph, type Graph } from "@mojibun/content-graph/testing";
-import type { QueueReason } from "@mojibun/content-graph/authoring";
-import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@mojibun/llm";
+import { createFakeAuthoring, emptyGraph, type Graph } from "@ibbun/content-graph/testing";
+import type { QueueReason } from "@ibbun/content-graph/authoring";
+import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@ibbun/llm";
 import { DEFAULT_CONFIG } from "../../src/config.ts";
 import { rubricFor } from "../../src/rubrics.ts";
 import { REFRESH_REASONS, reviewRefreshFlags } from "./index.ts";
@@ -23,12 +23,12 @@ const world = () => {
   const graph: Graph = emptyGraph();
   const a = createFakeAuthoring(graph);
   const provenanceId = randomUUID();
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const life = (approval: "approved" | "draft" = "approved") => ({ approval, retired: false, provenanceId });
 
   const word = randomUUID();
   graph.studyItem.push({ id: word, type: "word", ...life() });
-  graph.word.push({ studyItemId: word, priorityTags: [] });
+  graph.word.push({ studyItemId: word, priorityTags: [], usuallyKana: false });
   graph.levelCandidate.push({ id: randomUUID(), studyItemId: word, level: "N5", kind: "list", ...life() });
   const form = randomUUID();
   graph.wordForm.push({ id: form, wordId: word, position: 0, text: "水", ...life() });

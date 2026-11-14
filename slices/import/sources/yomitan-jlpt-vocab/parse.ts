@@ -1,5 +1,5 @@
-import type { WordLevelRecord } from "@mojibun/content-graph/authoring";
-import type { JlptLevel } from "@mojibun/shared";
+import type { WordLevelRecord } from "@ibbun/content-graph/authoring";
+import type { JlptLevel } from "@ibbun/shared";
 import { easiestLevels } from "../easiest.ts";
 import { parseCsv } from "./csv.ts";
 

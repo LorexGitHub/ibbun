@@ -1,6 +1,6 @@
 # Accounts, sessions and roles
 
-Decided in [#39](https://github.com/LorexGitHub/mojibun/issues/39). Terms follow [CONTEXT.md](../CONTEXT.md). Why sign-up is open is in [ADR 0012](adr/0012-open-sign-up-bounded-by-token-quotas.md). [#6](https://github.com/LorexGitHub/mojibun/issues/6) set multi-user from day one and no payments.
+Decided in [#39](https://github.com/LorexGitHub/ibbun/issues/39). Terms follow [CONTEXT.md](../CONTEXT.md). Why sign-up is open is in [ADR 0012](adr/0012-open-sign-up-bounded-by-token-quotas.md). [#6](https://github.com/LorexGitHub/ibbun/issues/6) set multi-user from day one and no payments.
 
 ## Summary
 
@@ -16,14 +16,16 @@ Decided in [#39](https://github.com/LorexGitHub/mojibun/issues/39). Terms follow
 ## Sign-up and login
 
 1. **Sign-up** takes an email and a password. It always answers "check your email", whether or not the address already has an account.
-   - For a new address, mojibun sends a verification link.
-   - For an existing address, mojibun sends "you already have an account; reset your password?" and creates nothing.
+   - For a new address, ibbun sends a verification link.
+   - For an existing address, ibbun sends "you already have an account; reset your password?" and creates nothing.
 2. **Verification** is required. Until the Learner verifies, they can't log in. The link expires after **24 h**, can be resent, and works once.
 3. **Login** takes an email and a password. Every failure gives the same message, "email or password is wrong", including for unverified and deactivated accounts. The message never says which part was wrong.
 4. **Password reset** always answers "if that address has an account, we sent a link". The link expires after **1 h** and works once. A reset ends every session of that Learner.
 5. **Changing the email** sends a verification link to the new address. The old address stays in use until the Learner verifies the new one.
 
 When `SIGNUP_OPEN` (config, default `true`) is `false`, sign-up is refused. Existing Learners can still log in. The supervisor can use this switch to stop abuse at once.
+
+When `SHOWCASE=1` ([ADR 0017](adr/0017-showcase-stage-on-aws.md)), sign-up by email is off and "Try it" (`POST /api/auth/sign-in/anonymous`) creates a guest Learner with no email address and signs it in, with no mail sent. Each guest login first deletes guests older than 24 hours, so the stage needs no Scheduler. Guest login is limited to 10 per hour per IP, and `SIGNUP_OPEN=false` turns it off too. A purged guest's Reviews stay, because the Review log is append-only; nothing reads them.
 
 ## Security standards
 
@@ -57,7 +59,7 @@ The rules follow OWASP (Password Storage and Authentication Cheat Sheets) and NI
 | `supervisor` | Everything a Learner can do, plus `/admin`: escalations, samples, pause and resume, budget and pool spend, deactivating accounts |
 
 - Every account has exactly one role. New accounts get `learner`.
-- There is no screen for granting roles. The seed makes the account for `SUPERVISOR_EMAIL` (env) a Supervisor. A further Supervisor is added with a CLI command: `pnpm --filter @mojibun/learner grant-supervisor <email>`. Every role change is logged.
+- There is no screen for granting roles. The seed makes the account for `SUPERVISOR_EMAIL` (env) a Supervisor. A further Supervisor is added with a CLI command: `pnpm --filter @ibbun/learner grant-supervisor <email>`. Every role change is logged.
 - The reviewer agent and the verifier agent aren't accounts. Approval Decisions still name the reviewer's model and rubric ([content-approval.md](content-approval.md)).
 
 ## LLM quotas
@@ -80,7 +82,7 @@ Open sign-up means Learners trigger LLM spend: every Learn batch asks for a Batc
 
 - A new platform package, `mail`, sends a named template with data. Like the other adapters, it has an interface and a fake.
 - Locally, Docker Compose runs **Mailpit**, and `mail` sends to it over SMTP. The verifier agent and Playwright read verification and reset links from Mailpit's API.
-- On AWS, mail goes through SES ([ADR 0015](adr/0015-serverless-on-aws.md)).
+- On AWS, `MAIL_TRANSPORT=ses` sends through SES with nodemailer's SES transport and `@aws-sdk/client-sesv2`, signed by the Lambda role, so there are no SMTP keys. `MAIL_FROM` sets the sender, `AWS_REGION` the SES region, and `SES_ENDPOINT` points at a local SES-compatible endpoint. Without `MAIL_TRANSPORT`, mail goes over SMTP to `SMTP_URL` (Mailpit at `smtp://localhost:1025` by default). The stack declares the sending domain identity with DKIM (#259).
 - Templates: verify email, already registered, reset password, email changed (sent to the old address), account deleted.
 
 ## Wiring
@@ -108,6 +110,6 @@ Neither needs a data migration.
 
 ## Testing
 
-- The seed creates two verified accounts in dev and CI only: `learner@mojibun.test` and `supervisor@mojibun.test`, with passwords from env. Production builds refuse to run that part of the seed.
+- The seed creates two verified accounts in dev and CI only: `learner@ibbun.test` and `supervisor@ibbun.test`, with passwords from env. Production builds refuse to run that part of the seed.
 - The app has no auth bypass. Playwright logs in once through the real form and reuses the stored session state.
-- `verify-mojibun` covers sign-up through Mailpit, the enumeration-safe responses, rate limiting, log out everywhere, the `/admin` role check and account deletion.
+- `verify-ibbun` covers sign-up through Mailpit, the enumeration-safe responses, rate limiting, log out everywhere, the `/admin` role check and account deletion.

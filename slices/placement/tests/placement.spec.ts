@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// Needs the N5 fixture graph loaded (`pnpm --filter @mojibun/content-graph seed:fixture`) and a logged-in Learner.
+// Needs the N5 fixture graph loaded (`pnpm --filter @ibbun/content-graph seed:fixture`) and a logged-in Learner.
 test("a Learner taps an N5 tile, saves, and finds it Known and locked after a reload", async ({ page }) => {
   await page.goto("/placement");
   await expect(page.getByRole("heading", { name: "Placement" })).toBeVisible();

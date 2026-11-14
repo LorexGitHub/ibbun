@@ -1,6 +1,6 @@
 # Feature slices over a small core; slices meet only through core
 
-Many AI agents build mojibun in parallel, and the supervisor doesn't read their code. The architecture has to let one agent change one folder without breaking anyone else, and has to catch violations in CI. Pure vertical slices don't fit, because almost every feature reads the Content Graph and the Review log, and copies of "is this visible" or "is this Known" would drift apart. Classic layers don't fit, because every feature touches every layer. So mojibun is a modular monolith: 13 feature slices on top of four core modules (`content-graph`, `progress`, `learning-path`, `learner`), each behind an `exports`-limited interface, with dependency-cruiser enforcing the rules (see `docs/architecture.md`).
+Many AI agents build ibbun in parallel, and the supervisor doesn't read their code. The architecture has to let one agent change one folder without breaking anyone else, and has to catch violations in CI. Pure vertical slices don't fit, because almost every feature reads the Content Graph and the Review log, and copies of "is this visible" or "is this Known" would drift apart. Classic layers don't fit, because every feature touches every layer. So ibbun is a modular monolith: 13 feature slices on top of four core modules (`content-graph`, `progress`, `learning-path`, `learner`), each behind an `exports`-limited interface, with dependency-cruiser enforcing the rules (see `docs/architecture.md`).
 
 Slices never import each other. They interact only through synchronous calls into core, and screens that show two slices are assembled by the web shell. As a result any slice can be rewritten or deleted without breaking another, and no agent waits on another agent's slice interface.
 
@@ -23,4 +23,4 @@ The cost is that the core could become a queue for every agent. We reduce that i
 
 - The core grows over time. Breaking changes need their own issue, and the supervisor approves those and new core modules.
 - Code is duplicated on purpose across slices. The reviewer agent opens a "move into core" issue once three or more packages share it.
-- Quality gates (ub-mode TDD, CRAP < 10, per-package `dryer`, `mutator`, dependency-cruiser, Playwright) plus pstack `verify-mojibun` evidence from a separate verifier agent replace human code review.
+- Quality gates (ub-mode TDD, CRAP < 10, per-package `dryer`, `mutator`, dependency-cruiser, Playwright) plus pstack `verify-ibbun` evidence from a separate verifier agent replace human code review.

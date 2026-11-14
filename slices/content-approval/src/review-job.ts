@@ -1,7 +1,7 @@
-import type { Authoring, Decider, DecisionOutcome, GenerationRequest } from "@mojibun/content-graph/authoring";
-import type { Jobs } from "@mojibun/jobs";
-import type { Llm } from "@mojibun/llm";
-import type { Nlp } from "@mojibun/nlp";
+import type { Authoring, Decider, DecisionOutcome, GenerationRequest } from "@ibbun/content-graph/authoring";
+import type { Jobs } from "@ibbun/jobs";
+import type { Llm } from "@ibbun/llm";
+import type { Nlp } from "@ibbun/nlp";
 import { checkExample, checkExplanation, type ExampleCheck, type ExplanationCheck } from "./checks.ts";
 import type { ApprovalConfig } from "./config.ts";
 import { draftsOfRun, type Draft } from "./drafts.ts";

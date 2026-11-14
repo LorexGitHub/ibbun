@@ -2,9 +2,10 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ActiveSession, LearnerClient, Preferences, Result } from "@mojibun/learner/client";
+import type { ActiveSession, LearnerClient, Preferences, Result } from "@ibbun/learner/client";
 import { ClientContext } from "../web/client.ts";
 import { routes, widgets } from "../web/index.ts";
+import { deviceName } from "../web/settings.tsx";
 
 afterEach(cleanup);
 
@@ -89,6 +90,18 @@ describe("sign up", () => {
   });
 });
 
+describe("guest login", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  it("offers Try it only in showcase mode", () => {
+    open("/signup");
+    expect(screen.queryByRole("button", { name: "Try it" })).toBeNull();
+    cleanup();
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    open("/signup");
+    expect(screen.getByRole("button", { name: "Try it" })).toBeTruthy();
+  });
+});
+
 describe("the split", () => {
   it("sets the line upright in Japanese beside the sign-up form, with Log in and one Review to try under it", () => {
     open("/signup");
@@ -148,6 +161,20 @@ describe("log in", () => {
     press("Log in");
     await waitFor(() => expect(where()).toBe("/"));
     expect(client.signIn).toHaveBeenCalledWith("a@x.test", "pw");
+  });
+
+  it("returns to the screen that sent the visitor here, and only to a screen of this app", async () => {
+    const logIn = async (path: string, to: string) => {
+      open(path);
+      type("Email", "a@x.test");
+      type("Password", "pw");
+      press("Log in");
+      await waitFor(() => expect(where()).toBe(to));
+      cleanup();
+    };
+    await logIn(`/login?next=${encodeURIComponent("/learn?level=n3")}`, "/learn?level=n3");
+    await logIn(`/login?next=${encodeURIComponent("//elsewhere.test/x")}`, "/");
+    await logIn(`/login?next=${encodeURIComponent("https://elsewhere.test/")}`, "/");
   });
 
   it("stays on the form with the one failure message", async () => {
@@ -368,5 +395,14 @@ describe("preferences", () => {
     fireEvent.click(await screen.findByLabelText("Off"));
     expect((await screen.findByText("those preferences are not valid")).getAttribute("role")).toBe("alert");
     expect((screen.getByLabelText("Only on Words still New to me") as HTMLInputElement).checked).toBe(true);
+  });
+});
+
+describe("deviceName", () => {
+  it("names the browser and system instead of printing the user-agent string", () => {
+    expect(deviceName("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36")).toBe("Chrome on Windows");
+    expect(deviceName("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1")).toBe("Safari on iOS");
+    expect(deviceName("Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36 Edg/130.0")).toBe("Edge on Android");
+    expect(deviceName("curl/8.0")).toBe("Unknown device");
   });
 });

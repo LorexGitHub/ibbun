@@ -1,13 +1,13 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Hono } from "hono";
-import { createAuthGuards, createFakeSessionResolver, type AuthEnv } from "@mojibun/auth";
-import type { PathItem, ReadingPassage } from "@mojibun/content-graph";
-import { createFakeContentGraph, emptyGraph } from "@mojibun/content-graph/testing";
-import { PracticeGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { StudyItemId } from "@mojibun/shared";
+import { createAuthGuards, createFakeSessionResolver, type AuthEnv } from "@ibbun/auth";
+import type { PathItem, ReadingPassage } from "@ibbun/content-graph";
+import { createFakeContentGraph, emptyGraph } from "@ibbun/content-graph/testing";
+import { PracticeGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeLearners } from "@ibbun/learner/testing";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { StudyItemId } from "@ibbun/shared";
 import { PASSAGE_TYPES, PracticeRequest } from "../contract.ts";
 import { createPracticeApi } from "../server/practice-api.ts";
 
@@ -75,6 +75,18 @@ describe("Practice Texts of Reading Passages", () => {
   });
 
   describe("generating", () => {
+    it("queues and records nothing in showcase mode", async () => {
+      const t = await setup([]);
+      vi.stubEnv("SHOWCASE", "1");
+      try {
+        expect(await (await t.generate()).json()).toEqual({ status: "showcase" });
+      } finally {
+        vi.unstubAllEnvs();
+      }
+      expect(t.jobs.pending()).toEqual([]);
+      expect(await t.texts.practiceTexts(t.learner.id)).toEqual([]);
+    });
+
     beforeEach(async () => {
       t = await setup([KANJI_A, KANJI_B]);
     });

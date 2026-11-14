@@ -1,5 +1,5 @@
-import type { JlptLevel } from "@mojibun/shared";
-import { levelQuery } from "@mojibun/ui";
+import type { JlptLevel } from "@ibbun/shared";
+import { levelQuery } from "@ibbun/ui";
 import { EpisodeLists, LookupView, TextView, type LookupRequest } from "../contract.ts";
 
 const BASE = "/api/reading";

@@ -1,5 +1,5 @@
-import { FIXTURE_PROVENANCE_ID } from "@mojibun/content-graph/authoring";
-import type { Levels } from "@mojibun/content-graph/levels";
+import { FIXTURE_PROVENANCE_ID } from "@ibbun/content-graph/authoring";
+import type { Levels } from "@ibbun/content-graph/levels";
 import { rebuildDerivedLinks } from "../sources/derived-links/index.ts";
 import { runGrammarSeed, type GrammarSeedDeps } from "../sources/grammar-seed/index.ts";
 import { runMatchers, type MatcherRunsDeps } from "../sources/matcher-runs/index.ts";
@@ -43,4 +43,14 @@ export const importEverything = async ({ imports, refreshes, grammarSeed, matche
   say(`levels: ${rebuilt.changedLevels} changed, ${rebuilt.derivedAdded} derived`);
   const matched = await runMatchers(matcherRuns);
   say(`matchers: ${matched.proposed} links proposed, ${matched.requested} Generation Requests opened`);
+};
+
+/** A `say` that ends each line with the time since the previous one, which is how long that step took (#258 picks each source's home by it). */
+export const timedSay = (log: (line: string) => void, clock: () => number): ((line: string) => void) => {
+  let last = clock();
+  return (line) => {
+    const now = clock();
+    log(`${line} (${((now - last) / 1000).toFixed(1)} s)`);
+    last = now;
+  };
 };

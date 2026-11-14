@@ -1,5 +1,5 @@
-import { grade, type AnswerData, type ContentGraph, type Example, type GradeResult, type StudyItemLink, type StudyItemPage } from "@mojibun/content-graph";
-import type { StudyItemId } from "@mojibun/shared";
+import { grade, headword, type AnswerData, type ContentGraph, type Example, type GradeResult, type StudyItemLink, type StudyItemPage } from "@ibbun/content-graph";
+import type { StudyItemId } from "@ibbun/shared";
 import type { ClipLesson, ClipQuestion } from "../contract.ts";
 
 type Line = Extract<StudyItemLink, { kind: "voices" }>;
@@ -37,7 +37,7 @@ const questionOf = (example: Example, random: () => number): ClipQuestion => {
 
 /** What a link to a Word or Grammar Point shows: the written form, or the reading of a Word with none. */
 const labelOf = ({ item }: StudyItemPage): string =>
-  item.type === "word" ? (item.forms[0]?.text ?? item.readings[0]!.text) : item.type === "grammar_point" ? item.title : item.id;
+  item.type === "word" ? headword(item) : item.type === "grammar_point" ? item.title : item.id;
 
 /** The Words and Grammar Points the clip's Sentences link to: its dependencies in `pathItems()`. */
 const linksOf = async (graph: ContentGraph, id: StudyItemId) => {

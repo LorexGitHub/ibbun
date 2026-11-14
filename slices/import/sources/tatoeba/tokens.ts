@@ -1,5 +1,5 @@
-import type { SentenceLink, SentenceRecord } from "@mojibun/content-graph/authoring";
-import type { Nlp, Token as NlpToken } from "@mojibun/nlp";
+import type { SentenceLink, SentenceRecord } from "@ibbun/content-graph/authoring";
+import type { Nlp, Token as NlpToken } from "@ibbun/nlp";
 
 type Stored = SentenceRecord["tokens"][number];
 

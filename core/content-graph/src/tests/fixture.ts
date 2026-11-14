@@ -7,7 +7,7 @@ export const fixture = () => {
   const next = () => `00000000-0000-7000-8000-${(++n).toString().padStart(12, "0")}`;
   const graph: Graph = emptyGraph();
   const provenanceId = next();
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const life = (approval: Approval = "approved", retired = false) => ({ approval, retired, provenanceId });
 
   const item = (type: Graph["studyItem"][number]["type"], approval?: Approval, retired?: boolean) => {
@@ -19,7 +19,7 @@ export const fixture = () => {
     graph.levelCandidate.push({ id: next(), studyItemId, level: lvl, kind, ...life(approval, retired) });
   const word = (forms: string[], reading: string, glosses: string[], approval?: Approval, retired?: boolean) => {
     const id = item("word", approval, retired);
-    graph.word.push({ studyItemId: id, priorityTags: ["ichi1"] });
+    graph.word.push({ studyItemId: id, priorityTags: ["ichi1"], usuallyKana: false });
     const formIds = forms.map((text, position) => {
       const formId = next();
       graph.wordForm.push({ id: formId, wordId: id, position, text, ...life() });

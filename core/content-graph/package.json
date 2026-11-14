@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/content-graph",
+  "name": "@ibbun/content-graph",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -17,10 +17,11 @@
     "seed:fixture": "node --env-file-if-exists=../../.env src/fixture/fixture-cli.ts"
   },
   "dependencies": {
-    "@mojibun/db": "workspace:*",
-    "@mojibun/jobs": "workspace:*",
-    "@mojibun/shared": "workspace:*",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/jobs": "workspace:*",
+    "@ibbun/shared": "workspace:*",
     "drizzle-orm": "^0.44.0",
+    "wanakana": "^5.3.1",
     "zod": "^4.1.0"
   },
   "devDependencies": {

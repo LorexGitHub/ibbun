@@ -1,4 +1,4 @@
-import { grade, type AnswerData, type Example, type GradeResult, type StudyItemLink, type StudyItemPage } from "@mojibun/content-graph";
+import { grade, type AnswerData, type Example, type GradeResult, type StudyItemLink, type StudyItemPage } from "@ibbun/content-graph";
 import type { ClipReview, Transcript } from "../contract.ts";
 
 /** One audio-bearing line of a clip: a dialogue has many, a Sentence clip has one. */

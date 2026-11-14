@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Button, Card } from "@mojibun/ui";
-import type { JlptLevel } from "@mojibun/shared";
+import { Button } from "@ibbun/ui";
+import type { JlptLevel } from "@ibbun/shared";
 import type { ClipView } from "../../contract.ts";
 import { ClipCard } from "../../web/ClipCard.tsx";
 import { LENGTHS, TOPICS, taskTypes, type LibraryEntry, type Options } from "../practice-contract.ts";
@@ -133,19 +133,19 @@ export const PracticeTexts = ({ onPlaying }: { onPlaying?: (playing: boolean) =>
   if (screen.at === "playing") {
     const { id, view } = screen;
     return (
-      <Card>
+      <section className="listening-dialogues" aria-label="Practice dialogue">
         <h2>Practice dialogue</h2>
         <ClipCard key={view.exampleId} view={view} answerWith={answerPractice} nextLabel="Next question" onNext={() => open(id)} />
         <Button onClick={() => setScreen({ at: "menu" })}>Back to your dialogues</Button>
-      </Card>
+      </section>
     );
   }
   return (
-    <Card>
+    <section className="listening-dialogues" aria-label="Practice dialogues">
       <h2>Practice dialogues</h2>
       <Offer options={options} making={screen.at === "making"} onStart={start} />
       {screen.at === "menu" && screen.message && <p role="status">{screen.message}</p>}
       {library.length > 0 && <Library entries={library} onOpen={open} />}
-    </Card>
+    </section>
   );
 };

@@ -1,4 +1,4 @@
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 
 /** One entry of a Tanos grammar list: its site id and the pattern. Only the plain list is read, never the Kanzen Master "usage" pages (docs/licensing.md). */
 export type TanosEntry = { key: string; level: JlptLevel; title: string };

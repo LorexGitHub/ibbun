@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { checkMatcherRule, type Authoring, type GenerationRun } from "@mojibun/content-graph/authoring";
-import { currentLevel } from "@mojibun/content-graph/levels";
-import type { Token } from "@mojibun/content-graph";
+import { checkMatcherRule, type Authoring, type GenerationRun } from "@ibbun/content-graph/authoring";
+import { currentLevel } from "@ibbun/content-graph/levels";
+import type { Token } from "@ibbun/content-graph";
 import { definePlan, type Kind } from "../kind.ts";
 
 export const TEMPLATE_VERSION = "grammar-fields/1";
@@ -51,7 +51,7 @@ const write = async (auth: Authoring, studyItemId: string, recordIds: string[], 
     {
       id: randomUUID(),
       source: { kind: "generated", model: run.model, promptTemplateVersion: run.promptTemplateVersion, generationRunId: run.id },
-      licence: "mojibun",
+      licence: "ibbun",
       author: null,
       sourceUrl: null,
       inputs: recordIds,

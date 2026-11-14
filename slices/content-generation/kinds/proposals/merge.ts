@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Authoring } from "@mojibun/content-graph/authoring";
+import type { Authoring } from "@ibbun/content-graph/authoring";
 import { definePlan, type Kind } from "../kind.ts";
 import { CONFIDENCE, enqueueProposal } from "./queue.ts";
 

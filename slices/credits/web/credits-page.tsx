@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card } from "@mojibun/ui";
+import { Card, State } from "@ibbun/ui";
 import { CreditsResponse, type CreditEntry } from "../contract.ts";
 import { LEVEL_CREDITS, LEVEL_NOTE, UNIDIC_NOTICE } from "./notices.ts";
 
@@ -9,7 +9,7 @@ const live = ({ version, appliedAt }: CreditEntry) =>
 export const CreditsView = ({ credits }: { credits: readonly CreditEntry[] }) => (
   <article className="credits">
     <h1>Credits</h1>
-    <p>mojibun is built on open data. Each source below keeps its own licence; the version and date are the ones live in the app today.</p>
+    <p>ibbun is built on open data. Each source below keeps its own licence; the version and date are the ones live in the app today.</p>
     <Card>
       <table>
         <thead>
@@ -48,9 +48,9 @@ export const CreditsView = ({ credits }: { credits: readonly CreditEntry[] }) =>
 export type Loaded = CreditEntry[] | "failed" | null;
 
 /** What the page shows for each stage of loading. */
-export const CreditsState = ({ credits }: { credits: Loaded }) => {
+export const CreditsState = ({ credits, onRetry }: { credits: Loaded; onRetry: () => void }) => {
   if (credits === null) return <p>Loading credits…</p>;
-  if (credits === "failed") return <p role="alert">The credits could not be loaded. Try again in a moment.</p>;
+  if (credits === "failed") return <State heading={1} mark="文" title="The credits did not load" onRetry={onRetry} />;
   return <CreditsView credits={credits} />;
 };
 
@@ -66,6 +66,10 @@ export const loadCredits = async (get: typeof fetch = fetch): Promise<CreditEntr
 /** The public Credits page: fetches `/api/credits` and shows it. */
 export const CreditsPage = () => {
   const [credits, setCredits] = useState<Loaded>(null);
-  useEffect(() => void loadCredits().then(setCredits), []);
-  return <CreditsState credits={credits} />;
+  const load = () => {
+    setCredits(null);
+    void loadCredits().then(setCredits);
+  };
+  useEffect(load, []);
+  return <CreditsState credits={credits} onRetry={load} />;
 };

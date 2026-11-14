@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring } from "@mojibun/content-graph/testing";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { createFakeLlm, loadLlmConfig } from "@mojibun/llm";
+import { createFakeAuthoring } from "@ibbun/content-graph/testing";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { createFakeLlm, loadLlmConfig } from "@ibbun/llm";
 import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
 
@@ -52,7 +52,7 @@ describe("content.generate for Japanese Explanations", () => {
     const [draft] = await t.auth.rows("japaneseExplanation", { wordSenseId: t.senseId });
     expect(draft).toMatchObject({ text: "ものをくちにいれて、のみこむこと。", grammarPointId: null, approval: "draft", retired: false });
     const [provenance] = await t.auth.rows("provenance", { id: draft!.provenanceId });
-    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: run!.id }, licence: "mojibun" });
+    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: run!.id }, licence: "ibbun" });
     expect(provenance!.inputs).toContain(t.senseId);
     expect((await t.auth.rows("generationRequest", { id: r.id }))[0]!.status).toBe("in review");
     expect(t.jobs.pending()).toEqual(["content.review"]);

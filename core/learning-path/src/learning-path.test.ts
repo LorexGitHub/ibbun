@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import type { ContentGraph } from "@mojibun/content-graph";
-import { transaction } from "@mojibun/db";
-import { createFakeProgress } from "@mojibun/progress/testing";
-import { LearnerId } from "@mojibun/shared";
+import type { ContentGraph } from "@ibbun/content-graph";
+import { transaction } from "@ibbun/db";
+import { createFakeProgress } from "@ibbun/progress/testing";
+import { LearnerId } from "@ibbun/shared";
 import { createFakeLearningPath } from "./fake-learning-path.ts";
 import { createLearningPath } from "./learning-path-postgres.ts";
 import { useLearningPathDb } from "./tests/db.testing.ts";

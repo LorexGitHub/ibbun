@@ -1,4 +1,4 @@
-import { defineSlice } from "@mojibun/slice";
+import { defineSlice } from "@ibbun/slice";
 
 // No nav entry: the footer on every Learner screen links to /credits.
 export default defineSlice({

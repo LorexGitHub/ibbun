@@ -1,17 +1,27 @@
 {
-  "name": "@mojibun/api",
+  "name": "@ibbun/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {},
-  "scripts": { "dev": "node --env-file-if-exists=../../.env --watch src/main.ts", "start": "node --env-file-if-exists=../../.env src/main.ts" },
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env --watch src/main.ts",
+    "start": "node --env-file-if-exists=../../.env src/main.ts",
+    "build:lambda": "node build-lambda.mjs",
+    "lambda:url": "node lambda-url-proxy.mjs"
+  },
   "dependencies": {
+    "@aws-sdk/client-ssm": "^3.1167.0",
     "@hono/node-server": "^1.19.0",
-    "@mojibun/db": "workspace:*",
-    "@mojibun/learner": "workspace:*",
-    "@mojibun/mail": "workspace:*",
-    "@mojibun/slice": "workspace:*",
+    "@ibbun/db": "workspace:*",
+    "@ibbun/learner": "workspace:*",
+    "@ibbun/mail": "workspace:*",
+    "@ibbun/shared": "workspace:*",
+    "@ibbun/slice": "workspace:*",
     "hono": "^4.9.0"
   },
-  "devDependencies": { "@types/node": "^24.0.0" }
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "0.28.2"
+  }
 }

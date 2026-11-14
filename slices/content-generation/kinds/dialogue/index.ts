@@ -1,10 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
-import type { Authoring, GenerationRequest, GenerationRun } from "@mojibun/content-graph/authoring";
-import { ContentGenerate } from "@mojibun/content-graph/jobs";
-import { currentLevel } from "@mojibun/content-graph/levels";
-import type { Jobs } from "@mojibun/jobs";
-import type { JlptLevel } from "@mojibun/shared";
+import type { Authoring, GenerationRequest, GenerationRun } from "@ibbun/content-graph/authoring";
+import { ContentGenerate } from "@ibbun/content-graph/jobs";
+import { currentLevel } from "@ibbun/content-graph/levels";
+import type { Jobs } from "@ibbun/jobs";
+import type { JlptLevel } from "@ibbun/shared";
 import { definePlan, type Kind } from "../kind.ts";
 import { subjectOf, type Subject } from "../example-sentence/subject.ts";
 import { describeTaskType, LINES, taskTypes, VOICES } from "./config.ts";
@@ -51,7 +51,7 @@ const write = async (auth: Authoring, request: GenerationRequest, subject: Subje
     {
       id: provenanceId,
       source: { kind: "generated", model: run.model, promptTemplateVersion: run.promptTemplateVersion, generationRunId: run.id },
-      licence: "mojibun",
+      licence: "ibbun",
       author: null,
       sourceUrl: null,
       inputs: subject.recordIds,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createFakeContentGraph, n5Fixture } from "@mojibun/content-graph/testing";
-import { grade } from "@mojibun/content-graph/grade";
+import { createFakeContentGraph, n5Fixture } from "@ibbun/content-graph/testing";
+import { grade } from "@ibbun/content-graph/grade";
 import { questionFor } from "./question.ts";
 
 const { graph, ids } = n5Fixture();

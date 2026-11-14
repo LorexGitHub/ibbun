@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { buttonClass } from "@mojibun/ui";
+import { buttonClass } from "@ibbun/ui";
+import { isShowcase } from "@ibbun/shared";
 import { useClient } from "./client.ts";
 import { Field, Form, Notice, Screen, Split, useOutcome } from "./form.tsx";
+
+// @ts-ignore The root typecheck has no Vite types.
+const showcase = () => isShowcase(import.meta.env.VITE_SHOWCASE);
 
 const CHECK_YOUR_EMAIL = "Check your email. If the address can sign up, we sent a link to finish.";
 
@@ -12,6 +16,11 @@ export const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sent, setSent] = useState(false);
+  const navigate = useNavigate();
+  /** The showcase's guest login. Anywhere else the server answers 404 and the notice says so. */
+  const tryIt = async () => {
+    if (await run(client.tryAsGuest(), "Signed in as a guest.")) navigate("/learn");
+  };
   const submit = async () => setSent(await run(client.signUp(email, password), CHECK_YOUR_EMAIL));
   return (
     <Split title="Sign up">
@@ -35,6 +44,11 @@ export const SignUp = () => {
           Send the link again
         </button>
       )}
+      {showcase() && (
+        <button type="button" className={buttonClass()} onClick={() => void tryIt()}>
+          Try it
+        </button>
+      )}
       <p>
         Already have an account? <Link to="/login">Log in</Link>
       </p>
@@ -42,6 +56,9 @@ export const SignUp = () => {
     </Split>
   );
 };
+
+/** Where a log in returns to: a path in this app, never another site. */
+const returnPath = (next: string | null) => (next?.startsWith("/") && !next.startsWith("//") ? next : "/");
 
 export const Login = () => {
   const client = useClient();
@@ -51,7 +68,7 @@ export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const submit = async () => {
-    if (await run(client.signIn(email, password), "Logged in.")) navigate("/");
+    if (await run(client.signIn(email, password), "Logged in.")) navigate(returnPath(params.get("next")));
   };
   return (
     <Split title="Log in">

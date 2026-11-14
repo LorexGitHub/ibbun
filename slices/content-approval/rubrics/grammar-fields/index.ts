@@ -1,5 +1,5 @@
-import { checkMatcherRule, type Authoring, type Failure, type Level, type MatcherRule, type Row } from "@mojibun/content-graph/authoring";
-import { currentLevel } from "@mojibun/content-graph/levels";
+import { checkMatcherRule, type Authoring, type Failure, type Level, type MatcherRule, type Row } from "@ibbun/content-graph/authoring";
+import { currentLevel } from "@ibbun/content-graph/levels";
 import type { Rec } from "../../src/drafts.ts";
 
 /** A drafted Grammar Point: its fields and Matcher Rule, reviewed as one unit with the draft links the rule proposed (grammar-points.md#fields). */

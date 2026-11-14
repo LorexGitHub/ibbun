@@ -1,4 +1,4 @@
-import type { Token } from "@mojibun/content-graph";
+import type { Token } from "@ibbun/content-graph";
 
 const KATAKANA = /^[ァ-ヶー]+$/;
 /** Tokens that never start an accent phrase: they hang on the word before them. */

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { buttonClass } from "@mojibun/ui";
+import { buttonClass } from "@ibbun/ui";
 import { Field, Form, Split } from "./form.tsx";
 import { passes, SAMPLE } from "./sample.ts";
 

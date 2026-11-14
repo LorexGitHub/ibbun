@@ -1,4 +1,4 @@
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 
 /** About how many lines a dialogue has, growing from 4 at N5 to 12 at N1 (listening.md#dialogues). */
 export const LINES: Record<JlptLevel, number> = { N5: 4, N4: 6, N3: 8, N2: 10, N1: 12 };

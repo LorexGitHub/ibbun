@@ -1,12 +1,13 @@
 // @vitest-environment happy-dom
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { Batch, QuizAnswer, QuizPrompt, State, TextView } from "../contract.ts";
 import { learnApi, type LearnApi } from "./learn-client.ts";
 import { notAnswers, shownByDefault, SWITCH_TO_JAPANESE } from "./check.ts";
 import { faceOf, isOver, sentenceFirst, tallyOf } from "./batch-view.ts";
 import { LearnScreen } from "./LearnScreen.tsx";
+import { TallyScreen } from "./TallyScreen.tsx";
 import { ReadingStep } from "./ReadingStep.tsx";
 import { answered, isFinished, startQuiz, type Given } from "./queue.ts";
 import { atLevel, levelOf, toggled, tracksOf, typesAt } from "./source.ts";
@@ -105,6 +106,13 @@ describe("Learn opened for one level", () => {
     cleanup();
     history.replaceState(null, "", "/learn");
     expect((await open()).batch).toHaveBeenCalledWith(undefined);
+  });
+
+  it("shows that level in the chooser, not the active Tracks' level", async () => {
+    history.replaceState(null, "", "/learn?level=n3");
+    await open();
+    expect(checked("radio", "N3")).toBe(true);
+    expect(checked("radio", "N5")).toBe(false);
   });
 });
 
@@ -298,14 +306,19 @@ describe("the Learn screen", () => {
   });
 
   it("shows a failure instead of the screen", async () => {
-    render(<LearnScreen api={apiOf({ state: vi.fn(async () => Promise.reject(new Error("no session"))) })} />);
-    expect((await screen.findByRole("alert")).textContent).toBe("no session");
+    const state = vi.fn(async (): Promise<never> => Promise.reject(new Error("no session")));
+    render(<LearnScreen api={apiOf({ state })} />);
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByRole("heading", { level: 1 }).textContent).toBe("Learn did not load");
+    expect(within(alert).getByText("no session")).toBeTruthy();
+    fireEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(state).toHaveBeenCalledTimes(2));
   });
 
   it("shows a failure to save the Tracks", async () => {
     await open(apiOf({ saveTracks: vi.fn(async () => Promise.reject(new Error("not saved"))) }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Kanji" }));
-    expect((await screen.findByRole("alert")).textContent).toBe("not saved");
+    expect(within(await screen.findByRole("alert")).getByText("not saved")).toBeTruthy();
   });
 });
 
@@ -392,9 +405,12 @@ describe("a lesson", () => {
     expect(screen.queryByLabelText("Answer")).toBeNull();
   });
 
-  it("ends on the Tally when every item was marked as Known", async () => {
-    const api = await open(apiOf({ batch: vi.fn(async () => batchOf([waterItem])), startText: vi.fn(async () => true) }));
+  it("ends on the Tally when every item was marked as Known, with no story to read", async () => {
+    const text = vi.fn(async () => ({ status: "ready" as const, text: story }));
+    const api = await open(apiOf({ batch: vi.fn(async () => batchOf([waterItem])), startText: vi.fn(async () => true), text }));
     press("Start");
+    // The Batch Text was asked for, so only learning nothing keeps the story off the Tally
+    await act(async () => undefined);
     press("Not yet");
     press("Mark as Known");
     await waitFor(() => expect(api.skip).toHaveBeenCalledOnce());
@@ -490,13 +506,17 @@ describe("Learn now", () => {
   });
 
   it("shows a failure to load the item", async () => {
-    render(<LearnScreen api={apiOf({ now: vi.fn(async () => Promise.reject(new Error("no such Study Item"))) })} nowId={idOf(2)} />);
-    expect((await screen.findByRole("alert")).textContent).toBe("no such Study Item");
+    const now = vi.fn(async (): Promise<never> => Promise.reject(new Error("no such Study Item")));
+    render(<LearnScreen api={apiOf({ now })} nowId={idOf(2)} />);
+    expect(within(await screen.findByRole("alert")).getByText("no such Study Item")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(now).toHaveBeenCalledTimes(2));
   });
 
   it("says so when the item has nothing to teach", async () => {
     render(<LearnScreen api={apiOf({ now: vi.fn(async () => batchOf([])) })} nowId={idOf(2)} />);
-    expect(await screen.findByText("This item cannot be taught yet.")).toBeTruthy();
+    expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("This item cannot be taught yet");
+    expect(screen.getByRole("link", { name: "Learn something else" }).getAttribute("href")).toBe("/learn");
   });
 });
 
@@ -537,6 +557,18 @@ describe("the quiz", () => {
     expect(answers[1]!.timeToAnswerMs).toBeGreaterThanOrEqual(0);
     expect(answers[1]!.timeToAnswerMs).toBeLessThan(60_000);
     expect(await learned(2)).toBeTruthy();
+  });
+
+  it("shows the reading, not the Kanji, after a wrong reading", async () => {
+    await toQuiz();
+    answerWater();
+    press("Next");
+    type("Reading in this sentence", "ちがう");
+    type("Meaning of the kanji", "water");
+    press("Check");
+    const miss = (await screen.findByRole("status")).querySelector(".answer--miss")!;
+    expect(miss.textContent).toContain("It is みず");
+    expect(miss.textContent).not.toContain("水");
   });
 
   it("names every answer field in sight, and marks each facet of a checked answer right or missed", async () => {
@@ -692,6 +724,8 @@ describe("talking to the API", () => {
     await expect(learnApi.batch()).rejects.toThrow("not a valid quiz");
     vi.stubGlobal("fetch", vi.fn(async () => new Response("nope", { status: 401, statusText: "Unauthorized" })));
     await expect(learnApi.batch()).rejects.toThrow("Unauthorized");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("", { status: 500, statusText: "Internal Server Error" })));
+    await expect(learnApi.batch()).rejects.toThrow("Learn could not load");
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ message: "" }), { status: 400, statusText: "Bad Request" })));
     await expect(learnApi.batch()).rejects.toMatchObject({ message: "" });
   });
@@ -851,5 +885,19 @@ describe("Learn by keyboard", () => {
     bothLessons();
     expect(key("1", screen.getByLabelText("Answer"))).toBe(true);
     expect(screen.getByRole("heading", { name: "Quiz" })).toBeTruthy();
+  });
+});
+
+describe("showcase mode", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  const tally = { learned: 1, items: [] };
+  it("says Batch Texts are off on the wrap-up", () => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    render(<TallyScreen tally={tally} onMore={null} onStory={null} />);
+    expect(screen.getByRole("status").textContent).toContain("in this showcase");
+  });
+  it("says nothing by default", () => {
+    render(<TallyScreen tally={tally} onMore={null} onStory={null} />);
+    expect(screen.queryByRole("status")).toBeNull();
   });
 });

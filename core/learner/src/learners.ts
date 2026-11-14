@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import type { Role } from "@mojibun/auth";
-import type { Db, DbOrTx } from "@mojibun/db";
-import { LearnerId } from "@mojibun/shared";
+import type { Role } from "@ibbun/auth";
+import type { Db, DbOrTx } from "@ibbun/db";
+import { LearnerId } from "@ibbun/shared";
 import * as t from "../db/learner-tables.ts";
 import { consoleAuthLog, type AuthLog } from "./events.ts";
 import { changePreferences, DEFAULT_PREFERENCES, type Preferences } from "./preferences.ts";

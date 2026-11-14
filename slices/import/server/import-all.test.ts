@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { loadN5Fixture } from "@mojibun/content-graph/authoring";
-import { createFakeAuthoring, createFakeLevels, emptyGraph } from "@mojibun/content-graph/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeNlp } from "@mojibun/nlp";
-import { importEverything, type Everything } from "./import-all.ts";
+import { loadN5Fixture } from "@ibbun/content-graph/authoring";
+import { createFakeAuthoring, createFakeLevels, emptyGraph } from "@ibbun/content-graph/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeNlp } from "@ibbun/nlp";
+import { importEverything, timedSay, type Everything } from "./import-all.ts";
 import type { Refresh } from "./jobs.ts";
 import { memoryRawFiles } from "./raw-files.ts";
 import { memorySnapshots } from "./snapshots.ts";
@@ -25,6 +25,7 @@ const world = () => {
     } as Source,
     cron: "0 12 * * *",
     monthly: false,
+    home: "lambda",
   });
   const authoring = createFakeAuthoring(graph);
   const jobs = createFakeJobs();
@@ -139,5 +140,16 @@ describe("importing everything at once", () => {
     await w.run();
     expect(released).toEqual([]);
     expect(w.said.slice(0, 2)).toEqual(["jmdict v2: breaker tripped, 0 added, 0 changed, 0 retired", "jmdict: held by the circuit breaker, level changes"]);
+  });
+});
+
+describe("timing each step", () => {
+  it("ends each line with the seconds since the previous line", () => {
+    const ticks = [1000, 2500, 2550];
+    const lines: string[] = [];
+    const say = timedSay((line) => lines.push(line), () => ticks.shift()!);
+    say("jmdict: applied");
+    say("kanjidic: applied");
+    expect(lines).toEqual(["jmdict: applied (1.5 s)", "kanjidic: applied (0.1 s)"]);
   });
 });

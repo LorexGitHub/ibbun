@@ -1,4 +1,4 @@
-import type { Attribution, Example as CoreExample, StudyItem, StudyItemLink, StudyItemPage, StudyItemSummary } from "@mojibun/content-graph";
+import type { Attribution, Example as CoreExample, StudyItem, StudyItemLink, StudyItemPage, StudyItemSummary } from "@ibbun/content-graph";
 import type { Credit, Detail, Example, ItemPage, Related, Summary } from "../contract.ts";
 
 /** Only credits whose licence asks for one beside the content; the rest go on the Credits page. */
@@ -18,6 +18,7 @@ const detailOf = (item: StudyItem): Detail | null => {
       return {
         type: "word",
         forms: item.forms.map((f) => f.text),
+        usuallyKana: item.usuallyKana,
         readings: item.readings.map((r) => ({ text: r.text, pitchAccent: r.pitchAccent })),
         senses: item.senses.map((s) => ({ partsOfSpeech: s.partsOfSpeech, glosses: s.glosses, japaneseExplanation: s.japaneseExplanation })),
       };

@@ -1,6 +1,6 @@
-import type { BrowsableType, ContentGraph, StudyItemSummary } from "@mojibun/content-graph";
-import type { Progress } from "@mojibun/progress";
-import { JLPT_LEVELS, type LearnerId, type StudyItemId } from "@mojibun/shared";
+import type { BrowsableType, ContentGraph, StudyItemSummary } from "@ibbun/content-graph";
+import type { Progress } from "@ibbun/progress";
+import { JLPT_LEVELS, type LearnerId, type StudyItemId } from "@ibbun/shared";
 import type { Due, Today } from "../contract.ts";
 
 /** The size of one Learn batch, which is a Learner's own preference. */

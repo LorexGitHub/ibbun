@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { buttonClass, Card } from "@mojibun/ui";
+import { buttonClass, Card, State } from "@ibbun/ui";
 import type { Episode, EpisodeLists, TextLevel } from "../contract.ts";
 import "./reading.css";
 
@@ -49,12 +49,11 @@ const Earlier = ({ stories }: { stories: Story[] }) => (
 );
 
 const NoStories = () => (
-  <Card>
-    <p>No stories yet. Finish a Learn batch and your first one arrives.</p>
+  <State mark="読" title="No stories yet" fact="Finish a Learn batch and your first one arrives.">
     <Link className={buttonClass({ variant: "primary" })} to="/learn">
       Learn a batch
     </Link>
-  </Card>
+  </State>
 );
 
 /** The Learner's Batch Texts: the newest one leads, the earlier ones are a plain list below it. */

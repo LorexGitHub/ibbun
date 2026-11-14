@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { emptyGraph, type Graph } from "../graph.ts";
 import type { Approval } from "../schema.ts";
 import { createFakeAuthoring, migrateContentGraph, seedContentGraph } from "../testing.ts";
@@ -22,10 +22,10 @@ const world = (...examples: Approval[]) => {
   const graph = emptyGraph();
   const provenanceId = randomUUID();
   const life = (approval: Approval = "approved") => ({ approval, retired: false, provenanceId });
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const item = randomUUID();
   graph.studyItem.push({ id: item, type: "word", ...life() });
-  graph.word.push({ studyItemId: item, priorityTags: [] });
+  graph.word.push({ studyItemId: item, priorityTags: [], usuallyKana: false });
   const sentence = randomUUID();
   graph.sentence.push({ id: sentence, text: "パンを食べる。", translationEn: null, tokens: [], audioKey: null, audioVoice: null, unlevelledWordCount: 0, ...life() });
   const exampleIds = examples.map((approval) => {
@@ -88,7 +88,7 @@ const contract = (make: () => Promise<Harness>) => {
     it("hard-deletes derived links by id and leaves the rest", async () => {
       const w = world();
       const derived = randomUUID();
-      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
       const [gone, kept] = [link(w.item, derived), link(w.item, derived)];
       w.graph.wordSupersededBy.push(gone, kept);
       await h.seed(w.graph);
@@ -99,7 +99,7 @@ const contract = (make: () => Promise<Harness>) => {
     it("refuses to delete a link that is not derived, and deletes nothing", async () => {
       const w = world();
       const derived = randomUUID();
-      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+      w.graph.provenance.push({ id: derived, source: { kind: "derived", process: "p", version: "1" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
       const [fine, authored] = [link(w.item, derived), link(w.item, w.graph.provenance[0]!.id)];
       w.graph.wordSupersededBy.push(fine, authored);
       await h.seed(w.graph);
@@ -175,6 +175,54 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await a.requestGeneration({ targetId: item, kind: "answer_data", reason: "missing" })).id).not.toBe(first.id);
       await a.setGenerationStatus(first.id, "done");
       expect((await a.requestGeneration({ targetId: item, kind: "japanese_explanation", reason: "again" })).id).not.toBe(first.id);
+    });
+
+    it("lets only one run claim an open request until it is released", async () => {
+      const { a, item } = await given("approved");
+      const r = await a.requestGeneration({ targetId: item, kind: "japanese_explanation", reason: "missing" });
+      expect(await a.claimGeneration(r.id)).toBe(true);
+      expect(await a.claimGeneration(r.id)).toBe(false);
+      await a.releaseGeneration(r.id);
+      expect(await a.claimGeneration(r.id)).toBe(true);
+    });
+
+    it("does not queue a request that still has attempts left", async () => {
+      const { a, item } = await given("approved");
+      const request = await a.requestGeneration({ targetId: item, kind: "examples", reason: "manual" });
+      await a.failAttempt(request.id);
+      expect(await a.queue({ reason: "generation failed" })).toEqual([]);
+    });
+
+    it("lists decisions oldest first whatever order they were stored in", async () => {
+      const { a, examples } = await given("draft");
+      const row = (outcome: "approved" | "retired", at: string) => ({
+        id: randomUUID(), recordTable: "example", recordId: examples[0]!, outcome, decider: supervisor, verdicts: [], reason: null, at: new Date(at),
+      });
+      await a.insert("approvalDecision", [row("retired", "2026-11-02T00:00:00Z"), row("approved", "2026-11-01T00:00:00Z")]);
+      expect((await a.decisions(examples[0]!)).map((d) => d.outcome)).toEqual(["approved", "retired"]);
+      expect(await a.approvalState(examples[0]!)).toBe("retired");
+      expect(await a.approvalState(randomUUID())).toBeNull();
+    });
+
+    it("keeps an empty reason and a given verdict list as they were", async () => {
+      const { a, examples } = await given("draft");
+      const verdicts = [{ criterion: "natural", pass: true }];
+      const d = await a.decide({ recordTable: "example", recordId: examples[0]!, outcome: "approved", decider: supervisor, reason: "", verdicts });
+      expect(d).toMatchObject({ reason: "", verdicts });
+    });
+
+    it("records a decision on an Example that does not exist", async () => {
+      const { a } = await given();
+      const missing = randomUUID();
+      await a.decide({ recordTable: "example", recordId: missing, outcome: "retired", decider: supervisor });
+      expect(await a.approvalState(missing)).toBe("retired");
+    });
+
+    it("updates a provenance row without touching its licence", async () => {
+      const { a, graph } = await given();
+      const id = graph.provenance[0]!.id;
+      await a.update("provenance", { id }, { author: "me" });
+      expect((await a.rows("provenance", { id }))[0]?.author).toBe("me");
     });
 
     it("fails after the last attempt and queues it as generation failed", async () => {

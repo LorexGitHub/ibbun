@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/db",
+  "name": "@ibbun/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,10 +11,11 @@
     "migrate": "node --env-file-if-exists=../../.env --experimental-strip-types src/cli.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.44.0",
-    "pg": "^8.16.0",
+    "@aws-sdk/rds-signer": "^3.1167.0",
     "@electric-sql/pglite": "^0.3.0",
-    "@electric-sql/pglite-socket": "^0.0.15"
+    "@electric-sql/pglite-socket": "^0.0.15",
+    "drizzle-orm": "^0.44.0",
+    "pg": "^8.16.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

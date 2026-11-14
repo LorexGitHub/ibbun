@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Link, MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { ItemPage, Tile } from "../contract.ts";
 import slice from "../register.ts";
 import { BrowseView, type BrowseViewProps } from "../web/BrowseView.tsx";
@@ -28,7 +28,7 @@ const page: ItemPage = {
   level: "N5",
   locked: true,
   introduced: false,
-  detail: { type: "word", forms: ["日本"], readings: [{ text: "にほん", pitchAccent: null }], senses: [{ partsOfSpeech: ["n"], glosses: ["Japan"], japaneseExplanation: null }] },
+  detail: { type: "word", forms: ["日本"], usuallyKana: false, readings: [{ text: "にほん", pitchAccent: null }], senses: [{ partsOfSpeech: ["n"], glosses: ["Japan"], japaneseExplanation: null }] },
   examples: [],
   related: [],
   credits: [],

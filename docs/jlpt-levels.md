@@ -1,8 +1,8 @@
 # JLPT Levels
 
-Decided in [#22](https://github.com/LorexGitHub/mojibun/issues/22). Terms follow [CONTEXT.md](../CONTEXT.md). Where levels sit in the graph is in [content-graph.md](content-graph.md#jlpt-level); why they are stored as candidates is in [ADR 0007](adr/0007-jlpt-level-candidates.md).
+Decided in [#22](https://github.com/LorexGitHub/ibbun/issues/22). Terms follow [CONTEXT.md](../CONTEXT.md). Where levels sit in the graph is in [content-graph.md](content-graph.md#jlpt-level); why they are stored as candidates is in [ADR 0007](adr/0007-jlpt-level-candidates.md).
 
-Every JLPT Level is an estimate. The JLPT has published no official lists since 2010, and nearly every list in circulation goes back to Jonathan Waller's Tanos lists ([research #8](https://github.com/LorexGitHub/mojibun/issues/8), [licence #21](https://github.com/LorexGitHub/mojibun/issues/21)).
+Every JLPT Level is an estimate. The JLPT has published no official lists since 2010, and nearly every list in circulation goes back to Jonathan Waller's Tanos lists ([research #8](https://github.com/LorexGitHub/ibbun/issues/8), [licence #21](https://github.com/LorexGitHub/ibbun/issues/21)).
 
 ## Level Candidates
 

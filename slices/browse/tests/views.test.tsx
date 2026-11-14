@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { renderToString } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import type { ItemPage, Summary } from "../contract.ts";
 import { ItemView, cramHref, learnNowHref } from "../web/ItemView.tsx";
 
@@ -17,7 +17,7 @@ const wordPage = (over: Partial<ItemPage> = {}): ItemPage => ({
   level: "N5",
   locked: false,
   introduced: false,
-  detail: { type: "word", forms: ["日本"], readings: [{ text: "にほん", pitchAccent: [2] }], senses: [{ partsOfSpeech: ["n"], glosses: ["Japan"], japaneseExplanation: null }] },
+  detail: { type: "word", forms: ["日本"], usuallyKana: false, readings: [{ text: "にほん", pitchAccent: [2] }], senses: [{ partsOfSpeech: ["n"], glosses: ["Japan"], japaneseExplanation: null }] },
   examples: [{ id: "e1", text: "日本に行きたいです。", translation: "I want to go to Japan.", credits: [{ text: "CK", href: "https://tatoeba.org/sentences/show/1" }] }],
   related: [{ heading: "Kanji in this word", items: [{ summary: summary(), note: null }] }],
   credits: [],
@@ -137,7 +137,7 @@ describe("ItemView details", () => {
   });
 
   it("heads a Word by its first written form, or its reading when it has none", () => {
-    const word = (forms: string[]): ItemPage["detail"] => ({ type: "word", forms, readings: [{ text: "ああ", pitchAccent: null }], senses: [] });
+    const word = (forms: string[]): ItemPage["detail"] => ({ type: "word", forms, usuallyKana: false, readings: [{ text: "ああ", pitchAccent: null }], senses: [] });
     expect(item({ detail: word(["日本", "二本"]) })).toContain(">日本</h1>");
     expect(item({ detail: word([]) })).toContain(">ああ</h1>");
   });
@@ -145,7 +145,7 @@ describe("ItemView details", () => {
   it("shows a Word's parts of speech, glosses and Japanese Explanation, and every reading", () => {
     const html = item({
       detail: {
-        type: "word", forms: ["日本"],
+        type: "word", forms: ["日本"], usuallyKana: false,
         readings: [{ text: "にほん", pitchAccent: [2, 3] }, { text: "にっぽん", pitchAccent: null }],
         senses: [{ partsOfSpeech: ["n", "adj-no"], glosses: ["Japan", "nippon"], japaneseExplanation: "アジアの国。" }],
       },
@@ -185,8 +185,8 @@ describe("ItemView details", () => {
     expect(html).toContain('<span class="pill pill--ink">Locked</span>');
   });
 
-  const bare = (over: Partial<ItemPage> = {}) => item({ detail: { type: "word", forms: ["日本"], readings: [], senses: [] }, examples: [], related: [], ...over });
-  const sense = (partsOfSpeech: string[], japaneseExplanation: string | null) => bare({ detail: { type: "word", forms: ["日本"], readings: [], senses: [{ partsOfSpeech, glosses: ["Japan"], japaneseExplanation }] } });
+  const bare = (over: Partial<ItemPage> = {}) => item({ detail: { type: "word", forms: ["日本"], usuallyKana: false, readings: [], senses: [] }, examples: [], related: [], ...over });
+  const sense = (partsOfSpeech: string[], japaneseExplanation: string | null) => bare({ detail: { type: "word", forms: ["日本"], usuallyKana: false, readings: [], senses: [{ partsOfSpeech, glosses: ["Japan"], japaneseExplanation }] } });
 
   it("sets a single part of speech in small print and the Japanese Explanation in its own paragraph", () => {
     const html = sense(["n"], "アジアの国。");

@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring, type Graph } from "@mojibun/content-graph/testing";
-import { ContentGenerate, ContentReview } from "@mojibun/content-graph/jobs";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { createFakeLlm, loadLlmConfig } from "@mojibun/llm";
+import { createFakeAuthoring, type Graph } from "@ibbun/content-graph/testing";
+import { ContentGenerate, ContentReview } from "@ibbun/content-graph/jobs";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { createFakeLlm, loadLlmConfig } from "@ibbun/llm";
 import { contentGeneration } from "./generate.ts";
 import { world } from "./world.ts";
 
@@ -56,7 +56,7 @@ describe("content.generate for Example Sentences", () => {
     const [provenance] = await t.auth.rows("provenance", { id: first!.provenanceId });
     expect(provenance).toMatchObject({
       source: { kind: "generated", model: "claude-sonnet-5-5", promptTemplateVersion: "example-sentence/1", generationRunId: run!.id },
-      licence: "mojibun",
+      licence: "ibbun",
     });
     expect(provenance!.inputs).toContain(t.wordId);
     expect(provenance!.inputs).toContain(t.senseId);
@@ -106,6 +106,44 @@ describe("content.generate for Example Sentences", () => {
     await t.auth.update("grammarPoint", { studyItemId: t.grammarId }, { notes: "Attaches to the verb stem." });
     await t.run(t.grammarId);
     expect(prompts[0]).toContain("Notes: Attaches to the verb stem.");
+  });
+
+  it("calls the model once when two copies run at the same moment", async () => {
+    const t = setup();
+    await t.ready;
+    const r = await t.request(t.grammarId);
+    await Promise.all([t.generation.generate({ requestId: r.id }), t.generation.generate({ requestId: r.id })]);
+    expect(t.llm.calls()).toHaveLength(1);
+  });
+
+  it("gives the claim back when the run crashes, so a redelivery can try again", async () => {
+    let crash = true;
+    const t = setup({ answer: () => { if (crash) throw new Error("boom"); return good; } });
+    await t.ready;
+    const r = await t.request(t.grammarId);
+    await expect(t.generation.generate({ requestId: r.id })).rejects.toThrow("boom");
+    expect((await t.auth.rows("generationRequest", { id: r.id }))[0]!.status).toBe("open");
+    crash = false;
+    await t.generation.generate({ requestId: r.id });
+    expect((await t.auth.rows("generationRequest", { id: r.id }))[0]!.status).toBe("in review");
+  });
+
+  it("does nothing for a request that does not exist", async () => {
+    const t = setup();
+    await t.ready;
+    await t.generation.generate({ requestId: randomUUID() });
+    expect(t.llm.calls()).toHaveLength(0);
+  });
+
+  it.each([
+    ["a good answer", good],
+    ["an answer outside the shape", { nope: 1 }],
+  ])("records the input and output tokens of %s", async (_, answer) => {
+    const t = setup({ answer: () => answer });
+    await t.run(t.grammarId);
+    const [call] = t.llm.calls();
+    const [run] = await t.auth.rows("generationRun");
+    expect(run!.tokens).toBe(call!.system.length + call!.prompt.length + JSON.stringify(answer).length);
   });
 
   it("uses an attempt when a Word has no forms or readings", async () => {

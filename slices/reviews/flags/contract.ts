@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import { Facet } from "../contract.ts";
 
 /** The facets whose accepted answers are an Example's own answer data; a Kanji's meanings are not. */

@@ -1,7 +1,7 @@
-import { createFakeJobs, defineJob, handler } from "@mojibun/jobs";
+import { createFakeJobs, defineJob, handler } from "@ibbun/jobs";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import type { ServerContext } from "@mojibun/slice";
+import type { ServerContext } from "@ibbun/slice";
 import { startWorker } from "./worker.ts";
 
 const ctx = { db: {}, sessions: { resolve: async () => null } } as unknown as ServerContext;

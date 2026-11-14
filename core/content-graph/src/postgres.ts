@@ -1,10 +1,10 @@
-import { and, eq, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, ne, or, sql, type SQL } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
-import type { DbOrTx } from "@mojibun/db";
-import type { JlptLevel, StudyItemId } from "@mojibun/shared";
+import type { DbOrTx } from "@ibbun/db";
+import type { JlptLevel, StudyItemId } from "@ibbun/shared";
 import { emptyGraph, type Graph } from "./graph.ts";
 import { creditsOf, recordProvenance } from "./licensing.ts";
-import { DEFAULT_SEARCH_LIMIT, normaliseQuery, reader, type ContentGraph } from "./read.ts";
+import { DEFAULT_SEARCH_LIMIT, reader, searchTerms, type ContentGraph } from "./read.ts";
 import * as t from "./schema.ts";
 
 /**
@@ -44,18 +44,23 @@ export const createContentGraph = (db: DbOrTx): ContentGraph => ({
   },
 
   async search(query, { limit = DEFAULT_SEARCH_LIMIT } = {}) {
-    const q = normaliseQuery(query);
-    if (!q) return [];
-    const like = q.replace(/[\\%_]/g, (c) => `\\${c}`);
+    const terms = searchTerms(query);
+    if (!terms.length) return [];
+    const likes = terms.map((term) => term.replace(/[\\%_]/g, (c) => `\\${c}`));
+    const any = (match: (like: string) => SQL) => sql.join(likes.map(match), sql` OR `);
+    // Within a tier, items on a level come first, so the limit cuts a rare kanji that means water rather than 水
     const { rows } = await db.execute<{ study_item_id: string }>(sql`
       SELECT study_item_id,
-             min(CASE WHEN lower(text) = ${q} THEN 0 WHEN lower(text) LIKE ${like} || '%' THEN 1 ELSE 2 END) AS tier
+             min(CASE WHEN lower(text) IN (${sql.join(terms.map((term) => sql`${term}`), sql`, `)}) THEN 0
+                      WHEN ${any((like) => sql`lower(text) LIKE ${like} || '%'`)} THEN 1 ELSE 2 END) AS tier,
+             NOT EXISTS (SELECT 1 FROM content_graph.level_candidate lc
+                         WHERE lc.study_item_id = search_text.study_item_id AND lc.approval = 'approved' AND NOT lc.retired) AS unlevelled
       FROM content_graph.search_text
-      WHERE lower(text) LIKE '%' || ${like} || '%'
+      WHERE ${any((like) => sql`lower(text) LIKE '%' || ${like} || '%'`)}
       GROUP BY study_item_id
-      ORDER BY tier, study_item_id
+      ORDER BY tier, unlevelled, study_item_id
       LIMIT ${limit}`);
-    return (await readerOver(db, await loadItems(db, rows.map((r) => r.study_item_id)))).search(q, limit);
+    return (await readerOver(db, await loadItems(db, rows.map((r) => r.study_item_id)))).search(query, limit);
   },
 
   async credits() {
@@ -113,26 +118,34 @@ const loadPath = async (db: DbOrTx): Promise<Graph> => {
 const visible = (table: { approval: PgColumn; retired: PgColumn }) =>
   and(eq(table.approval, "approved"), eq(table.retired, false));
 
+/** drizzle's `inArray` overflows the stack past about 120,000 ids, so a long list is read a chunk at a time. */
+const CHUNK = 1_000;
+export const inChunks = async <T>(ids: string[], read: (chunk: string[]) => Promise<T[]>): Promise<T[]> => {
+  const rows: T[] = [];
+  for (let i = 0; i < ids.length; i += CHUNK) rows.push(...(await read(ids.slice(i, i + CHUNK))));
+  return rows;
+};
+
 const unique = (ids: (string | null)[]) => [...new Set(ids.filter((id): id is string => id !== null))];
 
 /** The rows a summary or a Study Item needs: the item, its details, sub-entries, explanations, Level Candidates and overrides. */
 const loadItems = async (db: DbOrTx, ids: string[], graph: Graph = emptyGraph()): Promise<Graph> => {
   const [studyItem, kanji, word, grammarPoint, listeningClip, wordForm, wordReading, wordSense, levelCandidate] = await Promise.all([
-    db.select().from(t.studyItem).where(inArray(t.studyItem.id, ids)),
-    db.select().from(t.kanji).where(inArray(t.kanji.studyItemId, ids)),
-    db.select().from(t.word).where(inArray(t.word.studyItemId, ids)),
-    db.select().from(t.grammarPoint).where(inArray(t.grammarPoint.studyItemId, ids)),
-    db.select().from(t.listeningClip).where(inArray(t.listeningClip.studyItemId, ids)),
-    db.select().from(t.wordForm).where(inArray(t.wordForm.wordId, ids)),
-    db.select().from(t.wordReading).where(inArray(t.wordReading.wordId, ids)),
-    db.select().from(t.wordSense).where(inArray(t.wordSense.wordId, ids)),
-    db.select().from(t.levelCandidate).where(inArray(t.levelCandidate.studyItemId, ids)),
+    inChunks(ids, (c) => db.select().from(t.studyItem).where(inArray(t.studyItem.id, c))),
+    inChunks(ids, (c) => db.select().from(t.kanji).where(inArray(t.kanji.studyItemId, c))),
+    inChunks(ids, (c) => db.select().from(t.word).where(inArray(t.word.studyItemId, c))),
+    inChunks(ids, (c) => db.select().from(t.grammarPoint).where(inArray(t.grammarPoint.studyItemId, c))),
+    inChunks(ids, (c) => db.select().from(t.listeningClip).where(inArray(t.listeningClip.studyItemId, c))),
+    inChunks(ids, (c) => db.select().from(t.wordForm).where(inArray(t.wordForm.wordId, c))),
+    inChunks(ids, (c) => db.select().from(t.wordReading).where(inArray(t.wordReading.wordId, c))),
+    inChunks(ids, (c) => db.select().from(t.wordSense).where(inArray(t.wordSense.wordId, c))),
+    inChunks(ids, (c) => db.select().from(t.levelCandidate).where(inArray(t.levelCandidate.studyItemId, c))),
   ]);
-  const senseIds = wordSense.map((s) => s.id);
-  const japaneseExplanation = await db
-    .select()
-    .from(t.japaneseExplanation)
-    .where(or(inArray(t.japaneseExplanation.wordSenseId, senseIds), inArray(t.japaneseExplanation.grammarPointId, ids)));
+  const [bySense, byGrammarPoint] = await Promise.all([
+    inChunks(wordSense.map((s) => s.id), (c) => db.select().from(t.japaneseExplanation).where(inArray(t.japaneseExplanation.wordSenseId, c))),
+    inChunks(ids, (c) => db.select().from(t.japaneseExplanation).where(inArray(t.japaneseExplanation.grammarPointId, c))),
+  ]);
+  const japaneseExplanation = [...new Map([...bySense, ...byGrammarPoint].map((e) => [e.id, e])).values()];
   const loaded = { ...graph, studyItem, kanji, word, grammarPoint, listeningClip, wordForm, wordReading, wordSense, levelCandidate, japaneseExplanation };
   return withOverrides(db, loaded);
 };
@@ -180,7 +193,7 @@ const withOverrides = async (db: DbOrTx, graph: Graph): Promise<Graph> => {
     ...graph.sentence,
     ...graph.readingPassage,
   ].map((r) => r.id));
-  return { ...graph, override: await db.select().from(t.override).where(inArray(t.override.recordId, recordIds)) };
+  return { ...graph, override: await inChunks(recordIds, (c) => db.select().from(t.override).where(inArray(t.override.recordId, c))) };
 };
 
 const uuids = (ids: string[]) => sql`ARRAY[${sql.join(ids.map((id) => sql`${id}`), sql`, `)}]::uuid[]`;

@@ -1,5 +1,5 @@
 import { boolean, integer, jsonb, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import type { RecordTable } from "@mojibun/content-graph/authoring";
+import type { RecordTable } from "@ibbun/content-graph/authoring";
 import type { Rec } from "../src/drafts.ts";
 import type { SampleKind, SampleReason, SampleStatus } from "../sampling/types.ts";
 

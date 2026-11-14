@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { StudyItemId } from "@mojibun/shared";
+import { StudyItemId } from "@ibbun/shared";
 import { isLevelCleared } from "./cleared-level.ts";
 import { showsFurigana } from "./furigana.ts";
 

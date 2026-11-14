@@ -1,5 +1,5 @@
 {
-  "name": "@mojibun/auth",
+  "name": "@ibbun/auth",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mojibun/shared": "workspace:*",
+    "@ibbun/shared": "workspace:*",
     "hono": "^4.9.0"
   }
 }

@@ -1,5 +1,5 @@
-import type { Progress } from "@mojibun/progress";
-import type { LearnerId } from "@mojibun/shared";
+import type { Progress } from "@ibbun/progress";
+import type { LearnerId } from "@ibbun/shared";
 import type { CheckedAnswer } from "../contract.ts";
 import { facetsOf } from "./prompt.ts";
 import { coversFacets, regrade, type FacetOutcome } from "./regrade.ts";

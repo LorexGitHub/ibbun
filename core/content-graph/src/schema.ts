@@ -1,5 +1,5 @@
 import { boolean, integer, jsonb, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 
 export const contentGraph = pgSchema("content_graph");
 
@@ -20,7 +20,7 @@ export const LICENCES = [
   "bsd-3-clause",
   "voicevox",
   "cc0",
-  "mojibun",
+  "ibbun",
 ] as const;
 export type Licence = (typeof LICENCES)[number];
 
@@ -94,6 +94,8 @@ export const kanji = contentGraph.table("kanji", {
 export const word = contentGraph.table("word", {
   studyItemId: uuid("study_item_id").primaryKey(),
   priorityTags: text("priority_tags").array().notNull(),
+  /** JMdict marks every sense usually written in kana alone (`uk`): shown by its reading, not its first written form. */
+  usuallyKana: boolean("usually_kana").notNull().default(false),
 });
 
 export const wordForm = contentGraph.table("word_form", {

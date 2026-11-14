@@ -1,31 +1,39 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { StudyItemId } from "@mojibun/shared";
-import { useLevelFilter } from "@mojibun/ui";
+import { StudyItemId } from "@ibbun/shared";
+import { State, useLevelFilter } from "@ibbun/ui";
 import type { EpisodeLists, TextView } from "../contract.ts";
 import { loadBatchText, loadEpisodes, loadPassage, lookUp } from "./api.ts";
 import { EpisodeList } from "./EpisodeList.tsx";
 import { TextReader } from "./TextReader.tsx";
 
-type Loaded<T> = { state: "loading" } | { state: "failed" } | { state: "ready"; value: T };
+type Loaded<T> = { state: "loading" } | { state: "failed"; retry: () => void } | { state: "ready"; value: T };
 
+/** Loads once per key, and again on a failed load's retry. */
 export const useLoaded = <T,>(load: () => Promise<T>, key: string): Loaded<T> => {
-  const [loaded, setLoaded] = useState<{ key: string; result: Loaded<T> } | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [loaded, setLoaded] = useState<{ id: string; result: Loaded<T> } | null>(null);
+  const id = `${key}#${attempt}`;
   useEffect(() => {
     let live = true;
+    const retry = () => setAttempt((n) => n + 1);
     load().then(
-      (value) => live && setLoaded({ key, result: { state: "ready", value } }),
-      () => live && setLoaded({ key, result: { state: "failed" } }),
+      (value) => live && setLoaded({ id, result: { state: "ready", value } }),
+      () => live && setLoaded({ id, result: { state: "failed", retry } }),
     );
     return () => {
       live = false;
     };
-  }, [key]);
-  return loaded?.key === key ? loaded.result : { state: "loading" };
+  }, [id]);
+  return loaded?.id === id ? loaded.result : { state: "loading" };
 };
 
-export const Shown = <T,>({ loaded, children }: { loaded: Loaded<T>; children: (value: T) => React.ReactNode }) =>
-  loaded.state === "ready" ? <>{children(loaded.value)}</> : <p role="status">{loaded.state === "loading" ? "Loading…" : "Reading could not load this."}</p>;
+/** What was loaded, or that it is loading, or a failed load with Try again. Inline inside a screen that has more to show. */
+export const Shown = <T,>({ loaded, inline = false, children }: { loaded: Loaded<T>; inline?: boolean; children: (value: T) => React.ReactNode }) => {
+  if (loaded.state === "ready") return <>{children(loaded.value)}</>;
+  if (loaded.state === "loading") return <p role="status">Loading…</p>;
+  return <State mark="読" heading={inline ? 3 : 2} inline={inline} title="This did not load" fact="Check your connection, then try again." onRetry={loaded.retry} />;
+};
 
 /** The Learner's episodes, of one level when the Level filter names one. */
 export const EpisodesScreen = () => {

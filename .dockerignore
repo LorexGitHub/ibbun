@@ -1,0 +1,8 @@
+**/node_modules
+.git
+.env
+data
+.metrics
+test-results
+playwright-report
+**/*.generated.ts

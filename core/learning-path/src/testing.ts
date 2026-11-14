@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { collectMigrations, migrate, type Db } from "@mojibun/db";
+import { collectMigrations, migrate, type Db } from "@ibbun/db";
 
 export { createFakeLearningPath } from "./fake-learning-path.ts";
 

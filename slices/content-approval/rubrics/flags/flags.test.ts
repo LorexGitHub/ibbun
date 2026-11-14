@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createFakeAuthoring, emptyGraph, type Graph } from "@mojibun/content-graph/testing";
-import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@mojibun/llm";
+import { createFakeAuthoring, emptyGraph, type Graph } from "@ibbun/content-graph/testing";
+import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@ibbun/llm";
 import { DEFAULT_CONFIG } from "../../src/config.ts";
 import { rubricFor } from "../../src/rubrics.ts";
 import { reviewAnswerFlags } from "./index.ts";
@@ -21,12 +21,12 @@ const world = () => {
   const graph: Graph = emptyGraph();
   const a = createFakeAuthoring(graph);
   const provenanceId = randomUUID();
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const life = { approval: "approved" as const, retired: false, provenanceId };
 
   const word = randomUUID();
   graph.studyItem.push({ id: word, type: "word", ...life });
-  graph.word.push({ studyItemId: word, priorityTags: [] });
+  graph.word.push({ studyItemId: word, priorityTags: [], usuallyKana: false });
   graph.levelCandidate.push({ id: randomUUID(), studyItemId: word, level: "N5", kind: "list", ...life });
   const sentence = randomUUID();
   graph.sentence.push({ id: sentence, text: "水を飲む。", translationEn: "I drink water.", tokens: [], audioKey: null, audioVoice: null, unlevelledWordCount: 0, ...life });

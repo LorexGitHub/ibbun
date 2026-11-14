@@ -2,10 +2,10 @@ import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createAuthoring, type Authoring, type SentenceRecord, type WordRecord } from "@mojibun/content-graph/authoring";
-import { createFakeAuthoring, emptyGraph, migrateContentGraph } from "@mojibun/content-graph/testing";
-import { collectMigrations, createDb, migrate, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import { createAuthoring, type Authoring, type SentenceRecord, type WordRecord } from "@ibbun/content-graph/authoring";
+import { createFakeAuthoring, emptyGraph, migrateContentGraph } from "@ibbun/content-graph/testing";
+import { collectMigrations, createDb, migrate, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { diff } from "./diff.ts";
 import { directoryRawFiles, memoryRawFiles, type RawFiles } from "./raw-files.ts";
 import { runImport, type ImportDeps } from "./run.ts";
@@ -17,7 +17,7 @@ const word = (key: string, text: string, reading: string, gloss: string): WordRe
   forms: [text],
   readings: [{ text: reading, pitchAccent: null }],
   senses: [{ partsOfSpeech: ["v1"], glosses: [gloss] }],
-  priorityTags: [],
+  priorityTags: [], usuallyKana: false,
 });
 
 /** An upstream whose newest release and contents the test controls, and which counts downloads. */

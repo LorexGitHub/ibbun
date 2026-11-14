@@ -1,4 +1,4 @@
-import type { NavEntry } from "@mojibun/slice";
+import type { NavEntry } from "@ibbun/slice";
 import { describe, expect, it } from "vitest";
 import { dockEntries, doorPath, groups, kanjiAt, levelAt, levelPath, LEVELS, sessionAt, takesLevel, visibleTo, welcomeEntries, type Who } from "./places.ts";
 
@@ -90,5 +90,14 @@ describe("the app's map", () => {
     expect(doorPath(entry("Settings", "account"), n3)).toBe("/settings");
     expect(doorPath(entry("Approval", "supervisor"), n3)).toBe("/approval");
     expect(doorPath({ ...entry("Today", "home"), path: "/" }, n3)).toBe("/");
+  });
+});
+
+describe("showcase mode", () => {
+  it("leaves out the Supervisor slices and Credits", async () => {
+    const { discoverSlices } = await import("./slices.ts");
+    const modules = Object.fromEntries(["learn", "credits", "import", "content-approval", "content-generation"].map((name) => [name, { default: { name } }]));
+    expect(discoverSlices(modules, true).map((s) => s.name)).toEqual(["learn"]);
+    expect(discoverSlices(modules)).toHaveLength(5);
   });
 });

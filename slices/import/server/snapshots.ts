@@ -1,6 +1,6 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
-import type { Dataset, Records } from "@mojibun/content-graph/authoring";
-import type { Db } from "@mojibun/db";
+import type { Dataset, Records } from "@ibbun/content-graph/authoring";
+import type { Db } from "@ibbun/db";
 import { runDiff, snapshot, snapshotRecord } from "../db/schema.ts";
 import type { Diff } from "./diff.ts";
 

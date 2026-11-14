@@ -1,4 +1,4 @@
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 import { PASSAGE_TYPES } from "../reading-passage/config.ts";
 import { earlierItemCount, targetLength } from "../reading-passage/plan-numbers.ts";
 import { LINES, taskTypes } from "../dialogue/config.ts";

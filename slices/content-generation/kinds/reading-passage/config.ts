@@ -1,4 +1,4 @@
-import type { JlptLevel } from "@mojibun/shared";
+import type { JlptLevel } from "@ibbun/shared";
 
 /** Shortest (短文) and longest (長文, or 中文 at N5 and N4) exam passage, in characters (research/jlpt-reading-formats.md). */
 export const LENGTHS: Record<JlptLevel, { shortest: number; longest: number }> = {

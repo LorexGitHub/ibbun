@@ -194,7 +194,7 @@ The pricing page sells this as "Extensive alternate answer list" and "Smart revi
 - What the dashboard looks like beyond the setting and i18n descriptions. It needs login.
 - Ghost creation needing a vocab level above Beginner 3. This came from a summary of a forum thread and may be the "Minimum SRS For Ghosts" default.
 
-## Implications for mojibun (opinionated)
+## Implications for ibbun (opinionated)
 
 - **Store the SRS state per item but quiz per sentence.** Bunpro's best idea is that each review draws a fresh sentence for the same grammar point, so you can't memorise one card. Model `Item` (level, next_due) separately from `Sentence` (cloze, answers), with sentence-level ghosts.
 - **Make the answer schema rich from day one.** Every sentence should have accepted answers in kana and kanji, "valid but not the target" alternates with a nudge message (not graded), and known wrong answers with an explanation. This is most of what makes grammar cloze feel fair, and it is a content cost, not an engineering one.

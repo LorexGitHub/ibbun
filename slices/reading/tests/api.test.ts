@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createAuthGuards, createFakeSessionResolver } from "@mojibun/auth";
-import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@mojibun/content-graph/testing";
-import { createFakeJobs } from "@mojibun/jobs";
-import { createFakeLearners } from "@mojibun/learner/testing";
-import { createFakeProgress, createFakeTexts } from "@mojibun/progress/testing";
-import { StudyItemId } from "@mojibun/shared";
+import { createAuthGuards, createFakeSessionResolver } from "@ibbun/auth";
+import { createFakeContentGraph, emptyGraph, type Graph, type Token } from "@ibbun/content-graph/testing";
+import { createFakeJobs } from "@ibbun/jobs";
+import { createFakeLearners } from "@ibbun/learner/testing";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
+import { StudyItemId } from "@ibbun/shared";
 import { createReadingApi } from "../server/reading-api.ts";
 
 const ID = (n: number) => `00000000-0000-7000-8000-${String(n).padStart(12, "0")}`;
@@ -26,7 +26,7 @@ const buildGraph = (): Graph => {
   );
   const word = (id: string, form: string, reading: string, gloss: string, n: number) => {
     graph.studyItem.push({ id, type: "word", ...life });
-    graph.word.push({ studyItemId: id, priorityTags: [] });
+    graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana: false });
     graph.wordForm.push({ id: ID(n), wordId: id, position: 0, text: form, ...life });
     graph.wordReading.push({ id: ID(n + 1), wordId: id, position: 0, text: reading, pitchAccent: null, ...life });
     graph.wordSense.push({ id: ID(n + 2), wordId: id, position: 0, partsOfSpeech: ["v1"], glosses: [gloss, "to devour"], ...life });

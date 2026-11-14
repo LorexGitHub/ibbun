@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { Authoring, GenerationRun } from "@mojibun/content-graph/authoring";
-import type { ComprehensionQuestion } from "@mojibun/content-graph";
+import type { Authoring, GenerationRun } from "@ibbun/content-graph/authoring";
+import type { ComprehensionQuestion } from "@ibbun/content-graph";
 import { subjectOf, type Subject } from "../example-sentence/subject.ts";
 
 /** The Study Items that exist, as the prompt describes them. */
@@ -26,7 +26,7 @@ export const writePassageDraft = async (auth: Authoring, passageId: string, run:
     {
       id: provenanceId,
       source: { kind: "generated", model: run.model, promptTemplateVersion: run.promptTemplateVersion, generationRunId: run.id },
-      licence: "mojibun",
+      licence: "ibbun",
       author: null,
       sourceUrl: null,
       inputs,

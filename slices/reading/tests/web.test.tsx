@@ -233,7 +233,8 @@ describe("EpisodeList", () => {
 
   it("says why there are no stories yet and opens Learn, where the first one comes from", () => {
     show({ levels: [] });
-    expect(screen.getByText("No stories yet. Finish a Learn batch and your first one arrives.")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "No stories yet" })).toBeTruthy();
+    expect(screen.getByText("Finish a Learn batch and your first one arrives.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Learn a batch" }).getAttribute("href")).toBe("/learn");
     expect(screen.queryByText("Your newest story")).toBeNull();
   });

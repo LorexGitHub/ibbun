@@ -1,6 +1,6 @@
-import { normalise } from "@mojibun/content-graph";
-import type { Progress } from "@mojibun/progress";
-import type { LearnerId } from "@mojibun/shared";
+import { normalise } from "@ibbun/content-graph";
+import type { Progress } from "@ibbun/progress";
+import type { LearnerId } from "@ibbun/shared";
 import type { z } from "zod";
 import type { ClipAnswer, ClipVerdict } from "../contract.ts";
 import { gradingOf, type ClipTeacher } from "./clip-teach.ts";

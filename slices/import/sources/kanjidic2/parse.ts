@@ -1,4 +1,4 @@
-import type { KanjiRecord } from "@mojibun/content-graph/authoring";
+import type { KanjiRecord } from "@ibbun/content-graph/authoring";
 import { z } from "zod";
 
 const Character = z.object({

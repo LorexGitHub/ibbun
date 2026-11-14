@@ -1,9 +1,9 @@
 import { Hono } from "hono";
-import { createAuthGuards, type AuthEnv, type SessionResolver } from "@mojibun/auth";
-import type { ContentGraph } from "@mojibun/content-graph";
-import type { Learners } from "@mojibun/learner";
-import type { Progress } from "@mojibun/progress";
-import { JlptLevel, StudyItemId, type LearnerId } from "@mojibun/shared";
+import { createAuthGuards, type AuthEnv, type SessionResolver } from "@ibbun/auth";
+import type { ContentGraph } from "@ibbun/content-graph";
+import type { Learners } from "@ibbun/learner";
+import type { Progress } from "@ibbun/progress";
+import { JlptLevel, StudyItemId, type LearnerId } from "@ibbun/shared";
 import { SubmitRequest } from "../contract.ts";
 import { facetsOf, pickExample } from "./prompt.ts";
 import { nextDueOf } from "./next-due.ts";

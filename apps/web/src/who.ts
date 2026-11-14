@@ -1,4 +1,4 @@
-import { createLearnerClient } from "@mojibun/learner/client";
+import { createLearnerClient } from "@ibbun/learner/client";
 import { useEffect, useState } from "react";
 import type { Who } from "./places.ts";
 

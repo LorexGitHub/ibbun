@@ -1,12 +1,12 @@
 # Grammar Points: seed and links
 
-Decided in [#20](https://github.com/LorexGitHub/mojibun/issues/20). Terms follow [CONTEXT.md](../CONTEXT.md). The graph shape is in [content-graph.md](content-graph.md). Why hanabira is imported once, not refreshed, is in [ADR 0006](adr/0006-grammar-points-seeded-once.md).
+Decided in [#20](https://github.com/LorexGitHub/ibbun/issues/20). Terms follow [CONTEXT.md](../CONTEXT.md). The graph shape is in [content-graph.md](content-graph.md). Why hanabira is imported once, not refreshed, is in [ADR 0006](adr/0006-grammar-points-seeded-once.md).
 
-No open dataset is good enough on its own. hanabira has 828 JLPT-tagged points (CC BY 4.0, authorship unknown, probably machine-written). Tanos has N5–N1 grammar lists (CC BY, from 2010, N3/N2 levels estimated). No open data links Sentences to Grammar Points, and no open source has Japanese Explanations for them ([research #24](https://github.com/LorexGitHub/mojibun/issues/24)).
+No open dataset is good enough on its own. hanabira has 828 JLPT-tagged points (CC BY 4.0, authorship unknown, probably machine-written). Tanos has N5–N1 grammar lists (CC BY, from 2010, N3/N2 levels estimated). No open data links Sentences to Grammar Points, and no open source has Japanese Explanations for them ([research #24](https://github.com/LorexGitHub/ibbun/issues/24)).
 
 ## Scope
 
-Only N5–N1 Grammar Points are seeded. mojibun is built for JLPT learners. Unlevelled Grammar Points (Kansai-ben, non-JLPT extras) stay possible in the schema and need their own issue.
+Only N5–N1 Grammar Points are seeded. ibbun is built for JLPT learners. Unlevelled Grammar Points (Kansai-ben, non-JLPT extras) stay possible in the schema and need their own issue.
 
 ## Inventory
 
@@ -53,7 +53,7 @@ The rule below picks the seeded **List** Level Candidate. Later corrections are 
 
 ## hanabira is imported once
 
-hanabira is a one-time seed, not a refreshed dataset. It gets no schedule, no Import Runs after the first, and no Override layer. After the seed, Grammar Points are mojibun-owned. Provenance records "seeded from hanabira at commit X" (or the Tanos list), which is all the CC BY credits need ([ADR 0006](adr/0006-grammar-points-seeded-once.md)).
+hanabira is a one-time seed, not a refreshed dataset. It gets no schedule, no Import Runs after the first, and no Override layer. After the seed, Grammar Points are ibbun-owned. Provenance records "seeded from hanabira at commit X" (or the Tanos list), which is all the CC BY credits need ([ADR 0006](adr/0006-grammar-points-seeded-once.md)).
 
 ## Sentence demonstrates Grammar Point
 
@@ -81,4 +81,4 @@ Three sources, all arriving `draft`:
 - Merging, splitting, the level rule, the approval gate and Matcher Rule evaluation are domain rules. They live in core `content-graph/authoring`.
 - `content-generation` drafts missing fields, Japanese Explanations, Matcher Rules and top-up Sentences.
 - `content-approval` holds the queue: merge proposals, level conflicts, Grammar Points and demonstrates links.
-- `credits` shows hanabira (with a link to https://hanabira.org) and Waller (with a link) ([#19](https://github.com/LorexGitHub/mojibun/issues/19)).
+- `credits` shows hanabira (with a link to https://hanabira.org) and Waller (with a link) ([#19](https://github.com/LorexGitHub/ibbun/issues/19)).

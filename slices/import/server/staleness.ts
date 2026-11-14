@@ -1,4 +1,4 @@
-import type { Authoring, Dataset } from "@mojibun/content-graph/authoring";
+import type { Authoring, Dataset } from "@ibbun/content-graph/authoring";
 import { ageInDays, isStale } from "./schedule.ts";
 
 /** The EDRDG datasets, whose licence asks for a refresh at least monthly (licensing.md#monthly-refresh). */

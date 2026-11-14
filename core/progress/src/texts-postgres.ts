@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { and, asc, eq } from "drizzle-orm";
-import type { Db, DbOrTx } from "@mojibun/db";
+import type { Db, DbOrTx } from "@ibbun/db";
 import { texts } from "../db/progress-tables.ts";
 import { createTextsOver, NewText, type Text, type Texts } from "./texts.ts";
 

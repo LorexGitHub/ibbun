@@ -1,17 +1,17 @@
 import { randomUUID } from "node:crypto";
-import { emptyGraph, type Graph } from "@mojibun/content-graph/testing";
+import { emptyGraph, type Graph } from "@ibbun/content-graph/testing";
 
 /** A graph with an approved Word (食べる, N5), Kanji (食, N4) and Grammar Point (〜ます, N5), for the slice's tests. */
 export const world = () => {
   const graph: Graph = emptyGraph();
   const provenanceId = randomUUID();
-  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "mojibun", author: null, sourceUrl: null, inputs: [] });
+  graph.provenance.push({ id: provenanceId, source: { kind: "authored", by: "test" }, licence: "ibbun", author: null, sourceUrl: null, inputs: [] });
   const life = { approval: "approved" as const, retired: false, provenanceId };
 
   const wordId = randomUUID();
   const senseId = randomUUID();
   graph.studyItem.push({ id: wordId, type: "word", ...life });
-  graph.word.push({ studyItemId: wordId, priorityTags: [] });
+  graph.word.push({ studyItemId: wordId, priorityTags: [], usuallyKana: false });
   graph.wordForm.push({ id: randomUUID(), wordId, position: 0, text: "食べる", ...life });
   graph.wordReading.push({ id: randomUUID(), wordId, position: 0, text: "たべる", pitchAccent: null, ...life });
   graph.wordSense.push({ id: senseId, wordId, position: 0, partsOfSpeech: ["v1"], glosses: ["to eat"], ...life });

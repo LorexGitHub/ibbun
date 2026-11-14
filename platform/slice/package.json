@@ -1,10 +1,10 @@
 {
-  "name": "@mojibun/slice",
+  "name": "@ibbun/slice",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": { ".": "./src/slice.ts" },
-  "dependencies": { "@mojibun/auth": "workspace:*", "@mojibun/db": "workspace:*", "@mojibun/jobs": "workspace:*" },
+  "dependencies": { "@ibbun/auth": "workspace:*", "@ibbun/db": "workspace:*", "@ibbun/jobs": "workspace:*" },
   "devDependencies": {
     "@types/react": "^19.1.0",
     "hono": "^4.9.0"

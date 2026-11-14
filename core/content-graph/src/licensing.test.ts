@@ -1,8 +1,8 @@
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { StudyItemId } from "@mojibun/shared";
-import { createDb, type Db } from "@mojibun/db";
-import { startTestPostgres, type TestPostgres } from "@mojibun/db/testing";
+import type { StudyItemId } from "@ibbun/shared";
+import { createDb, type Db } from "@ibbun/db";
+import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { createContentGraph, type ContentGraph, type Credit } from "./index.ts";
 import { createFakeAuthoring, createFakeContentGraph, emptyGraph, migrateContentGraph, seedContentGraph, type Graph, type Licence } from "./testing.ts";
 import { licensing, parseLicence } from "./licensing.ts";
@@ -32,14 +32,14 @@ const licensedGraph = () => {
 
   const word = next();
   graph.studyItem.push({ id: word, type: "word", ...life(fromJmdict) });
-  graph.word.push({ studyItemId: word, priorityTags: [] });
+  graph.word.push({ studyItemId: word, priorityTags: [], usuallyKana: false });
   const sense = next();
   graph.wordSense.push({ id: sense, wordId: word, position: 0, partsOfSpeech: ["v1"], glosses: ["to eat"], ...life(fromJmdict) });
 
   const wiktionary = next();
   const wiktionaryProv = prov("cc-by-sa-4.0", { kind: "import", importRunId: run("wiktionary-ja", "1", null) }, [], null, "https://ja.wiktionary.org/wiki/食べる");
   graph.japaneseExplanation.push({ id: wiktionary, wordSenseId: sense, grammarPointId: null, text: "原文。", ...life(wiktionaryProv) });
-  const generated = prov("mojibun", { kind: "generated", model: "m", promptTemplateVersion: "1", generationRunId: next() }, [wiktionary]);
+  const generated = prov("ibbun", { kind: "generated", model: "m", promptTemplateVersion: "1", generationRunId: next() }, [wiktionary]);
   const explanation = next();
   graph.japaneseExplanation.push({ id: explanation, wordSenseId: sense, grammarPointId: null, text: "食べること。", ...life(generated) });
 
@@ -47,7 +47,7 @@ const licensedGraph = () => {
   const sentenceProv = prov("cc-by-2.0-fr", { kind: "import", importRunId: tatoeba }, [], "alice", "https://tatoeba.org/sentences/show/1");
   graph.sentence.push({ id: sentence, text: "パンを食べる。", translationEn: null, tokens: [], audioKey: null, audioVoice: null, unlevelledWordCount: 0, ...life(sentenceProv) });
   const example = next();
-  graph.example.push({ id: example, sentenceId: sentence, studyItemId: word, spanStart: 3, spanEnd: 6, targetSenseId: null, hint: null, comprehensionQuestion: null, ...life(prov("mojibun", { kind: "authored", by: "test" }, [sentence])) });
+  graph.example.push({ id: example, sentenceId: sentence, studyItemId: word, spanStart: 3, spanEnd: 6, targetSenseId: null, hint: null, comprehensionQuestion: null, ...life(prov("ibbun", { kind: "authored", by: "test" }, [sentence])) });
 
   const clip = next();
   const clipProv = prov("voicevox", { kind: "derived", process: "tts", version: "1" }, [sentence], "四国めたん");
@@ -55,7 +55,7 @@ const licensedGraph = () => {
   graph.listeningClip.push({ studyItemId: clip, kind: "sentence" });
   graph.clipVoicesSentence.push({ id: next(), clipId: clip, sentenceId: sentence, position: 0, speaker: "女", voice: "四国めたん", audioKey: null, ...life(clipProv) });
 
-  const override = prov("mojibun", { kind: "authored", by: "supervisor" }, [sense]);
+  const override = prov("ibbun", { kind: "authored", by: "supervisor" }, [sense]);
   graph.override.push({ id: next(), recordId: sense, field: "glosses", value: ["to eat", "to have"], basedOn: ["to eat"], state: "active", ...life(override) });
 
   return { graph, ids: { word: word as StudyItemId, clip: clip as StudyItemId, sense, explanation, sentence, example, wiktionary } };
@@ -96,8 +96,8 @@ describe("licence of a record", () => {
     expect(l.licenceOf(g.ids.explanation)).toBe("cc-by-sa-4.0");
   });
 
-  it("is mojibun-owned with no ShareAlike input, still carrying its inputs' Attribution", () => {
-    expect(l.licenceOf(g.ids.example)).toBe("mojibun");
+  it("is ibbun-owned with no ShareAlike input, still carrying its inputs' Attribution", () => {
+    expect(l.licenceOf(g.ids.example)).toBe("ibbun");
     expect(l.attributionOf([g.ids.example])).toEqual([tatoeba]);
   });
 
@@ -106,7 +106,7 @@ describe("licence of a record", () => {
     const sentence = graph.provenance.find((p) => p.licence === "cc-by-2.0-fr")!;
     sentence.inputs = [g.ids.example];
     const cyclic = licensing(graph);
-    expect(cyclic.licenceOf(g.ids.example)).toBe("mojibun");
+    expect(cyclic.licenceOf(g.ids.example)).toBe("ibbun");
     expect(cyclic.attributionOf([g.ids.example])).toEqual([tatoeba]);
   });
 

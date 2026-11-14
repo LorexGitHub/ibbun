@@ -1,5 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
-import type { Db } from "@mojibun/db";
+import type { Db } from "@ibbun/db";
 import { kindState, sample } from "../db/tables.ts";
 import { freshState, type Sample, type SamplingStore } from "./types.ts";
 

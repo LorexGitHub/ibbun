@@ -1,5 +1,5 @@
-import type { JlptLevel } from "@mojibun/shared";
-import { levelQuery } from "@mojibun/ui";
+import type { JlptLevel } from "@ibbun/shared";
+import { levelQuery } from "@ibbun/ui";
 import { call, postJson } from "../../web/http.ts";
 import { ClipAnswerResponse, ClipDueResponse, type ClipAnswerRequest } from "../contract.ts";
 
