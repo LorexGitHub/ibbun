@@ -186,6 +186,45 @@ const contract = (make: () => Promise<Harness>) => {
       expect(await a.claimGeneration(r.id)).toBe(true);
     });
 
+    it("does not queue a request that still has attempts left", async () => {
+      const { a, item } = await given("approved");
+      const request = await a.requestGeneration({ targetId: item, kind: "examples", reason: "manual" });
+      await a.failAttempt(request.id);
+      expect(await a.queue({ reason: "generation failed" })).toEqual([]);
+    });
+
+    it("lists decisions oldest first whatever order they were stored in", async () => {
+      const { a, examples } = await given("draft");
+      const row = (outcome: "approved" | "retired", at: string) => ({
+        id: randomUUID(), recordTable: "example", recordId: examples[0]!, outcome, decider: supervisor, verdicts: [], reason: null, at: new Date(at),
+      });
+      await a.insert("approvalDecision", [row("retired", "2026-11-02T00:00:00Z"), row("approved", "2026-11-01T00:00:00Z")]);
+      expect((await a.decisions(examples[0]!)).map((d) => d.outcome)).toEqual(["approved", "retired"]);
+      expect(await a.approvalState(examples[0]!)).toBe("retired");
+      expect(await a.approvalState(randomUUID())).toBeNull();
+    });
+
+    it("keeps an empty reason and a given verdict list as they were", async () => {
+      const { a, examples } = await given("draft");
+      const verdicts = [{ criterion: "natural", pass: true }];
+      const d = await a.decide({ recordTable: "example", recordId: examples[0]!, outcome: "approved", decider: supervisor, reason: "", verdicts });
+      expect(d).toMatchObject({ reason: "", verdicts });
+    });
+
+    it("records a decision on an Example that does not exist", async () => {
+      const { a } = await given();
+      const missing = randomUUID();
+      await a.decide({ recordTable: "example", recordId: missing, outcome: "retired", decider: supervisor });
+      expect(await a.approvalState(missing)).toBe("retired");
+    });
+
+    it("updates a provenance row without touching its licence", async () => {
+      const { a, graph } = await given();
+      const id = graph.provenance[0]!.id;
+      await a.update("provenance", { id }, { author: "me" });
+      expect((await a.rows("provenance", { id }))[0]?.author).toBe("me");
+    });
+
     it("fails after the last attempt and queues it as generation failed", async () => {
       const { a, item } = await given("approved");
       const request = await a.requestGeneration({ targetId: item, kind: "examples", reason: "manual" });

@@ -128,6 +128,24 @@ describe("content.generate for Example Sentences", () => {
     expect((await t.auth.rows("generationRequest", { id: r.id }))[0]!.status).toBe("in review");
   });
 
+  it("does nothing for a request that does not exist", async () => {
+    const t = setup();
+    await t.ready;
+    await t.generation.generate({ requestId: randomUUID() });
+    expect(t.llm.calls()).toHaveLength(0);
+  });
+
+  it.each([
+    ["a good answer", good],
+    ["an answer outside the shape", { nope: 1 }],
+  ])("records the input and output tokens of %s", async (_, answer) => {
+    const t = setup({ answer: () => answer });
+    await t.run(t.grammarId);
+    const [call] = t.llm.calls();
+    const [run] = await t.auth.rows("generationRun");
+    expect(run!.tokens).toBe(call!.system.length + call!.prompt.length + JSON.stringify(answer).length);
+  });
+
   it("uses an attempt when a Word has no forms or readings", async () => {
     const t = setup();
     const bare = randomUUID();

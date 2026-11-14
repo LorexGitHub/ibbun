@@ -137,15 +137,15 @@ const afterExampleDecision = async (tx: Store, clock: Clock, exampleId: string, 
   await r.checkSuspension(example.studyItemId);
 };
 
-const decide = async (tx: Store, clock: Clock, decision: Decision): Promise<ApprovalDecision> => {
+const decide = async (tx: Store, clock: Clock, { verdicts = [], reason = null, ...decision }: Decision): Promise<ApprovalDecision> => {
   const row: ApprovalDecision = {
     id: clock.newId(),
     recordTable: decision.recordTable,
     recordId: decision.recordId,
     outcome: decision.outcome,
     decider: decision.decider,
-    verdicts: decision.verdicts ?? [],
-    reason: decision.reason ?? null,
+    verdicts,
+    reason,
     at: clock.now(),
   };
   await tx.insert("approvalDecision", [row]);
@@ -193,7 +193,10 @@ export const authoring = (s: Store, clock: Clock = systemClock): Authoring => {
 
     decide: (decision) => s.atomically((tx) => decide(tx, clock, decision)),
     decisions,
-    approvalState: async (recordId) => (await decisions(recordId)).at(-1)?.outcome ?? null,
+    approvalState: async (recordId) => {
+      const latest = (await decisions(recordId)).at(-1);
+      return latest ? latest.outcome : null;
+    },
 
     isSuspended,
     checkSuspension: (studyItemId) => s.atomically((tx) => rules(tx, clock).checkSuspension(studyItemId)),
