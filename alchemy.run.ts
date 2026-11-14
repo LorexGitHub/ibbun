@@ -151,9 +151,13 @@ const jobQueue = (prefix: string) =>
 
 type Database = { url: unknown; env: Record<string, string>; connect: Statement[] };
 
+// `alchemy dev` runs on the emulator and keeps its state on disk. Any other command is a real deploy, whose
+// state belongs in the AWS account (a DynamoDB table, created on the first deploy), so CI and a laptop agree.
+const state = process.argv.includes("dev") ? Alchemy.localState() : AWS.state();
+
 export default Alchemy.Stack(
   "ibbun",
-  { providers: AWS.providers(), state: Alchemy.localState() },
+  { providers: AWS.providers(), state },
   Effect.gen(function* () {
     const local = yield* AWS.isLocalEmulator;
     const { region, accountId } = yield* AWS.AWSEnvironment.current;
