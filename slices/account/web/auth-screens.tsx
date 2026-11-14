@@ -12,6 +12,11 @@ export const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sent, setSent] = useState(false);
+  const navigate = useNavigate();
+  /** The showcase's guest login. Anywhere else the server answers 404 and the notice says so. */
+  const tryIt = async () => {
+    if (await run(client.tryAsGuest(), "Signed in as a guest.")) navigate("/learn");
+  };
   const submit = async () => setSent(await run(client.signUp(email, password), CHECK_YOUR_EMAIL));
   return (
     <Split title="Sign up">
@@ -35,6 +40,9 @@ export const SignUp = () => {
           Send the link again
         </button>
       )}
+      <button type="button" className={buttonClass()} onClick={() => void tryIt()}>
+        Try it
+      </button>
       <p>
         Already have an account? <Link to="/login">Log in</Link>
       </p>

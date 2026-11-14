@@ -13,6 +13,7 @@ A visitor signs up with an email and password, verifies the address through a ma
 - `account-preferences` the preference controls in the Study column, saved at once with the notice "Saved." and no Save button; the last explanation toggle cannot be turned off.
 - `account-delete` "Delete my account" with the password hard-deletes the Learner.
 - `account-rate-limit` login is limited to 5 tries per 15 min per email and IP; sign-up, reset and resend to 3 per hour per IP; the blocked call is `429` with `Retry-After`.
+- `account-guest` with `SHOWCASE=1`, "Try it" on `/signup` signs a visitor in as a guest and opens `/learn` with no mail sent; sign-up by email is refused; 10 guests per hour per IP, then `429`; guests older than 24 hours are deleted on the next guest login. Without `SHOWCASE=1` the button shows an error.
 - `account-roles` the `learner` and `supervisor` seed accounts; `/admin` needs `supervisor`.
 
 ## How to get to it (user POV)
