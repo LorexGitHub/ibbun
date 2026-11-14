@@ -1,5 +1,6 @@
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command, NoSuchKey, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { RawFile } from "./source.ts";
 
 /** Raw files of the newest runs per dataset stay on disk so a run can be replayed (import-pipeline.md#what-is-kept). */
@@ -36,6 +37,66 @@ export const directoryRawFiles = (root: string): RawFiles => ({
     for (const { name } of old) await rm(join(parent, name), { recursive: true, force: true });
   },
 });
+
+/**
+ * Raw files in a bucket under `prefix`: `<dataset>/<version>/<name>`, plus `<dataset>/runs.json`, the kept versions oldest first.
+ * S3 has no folder mtime to order runs by, so the list is the order.
+ */
+export const s3RawFiles = (client: S3Client, bucket: string, prefix: string): RawFiles => {
+  const runsKey = (dataset: string) => `${prefix}${dataset}/runs.json`;
+  const runPrefix = (dataset: string, version: string) => `${prefix}${dataset}/${folder(version)}/`;
+  const keysUnder = async (Prefix: string) => {
+    const keys: string[] = [];
+    let ContinuationToken: string | undefined;
+    do {
+      const page = await client.send(new ListObjectsV2Command({ Bucket: bucket, Prefix, ContinuationToken }));
+      keys.push(...(page.Contents ?? []).map((o) => o.Key!));
+      ContinuationToken = page.NextContinuationToken;
+    } while (ContinuationToken);
+    return keys;
+  };
+  const remove = async (dataset: string, version: string) => {
+    const keys = await keysUnder(runPrefix(dataset, version));
+    if (keys.length) await client.send(new DeleteObjectsCommand({ Bucket: bucket, Delete: { Objects: keys.map((Key) => ({ Key })) } }));
+  };
+  const runs = async (dataset: string): Promise<string[]> => {
+    const object = await client.send(new GetObjectCommand({ Bucket: bucket, Key: runsKey(dataset) })).catch((error) => {
+      if (error instanceof NoSuchKey) return null;
+      throw error;
+    });
+    return object ? JSON.parse(await object.Body!.transformToString()) : [];
+  };
+  const put = (Key: string, Body: Uint8Array | string) => client.send(new PutObjectCommand({ Bucket: bucket, Key, Body }));
+
+  return {
+    async read(dataset, version) {
+      const at = runPrefix(dataset, version);
+      const keys = await keysUnder(at);
+      if (!keys.length) return null;
+      return Promise.all(
+        keys.map(async (Key) => {
+          const object = await client.send(new GetObjectCommand({ Bucket: bucket, Key }));
+          return { name: Key.slice(at.length), bytes: await object.Body!.transformToByteArray() };
+        }),
+      );
+    },
+
+    async keep(dataset, version, files) {
+      await remove(dataset, version);
+      for (const file of files) await put(runPrefix(dataset, version) + file.name, file.bytes);
+      const kept = [...(await runs(dataset)).filter((v) => v !== version), version];
+      await put(runsKey(dataset), JSON.stringify(kept.slice(-RAW_RUNS_KEPT)));
+      for (const old of kept.slice(0, -RAW_RUNS_KEPT)) await remove(dataset, old);
+    },
+  };
+};
+
+/** `IMPORT_RAW_DIR` is a directory, or `s3://bucket/prefix` on AWS. The client reads `AWS_REGION`; a local S3 such as Compose's also needs `AWS_ENDPOINT_URL_S3`. */
+export const rawFilesAt = (location: string): RawFiles => {
+  if (!location.startsWith("s3://")) return directoryRawFiles(location);
+  const [bucket, ...path] = location.slice("s3://".length).split("/");
+  return s3RawFiles(new S3Client({ forcePathStyle: Boolean(process.env.AWS_ENDPOINT_URL_S3) }), bucket!, path.join("/"));
+};
 
 /** Raw files held in memory, for tests of everything that uses them. */
 export const memoryRawFiles = (): RawFiles & { versions(dataset: string): string[] } => {

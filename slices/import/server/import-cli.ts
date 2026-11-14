@@ -7,7 +7,7 @@ import { connectMatcherRuns } from "../sources/matcher-runs/connect.ts";
 import { importEverything } from "./import-all.ts";
 import { DEFAULT_RAW_DIR } from "./import-server.ts";
 import { refreshes } from "./jobs.ts";
-import { directoryRawFiles } from "./raw-files.ts";
+import { rawFilesAt } from "./raw-files.ts";
 import { postgresSnapshots } from "./snapshots.ts";
 
 const url = process.env.DATABASE_URL;
@@ -17,7 +17,7 @@ const db = createDb(url, { max: 4 });
 try {
   await importEverything(
     {
-      imports: { authoring: createAuthoring(db), snapshots: postgresSnapshots(db), raw: directoryRawFiles(process.env.IMPORT_RAW_DIR ?? DEFAULT_RAW_DIR) },
+      imports: { authoring: createAuthoring(db), snapshots: postgresSnapshots(db), raw: rawFilesAt(process.env.IMPORT_RAW_DIR ?? DEFAULT_RAW_DIR) },
       refreshes: refreshes(),
       grammarSeed: connectGrammarSeed(db, process.env),
       matcherRuns: connectMatcherRuns(db, process.env),

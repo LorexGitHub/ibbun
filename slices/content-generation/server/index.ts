@@ -5,7 +5,8 @@ import { createSqsJobsFromEnv, handler } from "@ibbun/jobs";
 import { createAnthropicLlm, loadLlmConfig } from "@ibbun/llm";
 import { createProgress, createTexts } from "@ibbun/progress";
 import { createVoicevoxTts } from "@ibbun/tts";
-import { createDirectoryAudioStore, loadSynthesisConfig, synthesise, type SynthesiseDeps } from "../kinds/synthesise/index.ts";
+import { audioStoreAt } from "../kinds/synthesise/audio-store.ts";
+import { loadSynthesisConfig, synthesise, type SynthesiseDeps } from "../kinds/synthesise/index.ts";
 import { loadGenerationConfig } from "./config.ts";
 import { contentGeneration, type ContentGeneration } from "./generate.ts";
 
@@ -38,7 +39,7 @@ const synthesisDeps = (): SynthesiseDeps => {
   return (synthesis ??= {
     auth: createAuthoring(createDb(config.databaseUrl)),
     tts: createVoicevoxTts({ url: config.voicevoxUrl }),
-    store: createDirectoryAudioStore(config.audioDir),
+    store: audioStoreAt(config.audioDir),
     voices: config.voices,
   });
 };
