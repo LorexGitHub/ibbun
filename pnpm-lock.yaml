@@ -436,7 +436,7 @@ importers:
     dependencies:
       '@aws-sdk/rds-signer':
         specifier: ^3.1167.0
-        version: 3.1167.0
+        version: 3.1168.0
       '@electric-sql/pglite':
         specifier: ^0.3.0
         version: 0.3.16
@@ -488,6 +488,9 @@ importers:
 
   platform/mail:
     dependencies:
+      '@aws-sdk/client-sesv2':
+        specifier: ^3.1167.0
+        version: 3.1167.0
       nodemailer:
         specifier: ^7.0.0
         version: 7.0.13
@@ -507,6 +510,9 @@ importers:
 
   platform/nlp:
     dependencies:
+      aws4fetch:
+        specifier: ^1.0.20
+        version: 1.0.20
       zod:
         specifier: ^4.1.0
         version: 4.6.7
@@ -1263,6 +1269,10 @@ packages:
       zod:
         optional: true
 
+  '@aws-sdk/client-sesv2@3.1167.0':
+    resolution: {integrity: sha512-zSNRFf1gsQrxj7hCrqkBMtOyoWk/WdZuq/eYFADxfJFDU6iVwz4vWXupzfBDHMKEYHkclYK6APtLoV/R9N6ibw==}
+    engines: {node: '>=20.0.0'}
+
   '@aws-sdk/core@3.981.0':
     resolution: {integrity: sha512-Mnu7gaDrC5UCdyH8uLxLfB2eWbjE/HbjKX1U1J2VQxG3TTATUDObW2wU3I8iH3e9YH5NN2CY6w1mlAIe2XJ3jg==}
     engines: {node: '>=20.0.0'}
@@ -1303,16 +1313,16 @@ packages:
     resolution: {integrity: sha512-duLeE3xlf0viHeH+1RM4z5duR3b32BCZTWVMu+MbxFPjQBxy7hmIGEqt5hekuFPRuXoyhMovjNl+PNNsb5oiGQ==}
     engines: {node: '>=20.0.0'}
 
-  '@aws-sdk/credential-providers@3.1167.0':
-    resolution: {integrity: sha512-ehfJtcSzLQt+/ELLCQ7B6TyJ9hPjaOlcxYJsCnAb2aTHG5UBuxrs4waCAejNNztA9AdME+ziRucCCIiG5y7WhQ==}
+  '@aws-sdk/credential-providers@3.1168.0':
+    resolution: {integrity: sha512-6EcK9b/n2t0xifguAieNoOkDvszaH3cH2uzw0BHDnsqD7df09cirTY/fSTKvLAZsIDqG9r8thAHiTHnT2U0mlQ==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/nested-clients@3.998.3':
     resolution: {integrity: sha512-acHTTzMB13CU6dU4sxABYExMI3PQM2zStWH2MiUwJp/7QKTrLg2f7mbzSXoegW2kYOk2tdqQYagsZrWB8Xv7eA==}
     engines: {node: '>=20.0.0'}
 
-  '@aws-sdk/rds-signer@3.1167.0':
-    resolution: {integrity: sha512-D4YV8r6JUcK4pneq3PEfRxxbcu3mEn36x+sH8JZyyNdPGN71/vmZ35q9EHRao+aA19eTBWH7Sqw1slMZPVKCBg==}
+  '@aws-sdk/rds-signer@3.1168.0':
+    resolution: {integrity: sha512-ttkFbKhShKk4V1BDwfh+YILGi7tbB5dSk+4emTRKO6djIZGap6IOx8K0COX72pV0UL3HL45kG8deGdbVinjn7Q==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/signature-v4-multi-region@3.996.52':
@@ -3080,6 +3090,9 @@ packages:
     resolution: {integrity: sha512-Xcz9l0z7y9yQ9rdDaxlmaI4uJHf/T8g9hOEzJcsEqX2SjCj4J20uK7+ldkDHMbpJDK76wF7xEIgxc/vSlsfw5w==}
     engines: {node: '>=10.12.0'}
 
+  aws4fetch@1.0.20:
+    resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
+
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
@@ -4845,6 +4858,18 @@ snapshots:
     optionalDependencies:
       zod: 4.6.7
 
+  '@aws-sdk/client-sesv2@3.1167.0':
+    dependencies:
+      '@aws-sdk/core': 3.981.0
+      '@aws-sdk/credential-provider-node': 3.972.97
+      '@aws-sdk/signature-v4-multi-region': 3.996.52
+      '@aws-sdk/types': 3.975.1
+      '@smithy/core': 3.40.0
+      '@smithy/fetch-http-handler': 5.8.1
+      '@smithy/node-http-handler': 4.14.2
+      '@smithy/types': 4.20.0
+      tslib: 2.9.1
+
   '@aws-sdk/core@3.981.0':
     dependencies:
       '@aws-sdk/types': 3.975.1
@@ -4948,7 +4973,7 @@ snapshots:
       '@smithy/types': 4.20.0
       tslib: 2.9.1
 
-  '@aws-sdk/credential-providers@3.1167.0':
+  '@aws-sdk/credential-providers@3.1168.0':
     dependencies:
       '@aws-sdk/core': 3.981.0
       '@aws-sdk/credential-provider-cognito-identity': 3.972.83
@@ -4978,10 +5003,10 @@ snapshots:
       '@smithy/types': 4.20.0
       tslib: 2.9.1
 
-  '@aws-sdk/rds-signer@3.1167.0':
+  '@aws-sdk/rds-signer@3.1168.0':
     dependencies:
       '@aws-sdk/core': 3.981.0
-      '@aws-sdk/credential-providers': 3.1167.0
+      '@aws-sdk/credential-providers': 3.1168.0
       '@smithy/core': 3.40.0
       '@smithy/signature-v4': 5.7.5
       '@smithy/types': 4.20.0
@@ -6719,6 +6744,8 @@ snapshots:
       js-tokens: 10.0.0
 
   atomically@1.7.0: {}
+
+  aws4fetch@1.0.20: {}
 
   balanced-match@1.0.2: {}
 
