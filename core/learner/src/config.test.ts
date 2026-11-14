@@ -5,7 +5,7 @@ const env = { AUTH_SECRET: "k".repeat(32), APP_URL: "http://localhost:5173/" };
 
 describe("learnerConfigFromEnv", () => {
   it("reads the secret and the app origin, with sign-up open by default", () => {
-    expect(learnerConfigFromEnv(env)).toEqual({ secret: "k".repeat(32), appUrl: "http://localhost:5173", signupOpen: true });
+    expect(learnerConfigFromEnv(env)).toEqual({ secret: "k".repeat(32), appUrl: "http://localhost:5173", signupOpen: true, showcase: false });
   });
 
   it("closes sign-up when SIGNUP_OPEN is false", () => {

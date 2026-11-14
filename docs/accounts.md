@@ -25,6 +25,8 @@ Decided in [#39](https://github.com/LorexGitHub/ibbun/issues/39). Terms follow [
 
 When `SIGNUP_OPEN` (config, default `true`) is `false`, sign-up is refused. Existing Learners can still log in. The supervisor can use this switch to stop abuse at once.
 
+When `SHOWCASE=1` ([ADR 0017](adr/0017-showcase-stage-on-aws.md)), sign-up by email is off and "Try it" (`POST /api/auth/sign-in/anonymous`) creates a guest Learner with no email address and signs it in, with no mail sent. Each guest login first deletes guests older than 24 hours, so the stage needs no Scheduler. Guest login is limited to 10 per hour per IP, and `SIGNUP_OPEN=false` turns it off too. A purged guest's Reviews stay, because the Review log is append-only; nothing reads them.
+
 ## Security standards
 
 The rules follow OWASP (Password Storage and Authentication Cheat Sheets) and NIST SP 800-63B.
