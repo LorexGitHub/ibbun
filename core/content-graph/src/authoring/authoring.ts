@@ -55,6 +55,10 @@ export type Authoring = {
   /** Opens a Generation Request, or returns the one already open for (target, kind). */
   requestGeneration(request: { targetId: string; kind: string; reason: string }): Promise<GenerationRequest>;
   setGenerationStatus(id: string, status: "in review" | "done"): Promise<void>;
+  /** Atomically moves an `open` request to `in review` before its Claude call. False if another run already claimed it. */
+  claimGeneration(id: string): Promise<boolean>;
+  /** Gives a claimed request back to `open`, for a run that failed before it could use an attempt. */
+  releaseGeneration(id: string): Promise<void>;
   /** Uses one attempt; after the last, the request fails and goes to the queue as `generation failed`. */
   failAttempt(id: string): Promise<GenerationRequest>;
   recordGenerationRun(run: Omit<GenerationRun, "id" | "at">): Promise<GenerationRun>;
@@ -196,6 +200,8 @@ export const authoring = (s: Store, clock: Clock = systemClock): Authoring => {
 
     requestGeneration: (request) => s.atomically((tx) => rules(tx, clock).requestGeneration(request)),
     setGenerationStatus: (id, status) => s.update("generationRequest", { id }, { status }),
+    claimGeneration: (id) => s.claim("generationRequest", { id, status: "open" }, { status: "in review" }),
+    releaseGeneration: (id) => s.update("generationRequest", { id, status: "in review" }, { status: "open" }),
     failAttempt: (id) => s.atomically((tx) => failAttempt(tx, clock, id)),
     recordGenerationRun: async (run) => {
       const row: GenerationRun = { id: clock.newId(), ...run, at: clock.now() };

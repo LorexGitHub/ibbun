@@ -108,6 +108,14 @@ describe("content.generate for Example Sentences", () => {
     expect(prompts[0]).toContain("Notes: Attaches to the verb stem.");
   });
 
+  it("calls the model once when two copies run at the same moment", async () => {
+    const t = setup();
+    await t.ready;
+    const r = await t.request(t.grammarId);
+    await Promise.all([t.generation.generate({ requestId: r.id }), t.generation.generate({ requestId: r.id })]);
+    expect(t.llm.calls()).toHaveLength(1);
+  });
+
   it("uses an attempt when a Word has no forms or readings", async () => {
     const t = setup();
     const bare = randomUUID();

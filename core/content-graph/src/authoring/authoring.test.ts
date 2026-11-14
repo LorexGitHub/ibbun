@@ -177,6 +177,15 @@ const contract = (make: () => Promise<Harness>) => {
       expect((await a.requestGeneration({ targetId: item, kind: "japanese_explanation", reason: "again" })).id).not.toBe(first.id);
     });
 
+    it("lets only one run claim an open request until it is released", async () => {
+      const { a, item } = await given("approved");
+      const r = await a.requestGeneration({ targetId: item, kind: "japanese_explanation", reason: "missing" });
+      expect(await a.claimGeneration(r.id)).toBe(true);
+      expect(await a.claimGeneration(r.id)).toBe(false);
+      await a.releaseGeneration(r.id);
+      expect(await a.claimGeneration(r.id)).toBe(true);
+    });
+
     it("fails after the last attempt and queues it as generation failed", async () => {
       const { a, item } = await given("approved");
       const request = await a.requestGeneration({ targetId: item, kind: "examples", reason: "manual" });
