@@ -559,6 +559,14 @@ describe("guest login (showcase)", () => {
     expect(await browser(world({ showcase: true, signupOpen: false }).auth).client.tryAsGuest()).toMatchObject({ ok: false, status: 404 });
   });
 
+  it("lets a guest not delete itself through the plugin's own endpoint", async () => {
+    const b = browser(world({ showcase: true }).auth);
+    await b.client.tryAsGuest();
+    const response = await b.fetch(`${APP}/api/auth/delete-anonymous-user`, { method: "POST", body: "{}", headers: { "content-type": "application/json" } });
+    expect(response.status).toBe(400);
+    expect(await b.client.session()).toMatchObject({ ok: true, data: { email: expect.stringMatching(/@guest\.invalid$/) } });
+  });
+
   it("closes email sign-up in the showcase", async () => {
     const b = browser(world({ showcase: true }).auth);
     expect(await b.client.signUp(newEmail(), GOOD)).toMatchObject({ ok: false, status: 400 });
