@@ -30,7 +30,7 @@ There is no Learner or admin screen. The supervisor sees its effects in the Cont
 
 Nothing to drive in a browser yet. Journey (API and database only):
 
-1. Start the stack (`verify-ibbun` launch). Set `ANTHROPIC_API_KEY`, or stub the LLM; `DAILY_TOKEN_BUDGET` defaults to 2,000,000.
+1. Start the stack (`verify-ibbun` launch). Set `ANTHROPIC_API_KEY`, or run locally without a key (ADR 0016): `LLM_PROVIDER=ollama,claude-code` and `LLM_GENERATOR_MODEL=gemma4:12b` (Ollama with `gemma4:12b` pulled, a logged-in `claude` CLI); or stub the LLM; `DAILY_TOKEN_BUDGET` defaults to 2,000,000.
 2. Open a request: insert a `content_graph.generation_request` row with `kind = 'examples'`, `status = 'open'`, `attempts = 0` for an approved Word, then enqueue `content.generate` with `{ "requestId": "<id>" }`.
 3. Expect: a `generation_run` row for the request with tokens and cost; draft `sentence`, `example` and `example_answer` rows whose `provenance.source.kind = 'generated'` and `generationRunId` is that run; the request `in review`; a `content.review` job queued.
 4. Budget: set `DAILY_TOKEN_BUDGET=100`, repeat. The second request stays `open` with 0 attempts and one unresolved `queue_entry` with reason `budget exhausted` and `detail.pool = 'general'`.

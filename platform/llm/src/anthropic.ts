@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
 import { costUsd, modelFor, type LlmConfig } from "./config.ts";
-import { LlmError, type Llm, type LlmRequest, type LlmRole } from "./llm.ts";
+import { LlmError, parseJson, type Llm, type LlmRequest, type LlmRole } from "./llm.ts";
 
 /** Below the SDK's non-streaming timeout, and far above any single draft or review. */
 const DEFAULT_MAX_TOKENS = 16_000;
@@ -42,12 +42,4 @@ export const createAnthropicLlm = ({ config, client = new Anthropic() }: Anthrop
   };
 
   return { generate: (request) => call("generator", request), review: (request) => call("reviewer", request) };
-};
-
-const parseJson = (text: string): unknown => {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
 };

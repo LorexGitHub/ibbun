@@ -44,3 +44,12 @@ export class LlmError extends Error {
     this.costUsd = costUsd;
   }
 }
+
+/** A model's text answer as JSON, or undefined when it is not JSON, so the schema check rejects it. */
+export const parseJson = (text: string): unknown => {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+};

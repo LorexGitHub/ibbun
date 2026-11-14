@@ -4,7 +4,7 @@ import { ContentReview } from "@ibbun/content-graph/jobs";
 import { createDb } from "@ibbun/db";
 import { createSqsJobsFromEnv, handler } from "@ibbun/jobs";
 import { createLearnerAuth, learnerConfigFromEnv } from "@ibbun/learner";
-import { createAnthropicLlm, loadLlmConfig } from "@ibbun/llm";
+import { createLlmFromEnv } from "@ibbun/llm";
 import { createMail, mailConfigFromEnv } from "@ibbun/mail";
 import { createSudachiNlp } from "@ibbun/nlp";
 import { createProgress } from "@ibbun/progress";
@@ -32,7 +32,7 @@ const reviewDeps = once(() => ({
   authoring,
   jobs: queueJobs,
   nlp: createSudachiNlp({ url: required("SUDACHI_URL") }),
-  llm: createAnthropicLlm({ config: loadLlmConfig(env) }),
+  llm: createLlmFromEnv(env),
   config: DEFAULT_CONFIG,
   sampling,
 }));
