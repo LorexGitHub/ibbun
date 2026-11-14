@@ -90,6 +90,18 @@ describe("sign up", () => {
   });
 });
 
+describe("guest login", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  it("offers Try it only in showcase mode", () => {
+    open("/signup");
+    expect(screen.queryByRole("button", { name: "Try it" })).toBeNull();
+    cleanup();
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    open("/signup");
+    expect(screen.getByRole("button", { name: "Try it" })).toBeTruthy();
+  });
+});
+
 describe("the split", () => {
   it("sets the line upright in Japanese beside the sign-up form, with Log in and one Review to try under it", () => {
     open("/signup");

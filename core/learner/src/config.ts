@@ -1,3 +1,4 @@
+import { isShowcase } from "@ibbun/shared";
 import { z } from "zod";
 
 const Env = z.object({
@@ -25,6 +26,6 @@ export const learnerConfigFromEnv = (env: Record<string, string | undefined>): L
   const parsed = Env.safeParse(env);
   if (!parsed.success) throw new Error(parsed.error.issues.map((i) => i.message).join("; "));
   return { secret: parsed.data.AUTH_SECRET, appUrl: parsed.data.APP_URL, signupOpen: parsed.data.SIGNUP_OPEN === "true",
-    showcase: parsed.data.SHOWCASE === "1",
+    showcase: isShowcase(parsed.data.SHOWCASE),
   };
 };

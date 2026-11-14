@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createAuthGuards, createFakeSessionResolver } from "@ibbun/auth";
 import { createFakeContentGraph, emptyGraph, type Graph } from "@ibbun/content-graph/testing";
 import { createFakeJobs } from "@ibbun/jobs";
@@ -74,6 +74,18 @@ describe("Practice Text dialogues", () => {
     expect(await (await t.get("/options")).json()).toEqual({ cleared: [], remaining: 2 });
     await knowKanji(t);
     expect(await (await t.get("/options")).json()).toEqual({ cleared: ["N5"], remaining: 2 });
+  });
+
+  it("queues and records nothing in showcase mode", async () => {
+    await knowKanji(t);
+    vi.stubEnv("SHOWCASE", "1");
+    try {
+      expect((await t.post("", request)).status).toBe(403);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    expect(await t.texts.practiceTexts(t.learner.id)).toEqual([]);
+    expect(t.jobs.pending()).toEqual([]);
   });
 
   it("refuses a level that is not cleared, and nothing is recorded or queued", async () => {

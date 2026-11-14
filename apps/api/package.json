@@ -16,6 +16,7 @@
     "@ibbun/db": "workspace:*",
     "@ibbun/learner": "workspace:*",
     "@ibbun/mail": "workspace:*",
+    "@ibbun/shared": "workspace:*",
     "@ibbun/slice": "workspace:*",
     "hono": "^4.9.0"
   },
