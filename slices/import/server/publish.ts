@@ -102,33 +102,39 @@ export const copyContent = async (source: Pool, target: Pool): Promise<DbReport>
   const copied = new Map<string, Set<string>>();
   const audioKeys = new Set<string>();
   const tables: TableReport[] = [];
+  for (const [spec, where] of plan()) {
+    const ids = new Set<string>();
+    copied.set(spec.table, ids);
+    tables.push(await copyTable({ source, target, spec, where, copied, ids, audioKeys }));
+  }
+  return { tables, audioKeys: [...audioKeys].sort() };
+};
 
+/** Provenance first, but only what live records cite; then each table with the rows a Learner may see. */
+const plan = (): [Spec, string][] => {
   const liveProvenance = PUBLISHED.filter((s) => s.lifecycle)
     .map((s) => `SELECT provenance_id FROM ${q(s.table)} WHERE ${LIVE}`)
     .join(" UNION ");
-  const plan: [Spec, string][] = [
-    [PROVENANCE, `id IN (${liveProvenance})`],
-    ...PUBLISHED.map((s): [Spec, string] => [s, s.lifecycle ? LIVE : "true"]),
-  ];
+  return [[PROVENANCE, `id IN (${liveProvenance})`], ...PUBLISHED.map((s): [Spec, string] => [s, s.lifecycle ? LIVE : "true"])];
+};
 
-  for (const [spec, where] of plan) {
-    const columns = await columnsOf(target, spec.table);
-    const ids = new Set<string>();
-    copied.set(spec.table, ids);
-    const report: TableReport = { table: spec.table, read: 0, copied: 0, changed: 0 };
-    for await (const page of pages(source, spec.table, spec.pk, where)) {
-      report.read += page.length;
-      const keep = page.filter(({ row }) => spec.refs(row).every(([table, id]) => id == null || copied.get(table)?.has(String(id))));
-      for (const { id, row } of keep) {
-        ids.add(id);
-        for (const column of spec.audio ?? []) if (typeof row[column] === "string") audioKeys.add(row[column]);
-      }
-      report.copied += keep.length;
-      if (keep.length) report.changed += await upsert(target, spec, columns, keep.map((k) => k.row));
+type TableJob = { source: Pool; target: Pool; spec: Spec; where: string; copied: Map<string, Set<string>>; ids: Set<string>; audioKeys: Set<string> };
+
+const copyTable = async ({ source, target, spec, where, copied, ids, audioKeys }: TableJob): Promise<TableReport> => {
+  const columns = await columnsOf(target, spec.table);
+  const report: TableReport = { table: spec.table, read: 0, copied: 0, changed: 0 };
+  const parentsCopied = (row: Row) => spec.refs(row).every(([table, id]) => id == null || copied.get(table)?.has(String(id)));
+  for await (const page of pages(source, spec.table, spec.pk, where)) {
+    const keep = page.filter(({ row }) => parentsCopied(row));
+    for (const { id, row } of keep) {
+      ids.add(id);
+      for (const key of (spec.audio ?? []).map((column) => row[column])) if (typeof key === "string") audioKeys.add(key);
     }
-    tables.push(report);
+    report.read += page.length;
+    report.copied += keep.length;
+    if (keep.length) report.changed += await upsert(target, spec, columns, keep.map((k) => k.row));
   }
-  return { tables, audioKeys: [...audioKeys].sort() };
+  return report;
 };
 
 /** Where generated audio is read from, or null if the file is not there. */
