@@ -1,8 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { GetQueueAttributesCommand, ReceiveMessageCommand, SendMessageCommand } from "@aws-sdk/client-sqs";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { createDb } from "@ibbun/db";
-import { startTestPostgres } from "@ibbun/db/testing";
-import { createFakeJobs, createPgBossJobs, defineJob, handler, type FakeJobs, type Jobs } from "./index.ts";
+import { createFakeJobs, createSqsJobs, createSqsJobsFromEnv, defineJob, handler, sqsHandler, type FakeJobs, type Jobs } from "./index.ts";
+import { MAX_RECEIVES, startTestQueue, type TestQueue } from "./testing.ts";
 
 const Greet = defineJob("test.greet", z.object({ name: z.string().min(1), times: z.coerce.number().default(1) }));
 
@@ -88,23 +88,122 @@ describe("fake jobs", () => {
   });
 });
 
-describe("pg-boss jobs, against Postgres", () => {
-  let pg: Awaited<ReturnType<typeof startTestPostgres>>;
-  beforeAll(async () => {
-    pg = await startTestPostgres();
+describe("SQS jobs, against ElasticMQ", () => {
+  const opened: { queue: TestQueue; jobs: Jobs[] }[] = [];
+  const open = async (visibilitySeconds = 30) => {
+    const queue = await startTestQueue(visibilitySeconds);
+    opened.push({ queue, jobs: [] });
+    return queue;
+  };
+  const jobsOn = (queue: TestQueue) => {
+    const jobs = createSqsJobs({ client: queue.client, queueUrl: queue.queueUrl, waitSeconds: 1 });
+    opened.at(-1)!.jobs.push(jobs);
+    return jobs;
+  };
+  afterEach(async () => {
+    for (const { queue, jobs } of opened.splice(0)) {
+      for (const j of jobs) await j.stop();
+      await queue.stop();
+    }
   });
-  afterAll(() => pg.stop());
+  const waiting = async (queueUrl: string, queue: TestQueue) => {
+    const { Attributes } = await queue.client.send(
+      new GetQueueAttributesCommand({ QueueUrl: queueUrl, AttributeNames: ["ApproximateNumberOfMessages", "ApproximateNumberOfMessagesNotVisible"] }),
+    );
+    return Number(Attributes!.ApproximateNumberOfMessages) + Number(Attributes!.ApproximateNumberOfMessagesNotVisible);
+  };
 
-  jobsContract(() => createPgBossJobs(pg.url, { max: 1 }), waitFor);
+  jobsContract(async () => jobsOn(await open()), waitFor);
 
-  it("stores a schedule, and replaces it when scheduled again", async () => {
-    const jobs = await createPgBossJobs(pg.url, { max: 1 });
-    await jobs.schedule(Greet, "0 6 * * 1", { name: "weekly" });
-    await jobs.schedule(Greet, "0 7 * * 1", { name: "weekly" });
+  it("deletes a job once its handler succeeds", async () => {
+    const queue = await open();
+    const jobs = jobsOn(queue);
+    let ran = 0;
+    await jobs.work([handler(Greet, async () => void ran++)]);
+    await jobs.enqueue(Greet, { name: "once" });
+    await waitFor(jobs, () => ran === 1);
     await jobs.stop();
-    const db = createDb(pg.url, { max: 1 });
-    const { rows } = await db.$client.query("select cron from jobs.schedule where name = 'test.greet'");
-    await db.$client.end();
-    expect(rows).toEqual([{ cron: "0 7 * * 1" }]);
+    expect(await waiting(queue.queueUrl, queue)).toBe(0);
+  });
+
+  it("delivers a failing job again, and moves it to the dead-letter queue after three receives", async () => {
+    const queue = await open(1);
+    const jobs = jobsOn(queue);
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    let tries = 0;
+    await jobs.work([handler(Greet, async () => ((tries += 1), Promise.reject(new Error("boom"))))]);
+    await jobs.enqueue(Greet, { name: "doomed" });
+    await waitFor(jobs, () => tries === MAX_RECEIVES);
+    await new Promise((r) => setTimeout(r, 2500));
+    await jobs.stop();
+    error.mockRestore();
+    expect(tries).toBe(MAX_RECEIVES);
+    const { Messages = [] } = await queue.client.send(new ReceiveMessageCommand({ QueueUrl: queue.deadLetterUrl, WaitTimeSeconds: 1 }));
+    expect(Messages.map((m) => JSON.parse(m.Body!))).toEqual([{ name: "test.greet", payload: { name: "doomed", times: 1 } }]);
+  });
+
+  it("queues a scheduled job on its cron, and a second schedule for the job replaces the first", async () => {
+    const queue = await open();
+    const jobs = jobsOn(queue);
+    const seen: string[] = [];
+    await jobs.work([handler(Greet, async (p) => void seen.push(p.name))]);
+    await jobs.schedule(Greet, "* * * * * *", { name: "old" });
+    await jobs.schedule(Greet, "* * * * * *", { name: "new" });
+    await expect(jobs.schedule(Greet, "* * * * * *", { name: "" })).rejects.toThrow();
+    await waitFor(jobs, () => seen.length >= 2);
+    expect(new Set(seen)).toEqual(new Set(["new"]));
+  });
+
+  it("stops firing schedules once stopped", async () => {
+    const queue = await open();
+    const jobs = jobsOn(queue);
+    await jobs.schedule(Greet, "* * * * * *", { name: "tick" });
+    await jobs.stop();
+    await new Promise((r) => setTimeout(r, 1500));
+    expect(await waiting(queue.queueUrl, queue)).toBe(0);
+  });
+
+  it("keeps polling after the queue fails to answer, and still stops", async () => {
+    const queue = await open();
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const jobs = createSqsJobs({ client: queue.client, queueUrl: `${queue.queueUrl}-missing`, waitSeconds: 1 });
+    await jobs.work([handler(Greet, async () => {})]);
+    await vi.waitFor(() => expect(error).toHaveBeenCalledWith("jobs: receiving from the queue failed:", expect.anything()), { timeout: 5000 });
+    await jobs.stop();
+    error.mockRestore();
+  });
+
+  it("reads the queue from JOBS_QUEUE_URL, and fails on first use without it", async () => {
+    const queue = await open();
+    const jobs = createSqsJobsFromEnv({ JOBS_QUEUE_URL: queue.queueUrl });
+    await jobs.enqueue(Greet, { name: "env" });
+    expect(await waiting(queue.queueUrl, queue)).toBe(1);
+    const unset = createSqsJobsFromEnv({});
+    await expect(unset.enqueue(Greet, { name: "x" })).rejects.toThrow("JOBS_QUEUE_URL is not set");
+    await expect(unset.schedule(Greet, "* * * * *", { name: "x" })).rejects.toThrow("JOBS_QUEUE_URL is not set");
+    await expect(unset.work([])).rejects.toThrow("JOBS_QUEUE_URL is not set");
+    await expect(unset.stop()).resolves.toBeUndefined();
+  });
+
+  it("runs a Lambda batch from the queue, reporting only the records that failed", async () => {
+    const queue = await open();
+    const send = (body: string) => queue.client.send(new SendMessageCommand({ QueueUrl: queue.queueUrl, MessageBody: body }));
+    const jobs = jobsOn(queue);
+    await jobs.enqueue(Greet, { name: "ok" });
+    await jobs.enqueue(Greet, { name: "fail" });
+    await send(JSON.stringify({ name: "test.unknown", payload: {} }));
+    await send(JSON.stringify({ name: "test.greet", payload: { name: "" } }));
+    await send("not json");
+    const { Messages = [] } = await queue.client.send(new ReceiveMessageCommand({ QueueUrl: queue.queueUrl, MaxNumberOfMessages: 10, WaitTimeSeconds: 1 }));
+    expect(Messages).toHaveLength(5);
+    const records = Messages.map((m) => ({ messageId: m.MessageId!, body: m.Body! }));
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const seen: string[] = [];
+    const handle = sqsHandler([handler(Greet, async (p) => (p.name === "fail" ? Promise.reject(new Error("no")) : void seen.push(p.name)))]);
+    const { batchItemFailures } = await handle({ Records: records });
+    error.mockRestore();
+    expect(seen).toEqual(["ok"]);
+    const ok = records.find((r) => r.body.includes('"ok"'))!.messageId;
+    expect(batchItemFailures.map((f) => f.itemIdentifier).sort()).toEqual(records.map((r) => r.messageId).filter((id) => id !== ok).sort());
   });
 });

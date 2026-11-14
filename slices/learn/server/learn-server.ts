@@ -2,10 +2,9 @@ import { Hono } from "hono";
 import { createContentGraph } from "@ibbun/content-graph";
 import { createLearners } from "@ibbun/learner";
 import { createLearningPath } from "@ibbun/learning-path";
-import { createPgBossJobs } from "@ibbun/jobs";
+import { createSqsJobsFromEnv } from "@ibbun/jobs";
 import { createProgress, createTexts } from "@ibbun/progress";
 import type { ServerContext, ServerPart } from "@ibbun/slice";
-import { lazyEnqueue } from "./enqueue.ts";
 import { createLearnApi } from "./learn-api.ts";
 
 export const createServerPart = ({ db, sessions }: ServerContext): ServerPart => {
@@ -20,7 +19,7 @@ export const createServerPart = ({ db, sessions }: ServerContext): ServerPart =>
         contentGraph,
         progress,
         learningPath: createLearningPath(db, { contentGraph, progress }),
-        jobs: lazyEnqueue(process.env.DATABASE_URL, createPgBossJobs),
+        jobs: createSqsJobsFromEnv(process.env),
         texts: createTexts(db),
         now: () => new Date(),
       }),

@@ -10,6 +10,7 @@ PROJECT=ibbun-verify
 API_PORT=${API_PORT:-3000}
 WEB=http://localhost:5173
 export API_PORT DATABASE_URL=${DATABASE_URL:-postgres://ibbun:ibbun@localhost:5432/ibbun}
+export JOBS_QUEUE_URL=${JOBS_QUEUE_URL:-http://localhost:9324/000000000000/ibbun-jobs}
 # The account slice's auth config and the dev accounts the seed creates (accounts.md#testing).
 export APP_URL=${APP_URL:-http://localhost:5173}
 export AUTH_SECRET=${AUTH_SECRET:-verify-only-secret-0123456789abcdefghij}
@@ -26,16 +27,17 @@ wait_http() { # url seconds
 
 up() {
   [ -e "$RUN/api.pid" ] && { echo "a verify run is already up; run down first" >&2; exit 1; }
-  for p in 5432 1025 8025 "$API_PORT" 5173; do
+  for p in 5432 1025 8025 9324 "$API_PORT" 5173; do
     port_busy "$p" && { echo "port $p is in use by something this run did not start; stop it (or your dev stack) first" >&2; exit 1; }
   done
   mkdir -p "$RUN"
-  compose up -d --wait postgres mailpit
+  compose up -d --wait postgres mailpit elasticmq
   pnpm install --frozen-lockfile >"$RUN/install.log" 2>&1
   pnpm gen >/dev/null
   pnpm db:migrate >"$RUN/migrate.log" 2>&1
   pnpm --filter @ibbun/learner seed >"$RUN/seed.log" 2>&1
-  nohup pnpm --filter @ibbun/api start >"$RUN/api.log" 2>&1 & echo $! >"$RUN/api.pid"
+  # The API runs as the app role, as on Aurora; migrations and seeds run as the owner above.
+  DATABASE_URL=${APP_DATABASE_URL:-postgres://ibbun_app:ibbun_app@localhost:5432/ibbun} nohup pnpm --filter @ibbun/api start >"$RUN/api.log" 2>&1 & echo $! >"$RUN/api.pid"
   nohup pnpm --filter @ibbun/web dev --port 5173 --strictPort >"$RUN/web.log" 2>&1 & echo $! >"$RUN/web.pid"
   wait_http "http://localhost:$API_PORT/api/health" 60
   wait_http "$WEB/api/health" 60

@@ -42,6 +42,9 @@ jobs:
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U ibbun" --health-interval 5s --health-retries 10
+      elasticmq:
+        image: softwaremill/elasticmq-native:1.6.14
+        ports: ["9324:9324"]
     env:
       TEST_DATABASE_URL: postgres://ibbun:ibbun@localhost:5432/ibbun
     steps:
@@ -62,6 +65,9 @@ jobs:
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U ibbun" --health-interval 5s --health-retries 10
+      elasticmq:
+        image: softwaremill/elasticmq-native:1.6.14
+        ports: ["9324:9324"]
     env:
       TEST_DATABASE_URL: postgres://ibbun:ibbun@localhost:5432/ibbun
     steps:
@@ -126,6 +132,7 @@ jobs:
     env:
       DATABASE_URL: postgres://ibbun:ibbun@localhost:5432/ibbun
       APP_URL: http://localhost:5173
+      JOBS_QUEUE_URL: http://localhost:9324/000000000000/ibbun-jobs
       AUTH_SECRET: ci-only-secret-0123456789abcdefghijklmnop
       SEED_LEARNER_PASSWORD: learner-password
       SEED_SUPERVISOR_PASSWORD: supervisor-password
@@ -135,13 +142,16 @@ jobs:
       - uses: actions/setup-node@v5
         with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
       - name: Compose stack
-        run: docker compose up -d --wait postgres mailpit
+        run: docker compose up -d --wait postgres mailpit elasticmq
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm db:migrate
       - run: pnpm --filter @ibbun/learner seed
       - run: pnpm --filter @ibbun/content-graph seed:fixture
-      - run: pnpm e2e
+      - name: pnpm e2e, the API connecting as the app role
+        run: pnpm e2e
+        env:
+          DATABASE_URL: postgres://ibbun_app:ibbun_app@localhost:5432/ibbun
       - uses: actions/upload-artifact@v4
         if: failure()
         with: { name: playwright-report, path: playwright-report, retention-days: 7 }
