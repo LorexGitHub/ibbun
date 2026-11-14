@@ -27,6 +27,6 @@ export const createLlmFromEnv = (env: Env): Llm => {
   const unknown = names.find((name) => !isProvider(name));
   if (names.length > 2 || unknown !== undefined) throw new Error(`LLM_PROVIDER must be one or two of ${Object.keys(PROVIDERS).join(", ")}`);
   const drafts = PROVIDERS[generator as Provider](config, env);
-  const reviews = reviewer === generator ? drafts : PROVIDERS[reviewer as Provider](config, env);
+  const reviews = PROVIDERS[reviewer as Provider](config, env);
   return { generate: (request) => drafts.generate(request), review: (request) => reviews.review(request) };
 };

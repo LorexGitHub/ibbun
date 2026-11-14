@@ -23,20 +23,23 @@ type ClaudeResult = {
   >;
 };
 
-const runClaude: RunClaude = (args, stdin) =>
-  new Promise((resolve, reject) => {
-    const child = execFile("claude", [...args], { maxBuffer: 16 * 1024 * 1024 }, (error, stdout, stderr) =>
-      error ? reject(new Error(`claude -p failed: ${stderr || error.message}`)) : resolve(stdout),
-    );
-    child.stdin!.end(stdin);
-  });
+/** Runs `command` the way the adapter runs `claude`; the default `run` is `runCommand("claude")`. */
+export const runCommand =
+  (command: string): RunClaude =>
+  (args, stdin) =>
+    new Promise((resolve, reject) => {
+      const child = execFile(command, [...args], { maxBuffer: 16 * 1024 * 1024 }, (error, stdout, stderr) =>
+        error ? reject(new Error(`${command} failed: ${stderr || error.message}`)) : resolve(stdout),
+      );
+      child.stdin!.end(stdin);
+    });
 
 /**
  * Claude through `claude -p` on the owner's subscription (ADR 0016), for local
  * and development runs only. It has no tools and keeps no session. Calls cost
  * nothing per token, so costUsd is 0; the daily token budget still counts them.
  */
-export const createClaudeCodeLlm = ({ config, run = runClaude }: ClaudeCodeLlmOptions): Llm => {
+export const createClaudeCodeLlm = ({ config, run = runCommand("claude") }: ClaudeCodeLlmOptions): Llm => {
   const call = async <S extends z.ZodType>(role: LlmRole, { system, prompt, output }: LlmRequest<S>) => {
     const model = modelFor(config, role);
     const args = ["-p", "--model", model, "--system-prompt", system, "--tools", "", "--no-session-persistence"];
@@ -46,11 +49,11 @@ export const createClaudeCodeLlm = ({ config, run = runClaude }: ClaudeCodeLlmOp
     const used = answer.modelUsage?.[model];
     const usage = {
       inputTokens: used ? used.inputTokens + used.cacheReadInputTokens + used.cacheCreationInputTokens : 0,
-      outputTokens: used?.outputTokens ?? 0,
+      outputTokens: used?.outputTokens || 0,
     };
     const fail = (why: string) => new LlmError(`${model} ${why}`, model, usage, 0);
 
-    if (answer.is_error || answer.subtype !== "success") throw fail(`stopped with ${answer.subtype}: ${answer.result ?? ""}`);
+    if (answer.is_error || answer.subtype !== "success") throw fail(`stopped with ${[answer.subtype, answer.result].filter(Boolean).join(": ")}`);
     const parsed = output.safeParse(answer.structured_output);
     if (!parsed.success) throw fail(`answered outside the requested shape: ${parsed.error.message}`);
     return { output: parsed.data as z.output<S>, model, usage, costUsd: 0 };

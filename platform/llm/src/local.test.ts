@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createClaudeCodeLlm, createLlmFromEnv, createOllamaLlm, LlmError, loadLlmConfig, type LlmRequest, type RunClaude } from "./index.ts";
+import { createClaudeCodeLlm, createLlmFromEnv, createOllamaLlm, LlmError, loadLlmConfig, runCommand, type LlmRequest, type RunClaude } from "./index.ts";
 
 const config = loadLlmConfig({ LLM_GENERATOR_MODEL: "gemma4:12b" });
 
@@ -9,7 +9,7 @@ const Verdict = z.object({ approved: z.boolean() });
 const draftRequest: LlmRequest<typeof Draft> = { system: "Write one N5 Sentence.", prompt: "Use 猫.", output: Draft };
 const reviewRequest: LlmRequest<typeof Verdict> = { system: "Judge the draft.", prompt: "猫が魚を食べました。", output: Verdict };
 
-type ChatBody = { model: string; format: unknown; messages: { role: string; content: string }[]; options: { num_predict: number } };
+type ChatBody = { model: string; stream: boolean; format: unknown; messages: { role: string; content: string }[]; options: { num_predict: number } };
 
 /** Answers like Ollama's /api/chat, and records each request body. */
 const ollama = (respond: (body: ChatBody) => object) => {
@@ -30,6 +30,7 @@ describe("Ollama llm, replaying /api/chat answers", () => {
     expect(result).toEqual({ output: { sentence: "猫です。" }, model: "gemma4:12b", usage: { inputTokens: 80, outputTokens: 12 }, costUsd: 0 });
     expect(seen[0]).toMatchObject({
       model: "gemma4:12b",
+      stream: false,
       options: { num_predict: 300 },
       messages: [
         { role: "system", content: draftRequest.system },
@@ -44,6 +45,11 @@ describe("Ollama llm, replaying /api/chat answers", () => {
     const error = (await llm.generate(draftRequest).catch((e: unknown) => e)) as LlmError;
     expect(error).toBeInstanceOf(LlmError);
     expect([error.message, error.usage]).toEqual(["gemma4:12b stopped with length", { inputTokens: 80, outputTokens: 12 }]);
+  });
+
+  it("counts no tokens when the answer reports none", async () => {
+    const { llm } = ollama(() => ({ ...says({ approved: true }), prompt_eval_count: undefined, eval_count: undefined }));
+    expect((await llm.review(reviewRequest)).usage).toEqual({ inputTokens: 0, outputTokens: 0 });
   });
 
   it("rejects an answer outside the requested shape", async () => {
@@ -101,13 +107,37 @@ describe("Claude Code llm, replaying claude -p answers", () => {
     const { llm } = claudeCode(() => ({ subtype: "error_max_turns", is_error: true }));
     const error = (await llm.review(reviewRequest).catch((e: unknown) => e)) as LlmError;
     expect(error).toBeInstanceOf(LlmError);
-    expect(error.message).toContain("claude-opus-5-5 stopped with error_max_turns");
-    expect(error.usage).toEqual({ inputTokens: 5687, outputTokens: 90 });
+    expect([error.message, error.usage, error.costUsd]).toEqual(["claude-opus-5-5 stopped with error_max_turns", { inputTokens: 5687, outputTokens: 90 }, 0]);
+  });
+
+  it("rejects a run flagged as an error, quoting its result", async () => {
+    const { llm } = claudeCode(() => ({ is_error: true, result: "rate limited" }));
+    await expect(llm.review(reviewRequest)).rejects.toThrow("claude-opus-5-5 stopped with success: rate limited");
+  });
+
+  it("counts no tokens when the run reports no usage for the model", async () => {
+    const { llm } = claudeCode(() => ({ modelUsage: undefined, structured_output: { approved: true } }));
+    expect((await llm.review(reviewRequest)).usage).toEqual({ inputTokens: 0, outputTokens: 0 });
   });
 
   it("rejects a structured output outside the requested shape", async () => {
     const { llm } = claudeCode(() => ({ structured_output: { approved: "yes" } }));
     await expect(llm.review(reviewRequest)).rejects.toThrow("claude-opus-5-5 answered outside the requested shape");
+  });
+});
+
+describe("runCommand", () => {
+  const node = runCommand(process.execPath);
+
+  it("passes stdin and resolves to stdout, however long", async () => {
+    const echo = "process.stdin.pipe(process.stdout)";
+    const text = "猫".repeat(1000);
+    await expect(node(["-e", echo], text)).resolves.toBe(text);
+  });
+
+  it("rejects with the command's stderr", async () => {
+    const fail = "process.stderr.write('no session'); process.exit(1)";
+    await expect(node(["-e", fail], "")).rejects.toThrow(new Error(`${process.execPath} failed: no session`));
   });
 });
 

@@ -43,7 +43,7 @@ export const createOllamaLlm = ({ config, url = "http://localhost:11434", fetch 
     });
     if (!response.ok) throw new Error(`ollama answered ${response.status}: ${await response.text()}`);
     const answer = (await response.json()) as ChatResponse;
-    const usage = { inputTokens: answer.prompt_eval_count ?? 0, outputTokens: answer.eval_count ?? 0 };
+    const usage = { inputTokens: answer.prompt_eval_count || 0, outputTokens: answer.eval_count || 0 };
     const spent = { model, usage, costUsd: costUsd(model, usage) };
     const fail = (why: string) => new LlmError(`${model} ${why}`, model, usage, spent.costUsd);
 
