@@ -1,7 +1,7 @@
 import { GetQueueAttributesCommand, ReceiveMessageCommand, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { createFakeJobs, createSqsJobs, createSqsJobsFromEnv, defineJob, handler, sqsHandler, type FakeJobs, type Jobs } from "./index.ts";
+import { createFakeJobs, createSqsJobs, createSqsJobsFromEnv, sqsClientConfig, defineJob, handler, sqsHandler, type FakeJobs, type Jobs } from "./index.ts";
 import { MAX_RECEIVES, startTestQueue, type TestQueue } from "./testing.ts";
 
 const Greet = defineJob("test.greet", z.object({ name: z.string().min(1), times: z.coerce.number().default(1) }));
@@ -183,6 +183,16 @@ describe("SQS jobs, against ElasticMQ", () => {
     await expect(unset.schedule(Greet, "* * * * *", { name: "x" })).rejects.toThrow("JOBS_QUEUE_URL is not set");
     await expect(unset.work([])).rejects.toThrow("JOBS_QUEUE_URL is not set");
     await expect(unset.stop()).resolves.toBeUndefined();
+  });
+
+  it("decides local or AWS by the queue URL, not by static credentials", () => {
+    process.env.AWS_ACCESS_KEY_ID = "AKIAEXAMPLE";
+    try {
+      expect(sqsClientConfig("http://localhost:9324/000000000000/q")).toMatchObject({ region: "elasticmq", endpoint: "http://localhost:9324" });
+    } finally {
+      delete process.env.AWS_ACCESS_KEY_ID;
+    }
+    expect(sqsClientConfig("https://sqs.eu-west-1.amazonaws.com/123456789012/q")).toEqual({});
   });
 
   it("runs a Lambda batch from the queue, reporting only the records that failed", async () => {
