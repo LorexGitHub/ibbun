@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Button, State } from "@ibbun/ui";
-import type { JlptLevel } from "@ibbun/shared";
+import { SHOWCASE_NO_TEXTS, type JlptLevel } from "@ibbun/shared";
 import { ANY, LENGTHS, PASSAGE_TYPES, TOPICS, type Library, type PracticeOptions, type PracticeResult } from "../contract.ts";
 import { Shown, TextShown, useLoaded } from "../../web/screens.tsx";
 import "../../web/reading.css";
@@ -11,10 +11,15 @@ const LENGTH_LABEL = { short: "Short", medium: "Medium", exam: "Exam length" } a
 
 type Outcome = Exclude<PracticeResult, { status: "ready" }> | { status: "failed" } | null;
 
+const NOTICES = {
+  limit: "Try again tomorrow.",
+  showcase: SHOWCASE_NO_TEXTS,
+  waiting: "Your text is still being made. It will appear in your library when it is ready.",
+  failed: "Could not start your text. Try again.",
+};
+
 const Notice = ({ outcome }: { outcome: Outcome }) => {
-  if (outcome?.status === "limit") return <p role="status">Try again tomorrow.</p>;
-  if (outcome?.status === "waiting") return <p role="status">Your text is still being made. It will appear in your library when it is ready.</p>;
-  if (outcome?.status === "failed") return <p role="status">Could not start your text. Try again.</p>;
+  if (outcome) return <p role="status">{NOTICES[outcome.status]}</p>;
   return null;
 };
 

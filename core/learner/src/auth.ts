@@ -1,6 +1,7 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { createAuthMiddleware } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
+import { anonymous } from "better-auth/plugins/anonymous";
 import { haveIBeenPwned } from "better-auth/plugins/haveibeenpwned";
 import { z } from "zod";
 import type { SessionResolver } from "@ibbun/auth";
@@ -12,7 +13,8 @@ import type { LearnerConfig } from "./config.ts";
 import { consoleAuthLog, type AuthLog } from "./events.ts";
 import { createLearners, type Learners } from "./learners.ts";
 import { hashPassword, verifyPassword } from "./password.ts";
-import { answerFailedLogin, guardRequest, ipOf, oldEmailOfChange } from "./policy.ts";
+import { purgeGuests } from "./guests.ts";
+import { answerFailedLogin, GUEST, guardRequest, ipOf, oldEmailOfChange } from "./policy.ts";
 import { handlePreferences, PREFERENCES_PATH } from "./preferences-endpoint.ts";
 
 export type LearnerAuthOptions = {
@@ -70,7 +72,7 @@ const accounts = ({ mail, config, log }: Deps) =>
   },
   emailAndPassword: {
     enabled: true,
-    disableSignUp: !config.signupOpen,
+    disableSignUp: !config.signupOpen || config.showcase,
     requireEmailVerification: true,
     minPasswordLength: 12,
     maxPasswordLength: 128,
@@ -124,8 +126,18 @@ export const createLearnerAuth = ({ db, mail, config, log = consoleAuthLog, now 
     ...storage(db),
     ...accounts(deps),
     databaseHooks: rowHooks(deps),
-    hooks: { before: createAuthMiddleware((ctx) => guardRequest(ctx, { db, now })) },
-    plugins: [haveIBeenPwned({ customPasswordCompromisedMessage: BREACHED })],
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path === GUEST && !(config.showcase && config.signupOpen)) throw new APIError("NOT_FOUND", { message: "guest login is off" });
+        const changed = await guardRequest(ctx, { db, now });
+        if (ctx.path === GUEST) await purgeGuests(db, now());
+        return changed;
+      }),
+    },
+    plugins: [
+      haveIBeenPwned({ customPasswordCompromisedMessage: BREACHED }),
+      ...(config.showcase ? [anonymous({ emailDomainName: "guest.invalid", disableDeleteAnonymousUser: true })] : []),
+    ],
     // Rate limits live in policy.ts, so Better Auth's own are off.
     rateLimit: { enabled: false },
     advanced: {

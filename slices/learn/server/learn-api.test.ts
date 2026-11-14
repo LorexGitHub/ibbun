@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createFakeSessionResolver } from "@ibbun/auth";
 import { createFakeContentGraph, emptyGraph, n5Fixture, type Graph, type Token } from "@ibbun/content-graph/testing";
 import type { Word } from "@ibbun/content-graph";
@@ -333,6 +333,16 @@ describe("the Batch Text hand-off", () => {
   });
 
   describe("enqueueing", () => {
+    it("queues nothing in showcase mode", async () => {
+      vi.stubEnv("SHOWCASE", "1");
+      try {
+        expect(await (await t.post("/batch-text", { studyItemIds: [TABERU, MIRU] })).json()).toEqual({ enqueued: false });
+        expect(t.jobs.pending()).toEqual([]);
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
     it("queues batch-text.generate for the picked batch", async () => {
       const body = await (await t.post("/batch-text", { studyItemIds: [TABERU, MIRU] })).json();
       expect(body).toEqual({ enqueued: true });

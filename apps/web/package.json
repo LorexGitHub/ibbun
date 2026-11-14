@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ibbun/learner": "workspace:*",
+    "@ibbun/shared": "workspace:*",
     "@ibbun/slice": "workspace:*",
     "@ibbun/ui": "workspace:*",
     "@number-flow/react": "^0.6.2",

@@ -92,3 +92,12 @@ describe("the app's map", () => {
     expect(doorPath({ ...entry("Today", "home"), path: "/" }, n3)).toBe("/");
   });
 });
+
+describe("showcase mode", () => {
+  it("leaves out the Supervisor slices and Credits", async () => {
+    const { discoverSlices } = await import("./slices.ts");
+    const modules = Object.fromEntries(["learn", "credits", "import", "content-approval", "content-generation"].map((name) => [name, { default: { name } }]));
+    expect(discoverSlices(modules, true).map((s) => s.name)).toEqual(["learn"]);
+    expect(discoverSlices(modules)).toHaveLength(5);
+  });
+});

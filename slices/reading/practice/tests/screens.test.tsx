@@ -73,6 +73,13 @@ describe("Practice texts screen", () => {
     await screen.findByText("Try again tomorrow.");
   });
 
+  it("says texts are off in a showcase", async () => {
+    stub({ clearedLevels: ["N5"], remaining: 5 }, { status: "showcase" });
+    open();
+    fireEvent.click(await screen.findByRole("button", { name: "Generate" }));
+    await screen.findByText(/in this showcase/);
+  });
+
   it("says try again tomorrow when none are left", async () => {
     stub({ clearedLevels: ["N5"], remaining: 0 });
     open();

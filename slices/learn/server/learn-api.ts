@@ -6,7 +6,7 @@ import type { Jobs } from "@ibbun/jobs";
 import type { Learners } from "@ibbun/learner";
 import type { LearningPath } from "@ibbun/learning-path";
 import type { Progress, Texts } from "@ibbun/progress";
-import { JlptLevel, type LearnerId, type StudyItemId } from "@ibbun/shared";
+import { isShowcase, JlptLevel, type LearnerId, type StudyItemId } from "@ibbun/shared";
 import {
   BATCH_TEXT_LIMIT_24H,
   BatchTextRequest,
@@ -94,7 +94,7 @@ export const createLearnApi = ({ sessions, contentGraph, progress, learners, lea
       const { learnerId } = c.get("learner");
       const { studyItemIds } = request.data;
       const limited = (await texts.countLast24h(learnerId, "batch", now())) >= BATCH_TEXT_LIMIT_24H;
-      if (limited || (await textOf(learnerId, studyItemIds))) return c.json({ enqueued: false });
+      if (isShowcase(process.env.SHOWCASE) || limited || (await textOf(learnerId, studyItemIds))) return c.json({ enqueued: false });
       await jobs.enqueue(BatchTextGenerate, { learnerId, level: await batchLevel(contentGraph, studyItemIds), itemIds: studyItemIds });
       return c.json({ enqueued: true });
     })

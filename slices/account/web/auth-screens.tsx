@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { buttonClass } from "@ibbun/ui";
+import { isShowcase } from "@ibbun/shared";
 import { useClient } from "./client.ts";
 import { Field, Form, Notice, Screen, Split, useOutcome } from "./form.tsx";
+
+// @ts-ignore The root typecheck has no Vite types.
+const showcase = () => isShowcase(import.meta.env.VITE_SHOWCASE);
 
 const CHECK_YOUR_EMAIL = "Check your email. If the address can sign up, we sent a link to finish.";
 
@@ -12,6 +16,11 @@ export const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sent, setSent] = useState(false);
+  const navigate = useNavigate();
+  /** The showcase's guest login. Anywhere else the server answers 404 and the notice says so. */
+  const tryIt = async () => {
+    if (await run(client.tryAsGuest(), "Signed in as a guest.")) navigate("/learn");
+  };
   const submit = async () => setSent(await run(client.signUp(email, password), CHECK_YOUR_EMAIL));
   return (
     <Split title="Sign up">
@@ -33,6 +42,11 @@ export const SignUp = () => {
       {sent && (
         <button type="button" className={buttonClass()} onClick={() => void run(client.resendVerification(email), CHECK_YOUR_EMAIL)}>
           Send the link again
+        </button>
+      )}
+      {showcase() && (
+        <button type="button" className={buttonClass()} onClick={() => void tryIt()}>
+          Try it
         </button>
       )}
       <p>
