@@ -31,4 +31,20 @@ describe("worker Lambda handler", () => {
     expect(await handler({ Records: [{ messageId: "m2", body }] })).toEqual({ batchItemFailures: [{ itemIdentifier: "m2" }] });
     expect(String(errors.mock.calls[0]?.[1])).toContain("no handler for job nobody.handles-this");
   });
+
+  it("reads its secrets from SSM at cold start, into the environment the slices read", async () => {
+    vi.doMock("@aws-sdk/client-ssm", () => ({
+      GetParametersByPathCommand: class {
+        constructor(readonly input: { Path: string }) {}
+      },
+      SSMClient: class {
+        send = async ({ input }: { input: { Path: string } }) => ({ Parameters: [{ Name: `${input.Path}/ANTHROPIC_API_KEY`, Value: "sk-from-ssm" }] });
+      },
+    }));
+    vi.stubEnv("SSM_PARAMETER_PATH", "/ibbun/test");
+    vi.stubEnv("ANTHROPIC_API_KEY", "stale");
+    await load("postgres://nobody@127.0.0.1:1/none");
+    expect(process.env.ANTHROPIC_API_KEY).toBe("sk-from-ssm");
+    vi.doUnmock("@aws-sdk/client-ssm");
+  });
 });
