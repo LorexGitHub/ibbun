@@ -35,7 +35,8 @@ up() {
   pnpm gen >/dev/null
   pnpm db:migrate >"$RUN/migrate.log" 2>&1
   pnpm --filter @ibbun/learner seed >"$RUN/seed.log" 2>&1
-  nohup pnpm --filter @ibbun/api start >"$RUN/api.log" 2>&1 & echo $! >"$RUN/api.pid"
+  # The API runs as the app role, as on Aurora; migrations and seeds run as the owner above.
+  DATABASE_URL=${APP_DATABASE_URL:-postgres://ibbun_app:ibbun_app@localhost:5432/ibbun} nohup pnpm --filter @ibbun/api start >"$RUN/api.log" 2>&1 & echo $! >"$RUN/api.pid"
   nohup pnpm --filter @ibbun/web dev --port 5173 --strictPort >"$RUN/web.log" 2>&1 & echo $! >"$RUN/web.pid"
   wait_http "http://localhost:$API_PORT/api/health" 60
   wait_http "$WEB/api/health" 60

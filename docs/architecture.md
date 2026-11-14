@@ -49,7 +49,7 @@ Allowed dependencies between core modules: `learning-path` → `content-graph`, 
 
 ## Platform packages
 
-Plumbing with no domain logic: `db` (client, migration runner, transactions), `jobs` (queue), `auth` (`requireLearner()` and `requireRole()` middleware against `learner`'s `SessionResolver`), `mail` (templates, with Mailpit locally), `ui` (the Ma kit: tokens, five looks, `design.md`), and shared Zod primitives.
+Plumbing with no domain logic: `db` (client, migration runner, transactions, and the `ibbun_app` role the app connects as; migrations run as the schema owner), `jobs` (queue), `auth` (`requireLearner()` and `requireRole()` middleware against `learner`'s `SessionResolver`), `mail` (templates, with Mailpit locally), `ui` (the Ma kit: tokens, five looks, `design.md`), and shared Zod primitives.
 
 Each external service has an adapter package with an interface and a fake: `nlp` (Sudachi), `tts` (VOICEVOX), `llm` (generation and the reviewer agent). Only admin slices may use them.
 
