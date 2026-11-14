@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { Button, buttonClass, Pill } from "@ibbun/ui";
+import { isShowcase, SHOWCASE_NO_TEXTS } from "@ibbun/shared";
 import type { Batch } from "../contract.ts";
 import type { Tally } from "./batch-view.ts";
 import type { LearnApi } from "./learn-client.ts";
 import { ReadingStep } from "./ReadingStep.tsx";
 
-type Props = { tally: Tally; onMore: (() => void) | null; onStory: (() => void) | null };
+// The root typecheck has no Vite types, so `import.meta.env` is read through a cast-free ignore.
+// @ts-ignore
+const showcase = () => isShowcase(import.meta.env?.VITE_SHOWCASE);
+
+type Props ={ tally: Tally; onMore: (() => void) | null; onStory: (() => void) | null };
 
 /** How a batch ended: the count, each item with its mark, and what to do next. The next batch is one button away. */
 export const TallyScreen = ({ tally, onMore, onStory }: Props) => (
@@ -24,6 +29,7 @@ export const TallyScreen = ({ tally, onMore, onStory }: Props) => (
         </li>
       ))}
     </ul>
+    {showcase() && <p role="status">{SHOWCASE_NO_TEXTS}</p>}
     <div className="tally-doors">
       {onMore ? (
         <Button variant="primary" big hotkey="Enter" onClick={onMore}>

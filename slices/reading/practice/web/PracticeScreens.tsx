@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Button, State } from "@ibbun/ui";
-import type { JlptLevel } from "@ibbun/shared";
+import { SHOWCASE_NO_TEXTS, type JlptLevel } from "@ibbun/shared";
 import { ANY, LENGTHS, PASSAGE_TYPES, TOPICS, type Library, type PracticeOptions, type PracticeResult } from "../contract.ts";
 import { Shown, TextShown, useLoaded } from "../../web/screens.tsx";
 import "../../web/reading.css";
@@ -13,6 +13,7 @@ type Outcome = Exclude<PracticeResult, { status: "ready" }> | { status: "failed"
 
 const Notice = ({ outcome }: { outcome: Outcome }) => {
   if (outcome?.status === "limit") return <p role="status">Try again tomorrow.</p>;
+  if (outcome?.status === "showcase") return <p role="status">{SHOWCASE_NO_TEXTS}</p>;
   if (outcome?.status === "waiting") return <p role="status">Your text is still being made. It will appear in your library when it is ready.</p>;
   if (outcome?.status === "failed") return <p role="status">Could not start your text. Try again.</p>;
   return null;

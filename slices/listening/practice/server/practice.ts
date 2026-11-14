@@ -7,7 +7,7 @@ import { PracticeGenerate } from "@ibbun/content-graph/jobs";
 import type { Jobs } from "@ibbun/jobs";
 import type { Learners } from "@ibbun/learner";
 import { isLevelCleared, type PracticeText, type Progress, type Texts } from "@ibbun/progress";
-import { JLPT_LEVELS, LearnerId, StudyItemId, type JlptLevel } from "@ibbun/shared";
+import { isShowcase, JLPT_LEVELS, LearnerId, SHOWCASE_NO_TEXTS, StudyItemId, type JlptLevel } from "@ibbun/shared";
 import { AnswerRequest, type AnswerResponse, type ClipView } from "../../contract.ts";
 import { audioUrl, shuffled } from "../../server/clip.ts";
 import { GenerateRequest, type LibraryEntry, type Options } from "../practice-contract.ts";
@@ -98,6 +98,7 @@ export const createPracticeApi = ({ contentGraph, progress, learners, texts, job
     .post("/", async (c) => {
       const request = GenerateRequest.safeParse(await c.req.json().catch(() => null));
       if (!request.success) return c.json({ message: "not one of the choices" }, 400);
+      if (isShowcase(process.env.SHOWCASE)) return c.json({ message: SHOWCASE_NO_TEXTS }, 403);
       const learnerId = learnerOf(c);
       if (!(await clearedLevels(learnerId)).includes(request.data.level)) return c.json({ message: `${request.data.level} is not cleared yet` }, 403);
       if ((await remainingFor(learnerId)) === 0) return c.json(tooMany, 429);

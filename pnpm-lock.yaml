@@ -220,6 +220,9 @@ importers:
       '@ibbun/mail':
         specifier: workspace:*
         version: link:../../platform/mail
+      '@ibbun/shared':
+        specifier: workspace:*
+        version: link:../../platform/shared
       '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
@@ -239,6 +242,9 @@ importers:
       '@ibbun/learner':
         specifier: workspace:*
         version: link:../../core/learner
+      '@ibbun/shared':
+        specifier: workspace:*
+        version: link:../../platform/shared
       '@ibbun/slice':
         specifier: workspace:*
         version: link:../../platform/slice
