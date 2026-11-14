@@ -1,6 +1,6 @@
 # Infrastructure
 
-`alchemy.run.ts` is the one [Alchemy](https://alchemy.run) v2 and [Effect](https://effect.website) stack for everything [ADR 0015](adr/0015-serverless-on-aws.md) puts on AWS, and [ADR 0017](adr/0017-showcase-stage-on-aws.md) leaves out of the showcase stage. **Nothing has been deployed.** `alchemy dev` brings the stack up on Alchemy's local AWS emulator (a fork of [Floci](https://github.com/floci-io/floci) in Docker), with Compose's Postgres in place of Aurora. No AWS account is needed.
+`alchemy.run.ts` is the one [Alchemy](https://alchemy.run) v2 and [Effect](https://effect.website) stack for everything ADR 0015 puts on AWS, and ADR 0017 leaves out of the showcase stage. **Nothing has been deployed.** `alchemy dev` brings the stack up on Alchemy's local AWS emulator (a fork of [Floci](https://github.com/floci-io/floci) in Docker), with Compose's Postgres in place of Aurora. No AWS account is needed.
 
 ## What the stack defines
 
@@ -37,7 +37,7 @@ node scripts/infra/build.mjs                                # builds apps/web/di
 pnpm exec alchemy dev                                       # leave it running; it redeploys when a file changes
 ```
 
-Set `POSTGRES_PORT` (and `MAILPIT_SMTP_PORT`) when Compose maps them elsewhere. The router is at `http://localhost:9500`. `alchemy dev --stage showcase` brings up only the showcase stage's parts.
+Set `POSTGRES_PORT` (and `MAILPIT_SMTP_PORT`) when Compose maps them elsewhere. The router is at `http://localhost:9500`. `alchemy dev --stage showcase` brings up only the showcase stage's parts. Build the web app for it with `SHOWCASE=1 node scripts/infra/build.mjs`: the browser reads the setting at build time, and the API function gets `SHOWCASE=1` from the stack.
 
 The smoke test, in a second terminal:
 

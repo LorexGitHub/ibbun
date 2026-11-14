@@ -17,7 +17,7 @@ Preconditions: Docker running; `docker compose up -d postgres mailpit sudachi vo
 
 - **Smoke test**: `DATABASE_URL=<owner url> node scripts/infra/tests/smoke.mjs`. Expect `PASS` for all 16 checks and no `FAIL`. The line "the API reports the Batch Text as preparing" is known (the Batch Text has no review rubric yet).
 - **Router**: `curl -s http://localhost:9500/api/health` returns `{"ok":true}`, and `curl -s -o /dev/null -w '%{http_code}' http://localhost:9500/learn` returns `200`.
-- **Showcase stage**: `POSTGRES_PORT=<port> pnpm exec alchemy dev --stage showcase`; the router is on the next port (9501) and no queue, worker or schedule is created.
+- **Showcase stage**: `SHOWCASE=1 node scripts/infra/build.mjs`, then `POSTGRES_PORT=<port> pnpm exec alchemy dev --stage showcase`; the router is on the next port (9501) and no queue, worker or schedule is created.
 
 ## Gotchas
 
