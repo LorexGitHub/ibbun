@@ -25,6 +25,7 @@ const world = () => {
     } as Source,
     cron: "0 12 * * *",
     monthly: false,
+    home: "lambda",
   });
   const authoring = createFakeAuthoring(graph);
   const jobs = createFakeJobs();

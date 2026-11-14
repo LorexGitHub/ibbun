@@ -7,6 +7,7 @@
     "./contract": "./contract.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-ecs": "^3.1168.0",
     "@aws-sdk/client-s3": "^3.1167.0",
     "@ibbun/auth": "workspace:*",
     "@ibbun/content-graph": "workspace:*",
