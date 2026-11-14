@@ -63,7 +63,7 @@ Checked on 2026-11-14 with Alchemy 2.0.0-beta.85 and its emulator image `ghcr.io
 
 **Untested, so a deploy must check each.**
 
-- Everything above, on real AWS. No `alchemy deploy` has run, and the stack needs `AWS.state()` in place of `localState()` first.
+- Everything above, on real AWS. No `alchemy deploy` has run, and a real deploy keeps its state in the AWS account with `AWS.state()`, while `alchemy dev` keeps `localState()`.
 - The router sends the API function URL **unauthenticated** (`authType: NONE`), and CloudFront's origin request policy is the Router's `AllViewerExceptHostHeader`, which does not forward `CloudFront-Viewer-Address`. The API's per-IP rate limits read that header, so without it they have nothing to limit on. Locking the function URL to CloudFront with OAC and forwarding the header needs a `CloudFront.Distribution` of our own in place of `Website.Router`. [PR #272](https://github.com/LorexGitHub/ibbun/pull/272) asks for both.
 - `rds.force_ssl` is set through a CloudControl resource (`AWS::RDS::DBClusterParameterGroup`), because Alchemy's `DBClusterParameterGroup` has no `parameters`. It has never run, and neither has the auto-pause setting `SecondsUntilAutoPause`.
 - Nothing runs the migrations on Aurora. They need the master user, whose password RDS keeps in Secrets Manager (`pnpm db:migrate` with that `DATABASE_URL`), before the first request.
@@ -76,6 +76,22 @@ Checked on 2026-11-14 with Alchemy 2.0.0-beta.85 and its emulator image `ghcr.io
 
 - The generated Batch Text stays a draft. `content.review` fails with `no rubric for Generation Request kind "batch-text"`, so `GET /api/learn/batch-text` keeps answering `preparing`. The smoke test checks the row the worker wrote, not what the Learner sees.
 - A bundled function cannot load `opusscript` (it reads its WebAssembly from `__dirname`), so the zip worker installs it beside the bundle. The container image has no bundle and is unaffected.
+
+## Deploy the showcase stage
+
+Not done yet. Each step is checked before the next, and each one that needs the AWS account is yours to run.
+
+1. **Account.** One project in `eu-central-1` with a €20 monthly spend limit, MFA on the root user, and a day-to-day IAM user. Add a Budgets email alert at about €10 in the console as well, because the stack's own alert exists only once the stack is deployed.
+2. **Credentials.** `pnpm exec alchemy profile edit --add AWS` and pick console login, SSO or stored keys. In CI, set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_REGION`. Never commit keys.
+3. **Environment.** Export `IBBUN_AUTH_SECRET` (32 bytes or more) and `IBBUN_ALERT_EMAIL`. The showcase stage needs no Anthropic key, mail domain or voice allow list.
+4. **State.** A deploy keeps its state in a DynamoDB table in the account, created on the first run. In CI, create it once with `pnpm exec alchemy state bootstrap --backend aws`.
+5. **Build.** `SHOWCASE=1 node scripts/infra/build.mjs`, because the browser reads the setting at build time.
+6. **Deploy.** `pnpm exec alchemy deploy --stage showcase`. Expect failures on the first run: the untested items above are the likely causes. Fix them in the stack, then run it again; a deploy picks up where it stopped.
+7. **Migrate.** Run `pnpm db:migrate` against Aurora with the owner's password from Secrets Manager.
+8. **Fill.** Publish the content ([#284](https://github.com/LorexGitHub/ibbun/issues/284)). The database is empty until then.
+9. **Look at the bill.** Open Cost Explorer after the first day, before the first visitor.
+
+To remove a stage, `pnpm exec alchemy destroy`. The CLI reference decides whether it takes `--stage`, so check it before running it against a stage you want to keep.
 
 ## Windows notes
 
