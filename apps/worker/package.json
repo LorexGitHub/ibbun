@@ -4,11 +4,19 @@
   "private": true,
   "type": "module",
   "exports": {},
-  "scripts": { "dev": "node --env-file-if-exists=../../.env --watch src/main.ts", "start": "node --env-file-if-exists=../../.env src/main.ts" },
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env --watch src/main.ts",
+    "start": "node --env-file-if-exists=../../.env src/main.ts"
+  },
   "dependencies": {
     "@ibbun/db": "workspace:*",
     "@ibbun/jobs": "workspace:*",
     "@ibbun/slice": "workspace:*"
   },
-  "devDependencies": { "@types/node": "^24.0.0" }
+  "devDependencies": {
+    "@aws-sdk/client-sqs": "^3.1167.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.23.1",
+    "pg": "^8.23.1"
+  }
 }
