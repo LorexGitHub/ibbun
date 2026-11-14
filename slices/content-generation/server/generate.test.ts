@@ -116,6 +116,18 @@ describe("content.generate for Example Sentences", () => {
     expect(t.llm.calls()).toHaveLength(1);
   });
 
+  it("gives the claim back when the run crashes, so a redelivery can try again", async () => {
+    let crash = true;
+    const t = setup({ answer: () => { if (crash) throw new Error("boom"); return good; } });
+    await t.ready;
+    const r = await t.request(t.grammarId);
+    await expect(t.generation.generate({ requestId: r.id })).rejects.toThrow("boom");
+    expect((await t.auth.rows("generationRequest", { id: r.id }))[0]!.status).toBe("open");
+    crash = false;
+    await t.generation.generate({ requestId: r.id });
+    expect((await t.auth.rows("generationRequest", { id: r.id }))[0]!.status).toBe("in review");
+  });
+
   it("uses an attempt when a Word has no forms or readings", async () => {
     const t = setup();
     const bare = randomUUID();
