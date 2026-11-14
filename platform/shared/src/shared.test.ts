@@ -26,8 +26,8 @@ describe("shared primitives", () => {
     expect(Timestamp.safeParse("2026-11-05T10:00:00").success).toBe(false);
   });
 
-  it("reads showcase mode from 1 or true only", () => {
-    expect(["1", "true"].map(isShowcase)).toEqual([true, true]);
-    expect([undefined, "", "0", "false", "yes"].map(isShowcase)).toEqual([false, false, false, false, false]);
+  it("reads showcase mode from 1 only", () => {
+    expect(["1"].map(isShowcase)).toEqual([true]);
+    expect([undefined, "", "0", "true", "yes"].map(isShowcase)).toEqual([false, false, false, false, false]);
   });
 });

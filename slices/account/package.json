@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@ibbun/learner": "workspace:*",
+    "@ibbun/shared": "workspace:*",
     "@ibbun/slice": "workspace:*",
     "@ibbun/ui": "workspace:*",
     "react": "^19.1.0",
