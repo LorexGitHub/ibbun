@@ -6,17 +6,11 @@
 import { resolve } from "node:path";
 import { S3Client } from "@aws-sdk/client-s3";
 import { collectMigrations, createDb, migrate, workspacePackageDirs } from "@ibbun/db";
-import { copyContent, directoryAudioSource, publishAudio, s3AudioTarget } from "./publish.ts";
+import { copyContent, requireEnv, directoryAudioSource, publishAudio, s3AudioTarget } from "./publish.ts";
 
-const need = (name: string) => {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is not set`);
-  return value;
-};
-
-const sourceUrl = need("DATABASE_URL");
-const targetUrl = need("TARGET_DATABASE_URL");
-const audioTo = need("TARGET_AUDIO_DIR");
+const sourceUrl = requireEnv(process.env, "DATABASE_URL");
+const targetUrl = requireEnv(process.env, "TARGET_DATABASE_URL");
+const audioTo = requireEnv(process.env, "TARGET_AUDIO_DIR");
 if (!audioTo.startsWith("s3://")) throw new Error("TARGET_AUDIO_DIR must be s3://bucket/prefix/");
 const audioFrom = process.env.AUDIO_DIR ?? "./data/audio";
 if (audioFrom.startsWith("s3://")) throw new Error("AUDIO_DIR must be the local directory the audio was generated into");

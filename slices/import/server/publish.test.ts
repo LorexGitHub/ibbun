@@ -2,7 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { migrateContentGraph, n5Fixture, seedContentGraph } from "@ibbun/content-graph/testing";
 import { createDb, type Db } from "@ibbun/db";
 import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
-import { copyContent, publishAudio, type AudioTarget } from "./publish.ts";
+import { NotFound, type S3Client } from "@aws-sdk/client-s3";
+import { copyContent, publishAudio, requireEnv, s3AudioTarget, type AudioTarget } from "./publish.ts";
 
 const memoryTarget = () => {
   const files = new Map<string, Uint8Array>();
@@ -68,5 +69,29 @@ describe("publishing local content to a stage", () => {
     expect(await publishAudio(["a", "b"], from, bucket)).toEqual({ uploaded: 0, unchanged: 2, missing: [] });
     expect(writes).toEqual(["a", "b"]);
     expect([...files.keys()]).toEqual(["a", "b"]);
+  });
+
+  it("keeps audio at the bucket prefix, as immutable audio/ogg, and reads a 404 as absent", async () => {
+    const sent: { Bucket?: string; Key?: string; ContentType?: string; CacheControl?: string }[] = [];
+    const present = new Set(["audio/here"]);
+    const client = {
+      send: async (command: { constructor: { name: string }; input: { Key: string } }) => {
+        sent.push(command.input);
+        if (command.constructor.name === "HeadObjectCommand" && !present.has(command.input.Key)) throw new NotFound({ message: "", $metadata: {} });
+        return {};
+      },
+    } as unknown as S3Client;
+    const store = s3AudioTarget(client, "s3://bucket/audio/");
+    expect(await store.has("here")).toBe(true);
+    expect(await store.has("new")).toBe(false);
+    await store.put("new", new Uint8Array([1]));
+    expect(sent.at(-1)).toMatchObject({ Bucket: "bucket", Key: "audio/new", ContentType: "audio/ogg", CacheControl: "public, max-age=31536000, immutable" });
+    const broken = s3AudioTarget({ send: async () => Promise.reject(new Error("denied")) } as unknown as S3Client, "s3://bucket/");
+    await expect(broken.has("x")).rejects.toThrow("denied");
+  });
+
+  it("names the missing setting", () => {
+    expect(requireEnv({ A: "1" }, "A")).toBe("1");
+    expect(() => requireEnv({}, "TARGET_DATABASE_URL")).toThrow("TARGET_DATABASE_URL is not set");
   });
 });
