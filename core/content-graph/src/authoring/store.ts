@@ -12,6 +12,8 @@ export type Store = {
   rows<N extends TableName>(name: N, where?: Where<N>): Promise<Row<N>[]>;
   insert<N extends TableName>(name: N, rows: Row<N>[]): Promise<void>;
   update<N extends TableName>(name: N, where: Where<N>, patch: Partial<Row<N>>): Promise<void>;
+  /** Conditional update: patches the rows that match, in one statement. Returns whether any did. */
+  claim<N extends TableName>(name: N, where: Where<N>, patch: Partial<Row<N>>): Promise<boolean>;
   /** Hard delete. Only for derived links, which are a cache (docs/adr/0004). */
   remove<N extends TableName>(name: N, where: Where<N>): Promise<void>;
   /** Hard delete of many rows by id, in one statement. Only for derived links. */
@@ -30,6 +32,11 @@ export const memoryStore = (graph: Graph): Store => {
     },
     update: async (name, where, patch) => {
       for (const row of graph[name]) if (matches(row, where)) Object.assign(row, patch);
+    },
+    claim: async (name, where, patch) => {
+      const hit = graph[name].filter((row) => matches(row, where));
+      for (const row of hit) Object.assign(row, patch);
+      return hit.length > 0;
     },
     remove: async (name, where) => {
       const rows = graph[name] as object[];
@@ -67,6 +74,11 @@ export const postgresStore = (db: DbOrTx): Store => ({
   },
   update: async (name, where, patch) => {
     await db.update(table(name)).set(patch as never).where(condition(name, where));
+  },
+  claim: async (name, where, patch) => {
+    const { id } = tables[name] as unknown as { id: PgColumn };
+    const hit = await db.update(table(name)).set(patch as never).where(condition(name, where)).returning({ id });
+    return hit.length > 0;
   },
   remove: async (name, where) => {
     await db.delete(table(name)).where(condition(name, where));

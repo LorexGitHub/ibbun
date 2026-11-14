@@ -45,6 +45,18 @@ const call = async ({ auth, llm }: GenerationDeps, request: GenerationRequest, p
   }
 };
 
+/** The claimed attempt. A crash gives the claim back, so the redelivered job can try again. */
+const attempt = async (deps: GenerationDeps, request: GenerationRequest, plan: Plan) => {
+  try {
+    const result = await call(deps, request, plan);
+    if (result.ok) await plan.write(result.output, result.run);
+    return result;
+  } catch (error) {
+    await deps.auth.releaseGeneration(request.id);
+    throw error;
+  }
+};
+
 const generate = async (deps: GenerationDeps, requestId: string, feedback: string | undefined) => {
   const { auth, jobs, config, progress, texts, now = () => new Date() } = deps;
   const [request] = await auth.rows("generationRequest", { id: requestId });
@@ -57,11 +69,10 @@ const generate = async (deps: GenerationDeps, requestId: string, feedback: strin
   const plan = await kind?.plan(auth, request, feedback, { progress, texts, now });
   if (!kind || !plan) return retry(deps, requestId, `no ${request.kind} can be generated for ${request.targetId}`);
 
-  const result = await call(deps, request, plan);
+  if (!(await auth.claimGeneration(requestId))) return;
+  const result = await attempt(deps, request, plan);
   if (!result.ok) return retry(deps, requestId, result.error.message);
 
-  await plan.write(result.output, result.run);
-  await auth.setGenerationStatus(requestId, "in review");
   await jobs.enqueue(ContentReview, { requestId, runId: result.run.id });
 };
 

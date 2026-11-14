@@ -108,6 +108,44 @@ describe("content.generate for Example Sentences", () => {
     expect(prompts[0]).toContain("Notes: Attaches to the verb stem.");
   });
 
+  it("calls the model once when two copies run at the same moment", async () => {
+    const t = setup();
+    await t.ready;
+    const r = await t.request(t.grammarId);
+    await Promise.all([t.generation.generate({ requestId: r.id }), t.generation.generate({ requestId: r.id })]);
+    expect(t.llm.calls()).toHaveLength(1);
+  });
+
+  it("gives the claim back when the run crashes, so a redelivery can try again", async () => {
+    let crash = true;
+    const t = setup({ answer: () => { if (crash) throw new Error("boom"); return good; } });
+    await t.ready;
+    const r = await t.request(t.grammarId);
+    await expect(t.generation.generate({ requestId: r.id })).rejects.toThrow("boom");
+    expect((await t.auth.rows("generationRequest", { id: r.id }))[0]!.status).toBe("open");
+    crash = false;
+    await t.generation.generate({ requestId: r.id });
+    expect((await t.auth.rows("generationRequest", { id: r.id }))[0]!.status).toBe("in review");
+  });
+
+  it("does nothing for a request that does not exist", async () => {
+    const t = setup();
+    await t.ready;
+    await t.generation.generate({ requestId: randomUUID() });
+    expect(t.llm.calls()).toHaveLength(0);
+  });
+
+  it.each([
+    ["a good answer", good],
+    ["an answer outside the shape", { nope: 1 }],
+  ])("records the input and output tokens of %s", async (_, answer) => {
+    const t = setup({ answer: () => answer });
+    await t.run(t.grammarId);
+    const [call] = t.llm.calls();
+    const [run] = await t.auth.rows("generationRun");
+    expect(run!.tokens).toBe(call!.system.length + call!.prompt.length + JSON.stringify(answer).length);
+  });
+
   it("uses an attempt when a Word has no forms or readings", async () => {
     const t = setup();
     const bare = randomUUID();
