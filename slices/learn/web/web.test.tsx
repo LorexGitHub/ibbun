@@ -7,6 +7,7 @@ import { learnApi, type LearnApi } from "./learn-client.ts";
 import { notAnswers, shownByDefault, SWITCH_TO_JAPANESE } from "./check.ts";
 import { faceOf, isOver, sentenceFirst, tallyOf } from "./batch-view.ts";
 import { LearnScreen } from "./LearnScreen.tsx";
+import { TallyScreen } from "./TallyScreen.tsx";
 import { ReadingStep } from "./ReadingStep.tsx";
 import { answered, isFinished, startQuiz, type Given } from "./queue.ts";
 import { atLevel, levelOf, toggled, tracksOf, typesAt } from "./source.ts";
@@ -884,5 +885,19 @@ describe("Learn by keyboard", () => {
     bothLessons();
     expect(key("1", screen.getByLabelText("Answer"))).toBe(true);
     expect(screen.getByRole("heading", { name: "Quiz" })).toBeTruthy();
+  });
+});
+
+describe("showcase mode", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  const tally = { learned: 1, items: [] };
+  it("says Batch Texts are off on the wrap-up", () => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    render(<TallyScreen tally={tally} onMore={null} onStory={null} />);
+    expect(screen.getByRole("status").textContent).toContain("in this showcase");
+  });
+  it("says nothing by default", () => {
+    render(<TallyScreen tally={tally} onMore={null} onStory={null} />);
+    expect(screen.queryByRole("status")).toBeNull();
   });
 });

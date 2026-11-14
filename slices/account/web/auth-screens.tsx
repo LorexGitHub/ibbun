@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { buttonClass } from "@ibbun/ui";
+import { isShowcase } from "@ibbun/shared";
 import { useClient } from "./client.ts";
 import { Field, Form, Notice, Screen, Split, useOutcome } from "./form.tsx";
+
+// @ts-ignore The root typecheck has no Vite types.
+const showcase = () => isShowcase(import.meta.env.VITE_SHOWCASE);
 
 const CHECK_YOUR_EMAIL = "Check your email. If the address can sign up, we sent a link to finish.";
 
@@ -40,9 +44,11 @@ export const SignUp = () => {
           Send the link again
         </button>
       )}
-      <button type="button" className={buttonClass()} onClick={() => void tryIt()}>
-        Try it
-      </button>
+      {showcase() && (
+        <button type="button" className={buttonClass()} onClick={() => void tryIt()}>
+          Try it
+        </button>
+      )}
       <p>
         Already have an account? <Link to="/login">Log in</Link>
       </p>
