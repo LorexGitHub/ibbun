@@ -2,6 +2,7 @@ import { z } from "zod";
 import { SpeechRequest, TtsError, type Tts } from "./tts.ts";
 import { encodeOggOpus } from "./ogg-opus.ts";
 import { readWav } from "./wav.ts";
+import { createIamFetch, credentialsFromEnv, functionUrlRegion } from "./iam-fetch.ts";
 
 /** VOICEVOX's own defaults for everything the request does not set, as its /audio_query returns them. */
 const QUERY_DEFAULTS = {
@@ -17,13 +18,23 @@ const QUERY_DEFAULTS = {
 };
 
 export type VoicevoxOptions = {
-  /** Base URL of the engine, e.g. http://localhost:50021. */
+  /** Base URL of the engine: a local one such as http://localhost:50021, or the VOICEVOX Lambda's function URL. */
   readonly url: string;
   readonly fetch?: typeof fetch;
+  /** Where a function URL's credentials come from; the Lambda runtime's environment by default. */
+  readonly env?: Record<string, string | undefined>;
+};
+
+/** A function URL is called with IAM auth, signed with the caller's own role (ADR 0015); a local engine takes plain calls. */
+const transport = ({ url, fetch: send = fetch, env = process.env }: VoicevoxOptions): typeof fetch => {
+  const region = functionUrlRegion(url);
+  return region ? createIamFetch({ credentials: credentialsFromEnv(env), region, service: "lambda" }, send) : send;
 };
 
 /** The VOICEVOX ENGINE client. It sends the approved kana, never raw text, so the engine's own reading guesses never apply. */
-export const createVoicevoxTts = ({ url, fetch: send = fetch }: VoicevoxOptions): Tts => {
+export const createVoicevoxTts = (options: VoicevoxOptions): Tts => {
+  const { url } = options;
+  const send = transport(options);
   const call = async (path: string, params: Record<string, string>, init: RequestInit = {}) => {
     const target = new URL(path, url);
     for (const [name, value] of Object.entries(params)) target.searchParams.set(name, value);
