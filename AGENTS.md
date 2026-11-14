@@ -14,5 +14,5 @@ Many agents build ibbun in parallel. The supervisor does not review code; CI gat
 - One issue → one slice folder. **Never import another slice.** Reach shared state only through core interfaces.
 - You may make **additive** changes to a core module in your slice PR. **Breaking** core changes and new core modules need their own issue.
 - Prefer copying small logic over coupling packages. Domain rules always go in core.
-- Before opening a PR, update your slice's file in `verify-ibbun/features/` (`/maintain-verification-skill`, pstack). A different agent verifies the PR.
+- Before opening a PR, update your slice's file in `.agents/skills/verify-ibbun/features/` (`/maintain-verification-skill`, pstack). A different agent verifies the PR.
 - Push a branch and open a PR. Never push to the main line.
