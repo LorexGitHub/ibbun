@@ -4,7 +4,7 @@ import { createContentGraph } from "@ibbun/content-graph";
 import { createDb } from "@ibbun/db";
 import { createLearnerAuth, learnerConfigFromEnv } from "@ibbun/learner";
 import type { Mail } from "@ibbun/mail";
-import { createPgBossJobs, type Jobs } from "@ibbun/jobs";
+import { createSqsJobsFromEnv } from "@ibbun/jobs";
 import { createProgress, createTexts } from "@ibbun/progress";
 import { DEFAULT_PRACTICE } from "../practice/server/practice-api.ts";
 import type { ReadingDeps } from "./reading-api.ts";
@@ -14,12 +14,6 @@ const noMail: Mail = {
   async send() {
     throw new Error("the reading slice does not send mail");
   },
-};
-
-/** Connects to the queue on the first Practice Text, so the API starts without it. */
-const lazyJobs = (url: string): Pick<Jobs, "enqueue"> => {
-  let connected: Promise<Jobs> | undefined;
-  return { enqueue: async (contract, payload) => (await (connected ??= createPgBossJobs(url))).enqueue(contract, payload) };
 };
 
 /** The real core modules, wired from the environment (`DATABASE_URL`, `AUTH_SECRET`, `APP_URL`). */
@@ -36,7 +30,7 @@ export const productionDeps = (env: Record<string, string | undefined>): Reading
     guards: createAuthGuards(sessions),
     now: () => new Date(),
     practice: {
-      jobs: lazyJobs(url),
+      jobs: createSqsJobsFromEnv(env),
       newId: randomUUID,
       sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
       config: DEFAULT_PRACTICE,
