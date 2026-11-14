@@ -46,7 +46,7 @@ You need **Node 24+**, **pnpm 12** and **Docker**. If you don't have pnpm, run `
 pnpm install
 cp .env.example .env          # every script reads it; no need to load it into your shell
 
-docker compose up -d          # Postgres, Sudachi, VOICEVOX and Mailpit
+docker compose up -d          # Postgres, Sudachi, VOICEVOX, Mailpit and ElasticMQ
 pnpm db:migrate
 pnpm --filter @ibbun/learner seed               # the two dev accounts
 pnpm --filter @ibbun/content-graph seed:fixture # a small N5 content graph to study
@@ -107,7 +107,7 @@ The background worker starts with `pnpm dev` too.
 ibbun is a modular monolith: a small **core** with **feature slices** on top.
 
 ```
-apps/       web (Vite + React), api (Hono), worker (pg-boss jobs). Shells only.
+apps/       web (Vite + React), api (Hono), worker (SQS jobs). Shells only.
 core/       the shared domain: content graph, progress, learning path, learner
 platform/   plumbing: db, jobs, auth, mail, ui, nlp, tts, llm
 slices/     one folder per feature: learn, reviews, cram, ...

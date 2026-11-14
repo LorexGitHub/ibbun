@@ -80,7 +80,7 @@ Open sign-up means Learners trigger LLM spend: every Learn batch asks for a Batc
 
 - A new platform package, `mail`, sends a named template with data. Like the other adapters, it has an interface and a fake.
 - Locally, Docker Compose runs **Mailpit**, and `mail` sends to it over SMTP. The verifier agent and Playwright read verification and reset links from Mailpit's API.
-- A real SMTP transport is config for the later AWS plan.
+- On AWS, `MAIL_TRANSPORT=ses` sends through SES with nodemailer's SES transport and `@aws-sdk/client-sesv2`, signed by the Lambda role, so there are no SMTP keys. `MAIL_FROM` sets the sender, `AWS_REGION` the SES region, and `SES_ENDPOINT` points at a local SES-compatible endpoint. Without `MAIL_TRANSPORT`, mail goes over SMTP to `SMTP_URL` (Mailpit at `smtp://localhost:1025` by default). The stack declares the sending domain identity with DKIM (#259).
 - Templates: verify email, already registered, reset password, email changed (sent to the old address), account deleted.
 
 ## Wiring

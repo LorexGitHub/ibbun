@@ -62,3 +62,5 @@ Preconditions: Postgres from Compose with migrations applied; an approved Word w
 - Nothing calls `requestDialogues` on a schedule yet, and `content-approval` has no dialogue rubric until #92, so `content.review` throws for dialogue requests.
 - The budget counts Generation Runs, so reviewer calls count only once `content-approval` records them as runs.
 - Clip selection has no entry point outside code yet, so check it with its unit tests (`pnpm vitest run slices/content-generation/kinds/clip-selection`) or call `select()` against a seeded database. The clip has no `computed_level` row until the levels rebuild runs, and no audio until `listening.synthesise` exists.
+
+8. VOICEVOX Lambda image (#253): `docker build -t mojibun-voicevox-lambda docker/voicevox`, download `aws-lambda-rie` (x86_64), then `node scripts/measure-voicevox-lambda.mjs <path to aws-lambda-rie>`. Expect one row per memory size (2, 3 and 4 GB) with a cold start under 10 s and clips of a few seconds; at 3 GB about 3 s for a 3 s sentence. Signed calls: `pnpm vitest run platform/tts` (signatures pinned to the AWS SDK's signer).

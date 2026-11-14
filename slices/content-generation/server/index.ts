@@ -1,7 +1,7 @@
 import { BatchTextGenerate, ContentGenerate, ListeningSynthesise, PracticeGenerate } from "@ibbun/content-graph/jobs";
 import { createAuthoring } from "@ibbun/content-graph/authoring";
 import { createDb } from "@ibbun/db";
-import { createPgBossJobs, handler } from "@ibbun/jobs";
+import { createSqsJobsFromEnv, handler } from "@ibbun/jobs";
 import { createAnthropicLlm, loadLlmConfig } from "@ibbun/llm";
 import { createProgress, createTexts } from "@ibbun/progress";
 import { createVoicevoxTts } from "@ibbun/tts";
@@ -19,7 +19,7 @@ const connect = async (): Promise<ContentGeneration> => {
   return contentGeneration({
     auth: createAuthoring(db),
     llm: createAnthropicLlm({ config: loadLlmConfig(process.env) }),
-    jobs: await createPgBossJobs(url),
+    jobs: createSqsJobsFromEnv(process.env),
     progress: createProgress(db),
     texts: createTexts(db),
     config: loadGenerationConfig(process.env),

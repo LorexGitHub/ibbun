@@ -12,7 +12,7 @@ Decided in [#23](https://github.com/LorexGitHub/ibbun/issues/23). Terms follow [
 | yomitan-jlpt-vocab (Tanos Words → JMdict) | GitHub release | Checked weekly, applied only on a new release | Word Level Candidates ([jlpt-levels.md](jlpt-levels.md)) |
 | Tanos kanji lists | Wayback Machine snapshot `20200117222855` (tanos.co.uk is gone) | Once: tried daily until KANJIDIC2 is in, then never again | Kanji Level Candidates ([jlpt-levels.md](jlpt-levels.md)) |
 
-Refreshes run as scheduled `worker` jobs (pg-boss) owned by the `import` slice. No human starts them.
+Refreshes run as scheduled `worker` jobs (SQS) owned by the `import` slice. No human starts them.
 
 ### Circuit breaker
 

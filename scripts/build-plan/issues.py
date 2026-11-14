@@ -19,7 +19,7 @@ ISSUES = [
          criteria=[
              "pnpm (or npm) workspace with one package per core module, platform package and slice; each package's `exports` lists its public interface",
              "`platform/db`: Drizzle client, transaction helper, and a migration runner that collects every package's timestamp-prefixed migrations and applies them in timestamp order, one Postgres schema per package",
-             "`platform/jobs`: pg-boss wrapper with typed job contracts (name plus Zod payload) and an in-memory fake",
+             "`platform/jobs`: queue wrapper with typed job contracts (name plus Zod payload) and an in-memory fake",
              "Shared Zod primitives package (IDs, JLPT Level, timestamps)",
              "`apps/web` discovers slices with a Vite glob import; `apps/api` and `apps/worker` with a generated index. A sample slice in a test fixture proves that adding a slice touches only its folder",
              "Docker Compose runs Postgres, the Sudachi sidecar, VOICEVOX and Mailpit; `docker compose up` plus one command starts web, api and worker",
