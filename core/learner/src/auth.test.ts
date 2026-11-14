@@ -34,14 +34,14 @@ afterEach(() => vi.unstubAllGlobals());
 
 type World = { auth: LearnerAuth; mail: FakeMail; events: AuthEvent[]; clock: { now: Date } };
 
-const world = (overrides: { signupOpen?: boolean } = {}): World => {
+const world = (overrides: { signupOpen?: boolean; showcase?: boolean } = {}): World => {
   const mail = createFakeMail();
   const events: AuthEvent[] = [];
   const clock = { now: new Date() };
   const auth = createLearnerAuth({
     db: pg.db,
     mail,
-    config: { secret: "s".repeat(32), appUrl: APP, signupOpen: overrides.signupOpen ?? true },
+    config: { secret: "s".repeat(32), appUrl: APP, signupOpen: overrides.signupOpen ?? true, showcase: overrides.showcase ?? false },
     log: (e) => void events.push(e),
     now: () => clock.now,
   });
@@ -537,5 +537,76 @@ describe("preferences over the client", () => {
     expect(await anonymous.client.changePreferences({ examMode: true })).toMatchObject({ ok: false, status: 401 });
     const b = await verifiedLearner(w);
     expect((await b.fetch(`${APP}/api/auth/preferences`, { method: "DELETE" })).status).toBe(405);
+  });
+});
+
+describe("guest login (showcase)", () => {
+  const guests = () => pg.db.select().from(t.learners).where(eq(t.learners.isAnonymous, true));
+  const hours = (w: World, h: number) => void (w.clock.now = new Date(w.clock.now.getTime() + h * 3600_000));
+
+  it("signs a visitor in as a throwaway Learner with no mail", async () => {
+    const w = world({ showcase: true });
+    const b = browser(w.auth);
+    expect(await b.client.tryAsGuest()).toEqual({ ok: true, data: null });
+    const current = await b.client.session();
+    expect(current).toMatchObject({ ok: true, data: { role: "learner", email: expect.stringMatching(/@guest\.invalid$/) } });
+    expect(w.mail.sent()).toEqual([]);
+    expect(await b.client.preferences()).toMatchObject({ ok: true });
+  });
+
+  it("is off outside the showcase and when SIGNUP_OPEN is false", async () => {
+    expect(await browser(world().auth).client.tryAsGuest()).toMatchObject({ ok: false, status: 404 });
+    expect(await browser(world({ showcase: true, signupOpen: false }).auth).client.tryAsGuest()).toMatchObject({ ok: false, status: 404 });
+  });
+
+  it("lets a guest not delete itself through the plugin's own endpoint", async () => {
+    const b = browser(world({ showcase: true }).auth);
+    await b.client.tryAsGuest();
+    const response = await b.fetch(`${APP}/api/auth/delete-anonymous-user`, { method: "POST", body: "{}", headers: { "content-type": "application/json" } });
+    expect(response.status).toBe(400);
+    expect(await b.client.session()).toMatchObject({ ok: true, data: { email: expect.stringMatching(/@guest\.invalid$/) } });
+  });
+
+  it("closes email sign-up in the showcase", async () => {
+    const b = browser(world({ showcase: true }).auth);
+    expect(await b.client.signUp(newEmail(), GOOD)).toMatchObject({ ok: false, status: 400 });
+  });
+
+  it("deletes guests older than 24 hours, with their sessions, on the next guest login", async () => {
+    const w = world({ showcase: true });
+    const old = browser(w.auth);
+    await old.client.tryAsGuest();
+    const oldId = (await old.client.session()) as { ok: true; data: { learnerId: string } };
+    hours(w, 25);
+    await browser(w.auth).client.tryAsGuest();
+    const left = (await guests()).map((g) => g.id);
+    expect(left).not.toContain(oldId.data.learnerId);
+    expect(left).toHaveLength(1);
+    expect(await pg.db.select().from(t.sessions).where(eq(t.sessions.learnerId, oldId.data.learnerId))).toEqual([]);
+  });
+
+  it("keeps a guest younger than 24 hours, and never purges real Learners", async () => {
+    const w = world({ showcase: true });
+    const real = newEmail();
+    await verifiedLearner(world(), real);
+    const young = browser(w.auth);
+    await young.client.tryAsGuest();
+    const youngId = ((await young.client.session()) as { ok: true; data: { learnerId: string } }).data.learnerId;
+    hours(w, 23);
+    await browser(w.auth).client.tryAsGuest();
+    expect((await guests()).map((g) => g.id)).toContain(youngId);
+    hours(w, 72);
+    await browser(w.auth).client.tryAsGuest();
+    expect(await w.auth.learners.findByEmail(real)).not.toBeNull();
+  });
+
+  it("limits guest creation to 10 an hour per IP", async () => {
+    const w = world({ showcase: true });
+    const ip = "10.9.9.9";
+    for (let i = 0; i < 10; i++) expect((await browser(w.auth, ip).client.tryAsGuest()).ok).toBe(true);
+    expect(await browser(w.auth, ip).client.tryAsGuest()).toMatchObject({ ok: false, status: 429 });
+    expect((await browser(w.auth, "10.9.9.10").client.tryAsGuest()).ok).toBe(true);
+    hours(w, 1.01);
+    expect((await browser(w.auth, ip).client.tryAsGuest()).ok).toBe(true);
   });
 });

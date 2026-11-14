@@ -83,6 +83,8 @@ export const createLearnerClient = ({ baseUrl = "/api/auth", fetch: send = globa
     signUp: (email: string, password: string) =>
       done(call("/sign-up/email", { email, password, name: "", callbackURL: VERIFIED_PAGE })),
     resendVerification: (email: string) => done(call("/send-verification-email", { email })),
+    /** The showcase's "Try it": a throwaway Learner, signed in. */
+    tryAsGuest: () => done(call("/sign-in/anonymous", {})),
     signIn: (email: string, password: string) => done(call("/sign-in/email", { email, password })),
     signOut: () => done(call("/sign-out", {})),
     signOutEverywhere: () => done(call("/revoke-sessions", {})),

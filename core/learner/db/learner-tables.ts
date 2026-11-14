@@ -14,6 +14,8 @@ export const learners = learner.table("learners", {
   image: text("image"),
   role: text("role", { enum: ["learner", "supervisor"] }).notNull().default("learner"),
   deactivated: boolean("deactivated").notNull().default(false),
+  /** A guest of the showcase stage: no email of its own, purged after a day. */
+  isAnonymous: boolean("is_anonymous").notNull().default(false),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
