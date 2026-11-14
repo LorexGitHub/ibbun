@@ -1,10 +1,11 @@
 import { z } from "zod";
 import type { LlmRole, TokenUsage } from "./llm.ts";
 
-/** US dollars per million tokens, Anthropic first-party API rates. A model must be listed here to be configured. */
+/** US dollars per million tokens, Anthropic first-party API rates, and $0 for local models (ADR 0016). A model must be listed here to be configured. */
 export const LLM_PRICES: Readonly<Record<string, { readonly input: number; readonly output: number }>> = {
   "claude-sonnet-5-5": { input: 2, output: 10 },
   "claude-opus-5-5": { input: 4, output: 20 },
+  "gemma4:12b": { input: 0, output: 0 },
 };
 
 const PricedModel = z.string().refine((model) => model in LLM_PRICES, { error: "has no price in LLM_PRICES" });

@@ -2,7 +2,7 @@ import { BatchTextGenerate, ContentGenerate, ListeningSynthesise, PracticeGenera
 import { createAuthoring } from "@ibbun/content-graph/authoring";
 import { createDb } from "@ibbun/db";
 import { createSqsJobsFromEnv, handler } from "@ibbun/jobs";
-import { createAnthropicLlm, loadLlmConfig } from "@ibbun/llm";
+import { createLlmFromEnv } from "@ibbun/llm";
 import { createProgress, createTexts } from "@ibbun/progress";
 import { createVoicevoxTts } from "@ibbun/tts";
 import { audioStoreAt } from "../kinds/synthesise/audio-store.ts";
@@ -18,7 +18,7 @@ const connect = async (): Promise<ContentGeneration> => {
   const db = createDb(url);
   return contentGeneration({
     auth: createAuthoring(db),
-    llm: createAnthropicLlm({ config: loadLlmConfig(process.env) }),
+    llm: createLlmFromEnv(process.env),
     jobs: createSqsJobsFromEnv(process.env),
     progress: createProgress(db),
     texts: createTexts(db),
