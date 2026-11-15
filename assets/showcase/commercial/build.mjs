@@ -21,6 +21,9 @@ const { view, marks: m } = JSON.parse(readFileSync(join(out, "raw", "marks.json"
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 await page.goto(pathToFileURL(join(here, "cards.html")).href);
+await page.evaluate((story) => {
+  for (const el of document.querySelectorAll("[data-story]")) el.textContent = story[el.dataset.story];
+}, m.story);
 await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(800);
 for (const id of await page.$$eval(".card", (els) => els.map((e) => e.id))) {

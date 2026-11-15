@@ -7,6 +7,8 @@ export type Desired<T extends { id: string; approval: unknown; retired: unknown;
 export type Inputs = {
   words: Set<string>;
   retiredWords: Set<string>;
+  /** Words JMdict marks as usually written in kana, so a kana token may name them despite their kanji form. */
+  usuallyKana: Set<string>;
   kanji: Row<"kanji">[];
   forms: Row<"wordForm">[];
   readings: Row<"wordReading">[];
@@ -44,10 +46,12 @@ export const wordContainsKanji = ({ words, kanji, forms }: Inputs): Desired<Row<
 };
 
 /** Words by what a token can be called: a written form, or a reading when the Word has no kanji form to match. */
-const wordIndex = ({ words, forms, readings }: Inputs) => {
+const wordIndex = ({ words, usuallyKana, forms, readings }: Inputs) => {
+  const written = new Set(forms.map((f) => f.wordId));
+  const byReading = (wordId: string) => !written.has(wordId) || usuallyKana.has(wordId);
   const names = [
     ...forms.map((f) => ({ text: f.text, wordId: f.wordId, formId: f.id, readingId: null })),
-    ...readings.map((r) => ({ text: r.text, wordId: r.wordId, formId: null, readingId: r.id })),
+    ...readings.filter((r) => byReading(r.wordId)).map((r) => ({ text: r.text, wordId: r.wordId, formId: null, readingId: r.id })),
   ];
   return group(names.filter((n) => words.has(n.wordId)), (n) => n.text);
 };

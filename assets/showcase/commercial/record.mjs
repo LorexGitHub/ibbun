@@ -53,7 +53,8 @@ const answerFor = (prompts, sentenceText) => {
 const fill = async (prompt) => {
   for (const f of prompt.facets) {
     const label = { cloze: "Answer", reading: "Reading in this sentence", meaning: "Meaning of the kanji" }[f.facet];
-    const value = f.answerData.facet === "meaning" ? f.answerData.meanings[0].text : f.answerData.accepted[0].written ?? f.answerData.accepted[0].reading;
+    const [a] = f.answerData.accepted ?? [];
+    const value = f.answerData.facet === "meaning" ? f.answerData.meanings[0].text : f.facet === "reading" ? (a.reading ?? a.written) : (a.written ?? a.reading);
     const input = page.getByLabel(label, { exact: true });
     await input.click();
     await input.fill(value);
@@ -97,6 +98,14 @@ await page.locator(".quiz .sentence").waitFor();
 await hold(500);
 const prompts = learnBatch.items.map((i) => i.prompt);
 const quizPrompt = answerFor(prompts, await page.locator(".quiz .sentence").innerText());
+// The promo's story follows this item, so its cards always match the footage.
+const said = (facet) => quizPrompt.facets.find((f) => f.facet === facet)?.answerData;
+const { before, target, after } = quizPrompt.sentence;
+marks.story = {
+  sentence: before + target + after,
+  answer: [said("reading")?.accepted[0].reading, said("meaning")?.meanings[0].text, said("cloze")?.accepted[0].written].filter(Boolean).join(" · "),
+  translation: quizPrompt.translationEn,
+};
 await mark("quiz", page.locator(".question"));
 await hold(800);
 await fill(quizPrompt);
