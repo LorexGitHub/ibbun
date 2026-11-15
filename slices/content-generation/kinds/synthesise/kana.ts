@@ -3,15 +3,27 @@ import type { Token } from "@ibbun/content-graph";
 const KATAKANA = /^[ァ-ヶー]+$/;
 /** Tokens that never start an accent phrase: they hang on the word before them. */
 const BOUND = new Set(["助詞", "助動詞", "接尾辞"]);
-const PAUSES = new Set(["、", "，", ","]);
+/** A pause, or white space, where the writer wanted a small break. */
+const PAUSES = new Set(["、", "，", ",", " "]);
 const SPOKEN_PARTICLE: Record<string, string> = { は: "ワ", へ: "エ", を: "オ" };
 
-const isPunctuation = (t: Token) => t.partOfSpeech[0] === "補助記号";
+/** Which vowel a lengthening mark continues: the vowel of the kana before it (スー→ウ, キョー→オ, ティー→イ). */
+const VOWEL_OF: Record<string, string> = {};
+for (const [kana, vowel] of [
+  ["アカサタナハマヤラワガザダバパャ", "ア"],
+  ["イキシチニヒミリギジビピィ", "イ"],
+  ["ウクスツヌフムユルグズブプヴュ", "ウ"],
+  ["エケセテネヘメレゲゼデベペェ", "エ"],
+  ["オコソトノホモヨロゴゾドボポョォヲ", "オ"],
+] as const)
+  for (const k of kana) VOWEL_OF[k] = vowel;
+
+const isPunctuation = (t: Token) => t.partOfSpeech[0] === "補助記号" || t.partOfSpeech[0] === "空白";
 
 /** How a token is said: Sudachi's reading says ハ for the particle は, the voice says ワ. */
 const spoken = (t: Token): string => {
   const particle = t.partOfSpeech[0] === "助詞" ? SPOKEN_PARTICLE[t.surface] : undefined;
-  const sound = particle ?? t.reading;
+  const sound = particle !== undefined ? particle : t.reading;
   if (!KATAKANA.test(sound)) throw new Error(`no reading to speak for "${t.surface}"`);
   return sound;
 };
@@ -20,7 +32,7 @@ type Phrase = { text: string; pauseAfter: boolean };
 
 /** A token opens a new accent phrase unless it hangs on the word before it, and nothing follows a pause or a prefix inside one. */
 const opensPhrase = (token: Token, previous: Token | undefined, last: Phrase | undefined): boolean =>
-  !last || last.pauseAfter || !(BOUND.has(token.partOfSpeech[0]!) || previous?.partOfSpeech[0] === "接頭辞");
+  !last || last.pauseAfter || !(BOUND.has(token.partOfSpeech[0]!) || (previous !== undefined && previous.partOfSpeech[0] === "接頭辞"));
 
 const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
   const phrases: Phrase[] = [];
@@ -28,7 +40,7 @@ const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
   for (const token of tokens) {
     const last = phrases[phrases.length - 1];
     if (isPunctuation(token)) {
-      if (last && PAUSES.has(token.surface)) last.pauseAfter = true;
+      if (last !== undefined && PAUSES.has(token.surface)) last.pauseAfter = true;
       continue;
     }
     if (opensPhrase(token, previous, last)) phrases.push({ text: "", pauseAfter: false });
@@ -36,6 +48,21 @@ const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
     previous = token;
   }
   return phrases;
+};
+
+/** VOICEVOX's kana parser cannot read ー, so each mark becomes the vowel it lengthens: スーパー → スウパア. */
+const expandLongVowels = (text: string): string => {
+  let out = "";
+  for (const c of text) {
+    if (c !== "ー") {
+      out += c;
+      continue;
+    }
+    const prev = out.length ? out[out.length - 1]! : "";
+    const vowel = Object.prototype.hasOwnProperty.call(VOWEL_OF, prev) ? VOWEL_OF[prev]! : c;
+    out += vowel;
+  }
+  return out;
 };
 
 /**
@@ -47,5 +74,5 @@ const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
 export const kanaOf = (tokens: readonly Token[]): string => {
   const phrases = phrasesOf(tokens);
   if (!phrases.length) throw new Error("nothing to speak");
-  return phrases.map((p, i) => `${p.text}'${i === phrases.length - 1 ? "" : p.pauseAfter ? "、" : "/"}`).join("");
+  return phrases.map((p, i) => `${expandLongVowels(p.text)}'${i === phrases.length - 1 ? "" : p.pauseAfter ? "、" : "/"}`).join("");
 };

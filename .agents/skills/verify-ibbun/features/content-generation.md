@@ -50,7 +50,7 @@ Preconditions: Postgres from Compose with migrations applied; an approved Word w
 
 ## Gotchas
 
-- Audio synthesis refuses a draft or retired Sentence, a Sentence with no tokens, and a passage that is not an approved dialogue, so the job fails and is retried. Tokens carry no pitch, so every accent phrase is accented on its last mora (flat); a dictionary pitch accent is not used yet.
+- Audio synthesis refuses a draft or retired Sentence, a Sentence with no tokens, and a passage that is not an approved dialogue, so the job fails and is retried. Tokens carry no pitch, so every accent phrase is accented on its last mora (flat); a dictionary pitch accent is not used yet. The engine's kana parser cannot read `ー`, so the kana spells each long vowel out (`スーパー` → `スウパア`) and treats a space token as a pause; this changes the audio key, so Synthesise re-voices lines on its next run.
 
 - A retry of a Batch Text rewrites the same passage id: the rejected attempt's links are retired. The Batch Text record is written once, with the first attempt, so its cast and summary come from that attempt.
 - Earlier items, and a Practice Text's weakest Known items, are ordered by Mastery, then soonest due; `progress` does not expose stability.
