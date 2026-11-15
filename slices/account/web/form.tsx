@@ -35,10 +35,13 @@ export const Field = ({ label, ...input }: { label: string } & InputHTMLAttribut
 export const Form = ({
   submit,
   onSubmit,
+  disabled = false,
   children,
 }: {
   submit: string;
   onSubmit: () => Promise<unknown>;
+  /** Shown but not sendable, as on the showcase. */
+  disabled?: boolean;
   children: ReactNode;
 }) => {
   const send = (event: FormEvent) => {
@@ -48,7 +51,7 @@ export const Form = ({
   return (
     <form className="account-form" onSubmit={send}>
       {children}
-      <Button type="submit" variant="primary">
+      <Button type="submit" variant="primary" disabled={disabled}>
         {submit}
       </Button>
     </form>
@@ -56,7 +59,7 @@ export const Form = ({
 };
 
 /** What a visitor meets: the line set upright in Japanese on the accent, and the form beside it. */
-export const Split = ({ title, children }: { title: string; children: ReactNode }) => (
+export const Split = ({ title, above, children }: { title: string; above?: ReactNode; children: ReactNode }) => (
   <section className="account-split">
     <div className="account-panel">
       <p className="account-line" lang="ja">
@@ -65,6 +68,7 @@ export const Split = ({ title, children }: { title: string; children: ReactNode 
       <p>One sentence at a time.</p>
     </div>
     <div className="account-side">
+      {above}
       <h1>{title}</h1>
       {children}
     </div>

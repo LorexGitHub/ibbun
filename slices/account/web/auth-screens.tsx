@@ -10,36 +10,39 @@ const showcase = () => isShowcase(import.meta.env.VITE_SHOWCASE);
 
 const CHECK_YOUR_EMAIL = "Check your email. If the address can sign up, we sent a link to finish.";
 
+/** What the email fields say on the showcase, where they are shown but locked (ADR 0017). */
+const UNAVAILABLE = "Unavailable in the showcase";
+
+/** A field's lock on the showcase: disabled, saying why. Elsewhere, nothing. */
+const locked = () => (showcase() ? { disabled: true, placeholder: UNAVAILABLE } : {});
+
 /**
- * The showcase has no sign-up and no log in (ADR 0017): each visitor gets a new guest Learner, which
- * the server deletes after a day. Sign up and Log in both show this.
+ * The showcase's way in, above Sign up and Log in: a new guest Learner, deleted by the server after a
+ * day, then Today. Elsewhere, nothing.
  */
 const TryShowcase = () => {
   const client = useClient();
   const { outcome, run } = useOutcome();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  if (!showcase()) return null;
   const tryIt = async () => {
     setBusy(true);
-    if (await run(client.tryAsGuest(), "Signed in as a guest.")) navigate("/learn");
+    if (await run(client.tryAsGuest(), "Signed in as a guest.")) navigate("/");
     setBusy(false);
   };
   return (
-    <Split title="Try the showcase">
-      <p>No sign-up: you get a guest account of your own to explore with. It is deleted after a day.</p>
+    <div className="try-showcase">
       <button type="button" className={buttonClass()} disabled={busy} onClick={() => void tryIt()}>
         Try Showcase
       </button>
       {busy && <p role="status">Waking the database. The first visit takes about 15 seconds.</p>}
       <Notice outcome={outcome} />
-      <Link to="/try">Try one Review first</Link>
-    </Split>
+    </div>
   );
 };
 
-export const SignUp = () => (showcase() ? <TryShowcase /> : <EmailSignUp />);
-
-const EmailSignUp = () => {
+export const SignUp = () => {
   const client = useClient();
   const { outcome, run } = useOutcome();
   const [email, setEmail] = useState("");
@@ -47,9 +50,9 @@ const EmailSignUp = () => {
   const [sent, setSent] = useState(false);
   const submit = async () => setSent(await run(client.signUp(email, password), CHECK_YOUR_EMAIL));
   return (
-    <Split title="Sign up">
-      <Form submit="Sign up" onSubmit={submit}>
-        <Field label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+    <Split title="Sign up" above={<TryShowcase />}>
+      <Form submit="Sign up" onSubmit={submit} disabled={showcase()}>
+        <Field label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} {...locked()} />
         <Field
           label="Password"
           type="password"
@@ -59,6 +62,7 @@ const EmailSignUp = () => {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          {...locked()}
         />
         <p>12 to 128 characters. A password found in a data breach is refused.</p>
         <Notice outcome={outcome} />
@@ -79,9 +83,7 @@ const EmailSignUp = () => {
 /** Where a log in returns to: a path in this app, never another site. */
 const returnPath = (next: string | null) => (next?.startsWith("/") && !next.startsWith("//") ? next : "/");
 
-export const Login = () => (showcase() ? <TryShowcase /> : <EmailLogin />);
-
-const EmailLogin = () => {
+export const Login = () => {
   const client = useClient();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -92,11 +94,11 @@ const EmailLogin = () => {
     if (await run(client.signIn(email, password), "Logged in.")) navigate(returnPath(params.get("next")));
   };
   return (
-    <Split title="Log in">
+    <Split title="Log in" above={<TryShowcase />}>
       {params.get("verified") && <p role="status" className="notice">Email verified. You can log in now.</p>}
       {params.get("reset") && <p role="status" className="notice">Password changed. Log in with the new one.</p>}
-      <Form submit="Log in" onSubmit={submit}>
-        <Field label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Form submit="Log in" onSubmit={submit} disabled={showcase()}>
+        <Field label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} {...locked()} />
         <Field
           label="Password"
           type="password"
@@ -104,6 +106,7 @@ const EmailLogin = () => {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          {...locked()}
         />
         <Notice outcome={outcome} />
       </Form>

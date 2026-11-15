@@ -45,3 +45,4 @@
   .account-line { writing-mode: horizontal-tb; font-size: var(--text-section); }
   .account-side { padding: var(--space-xl) var(--space-lg); }
 }
+.try-showcase { display: grid; justify-items: start; gap: var(--space-sm); }
