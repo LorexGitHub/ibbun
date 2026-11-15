@@ -61,3 +61,14 @@ export const State = ({ title, heading = 2, mark, score, label, fact, note, inli
     </section>
   );
 };
+
+/**
+ * Something on its way: hidden for the first 400 ms so a fast answer never flashes, then a hairline with an ink
+ * stroke crossing it and the words. `status` makes it a live region, for screens whose loading is announced.
+ */
+export const Loading = ({ children = "Loading…", status = false }: { children?: ReactNode; status?: boolean }) => (
+  <div className="loading">
+    <span className="loading-line" aria-hidden="true" />
+    <p role={status ? "status" : undefined}>{children}</p>
+  </div>
+);

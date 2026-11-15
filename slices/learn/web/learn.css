@@ -318,3 +318,33 @@
 .tally-list .pill {
   margin-left: auto;
 }
+
+/* Motion: each card arrives from a little lower than a screen does; turning one brings its back up under the
+   sentence, and the reading settles in above the word. The quiz's verdict is stamped by the kit (motion.css). */
+.lesson-card,
+.question {
+  --rise: 16px;
+  animation: ma-rise var(--dur-long) var(--ease-out) both;
+}
+.lesson-card > :not(h2) {
+  animation: ma-rise var(--dur-short) var(--ease-out) both;
+}
+.lesson-card > :nth-child(3) { animation-delay: 40ms; }
+.lesson-card > :nth-child(n + 4) { animation-delay: 80ms; }
+.lesson-card rt,
+.answer {
+  animation: ma-fade var(--dur-long) var(--ease-out) both;
+}
+.face {
+  animation: ma-rise var(--dur-long) var(--ease-out) both;
+}
+.face:nth-child(2) { animation-delay: 40ms; }
+.face:nth-child(3) { animation-delay: 80ms; }
+.face:nth-child(4) { animation-delay: 120ms; }
+.face:nth-child(n + 5) { animation-delay: 160ms; }
+@media (prefers-reduced-motion: reduce) {
+  .lesson-card,
+  .question {
+    --rise: 0px;
+  }
+}

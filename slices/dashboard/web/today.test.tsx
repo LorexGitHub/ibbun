@@ -2,10 +2,16 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { onGoTo } from "@ibbun/ui";
 import { MemoryRouter } from "react-router";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Today } from "../contract.ts";
 import slice from "../register.ts";
 import { MasteryByLevel, TodayHero, TodayWidget } from "./today.tsx";
+
+// happy-dom claims every CSS feature but can't run NumberFlow's element, so the count would stay at the 0 it rolls up
+// from. These tests run as a Learner who asked for reduced motion: the count is the real number from the start.
+beforeEach(() => {
+  vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("reduced-motion"), media: query, addEventListener() {}, removeEventListener() {} }));
+});
 
 afterEach(() => {
   cleanup();

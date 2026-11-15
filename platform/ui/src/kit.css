@@ -98,7 +98,6 @@ rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
   .app-nav { flex-wrap: wrap; }
   .nav-links { order: 3; flex: none; width: 100%; }
 }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
 
 /* Settings → Appearance */
 .theme-picker { display: grid; gap: var(--space-lg); }

@@ -67,6 +67,21 @@ export const setTheme = (change: Partial<Theme>) => {
   listeners.forEach((l) => l());
 };
 
+type ViewTransitions = { startViewTransition?: (update: () => void) => unknown };
+
+/**
+ * Changes the theme with the new look spreading from `from` (motion.css, ::view-transition). Where the browser has no
+ * view transitions it simply changes; reduced motion turns the spread into a short fade in CSS.
+ */
+export const revealTheme = (change: Partial<Theme>, from?: Element) => {
+  const doc = document as Document & ViewTransitions;
+  if (!doc.startViewTransition || !from) return setTheme(change);
+  const box = from.getBoundingClientRect();
+  doc.documentElement.style.setProperty("--reveal-x", `${box.left + box.width / 2}px`);
+  doc.documentElement.style.setProperty("--reveal-y", `${box.top + box.height / 2}px`);
+  doc.startViewTransition(() => setTheme(change));
+};
+
 const subscribe = (l: () => void) => {
   listeners.add(l);
   return () => listeners.delete(l);
@@ -106,7 +121,7 @@ export const ThemePicker = () => {
             role="radio"
             aria-checked={theme.palette === p.key}
             className="theme-look"
-            onClick={() => setTheme({ palette: p.key })}
+            onClick={(e) => revealTheme({ palette: p.key }, e.currentTarget)}
           >
             <Swatch palette={p.key} mode={shown} />
             <span className="theme-look-name">
@@ -126,7 +141,7 @@ export const ThemePicker = () => {
             aria-label={m.label}
             title={m.label}
             className="theme-mode"
-            onClick={() => setTheme({ mode: m.key })}
+            onClick={(e) => revealTheme({ mode: m.key }, e.currentTarget)}
           >
             <span className="theme-mode-glyph" lang="ja" aria-hidden="true">{m.glyph}</span>
             <span aria-hidden="true">{m.short}</span>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { StudyItemId } from "@ibbun/shared";
-import { Button, State } from "@ibbun/ui";
+import { Button, Loading, State } from "@ibbun/ui";
 import type { Question } from "../contract.ts";
 import type { CramClient } from "./client.ts";
 import { QuestionCard } from "./QuestionCard.tsx";
@@ -66,7 +66,7 @@ export const Practice = ({ items, client, onDone }: { items: PracticeItem[]; cli
           }}
         />
       ) : (
-        <p role="status">Loading…</p>
+        <Loading status />
       )}
     </>
   );

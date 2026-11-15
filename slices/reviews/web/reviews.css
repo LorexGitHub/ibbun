@@ -80,3 +80,40 @@
   color: var(--color-muted);
   font-size: var(--text-sm);
 }
+
+/* Motion: each Review arrives like a card in Learn; the answer, once graded, inks in where the blank was */
+.review-card {
+  --rise: 16px;
+  animation: ma-rise var(--dur-long) var(--ease-out) both;
+}
+.review-card .answer {
+  animation: ma-fade var(--dur-long) var(--ease-out) both;
+}
+.door {
+  transition: border-color var(--dur-short), translate var(--dur-short) var(--ease-out);
+}
+.door:hover {
+  translate: 0 -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .review-card {
+    --rise: 0px;
+  }
+  .door:hover {
+    translate: none;
+  }
+}
+
+/* The screen: its name, where the Learner is in the run, then the card, with room between them */
+.reviews {
+  display: grid;
+  gap: var(--space-md);
+}
+.reviews > h1 {
+  font-size: var(--text-section);
+}
+.review-count {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}

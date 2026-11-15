@@ -1,4 +1,4 @@
-import { Button, pillClass } from "@ibbun/ui";
+import { Button, Loading, pillClass } from "@ibbun/ui";
 import { JLPT_LEVELS } from "@ibbun/shared";
 import type { PlacementItem, PlacementList } from "../contract.ts";
 import "./placement.css";
@@ -84,7 +84,7 @@ export const PlacementView = ({ level, track, list, ticked, message, saving, onL
       ))}
     </div>
     {list === null ? (
-      <p>Loading {level}…</p>
+      <Loading>Loading {level}…</Loading>
     ) : (
       <>
         <Wall level={level} track={track} items={list.items.filter((item) => item.type === track)} ticked={ticked} onToggle={onToggle} onAll={onAll} onTrack={onTrack} />

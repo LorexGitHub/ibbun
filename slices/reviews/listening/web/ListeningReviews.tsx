@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLoaded } from "../../web/http.ts";
 import { answerClip, loadDueClips, type AnswerClip, type LoadClips } from "./clip-reviews-client.ts";
 import { ClipReviewCard } from "./ClipReviewCard.tsx";
+import { Loading } from "@ibbun/ui";
 
 type Props = { load?: LoadClips; answer?: AnswerClip; onFinish: () => void };
 
@@ -15,7 +16,7 @@ export const ListeningReviews = ({ load = loadDueClips, answer = answerClip, onF
   }, [finished]);
 
   if (failed) return <p role="alert">{failed}</p>;
-  if (!due) return <p>Loading…</p>;
+  if (!due) return <Loading />;
   const review = due.clips[at];
   if (!review) return null;
   return (

@@ -1,4 +1,4 @@
-import { Button, Input } from "@ibbun/ui";
+import { Button, Input, Loading } from "@ibbun/ui";
 import { JLPT_LEVELS } from "@ibbun/shared";
 import type { BrowseType, JlptLevel, Mastery, Tile } from "../contract.ts";
 import "./browse.css";
@@ -132,7 +132,7 @@ export const BrowseView = ({ level, track, query, tiles, message, onLevel, onTra
           <Legend />
         </>
       ) : (
-        !message && <p>Loading…</p>
+        !message && <Loading />
       )}
     </section>
   );

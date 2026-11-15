@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { levelQuery, useLevelFilter } from "@ibbun/ui";
+import { levelQuery, Loading, useLevelFilter } from "@ibbun/ui";
 import { StudyItemId, type JlptLevel } from "@ibbun/shared";
 import { DueResponse, SubmitResponse, type AnswerKind, type ReviewPrompt, type SubmitRequest } from "../contract.ts";
 import { loadDueClips, type LoadClips } from "../listening/web/clip-reviews-client.ts";
@@ -93,7 +93,7 @@ const Session = ({ level, ...props }: Loaders & { level: JlptLevel | undefined }
   const [tally, setTally] = useState<Tally>({ done: 0, right: 0 });
 
   if (failed) return <p role="alert">{failed}</p>;
-  if (!due) return <p>Loading…</p>;
+  if (!due) return <Loading />;
   const next = (to: Phase) => () => setPhase(to);
   const none = due.reviews.length === 0;
   const at = phase === "reviews" && none ? "listening" : phase;
@@ -116,7 +116,7 @@ const Session = ({ level, ...props }: Loaders & { level: JlptLevel | undefined }
     done: <Ending tally={tally} lapses={misses.map((m) => m.studyItemId)} nextDue={due.nextDue} />,
   };
   return (
-    <section>
+    <section className="reviews">
       <h1>Reviews</h1>
       {steps[at]}
     </section>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { buttonClass, State as Shown, useLevelFilter } from "@ibbun/ui";
+import { buttonClass, Loading, State as Shown, useLevelFilter } from "@ibbun/ui";
 import type { Batch, State, Track } from "../contract.ts";
 import { isTaught, type Tally } from "./batch-view.ts";
 import { learnApi, type LearnApi } from "./learn-client.ts";
@@ -21,7 +21,7 @@ const LearnNow = ({ id, api, onFinished }: { id: string; api: LearnApi; onFinish
   }, [api, id]);
   useEffect(load, [load]);
   if (failed) return <Failed message={failed} onRetry={load} />;
-  if (!batch) return <p>Loading…</p>;
+  if (!batch) return <Loading />;
   if (batch.items.length === 0) return <NothingToTeach />;
   return <Session batch={batch} api={api} now onFinished={onFinished} />;
 };
@@ -82,7 +82,7 @@ export const LearnScreen = ({ api = learnApi, nowId = nowFromUrl() }: { api?: Le
   if (now) return <LearnNow id={now} api={api} onFinished={finished} />;
   if (failed) return <Failed message={failed} onRetry={() => (setFailed(null), void load())} />;
   if (ended) return <Ending tally={ended.tally} story={ended.story} next={loaded ? loaded.batch : null} api={api} onMore={keepGoing} />;
-  if (!loaded) return <p>Loading…</p>;
+  if (!loaded) return <Loading />;
   if (started) return <Session batch={loaded.batch} api={api} now={false} onFinished={finished} />;
   return <StartPage state={loaded.state} batch={loaded.batch} filter={level} onTracks={(t) => void saveTracks(t)} onStart={() => start(loaded.batch)} />;
 };

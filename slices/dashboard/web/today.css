@@ -31,3 +31,33 @@
   .level b { font-size: 18px; }
   .level small { font-size: 10px; }
 }
+
+/* Arrival, the screen's one authored moment: the lines of the hero in a short capped stagger, the count rolls up
+   from 0 (today.tsx), then the line along the way up draws to where the Learner is and that dot rings once. */
+.app-main > .today { animation: none; }
+.today > * { animation: ma-rise var(--dur-long) var(--ease-out) both; }
+.today > :nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
+.today > :nth-child(3) { animation-delay: calc(var(--stagger) * 2); }
+.today > :nth-child(4) { animation-delay: calc(var(--stagger) * 3); }
+.today > :nth-child(5) { animation-delay: calc(var(--stagger) * 4); }
+.today > :nth-child(n + 6) { animation-delay: calc(var(--stagger) * 5); }
+.app-main > .path { animation-delay: calc(var(--stagger) * 5); }
+.levels-fill { transform-origin: left center; animation: ma-draw var(--dur-focal) var(--ease-in-out) 520ms both; }
+.level.now .level-dot { animation: ma-halo 900ms var(--ease-out) calc(520ms + var(--dur-focal)) both; }
+.level a .level-dot, .level a b { transition: border-color var(--dur-short), color var(--dur-short), scale var(--dur-short) var(--ease-out); }
+.level a:hover .level-dot, .level a:focus-visible .level-dot { scale: 1.15; border-color: var(--color-accent); }
+@media (prefers-reduced-motion: reduce) {
+  .levels-fill { animation: none; }
+  .level.now .level-dot { animation: none; }
+  .level a:hover .level-dot { scale: 1; }
+}
+
+/* Phones: the greeting wraps as whole words, the search keeps one line, and the end labels stay on screen */
+@media (max-width: 560px) {
+  .today .caps { letter-spacing: 0.16em; }
+  .today-search { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .levels-track { margin-inline: 30px; }
+}
+@media (hover: none) {
+  .today-search kbd { display: none; }
+}
