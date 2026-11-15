@@ -133,7 +133,7 @@ describe("reviewing a dialogue", () => {
 describe("the two-readings flag on a dialogue", () => {
   it("does not escalate: a dialogue has no single target reading, so only low confidence sends it to the supervisor", async () => {
     const w = await world();
-    await review(w, (call) => ({ ...(verdicts()(call) as object), bothReadingsAcceptable: true }));
+    await review(w, (call) => ({ ...verdicts()(call), bothReadingsAcceptable: true }));
     expect(approvals(w).clip).toBe("approved");
   });
 });
