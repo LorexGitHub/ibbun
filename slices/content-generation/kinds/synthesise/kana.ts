@@ -3,10 +3,22 @@ import type { Token } from "@ibbun/content-graph";
 const KATAKANA = /^[ァ-ヶー]+$/;
 /** Tokens that never start an accent phrase: they hang on the word before them. */
 const BOUND = new Set(["助詞", "助動詞", "接尾辞"]);
-const PAUSES = new Set(["、", "，", ","]);
+/** A pause, or white space, where the writer wanted a small break. */
+const PAUSES = new Set(["、", "，", ",", " "]);
 const SPOKEN_PARTICLE: Record<string, string> = { は: "ワ", へ: "エ", を: "オ" };
 
-const isPunctuation = (t: Token) => t.partOfSpeech[0] === "補助記号";
+/** Which vowel a lengthening mark continues: the vowel of the kana before it (スー→ウ, キョー→オ, ティー→イ). */
+const VOWEL_OF: Record<string, string> = {};
+for (const [kana, vowel] of [
+  ["アカサタナハマヤラワガザダバパャ", "ア"],
+  ["イキシチニヒミリギジビピィ", "イ"],
+  ["ウクスツヌフムユルグズブプヴュ", "ウ"],
+  ["エケセテネヘメレゲゼデベペェ", "エ"],
+  ["オコソトノホモヨロゴゾドボポョォヲ", "オ"],
+] as const)
+  for (const k of kana) VOWEL_OF[k] = vowel;
+
+const isPunctuation = (t: Token) => t.partOfSpeech[0] === "補助記号" || t.partOfSpeech[0] === "空白";
 
 /** How a token is said: Sudachi's reading says ハ for the particle は, the voice says ワ. */
 const spoken = (t: Token): string => {
@@ -38,6 +50,13 @@ const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
   return phrases;
 };
 
+/** VOICEVOX's kana parser cannot read ー, so each mark becomes the vowel it lengthens: スーパー → スウパア. */
+const expandLongVowels = (text: string): string => {
+  let out = "";
+  for (const c of text) out += c === "ー" ? (VOWEL_OF[out[out.length - 1] ?? ""] ?? c) : c;
+  return out;
+};
+
 /**
  * The kana string VOICEVOX is sent for a Sentence, built only from its approved tokens
  * (listening.md#audio-files): one accent phrase per content word with the particles after it, `/` between
@@ -47,5 +66,5 @@ const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
 export const kanaOf = (tokens: readonly Token[]): string => {
   const phrases = phrasesOf(tokens);
   if (!phrases.length) throw new Error("nothing to speak");
-  return phrases.map((p, i) => `${p.text}'${i === phrases.length - 1 ? "" : p.pauseAfter ? "、" : "/"}`).join("");
+  return phrases.map((p, i) => `${expandLongVowels(p.text)}'${i === phrases.length - 1 ? "" : p.pauseAfter ? "、" : "/"}`).join("");
 };

@@ -67,6 +67,16 @@ describe("the approved reading as kana", () => {
     expect(kanaOf(tokens)).toBe("キョウ'、アメ'");
   });
 
+  it("pauses at a space without speaking it", () => {
+    const tokens = [token("この", "コノ", ["連体詞"]), token(" ", "キゴウ", ["空白"]), token("公園", "コウエン", ["名詞"])];
+    expect(kanaOf(tokens)).toBe("コノ'、コウエン'");
+  });
+
+  it("spells a long vowel as the vowel it lengthens, which the engine's kana parser can read", () => {
+    const tokens = [token("スーパー", "スーパー", ["名詞"]), token("パーティー", "パーティー", ["名詞"]), token("ボーット", "ボーット", ["名詞"])];
+    expect(kanaOf(tokens)).toBe("スウパア'/パアティイ'/ボオット'");
+  });
+
   it("keeps a prefix and a suffix in the phrase they belong to", () => {
     const tokens = [token("お", "オ", ["接頭辞"]), token("茶", "チャ", ["名詞"]), token("さん", "サン", ["接尾辞"])];
     expect(kanaOf(tokens)).toBe("オチャサン'");
