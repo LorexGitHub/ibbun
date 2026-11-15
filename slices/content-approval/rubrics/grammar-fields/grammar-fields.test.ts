@@ -161,8 +161,7 @@ describe("what the reviewer is told when a field is empty", () => {
     const [draft] = await grammarFieldsDrafts(w.a, w.run.id);
     const values = grammarFieldsValues(draft!, { failures: [], level: null });
     expect(values).toMatchObject({ level: "Unlevelled", forms: "none", formation: "none", notes: "Said when regretting." });
-    expect(values.links).toBe("- 食べてしまった。 (none) 「食べてしまっ」
-  tokens: 食べ/食べる/動詞/- て/て/動詞/- しまっ/しまう/動詞/- た/た/動詞/-");
+    expect(values.links).toBe("- 食べてしまった。 (none) 「食べてしまっ」\n  tokens: 食べ/食べる/動詞/- て/て/動詞/- しまっ/しまう/動詞/- た/た/動詞/-");
     w.graph.sentenceDemonstratesGrammar.length = 0;
     const [bare] = await grammarFieldsDrafts(w.a, w.run.id);
     expect(grammarFieldsValues({ ...bare!, point: { ...bare!.point, notes: null } }, { failures: [], level: "N4" })).toMatchObject({ links: "none", notes: "none", level: "N4" });
