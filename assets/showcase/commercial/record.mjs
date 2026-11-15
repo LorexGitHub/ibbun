@@ -46,14 +46,15 @@ const box = async (loc) => {
 const mark = async (name, loc) => (marks[name] = { t: now(), box: loc ? await box(loc) : null });
 const hold = (ms) => page.waitForTimeout(ms);
 
-const answerFor = (prompts, sentenceText) => {
-  const p = prompts.find((q) => sentenceText.includes(q.sentence.before + q.sentence.after) || sentenceText.replace("＿＿＿", q.sentence.target) === q.sentence.before + q.sentence.target + q.sentence.after);
-  return p ?? prompts[0];
-};
+const showsSentence = (q, sentenceText) =>
+  sentenceText.includes(q.sentence.before + q.sentence.after) || sentenceText.replace("＿＿＿", q.sentence.target) === q.sentence.before + q.sentence.target + q.sentence.after;
+const answerFor = (prompts, sentenceText) => prompts.find((q) => showsSentence(q, sentenceText)) ?? prompts[0];
+const acceptedValue = ({ written, reading }) => written ?? reading;
+const answerValue = (a) => (a.facet === "meaning" ? a.meanings[0].text : acceptedValue(a.accepted[0]));
 const fill = async (prompt) => {
   for (const f of prompt.facets) {
     const label = { cloze: "Answer", reading: "Reading in this sentence", meaning: "Meaning of the kanji" }[f.facet];
-    const value = f.answerData.facet === "meaning" ? f.answerData.meanings[0].text : f.answerData.accepted[0].written ?? f.answerData.accepted[0].reading;
+    const value = answerValue(f.answerData);
     const input = page.getByLabel(label, { exact: true });
     await input.click();
     await input.fill(value);

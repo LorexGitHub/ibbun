@@ -51,19 +51,19 @@ const frame = (box, pad = 48, minW = 640) => {
   return { x: even(x), y: even(y), w: even(w), h: even(h) };
 };
 
+/** The caption fades in over the clip as a second input. */
+const overlay = (caption, dur) =>
+  caption
+    ? { inputs: ["-loop", "1", "-t", String(dur), "-i", join(seg, `${caption}.png`)], filter: `;[1:v]format=rgba,fade=in:st=0.25:d=0.3:alpha=1[c];[v][c]overlay=0:0[v2]`, out: "[v2]" }
+    : { inputs: [], filter: "", out: "[v]" };
 /** A piece of the take, cropped to `box`, pushing in by `push`, with an optional caption. */
 const clip = (name, from, to, box, { push = 0.06, caption } = {}) => {
   const dur = +(to - from).toFixed(3);
   const n = Math.round(dur * FPS);
   const c = frame(box);
   const zoom = `crop=${c.w}:${c.h}:${c.x}:${c.y},scale=${W * 2}:${H * 2}:flags=lanczos,zoompan=z='1+${push}*on/${n}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s=${W}x${H}:fps=${FPS}`;
-  const args = ["-ss", String(from), "-t", String(dur), "-i", take];
-  let vf = `[0:v]fps=${FPS},${zoom}[v]`;
-  if (caption) {
-    args.push("-loop", "1", "-t", String(dur), "-i", join(seg, `${caption}.png`));
-    vf += `;[1:v]format=rgba,fade=in:st=0.25:d=0.3:alpha=1[c];[v][c]overlay=0:0[v2]`;
-  }
-  ff(...args, "-filter_complex", vf, "-map", caption ? "[v2]" : "[v]", "-an", ...enc, join(seg, `${name}.mp4`));
+  const over = overlay(caption, dur);
+  ff("-ss", String(from), "-t", String(dur), "-i", take, ...over.inputs, "-filter_complex", `[0:v]fps=${FPS},${zoom}[v]${over.filter}`, "-map", over.out, "-an", ...enc, join(seg, `${name}.mp4`));
   return { file: join(seg, `${name}.mp4`), dur };
 };
 
