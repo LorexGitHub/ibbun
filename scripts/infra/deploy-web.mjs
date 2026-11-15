@@ -5,8 +5,10 @@ import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "../..");
+// The stage is the showcase (ADR 0017): the build leaves out the Supervisor's slices and offers "Try it".
+const env = { ...process.env, SHOWCASE: "1" };
 const run = (command, args, cwd = root) => {
-  const result = spawnSync(command, args, { cwd, stdio: ["ignore", "pipe", "inherit"], encoding: "utf8", shell: process.platform === "win32" });
+  const result = spawnSync(command, args, { cwd, env, stdio: ["ignore", "pipe", "inherit"], encoding: "utf8", shell: process.platform === "win32" });
   if (result.status !== 0) throw new Error(`${command} ${args.join(" ")} failed`);
   return result.stdout.trim();
 };
