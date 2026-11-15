@@ -83,9 +83,9 @@ const Screens = ({ shell, who, session }: { shell: Shell; who: Who; session: Nav
 };
 
 export const App = ({ shell, initialWho }: { shell: Shell; initialWho?: Who }) => {
-  const { pathname } = useLocation();
+  const { pathname, key } = useLocation();
   const navigate = useNavigate();
-  const [fetched, setWho] = useWho(pathname);
+  const [fetched, setWho] = useWho(key);
   const who = initialWho ?? fetched;
   const nav = visibleTo(shell.nav, who);
   const session = sessionAt(nav, pathname);

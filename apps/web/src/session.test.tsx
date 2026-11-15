@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import type { Slice } from "@ibbun/slice";
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, useLocation } from "react-router";
+import { MemoryRouter, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { App } from "./App.tsx";
@@ -57,6 +57,30 @@ describe("useWho", () => {
     await act(async () => fast.settle({ ok: true, data: null }));
     await act(async () => slow.settle({ ok: true, data: learner }));
     expect(result.current).toEqual({ state: "out" });
+  });
+});
+
+describe("logging in from the welcome on Home", () => {
+  it("shows Home's own widgets once the welcome's log in returns to the same path", async () => {
+    let loggedIn = false;
+    vi.spyOn(client, "session").mockImplementation(async () => ({ ok: true, data: loggedIn ? learner : null }));
+    const Door = () => {
+      const navigate = useNavigate();
+      return <button onClick={() => ((loggedIn = true), navigate("/"))}>Come in</button>;
+    };
+    const Today = () => <p>Today</p>;
+    const door: Slice = {
+      name: "door",
+      web: async () => ({ widgets: [{ slot: "welcome", component: Door }, { slot: "home", component: Today }] }),
+    };
+    const shell = await buildShell(discoverSlices({ ...modules, door: { default: door } }));
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App shell={shell} />
+      </MemoryRouter>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Come in" }));
+    expect(await screen.findByText("Today")).toBeTruthy();
   });
 });
 
