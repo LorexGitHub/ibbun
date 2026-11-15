@@ -1,0 +1,176 @@
+{
+  "fps": 30,
+  "creativeDirection": {
+    "style": "studio",
+    "tone": "editorial",
+    "soundDesign": "silent"
+  },
+  "production": {
+    "hardMaxSec": 50,
+    "maxZoomScale": 1.9
+  },
+  "shots": [
+    {
+      "n": 1,
+      "kind": "title",
+      "durSec": 3.4,
+      "eyebrow": "一文ずつ",
+      "title": "Learn Japanese for the JLPT, N5 to N1, one sentence at a time.",
+      "titleLines": [
+        "Learn Japanese for the JLPT,",
+        "N5 to N1, one sentence at a time."
+      ],
+      "emphasis": "N5 to N1,",
+      "transition": "cut"
+    },
+    {
+      "n": 2,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 4.58,
+      "durSec": 3.72,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "demonstrate",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "camera": [
+        {
+          "atSec": 0,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 52.59
+        },
+        {
+          "atSec": 3.67,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 52.59
+        }
+      ],
+      "transition": "cut"
+    },
+    {
+      "n": 3,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 16.82,
+      "durSec": 6.34,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "demonstrate",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "camera": [
+        {
+          "atSec": 0,
+          "scale": 1.05,
+          "focusX": 50,
+          "focusY": 49.25
+        },
+        {
+          "atSec": 6.29,
+          "scale": 1.05,
+          "focusX": 50,
+          "focusY": 49.25
+        }
+      ],
+      "transition": "cut"
+    },
+    {
+      "n": 4,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 27.26,
+      "durSec": 5.23,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "demonstrate",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "camera": [
+        {
+          "atSec": 0,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 59.05
+        },
+        {
+          "atSec": 5.18,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 59.05
+        }
+      ],
+      "transition": "cut"
+    },
+    {
+      "n": 5,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 35.98,
+      "durSec": 4.92,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "demonstrate",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "camera": [
+        {
+          "atSec": 0,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 58.73
+        },
+        {
+          "atSec": 4.87,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 58.73
+        }
+      ],
+      "transition": "cut"
+    },
+    {
+      "n": 6,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 44.88,
+      "durSec": 6.25,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "payoff",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "transition": "cut"
+    },
+    {
+      "n": 7,
+      "kind": "title",
+      "durSec": 4.2,
+      "eyebrow": "一文ずつ",
+      "title": "Learn Japanese for the JLPT, N5 to N1, one sentence at a time.",
+      "titleLines": [
+        "Learn Japanese for the JLPT,",
+        "N5 to N1, one sentence at a time."
+      ],
+      "emphasis": "N5 to N1,",
+      "transition": "cut"
+    }
+  ]
+}

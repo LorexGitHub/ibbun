@@ -1,6 +1,6 @@
 // Seeds the promo's demo Learner with a believable two-week history, so Today shows a streak,
 // Reviews due and Known counts instead of zeros. Safe to run again: it makes a fresh Learner each run.
-// Run: node --env-file-if-exists=.env assets/showcase/commercial/seed-demo.ts  (prints the email)
+// Run: node --env-file-if-exists=.env assets/showcase/demo/seed-demo.mjs  (prints the email)
 import { createDb } from "../../../platform/db/src/index.ts";
 import { addLearner } from "../../../core/learner/src/learners.ts";
 import { hashPassword } from "../../../core/learner/src/password.ts";
@@ -14,7 +14,7 @@ const db = createDb(url, { max: 2 });
 const DAY = 86_400_000;
 const now = Date.now();
 
-const n5 = async (withExamples: boolean, type: string, limit: number, offset = 0): Promise<string[]> => {
+const n5 = async (withExamples, type, limit, offset = 0) => {
   const { rows } = await db.$client.query(
     `select si.id from content_graph.study_item si
        join content_graph.computed_level cl on cl.record_id = si.id and cl.level = 'N5'
@@ -24,16 +24,16 @@ const n5 = async (withExamples: boolean, type: string, limit: number, offset = 0
       order by si.id limit $2 offset $3`,
     [type, limit, offset],
   );
-  return rows.map((r: { id: string }) => r.id);
+  return rows.map((r) => r.id);
 };
 
 try {
   const email = `promo-${now}@ibbun.test`;
   const learner = await addLearner(db, { email, role: "learner", emailVerified: true, passwordHash: await hashPassword(DEMO_PASSWORD) });
   const progress = createProgress(db);
-  const learnerId = learner.id as never;
-  const rec = (studyItemId: string, kind: "manual" | "learn" | "srs", daysAgo: number, extra: object = {}) =>
-    progress.record({ learnerId, studyItemId: studyItemId as never, kind, passed: true, at: new Date(now - daysAgo * DAY).toISOString(), ...extra });
+  const learnerId = learner.id;
+  const rec = (studyItemId, kind, daysAgo, extra = {}) =>
+    progress.record({ learnerId, studyItemId, kind, passed: true, at: new Date(now - daysAgo * DAY).toISOString(), ...extra });
 
   // Placement: what the Learner already knew on day one.
   const placed = [...(await n5(false, "word", 140)), ...(await n5(false, "kanji", 30))];

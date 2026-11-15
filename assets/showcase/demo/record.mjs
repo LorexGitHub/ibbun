@@ -1,6 +1,6 @@
 // Records the raw footage for the promo: one Playwright video of the logged-in demo Learner, plus
 // marks.json with when each beat happens (seconds into the video) and where its subject sits (CSS px).
-// Run: EMAIL=<from seed-demo.ts> node assets/showcase/commercial/record.mjs
+// Run: EMAIL=<from seed-demo.mjs> node assets/showcase/demo/record.mjs
 import { chromium } from "@playwright/test";
 import { mkdirSync, readdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -13,7 +13,7 @@ const WEB = "http://localhost:5173";
 const API = "http://localhost:3000";
 const EMAIL = process.env.EMAIL;
 const PASSWORD = process.env.PASSWORD ?? "ibbun-promo-demo-2026";
-if (!EMAIL) throw new Error("EMAIL is not set (run seed-demo.ts first)");
+if (!EMAIL) throw new Error("EMAIL is not set (run seed-demo.mjs first)");
 const VIEW = { width: 1440, height: 810 };
 
 const browser = await chromium.launch();
@@ -29,11 +29,14 @@ await warm.request.get(`${API}/api/dashboard/today`, { timeout: 300_000 });
 await warm.close();
 
 const ctx = await browser.newContext({
-  viewport: VIEW,
+  // Recorded at 1080p with the page zoomed 4/3: the 1440-wide layout, drawn at full 1080p sharpness.
+  // Playwright pads, rather than scales, a video larger than the viewport, so deviceScaleFactor won't do.
+  viewport: { width: 1920, height: 1080 },
   colorScheme: "light",
   storageState: state,
-  recordVideo: { dir: raw, size: VIEW },
+  recordVideo: { dir: raw, size: { width: 1920, height: 1080 } },
 });
+await ctx.addInitScript(() => document.addEventListener("DOMContentLoaded", () => (document.documentElement.style.zoom = "1.3333")));
 await ctx.addInitScript(() => localStorage.setItem("ibbun.theme", JSON.stringify({ palette: "shu", mode: "light" })));
 const page = await ctx.newPage();
 const t0 = Date.now();
@@ -99,14 +102,6 @@ await page.locator(".quiz .sentence").waitFor();
 await hold(500);
 const prompts = learnBatch.items.map((i) => i.prompt);
 const quizPrompt = answerFor(prompts, await page.locator(".quiz .sentence").innerText());
-// The promo's story follows this item, so its cards always match the footage.
-const said = (facet) => quizPrompt.facets.find((f) => f.facet === facet)?.answerData;
-const { before, target, after } = quizPrompt.sentence;
-marks.story = {
-  sentence: before + target + after,
-  answer: [said("reading")?.accepted[0].reading, said("meaning")?.meanings[0].text, said("cloze")?.accepted[0].written].filter(Boolean).join(" · "),
-  translation: quizPrompt.translationEn,
-};
 await mark("quiz", page.locator(".question"));
 await hold(800);
 await fill(quizPrompt);
