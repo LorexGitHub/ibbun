@@ -24,7 +24,7 @@ type Line = { text: string; translationEn: string; speaker?: "男" | "女" };
 const WATER: Line[] = [{ text: "水を飲む。", translationEn: "I drink water." }];
 
 /** A Learner, the Words 水 and 飲む at N5 and 酒 at N1, and one drafted passage of `lines` for a request of `kind`. */
-const world = async (kind: "batch-text" | "practice-text", lines: Line[] = WATER, passage: { form?: "prose" | "dialogue"; questions?: { question: string; choices: string[]; answer: number }[] } = {}, opts: { episode?: 1 | 2; level?: string } = {}) => {
+const world = async (kind: "batch-text" | "practice-text", lines: Line[] = WATER, passage: { form?: "prose" | "dialogue"; questions?: { question: string; choices: string[]; answer: number }[] } = {}, opts: { episode?: 1 | 2; level?: "N5" | "N4" | "N3" | "N2" | "N1" | "unlevelled" } = {}) => {
   const graph = emptyGraph();
   const a = createFakeAuthoring(graph);
   const texts = createFakeTexts();
