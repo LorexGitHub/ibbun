@@ -350,12 +350,31 @@
 }
 
 /* What is asked sits in the middle of the card: the item or its sentence, and the English that goes with it.
-   What is taught after it, and the answer fields, stay set from the left edge. */
+   The quiz's answer fields stay set from the left edge. */
 .lesson-card h2,
-.lesson-card > .caps,
 .lesson-translation,
 .question .sentence,
 .question form > p.muted,
 .question .feedback > :first-child {
   text-align: center;
+}
+
+/* A turned lesson card is centred throughout: the meanings, the readings and strokes as a label-and-value pair in
+   the middle (labels set right against their values), the explanation and the Example. */
+.lesson-card {
+  text-align: center;
+}
+.lesson-meanings {
+  justify-content: center;
+}
+.lesson-details {
+  grid-template-columns: max-content max-content;
+  justify-content: center;
+  text-align: start;
+}
+.lesson-details dt {
+  text-align: end;
+}
+.lesson-example {
+  justify-items: center;
 }

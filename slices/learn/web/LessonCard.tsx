@@ -86,8 +86,7 @@ type Props = {
 };
 
 /**
- * One Study Item as a card with two sides. The front asks whether the Learner knows it. The back teaches it and
- * says which way they answered. The answer changes nothing: only "Mark as Known" keeps the item out of the quiz.
+ * One Study Item as a card with two sides. The front asks whether the Learner knows it. The back teaches it. The answer changes nothing: only "Mark as Known" keeps the item out of the quiz.
  */
 export const LessonCard = ({ lesson, prompt, inSentence, last, onNext, onKnown }: Props) => {
   const [said, setSaid] = useState<Said | null>(null);
@@ -98,7 +97,6 @@ export const LessonCard = ({ lesson, prompt, inSentence, last, onNext, onKnown }
       </h2>
       {said ? (
         <>
-          <p className="caps">You said: {said === "known" ? "I know this" : "not yet"}</p>
           <Back lesson={lesson} prompt={prompt} inSentence={inSentence} />
           <div className="lesson-actions">
             <Button onClick={onKnown}>Mark as Known</Button>
