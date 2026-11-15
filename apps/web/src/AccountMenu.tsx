@@ -1,4 +1,5 @@
 import type { NavEntry } from "@ibbun/slice";
+import { buttonClass } from "@ibbun/ui";
 import { Link, useNavigate } from "react-router";
 import {
   DropdownMenu,
@@ -34,7 +35,7 @@ export const AccountMenu = ({ who, nav, onSignOut }: { who: Who; nav: NavEntry[]
   if (who.state === "loading") return <span className="who" aria-hidden />;
   if (who.state === "out")
     return (
-      <Link className="pill" to="/login">
+      <Link className={buttonClass()} to="/login">
         Log in
       </Link>
     );

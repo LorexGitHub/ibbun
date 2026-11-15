@@ -86,13 +86,13 @@ describe("ThemePicker", () => {
 
   it("puts the chosen look and mode on <html> and saves them on the device", () => {
     render(<ThemePicker />);
-    fireEvent.click(screen.getByRole("radio", { name: /^Ai/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /^Matcha/ }));
     fireEvent.click(screen.getByRole("radio", { name: "Dark" }));
-    expect(document.documentElement.dataset.palette).toBe("ai");
+    expect(document.documentElement.dataset.palette).toBe("matcha");
     expect(document.documentElement.dataset.mode).toBe("dark");
-    expect(JSON.parse(localStorage.getItem("ibbun.theme")!)).toEqual({ palette: "ai", mode: "dark" });
-    expect(screen.getByRole("radio", { name: /^Ai/ }).getAttribute("aria-checked")).toBe("true");
-    expect(screen.getByRole("radio", { name: /^Shu/ }).getAttribute("aria-checked")).toBe("false");
+    expect(JSON.parse(localStorage.getItem("ibbun.theme")!)).toEqual({ palette: "matcha", mode: "dark" });
+    expect(screen.getByRole("radio", { name: /^Matcha/ }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: /^Ai/ }).getAttribute("aria-checked")).toBe("false");
   });
 
   it("draws every swatch in the mode it would show, and checks only the chosen mode", () => {

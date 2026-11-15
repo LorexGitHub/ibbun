@@ -34,12 +34,12 @@ describe("kit.css", () => {
 
 describe("parseTheme", () => {
   it("reads a saved theme", () => {
-    expect(parseTheme('{"palette":"ai","mode":"dark"}')).toEqual({ palette: "ai", mode: "dark" });
+    expect(parseTheme('{"palette":"matcha","mode":"dark"}')).toEqual({ palette: "matcha", mode: "dark" });
   });
 
-  it("falls back to Shu following the device for anything it can't read", () => {
-    expect(parseTheme(null)).toEqual({ palette: "shu", mode: "system" });
-    expect(parseTheme("not json")).toEqual({ palette: "shu", mode: "system" });
-    expect(parseTheme('{"palette":"neon","mode":"sepia"}')).toEqual({ palette: "shu", mode: "system" });
+  it("falls back to Ai following the device for anything it can't read", () => {
+    expect(parseTheme(null)).toEqual({ palette: "ai", mode: "system" });
+    expect(parseTheme("not json")).toEqual({ palette: "ai", mode: "system" });
+    expect(parseTheme('{"palette":"neon","mode":"sepia"}')).toEqual({ palette: "ai", mode: "system" });
   });
 });

@@ -33,7 +33,7 @@
 }
 
 /* Arrival, the screen's one authored moment: the lines of the hero in a short capped stagger, the count rolls up
-   from 0 (today.tsx), then the line along the way up draws to where the Learner is and that dot rings once. */
+   from 0 (today.tsx), then the line along the way up draws to where the Learner is and that dot is stamped. */
 .app-main > .today { animation: none; }
 .today > * { animation: ma-rise var(--dur-long) var(--ease-out) both; }
 .today > :nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
@@ -43,7 +43,7 @@
 .today > :nth-child(n + 6) { animation-delay: calc(var(--stagger) * 5); }
 .app-main > .path { animation-delay: calc(var(--stagger) * 5); }
 .levels-fill { transform-origin: left center; animation: ma-draw var(--dur-focal) var(--ease-in-out) 520ms both; }
-.level.now .level-dot { animation: ma-halo 900ms var(--ease-out) calc(520ms + var(--dur-focal)) both; }
+.level.now .level-dot { animation: ma-stamp 420ms var(--ease-out) calc(520ms + var(--dur-focal)) both; }
 .level a .level-dot, .level a b { transition: border-color var(--dur-short), color var(--dur-short), scale var(--dur-short) var(--ease-out); }
 .level a:hover .level-dot, .level a:focus-visible .level-dot { scale: 1.15; border-color: var(--color-accent); }
 @media (prefers-reduced-motion: reduce) {

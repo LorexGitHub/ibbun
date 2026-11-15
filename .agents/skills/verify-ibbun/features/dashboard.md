@@ -31,7 +31,7 @@ Preconditions:
 - **No such level.** Open `/level/n9`: the alert names N9 and "Back to Today" leads to `/`.
 - **Logged out.** In a fresh context open `/`. The page shows the shell's welcome, and `curl -s -o /dev/null -w '%{http_code}' http://localhost:5173/api/dashboard/today` prints `401`.
 - **Spec.** `pnpm exec playwright test --project=learner slices/dashboard/tests` passes.
-- **Arrival.** Record `/` with Reviews due. The count rolls up from 0 to the due number, the hero lines arrive one after another within about 0.4 s, then the accent line along "Your way up to N1" draws to the current level and that dot rings once. With `reducedMotion: "reduce"` the count is the real number from the first frame and nothing draws.
+- **Arrival.** Record `/` with Reviews due. The count rolls up from 0 to the due number, the hero lines arrive one after another within about 0.4 s, then the accent line along "Your way up to N1" draws to the current level and that dot is stamped. With `reducedMotion: "reduce"` the count is the real number from the first frame and nothing draws.
 
 ## Gotchas
 

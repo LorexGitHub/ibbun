@@ -8,8 +8,6 @@
 @keyframes ma-stamp { 0% { opacity: 0; scale: 1.35; } 55% { opacity: 1; scale: 0.96; } 100% { scale: 1; } }
 /* A line drawn from its left end */
 @keyframes ma-draw { from { scale: 0 1; } }
-/* One soft ring out of the current dot, once */
-@keyframes ma-halo { from { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 45%, transparent); } to { box-shadow: 0 0 0 14px transparent; } }
 /* A short ink stroke crossing a hairline: work is happening, with no claim about how much */
 @keyframes ma-sweep { from { translate: -100% 0; } to { translate: 250% 0; } }
 
@@ -17,9 +15,8 @@
 .app-main > * { animation: ma-rise var(--dur-long) var(--ease-out) both; }
 
 /* Buttons answer the press, not just the hover */
-.btn { transition: translate var(--dur-micro) var(--ease-out), scale var(--dur-micro) var(--ease-out), background-color var(--dur-short), border-color var(--dur-short), box-shadow var(--dur-short) var(--ease-out); }
-.btn:active:not(:disabled) { translate: 0; scale: 0.97; transition-duration: 60ms; }
-.btn--primary:hover:not(:disabled) { box-shadow: 0 18px 34px -12px color-mix(in oklab, var(--p-accent) 80%, transparent); }
+.btn { transition: scale var(--dur-micro) var(--ease-out), background-color var(--dur-short), color var(--dur-short), box-shadow var(--dur-short) var(--ease-out); }
+.btn:active:not(:disabled) { scale: 0.97; transition-duration: 60ms; }
 
 /* An answer's verdict: what was announced rises in, and a right answer's ink pill is stamped */
 [role="status"] { animation: ma-rise var(--dur-short) var(--ease-out) both; }

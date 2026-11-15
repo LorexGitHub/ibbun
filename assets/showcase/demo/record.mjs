@@ -37,7 +37,7 @@ const ctx = await browser.newContext({
   recordVideo: { dir: raw, size: { width: 1920, height: 1080 } },
 });
 await ctx.addInitScript(() => document.addEventListener("DOMContentLoaded", () => (document.documentElement.style.zoom = "1.3333")));
-await ctx.addInitScript(() => localStorage.setItem("ibbun.theme", JSON.stringify({ palette: "shu", mode: "light" })));
+await ctx.addInitScript(() => localStorage.setItem("ibbun.theme", JSON.stringify({ palette: "ai", mode: "light" })));
 const page = await ctx.newPage();
 const t0 = Date.now();
 const now = () => (Date.now() - t0) / 1000;
@@ -135,7 +135,7 @@ marks.reviewEnd = { t: now() };
 await page.goto(`${WEB}/`);
 await page.locator("#today-count").waitFor({ timeout: 300_000 });
 await hold(1200);
-const looks = [["shu", "dark"], ["ai", "light"], ["matcha", "dark"], ["sakura", "light"], ["shiro-kuro", "dark"], ["shu", "light"]];
+const looks = [["ai", "dark"], ["shu", "light"], ["matcha", "dark"], ["sakura", "light"], ["shiro-kuro", "dark"], ["ai", "light"]];
 marks.looks = { t: now(), each: [] };
 // Each look spreads from the seal, as Settings' picker does it (theme.tsx revealTheme, motion.css).
 for (const [palette, mode] of looks) {

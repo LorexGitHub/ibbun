@@ -1,9 +1,9 @@
 import { useEffect, useSyncExternalStore } from "react";
 
-/** The five looks in palettes.css (ADR 0014). */
+/** The five looks in palettes.css (ADR 0014). Ai, the first, is the default. */
 export const PALETTES = [
-  { key: "shu", name: "Shu", glyph: "朱", note: "Washi paper, sumi ink, a vermilion seal." },
   { key: "ai", name: "Ai", glyph: "藍", note: "Indigo dye on undyed cotton." },
+  { key: "shu", name: "Shu", glyph: "朱", note: "Washi paper, sumi ink, a vermilion seal." },
   { key: "matcha", name: "Matcha", glyph: "抹茶", note: "Tea-house green, soft and calm." },
   { key: "sakura", name: "Sakura", glyph: "桜", note: "Cherry blossom on plum bark." },
   { key: "shiro-kuro", name: "Shiro / Kuro", glyph: "白黒", note: "Pure white and pure black, no colour at all." },
@@ -21,7 +21,7 @@ export const MODES: { key: ThemeMode; label: string; short: string; glyph: strin
 ];
 
 const KEY = "ibbun.theme";
-const DEFAULT: Theme = { palette: "shu", mode: "system" };
+const DEFAULT: Theme = { palette: "ai", mode: "system" };
 
 /** Reads the saved theme; anything unreadable or unknown falls back to the default. */
 export const parseTheme = (raw: string | null): Theme => {
