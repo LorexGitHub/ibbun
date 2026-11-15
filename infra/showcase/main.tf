@@ -45,6 +45,40 @@ module "api" {
   database_connect_arn = module.database.connect_arn
 }
 
+module "cdn" {
+  source            = "../modules/cdn"
+  name              = "ibbun-showcase"
+  web_bucket        = module.storage.web
+  audio_bucket      = module.storage.audio
+  api_function_name = module.api.function_name
+  api_function_url  = module.api.function_url
+}
+
+# In SSM rather than the API's environment: the distribution needs the function URL first, and the
+# API reads this at its next cold start.
+resource "aws_ssm_parameter" "app_url" {
+  name  = "/ibbun-showcase/app/APP_URL"
+  type  = "String"
+  value = module.cdn.url
+}
+
+output "url" {
+  description = "The showcase's link."
+  value       = module.cdn.url
+}
+
+output "distribution_id" {
+  value = module.cdn.distribution_id
+}
+
+output "web_bucket" {
+  value = module.storage.web.bucket
+}
+
+output "audio_bucket" {
+  value = module.storage.audio.bucket
+}
+
 output "database_url" {
   value = module.database.url
 }
