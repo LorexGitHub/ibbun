@@ -36,10 +36,10 @@ const story = (previous: { cast: string[]; episodeSummary: string } | undefined)
     ? [`Recurring cast and setting: ${previous.cast.join("、")}`, `Story so far: ${previous.episodeSummary}`, "Continue the story with the next episode."]
     : ["This is the first episode: invent a small recurring cast and a setting that suit the level."];
 
-type Attempt = { texts: Texts; now: () => Date; request: GenerationRequest; context: BatchContext; episode: number };
+type Attempt = { texts: Texts; now: () => Date; request: GenerationRequest; context: BatchContext; episode: number; type: string };
 
 /** The Batch Text record is written once, with the first attempt; retries rewrite only the passage. */
-const recordBatchText = async ({ texts, now, request, context, episode }: Attempt, { cast, episodeSummary }: Passage) => {
+const recordBatchText = async ({ texts, now, request, context, episode, type }: Attempt, { cast, episodeSummary }: Passage) => {
   const recorded = (await texts.batchTexts(context.learnerId)).some((t) => t.passageId === request.targetId);
   if (recorded) return;
   await texts.record({
@@ -52,6 +52,7 @@ const recordBatchText = async ({ texts, now, request, context, episode }: Attemp
     studyItemIds: context.itemIds,
     episodeSummary,
     cast,
+    passageType: type,
   });
 };
 
@@ -78,7 +79,7 @@ const plan = async (auth: Authoring, request: GenerationRequest, feedback: strin
     ...(feedback ? [`The previous attempt was rejected: ${feedback}`] : []),
   ].join("\n");
 
-  const attempt: Attempt = { texts, now, request, context, episode };
+  const attempt: Attempt = { texts, now, request, context, episode, type };
   const used = [...batch, ...earlier];
   return definePlan({
     templateVersion: TEMPLATE_VERSION,

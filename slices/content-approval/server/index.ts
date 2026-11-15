@@ -7,7 +7,7 @@ import { createLearnerAuth, learnerConfigFromEnv } from "@ibbun/learner";
 import { createLlmFromEnv } from "@ibbun/llm";
 import { createMail, mailConfigFromEnv } from "@ibbun/mail";
 import { createSudachiNlp } from "@ibbun/nlp";
-import { createProgress } from "@ibbun/progress";
+import { createProgress, createTexts } from "@ibbun/progress";
 import { createSamplingApi } from "../sampling/api.ts";
 import { DEFAULT_SAMPLING } from "../sampling/config.ts";
 import { createPostgresStore } from "../sampling/postgres.ts";
@@ -26,7 +26,8 @@ const authoring = createAuthoring(db);
 
 const queueJobs = createSqsJobsFromEnv(env);
 
-const sampling = createSampling({ store: createPostgresStore(db), authoring, progress: createProgress(db), jobs: queueJobs, config: DEFAULT_SAMPLING });
+const progress = createProgress(db);
+const sampling = createSampling({ store: createPostgresStore(db), authoring, progress, jobs: queueJobs, config: DEFAULT_SAMPLING });
 
 const reviewDeps = once(() => ({
   authoring,
@@ -35,6 +36,8 @@ const reviewDeps = once(() => ({
   llm: createLlmFromEnv(env),
   config: DEFAULT_CONFIG,
   sampling,
+  progress,
+  texts: createTexts(db),
 }));
 
 const sessions = once(

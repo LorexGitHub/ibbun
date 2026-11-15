@@ -6,7 +6,7 @@ import { ContentGenerate, ContentReview } from "@ibbun/content-graph/jobs";
 import { createFakeJobs, handler } from "@ibbun/jobs";
 import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@ibbun/llm";
 import { createFakeNlp } from "@ibbun/nlp";
-import { createFakeProgress } from "@ibbun/progress/testing";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
 import { DEFAULT_CONFIG } from "../../src/config.ts";
 import { grammarFieldsDrafts, grammarFieldsValues } from "./index.ts";
 import { rubricFor } from "../../src/rubrics.ts";
@@ -66,7 +66,7 @@ const review = async (w: Awaited<ReturnType<typeof world>>, answer = verdicts())
   const jobs = createFakeJobs();
   const llm = createFakeLlm({ config: loadLlmConfig({}), answer });
   const sampling = createSampling({ store: createMemoryStore(), authoring: w.a, progress: createFakeProgress(), jobs, config: DEFAULT_SAMPLING });
-  const deps = { authoring: w.a, nlp: createFakeNlp([]), llm, jobs, config: DEFAULT_CONFIG, sampling };
+  const deps = { authoring: w.a, nlp: createFakeNlp([]), llm, jobs, config: DEFAULT_CONFIG, sampling, progress: createFakeProgress(), texts: createFakeTexts() };
   const generated: unknown[] = [];
   await jobs.work([handler(ContentGenerate, async (p) => void generated.push(p)), handler(ContentReview, (p) => reviewRun(deps, p))]);
   await jobs.enqueue(ContentReview, { requestId: w.request.id, runId: w.run.id });

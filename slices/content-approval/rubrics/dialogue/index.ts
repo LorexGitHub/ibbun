@@ -3,6 +3,7 @@ import { currentLevel } from "@ibbun/content-graph/levels";
 import type { Nlp } from "@ibbun/nlp";
 import { toStoredTokens } from "../../src/checks.ts";
 import type { Rec } from "../../src/drafts.ts";
+import { questionFailures, questionLines } from "../../src/passages.ts";
 
 type Line = { line: Row<"clipVoicesSentence">; sentence: Row<"sentence"> };
 
@@ -40,30 +41,13 @@ export const dialogueDrafts = async (a: Authoring, runId: string): Promise<Dialo
   return [{ kind: "dialogue", primary: { table: "studyItem", id: clip.id }, records, grammarPoint, lines, questions }];
 };
 
-const questionFailures = (questions: Row<"example">[]): Failure[] => {
-  const wrongCount = questions.length === 2 ? [] : [{ check: "questions", message: `There are ${questions.length} questions, not 2.` }];
-  return [
-    ...wrongCount,
-    ...questions.flatMap((q, i) => {
-      const choices = q.comprehensionQuestion?.choices ?? [];
-      return choices.length === 4 && new Set(choices).size === 4 ? [] : [{ check: "questions", message: `Question ${i + 1} needs four different choices.` }];
-    }),
-  ];
-};
-
 /** Stores Sudachi's tokens on every line (audio is built from them), then checks that both speakers talk and each question is well formed. */
 export const checkDialogue = async (a: Authoring, nlp: Nlp, draft: DialogueDraft): Promise<DialogueCheck> => {
   for (const { sentence } of draft.lines) await a.update("sentence", { id: sentence.id }, { tokens: toStoredTokens(await nlp.tokenize(sentence.text)) });
   const speakers = new Set(draft.lines.map(({ line }) => line.speaker));
   const turns = speakers.size === 2 ? [] : [{ check: "speaker-turns", message: "Both 男 and 女 must speak." }];
   const level = currentLevel(await a.rows("levelCandidate", { studyItemId: draft.grammarPoint.studyItemId }));
-  return { failures: [...turns, ...questionFailures(draft.questions)], level };
-};
-
-const questionLines = (q: Row<"example">, i: number): string => {
-  const { question, choices, answer } = q.comprehensionQuestion!;
-  const wrong = choices.filter((_, j) => j !== answer);
-  return `${i + 1}. ${question}\n   correct: ${choices[answer]}\n   wrong: ${wrong.join(" / ")}`;
+  return { failures: [...turns, ...questionFailures(draft.questions.map((q) => q.comprehensionQuestion ?? { question: "", choices: [], answer: -1 }))], level };
 };
 
 /** The values the rubric template needs. */
@@ -72,5 +56,5 @@ export const dialogueValues = ({ grammarPoint, lines, questions }: DialogueDraft
   grammarPoint: grammarPoint.title,
   lineCount: String(lines.length),
   lines: lines.map(({ line, sentence }) => `${line.speaker}: ${sentence.text} (${sentence.translationEn ?? "none"})`).join("\n"),
-  questions: questions.map(questionLines).join("\n"),
+  questions: questionLines(questions.map((q) => q.comprehensionQuestion!)),
 });

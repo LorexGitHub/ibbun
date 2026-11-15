@@ -344,6 +344,11 @@ describe("Batch Text checks", () => {
     expect(checkBatchText({ ...base, batch: [neko], sentences: [s], known: new Set(["w-nue", "w-zou", "g-hard", "g-desu"]), length: { min: 0, max: 99 } })).toEqual([]);
   });
 
+  it("does not count particles, auxiliaries or symbols, even when they link to an Unlevelled JMdict Word", () => {
+    const s = sentence(tokens(["猫", "猫", "名詞", ["w-neko", "N5"]], ["は", "は", "助詞,係助詞", ["w-wa", null]], ["です", "です", "助動詞", ["w-desu", null]], ["。", "。", "補助記号,句点", ["w-maru", null]]));
+    expect(checkBatchText({ ...base, batch: [neko], sentences: [s], length: { min: 0, max: 99 } })).toEqual([]);
+  });
+
   it("for an Unlevelled batch allows anything levelled or Known", () => {
     const s = sentence(tokens(["象", "象", "名詞", ["w-zou", "N1"]], ["鵺", "鵺", "名詞", ["w-nue", null]]));
     expect(checkBatchText({ ...base, level: null, batch: [], sentences: [s], length: { min: 5, max: 20 } }).map((f) => f.message)).toEqual([

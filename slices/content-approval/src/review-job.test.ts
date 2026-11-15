@@ -7,7 +7,7 @@ import { createFakeJobs } from "@ibbun/jobs";
 import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@ibbun/llm";
 import { createFakeNlp, type Token } from "@ibbun/nlp";
 import { DEFAULT_CONFIG } from "./config.ts";
-import { createFakeProgress } from "@ibbun/progress/testing";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
 import { DEFAULT_SAMPLING } from "../sampling/config.ts";
 import { createSampling } from "../sampling/sampler.ts";
 import { createMemoryStore } from "../sampling/store.ts";
@@ -118,7 +118,7 @@ const sampling = (authoring: World["a"], jobs: ReturnType<typeof createFakeJobs>
 const run = async (w: World, answer: (call: FakeLlmCall) => unknown = approving(), store = createMemoryStore()) => {
   const jobs = createFakeJobs();
   const llm = createFakeLlm({ config: loadLlmConfig({}), answer });
-  const deps = { authoring: w.a, nlp: createFakeNlp(lexicon), llm, jobs, config: DEFAULT_CONFIG, sampling: sampling(w.a, jobs, store) };
+  const deps = { authoring: w.a, nlp: createFakeNlp(lexicon), llm, jobs, config: DEFAULT_CONFIG, sampling: sampling(w.a, jobs, store), progress: createFakeProgress(), texts: createFakeTexts() };
   const generated: unknown[] = [];
   await jobs.work([handler(ContentGenerate, async (p) => void generated.push(p)), handler(ContentReview, (p) => reviewRun(deps, p))]);
   await jobs.enqueue(ContentReview, { requestId: w.request.id, runId: w.run.id });
@@ -262,7 +262,7 @@ describe("content.review", () => {
     const w = await world({ kind: "reading_passage" });
     const jobs = createFakeJobs();
     const llm = createFakeLlm({ config: loadLlmConfig({}), answer: approving() });
-    await expect(reviewRun({ authoring: w.a, nlp: createFakeNlp(lexicon), llm, jobs, config: DEFAULT_CONFIG, sampling: sampling(w.a, jobs) }, { requestId: w.request.id, runId: w.run.id })).rejects.toThrow(/no rubric/);
+    await expect(reviewRun({ authoring: w.a, nlp: createFakeNlp(lexicon), llm, jobs, config: DEFAULT_CONFIG, sampling: sampling(w.a, jobs), progress: createFakeProgress(), texts: createFakeTexts() }, { requestId: w.request.id, runId: w.run.id })).rejects.toThrow(/no rubric/);
   });
 
   it("fails a Japanese Explanation that uses Latin letters or its headword, and approves a clean one", async () => {

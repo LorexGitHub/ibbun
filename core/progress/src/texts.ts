@@ -14,6 +14,8 @@ export const NewBatchText = z.object({
   studyItemIds: z.array(StudyItemId).min(1),
   episodeSummary: z.string(),
   cast: z.array(z.string().min(1)),
+  /** The JLPT passage type the episode was written as (batch-text.md#style). Older records have none. */
+  passageType: z.string().min(1).optional(),
 });
 
 /** What a Learner generated at a Cleared Level (listening.md#practice-texts). */

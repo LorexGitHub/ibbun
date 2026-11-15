@@ -4,7 +4,7 @@ import { draw } from "./rules.ts";
 
 /** One approval the reviewer wants to make, as the sampler sees it. */
 export type Approval = {
-  kind: "example" | "japanese-explanation" | "grammar-fields" | "dialogue";
+  kind: "example" | "japanese-explanation" | "grammar-fields" | "dialogue" | "reading-passage" | "practice-text";
   /** The reviewer's model and rubric version: a change in either starts a calibration run. */
   model: string;
   rubricVersion: string;
