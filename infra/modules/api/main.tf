@@ -78,7 +78,7 @@ resource "aws_lambda_function" "api" {
   role             = aws_iam_role.api.arn
   filename         = data.archive_file.api.output_path
   source_code_hash = data.archive_file.api.output_base64sha256
-  handler          = "index.handler"
+  handler          = "app/index.handler"
   runtime          = "nodejs24.x"
   architectures    = ["arm64"]
   memory_size      = 512

@@ -2,7 +2,7 @@
 // which Terraform zips and deploys (ADR 0018). The packages a bundle cannot hold are installed
 // beside it for Lambda's platform, Linux on arm64, whatever machine builds it.
 import { spawnSync } from "node:child_process";
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { build } from "esbuild";
@@ -28,9 +28,14 @@ const relativeAliases = {
   },
 };
 
+// @ibbun/db reads the RDS CA bundle at ../certs from its own module. The bundle sits one folder down,
+// in app/, so that same path lands on certs/ inside the package (Lambda's handler is app/index.handler).
+mkdirSync(resolve(out, "certs"), { recursive: true });
+copyFileSync(resolve(import.meta.dirname, "../../platform/db/certs/rds-global-bundle.pem"), resolve(out, "certs/rds-global-bundle.pem"));
+
 await build({
   entryPoints: [resolve(app, "src/lambda.ts")],
-  outfile: resolve(out, "index.mjs"),
+  outfile: resolve(out, "app/index.mjs"),
   bundle: true,
   platform: "node",
   target: "node24",
