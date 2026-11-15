@@ -22,22 +22,16 @@
     "e2e": "pnpm gen && playwright test",
     "stack:build": "node scripts/infra/build.mjs",
     "stack:build:api": "node scripts/infra/build-function.mjs api",
-    "stack:deploy:web": "node scripts/infra/deploy-web.mjs",
-    "stack": "alchemy dev",
-    "stack:smoke": "node scripts/infra/tests/smoke.mjs"
+    "stack:deploy:web": "node scripts/infra/deploy-web.mjs"
   },
   "devDependencies": {
-    "@alchemy.run/aws": "2.0.0-beta.85",
-    "@effect/platform-node": "4.1.2",
     "@ibbun/jobs": "workspace:*",
     "@ibbun/slice": "workspace:*",
     "@playwright/test": "^1.64.1",
     "@types/node": "^24.0.0",
     "@types/react": "^19.1.0",
     "@vitest/coverage-v8": "3.2.7",
-    "alchemy": "2.0.0-beta.85",
     "dependency-cruiser": "^17.4.3",
-    "effect": "4.1.2",
     "esbuild": "0.28.2",
     "hono": "^4.9.0",
     "react": "^19.1.0",
