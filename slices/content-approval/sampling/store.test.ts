@@ -5,7 +5,7 @@ import { collectMigrations, createDb, migrate, type Db } from "@ibbun/db";
 import { startTestPostgres, type TestPostgres } from "@ibbun/db/testing";
 import { createPostgresStore } from "./postgres.ts";
 import { createMemoryStore } from "./store.ts";
-import { freshState, type Sample, type SamplingStore } from "./types.ts";
+import { freshState, SAMPLE_KINDS, type Sample, type SamplingStore } from "./types.ts";
 
 const sample = (over: Partial<Sample> = {}): Sample => {
   const id = randomUUID();
@@ -36,6 +36,17 @@ const storeContract = (make: () => Promise<SamplingStore>) => {
     await store.saveState({ ...next, calibrationLeft: 3 });
     expect(await store.state("example")).toEqual({ ...next, calibrationLeft: 3 });
     expect(await store.state("japanese-explanation")).toEqual(freshState("japanese-explanation"));
+  });
+
+  it("keeps state and samples of every sampled kind", async () => {
+    const store = await make();
+    for (const kind of SAMPLE_KINDS) {
+      await store.saveState({ ...freshState(kind), calibrationLeft: 1 });
+      expect(await store.state(kind)).toEqual({ ...freshState(kind), calibrationLeft: 1 });
+      const s = sample({ kind });
+      await store.add(s);
+      expect(await store.get(s.id)).toEqual(s);
+    }
   });
 
   it("keeps samples, lists them oldest first by status and kind, and settles them", async () => {

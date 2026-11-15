@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import { createFakeAuthoring } from "@ibbun/content-graph/testing";
 import { ContentGenerate, PracticeGenerate } from "@ibbun/content-graph/jobs";
 import { createFakeJobs } from "@ibbun/jobs";
@@ -9,6 +10,7 @@ import type { NewPracticeText } from "@ibbun/progress";
 import { LearnerId, StudyItemId } from "@ibbun/shared";
 import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
+import { Dialogue } from "./index.ts";
 
 const learnerId = LearnerId.parse(randomUUID());
 
@@ -253,5 +255,11 @@ describe("practice.generate", () => {
     await t.generate();
     expect(t.prompts).toHaveLength(1);
     expect(await t.auth.queue({ reason: "budget exhausted" })).toMatchObject([{ detail: { pool: "learner" } }]);
+  });
+});
+
+describe("Practice Text dialogue schema", () => {
+  it("has no tuple keywords, which Ollama and claude --json-schema reject", () => {
+    expect(JSON.stringify(z.toJSONSchema(Dialogue))).not.toMatch(/prefixItems|"items":false/);
   });
 });

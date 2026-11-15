@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createFakeAuthoring } from "@ibbun/content-graph/testing";
 import { ContentGenerate } from "@ibbun/content-graph/jobs";
@@ -8,7 +8,9 @@ import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
 import type { JlptLevel } from "@ibbun/shared";
 import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
-import { requestDialogues } from "./index.ts";
+import { z } from "zod";
+import { Dialogue, requestDialogues } from "./index.ts";
+import { VOICES } from "./config.ts";
 
 const answer = {
   lines: [
@@ -69,7 +71,7 @@ const setup = () => {
         .sort((a, b) => a.position - b.position)
         .map(async (l) => ({ ...l, sentence: (await auth.rows("sentence", { id: l.sentenceId }))[0]! })),
     );
-  return { ...w, auth, jobs, prompts, run, addGrammar, clipOf, lines };
+  return { ...w, auth, jobs, llm, prompts, run, addGrammar, clipOf, lines };
 };
 
 describe("dialogue kind", () => {
@@ -97,7 +99,7 @@ describe("dialogue kind", () => {
     ]);
 
     const [run] = await t.auth.rows("generationRun", { requestId: request.id });
-    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: run!.id, promptTemplateVersion: "dialogue/1" }, licence: "ibbun" });
+    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: run!.id, promptTemplateVersion: "dialogue/2" }, licence: "ibbun" });
     expect(provenance.inputs).toContain(t.grammarId);
     const records = [item, ...voiced, ...voiced.map((l) => l.sentence), ...examples];
     expect(new Set(records.map((r) => r.provenanceId))).toEqual(new Set([provenance.id]));
@@ -112,6 +114,18 @@ describe("dialogue kind", () => {
     expect(voiceOf.size).toBe(2);
     expect(voiceOf.get("男")).not.toBe(voiceOf.get("女"));
     for (const l of voiced) expect(l.voice).toBe(voiceOf.get(l.speaker));
+  });
+
+  it("picks each speaker's voice by the clip id's hash, and pins both questions to the whole opening line", async () => {
+    const t = setup();
+    await t.run(t.grammarId);
+    const { item } = await t.clipOf(t.grammarId);
+    const h = createHash("sha256").update(item.id).digest().readUInt32BE(0);
+    const voiced = await t.lines(item.id);
+    for (const l of voiced) expect(l.voice).toBe(VOICES[l.speaker][h % VOICES[l.speaker].length]);
+    expect(voiced.map((l) => l.sentence.unlevelledWordCount)).toEqual([0, 0, 0, 0]);
+    const examples = await t.auth.rows("example", { studyItemId: item.id });
+    for (const e of examples) expect(e).toMatchObject({ sentenceId: voiced[0]!.sentenceId, spanStart: 0, spanEnd: "あした、なにをしますか。".length });
   });
 
   it("asks for a 男/女 dialogue of the level's length using the Grammar Point, with two different 聴解 task types", async () => {
@@ -173,6 +187,23 @@ describe("dialogue kind", () => {
     }
     expect(t.prompts).toEqual([]);
     expect(await t.auth.rows("studyItem", { type: "listening_clip" })).toEqual([]);
+  });
+});
+
+describe("Dialogue answer schema", () => {
+  it("has no tuple keywords, which Ollama and claude --json-schema reject", () => {
+    expect(JSON.stringify(z.toJSONSchema(Dialogue))).not.toMatch(/prefixItems|"items":false/);
+  });
+
+  it("tells the generator that options are text, not numbers", async () => {
+    const t = setup();
+    await t.run(t.addGrammar("〜ます", "N5"));
+    expect(t.llm.calls()[0]!.system).toContain("never a number or a letter");
+  });
+
+  it("takes exactly two questions", () => {
+    expect(Dialogue.safeParse(answer).success).toBe(true);
+    expect(Dialogue.safeParse({ ...answer, questions: answer.questions.slice(0, 1) }).success).toBe(false);
   });
 });
 
