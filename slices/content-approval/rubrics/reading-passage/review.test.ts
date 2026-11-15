@@ -17,7 +17,7 @@ import { createMemoryStore } from "../../sampling/store.ts";
 
 const learnerId = LearnerId.parse(randomUUID());
 const tok = (surface: string): Token => ({ surface, lemma: surface, reading: surface, partOfSpeech: ["名詞", "普通名詞", "一般"], conjugation: null });
-const nlp = createFakeNlp(["水", "を", "飲む", "酒", "。"].map(tok));
+const nlp = createFakeNlp(["水", "みず", "を", "飲む", "酒", "。"].map(tok));
 
 type Line = { text: string; translationEn: string; speaker?: "男" | "女" };
 const WATER: Line[] = [{ text: "水を飲む。", translationEn: "I drink water." }];
@@ -143,6 +143,14 @@ describe("reviewing a Batch Text", () => {
     const other = randomUUID();
     w.graph.studyItem.push({ id: other, type: "word", approval: "approved", retired: false, provenanceId: w.graph.provenance[0]!.id });
     w.graph.wordForm.unshift({ id: randomUUID(), wordId: other, position: 0, text: "飲む", approval: "approved", retired: false, provenanceId: w.graph.provenance[0]!.id });
+    await review(w, verdicts(BATCH));
+    expect(approvals(w).passage).toBe("approved");
+  });
+
+  it("counts a batch Word written in kana", async () => {
+    const w = await world("batch-text", [{ text: "みずを飲む。", translationEn: "I drink water." }]);
+    const water = w.graph.wordForm.find((f) => f.text === "水")!;
+    w.graph.wordReading.push({ id: randomUUID(), wordId: water.wordId, position: 0, text: "みず", pitchAccent: null, approval: "approved", retired: false, provenanceId: water.provenanceId });
     await review(w, verdicts(BATCH));
     expect(approvals(w).passage).toBe("approved");
   });

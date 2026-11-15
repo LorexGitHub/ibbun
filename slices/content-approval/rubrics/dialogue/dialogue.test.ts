@@ -106,7 +106,7 @@ describe("reviewing a dialogue", () => {
     expect(approvals(w)).toEqual({ clip: "approved", sentences: ["approved", "approved"], questions: ["approved", "approved"], lines: ["draft", "draft"] });
     expect(w.graph.sentence.find((s) => s.id === w.sentences[0])!.tokens.map((t) => t.surface)).toEqual(["いきます", "か", "。"]);
     expect(w.graph.generationRequest.find((r) => r.id === w.request.id)!.status).toBe("done");
-    expect((await w.a.decisions(w.clip))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "dialogue/v1" } });
+    expect((await w.a.decisions(w.clip))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "dialogue/v2" } });
   });
 
   it("rejects the whole unit when the reviewer fails a criterion, and sends the reason back to the generator", async () => {

@@ -50,9 +50,9 @@ const itemOf = async (a: Authoring, id: string): Promise<TextItem | undefined> =
   const [item] = await a.rows("studyItem", { id });
   if (item?.type === "word") {
     const forms = (await a.rows("wordForm", { wordId: id })).sort((x, y) => x.position - y.position);
-    const readings = forms.length ? [] : (await a.rows("wordReading", { wordId: id })).sort((x, y) => x.position - y.position);
-    const lemma = [...forms, ...readings][0]?.text;
-    return lemma ? { type: "word", id, lemma } : undefined;
+    const readings = (await a.rows("wordReading", { wordId: id })).sort((x, y) => x.position - y.position);
+    const [lemma, ...spellings] = [...new Set([...forms, ...readings].map((r) => r.text))];
+    return lemma ? { type: "word", id, lemma, spellings } : undefined;
   }
   if (item?.type === "kanji") {
     const [kanji] = await a.rows("kanji", { studyItemId: id });

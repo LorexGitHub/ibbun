@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  checkBatchItemsAppear,
   checkBatchText,
   checkExampleSentence,
   checkJapaneseExplanation,
@@ -296,6 +297,12 @@ describe("Batch Text checks", () => {
   const desu: TextItem = { type: "grammar_point", id: "g-desu", rule: { pattern: [{ lemma: "です" }] } };
   const nekoKanji: TextItem = { type: "kanji", id: "k-neko", literal: "猫" };
   const base = { sentences: [sentence(cat())], level: "N5" as Level, batch: [neko, desu, nekoKanji], earlier: [], known: new Set<string>(), length: { min: 1, max: 20 } };
+
+  it("counts a batch Word written in another of its spellings", () => {
+    const kana = sentence(tokens(["ねこ", "ねこ", "名詞", ["w-neko", "N5"]]));
+    expect(checkBatchItemsAppear([kana], [neko], "N5", new Set())).toHaveLength(1);
+    expect(checkBatchItemsAppear([kana], [{ ...neko, spellings: ["ねこ"] }], "N5", new Set())).toEqual([]);
+  });
 
   it("passes when every batch item appears and everything else is within reach", () => {
     expect(checkBatchText(base)).toEqual([]);
