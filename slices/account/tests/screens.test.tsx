@@ -92,13 +92,30 @@ describe("sign up", () => {
 
 describe("guest login", () => {
   afterEach(() => vi.unstubAllEnvs());
-  it("offers Try it only in showcase mode", () => {
+  it("offers Try Showcase only in showcase mode", () => {
     open("/signup");
-    expect(screen.queryByRole("button", { name: "Try it" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Try Showcase" })).toBeNull();
     cleanup();
     vi.stubEnv("VITE_SHOWCASE", "1");
     open("/signup");
-    expect(screen.getByRole("button", { name: "Try it" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Try Showcase" })).toBeTruthy();
+  });
+
+  it.each(["/signup", "/login"])("in showcase mode, %s offers the guest account in place of the email form", (path) => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    open(path);
+    expect(screen.getByRole("heading", { level: 1, name: "Try the showcase" })).toBeTruthy();
+    expect(screen.queryByLabelText("Email")).toBeNull();
+    expect(screen.queryByLabelText("Password")).toBeNull();
+  });
+
+  it("signs in as a new guest and opens Learn", async () => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    const client = fakeClient({ tryAsGuest: vi.fn(async () => ok(null)) });
+    open("/signup", client);
+    fireEvent.click(screen.getByRole("button", { name: "Try Showcase" }));
+    await waitFor(() => expect(screen.getByTestId("where").textContent).toBe("/learn"));
+    expect(client.tryAsGuest).toHaveBeenCalledOnce();
   });
 });
 

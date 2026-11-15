@@ -10,17 +10,41 @@ const showcase = () => isShowcase(import.meta.env.VITE_SHOWCASE);
 
 const CHECK_YOUR_EMAIL = "Check your email. If the address can sign up, we sent a link to finish.";
 
-export const SignUp = () => {
+/**
+ * The showcase has no sign-up and no log in (ADR 0017): each visitor gets a new guest Learner, which
+ * the server deletes after a day. Sign up and Log in both show this.
+ */
+const TryShowcase = () => {
+  const client = useClient();
+  const { outcome, run } = useOutcome();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  const tryIt = async () => {
+    setBusy(true);
+    if (await run(client.tryAsGuest(), "Signed in as a guest.")) navigate("/learn");
+    setBusy(false);
+  };
+  return (
+    <Split title="Try the showcase">
+      <p>No sign-up: you get a guest account of your own to explore with. It is deleted after a day.</p>
+      <button type="button" className={buttonClass()} disabled={busy} onClick={() => void tryIt()}>
+        Try Showcase
+      </button>
+      {busy && <p role="status">Waking the database. The first visit takes about 15 seconds.</p>}
+      <Notice outcome={outcome} />
+      <Link to="/try">Try one Review first</Link>
+    </Split>
+  );
+};
+
+export const SignUp = () => (showcase() ? <TryShowcase /> : <EmailSignUp />);
+
+const EmailSignUp = () => {
   const client = useClient();
   const { outcome, run } = useOutcome();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sent, setSent] = useState(false);
-  const navigate = useNavigate();
-  /** The showcase's guest login. Anywhere else the server answers 404 and the notice says so. */
-  const tryIt = async () => {
-    if (await run(client.tryAsGuest(), "Signed in as a guest.")) navigate("/learn");
-  };
   const submit = async () => setSent(await run(client.signUp(email, password), CHECK_YOUR_EMAIL));
   return (
     <Split title="Sign up">
@@ -44,11 +68,6 @@ export const SignUp = () => {
           Send the link again
         </button>
       )}
-      {showcase() && (
-        <button type="button" className={buttonClass()} onClick={() => void tryIt()}>
-          Try it
-        </button>
-      )}
       <p>
         Already have an account? <Link to="/login">Log in</Link>
       </p>
@@ -60,7 +79,9 @@ export const SignUp = () => {
 /** Where a log in returns to: a path in this app, never another site. */
 const returnPath = (next: string | null) => (next?.startsWith("/") && !next.startsWith("//") ? next : "/");
 
-export const Login = () => {
+export const Login = () => (showcase() ? <TryShowcase /> : <EmailLogin />);
+
+const EmailLogin = () => {
   const client = useClient();
   const navigate = useNavigate();
   const [params] = useSearchParams();
