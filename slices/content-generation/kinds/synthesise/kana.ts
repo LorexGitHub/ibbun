@@ -23,7 +23,7 @@ const isPunctuation = (t: Token) => t.partOfSpeech[0] === "補助記号" || t.pa
 /** How a token is said: Sudachi's reading says ハ for the particle は, the voice says ワ. */
 const spoken = (t: Token): string => {
   const particle = t.partOfSpeech[0] === "助詞" ? SPOKEN_PARTICLE[t.surface] : undefined;
-  const sound = particle ?? t.reading;
+  const sound = particle !== undefined ? particle : t.reading;
   if (!KATAKANA.test(sound)) throw new Error(`no reading to speak for "${t.surface}"`);
   return sound;
 };
@@ -32,7 +32,7 @@ type Phrase = { text: string; pauseAfter: boolean };
 
 /** A token opens a new accent phrase unless it hangs on the word before it, and nothing follows a pause or a prefix inside one. */
 const opensPhrase = (token: Token, previous: Token | undefined, last: Phrase | undefined): boolean =>
-  !last || last.pauseAfter || !(BOUND.has(token.partOfSpeech[0]!) || previous?.partOfSpeech[0] === "接頭辞");
+  !last || last.pauseAfter || !(BOUND.has(token.partOfSpeech[0]!) || (previous !== undefined && previous.partOfSpeech[0] === "接頭辞"));
 
 const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
   const phrases: Phrase[] = [];
@@ -40,7 +40,7 @@ const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
   for (const token of tokens) {
     const last = phrases[phrases.length - 1];
     if (isPunctuation(token)) {
-      if (last && PAUSES.has(token.surface)) last.pauseAfter = true;
+      if (last !== undefined && PAUSES.has(token.surface)) last.pauseAfter = true;
       continue;
     }
     if (opensPhrase(token, previous, last)) phrases.push({ text: "", pauseAfter: false });
@@ -53,7 +53,15 @@ const phrasesOf = (tokens: readonly Token[]): Phrase[] => {
 /** VOICEVOX's kana parser cannot read ー, so each mark becomes the vowel it lengthens: スーパー → スウパア. */
 const expandLongVowels = (text: string): string => {
   let out = "";
-  for (const c of text) out += c === "ー" ? (VOWEL_OF[out[out.length - 1] ?? ""] ?? c) : c;
+  for (const c of text) {
+    if (c !== "ー") {
+      out += c;
+      continue;
+    }
+    const prev = out.length ? out[out.length - 1]! : "";
+    const vowel = Object.prototype.hasOwnProperty.call(VOWEL_OF, prev) ? VOWEL_OF[prev]! : c;
+    out += vowel;
+  }
   return out;
 };
 

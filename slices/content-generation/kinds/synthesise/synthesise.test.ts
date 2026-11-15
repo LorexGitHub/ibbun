@@ -77,6 +77,11 @@ describe("the approved reading as kana", () => {
     expect(kanaOf(tokens)).toBe("スウパア'/パアティイ'/ボオット'");
   });
 
+  it("leaves a leading long vowel mark untouched, since there is no vowel to copy", () => {
+    const tokens = [token("ー", "ー", ["名詞"])];
+    expect(kanaOf(tokens)).toBe("ー'");
+  });
+
   it("keeps a prefix and a suffix in the phrase they belong to", () => {
     const tokens = [token("お", "オ", ["接頭辞"]), token("茶", "チャ", ["名詞"]), token("さん", "サン", ["接尾辞"])];
     expect(kanaOf(tokens)).toBe("オチャサン'");
