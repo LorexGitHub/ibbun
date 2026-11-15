@@ -22,6 +22,7 @@
     "e2e": "pnpm gen && playwright test",
     "stack:build": "node scripts/infra/build.mjs",
     "stack:build:api": "node scripts/infra/build-function.mjs api",
+    "stack:deploy:web": "node scripts/infra/deploy-web.mjs",
     "stack": "alchemy dev",
     "stack:smoke": "node scripts/infra/tests/smoke.mjs"
   },
