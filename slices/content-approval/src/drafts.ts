@@ -1,4 +1,5 @@
 import type { Authoring, RecordTable, Row } from "@ibbun/content-graph/authoring";
+import { dialogueDrafts, type DialogueDraft } from "../rubrics/dialogue/index.ts";
 import { grammarFieldsDrafts, type GrammarFieldsDraft } from "../rubrics/grammar-fields/index.ts";
 
 export type Rec = { table: RecordTable; id: string };
@@ -22,7 +23,7 @@ export type ExplanationDraft = {
   explanation: Row<"japaneseExplanation">;
 };
 
-export type Draft = ExampleDraft | ExplanationDraft | GrammarFieldsDraft;
+export type Draft = ExampleDraft | ExplanationDraft | GrammarFieldsDraft | DialogueDraft;
 
 /** The rubric kind a Generation Request kind is reviewed under, or undefined when this slice has no rubric for it. */
 export const RUBRIC_KIND: Record<string, Draft["kind"] | undefined> = {
@@ -30,6 +31,7 @@ export const RUBRIC_KIND: Record<string, Draft["kind"] | undefined> = {
   answer_data: "example",
   japanese_explanation: "japanese-explanation",
   "grammar-fields": "grammar-fields",
+  dialogue: "dialogue",
 };
 
 const rec = (table: RecordTable, id: string): Rec => ({ table, id });
@@ -67,6 +69,7 @@ export const draftsOfRun = async (a: Authoring, requestKind: string, runId: stri
     return Promise.all(examples.map((example) => exampleDraft(a, example)));
   }
   if (kind === "grammar-fields") return grammarFieldsDrafts(a, runId);
+  if (kind === "dialogue") return dialogueDrafts(a, runId);
   const explanations = await inEachProvenance(ids, (provenanceId) => a.rows("japaneseExplanation", { provenanceId, approval: "draft" }));
   return explanations.map((explanation) => {
     const primary = rec("japaneseExplanation", explanation.id);

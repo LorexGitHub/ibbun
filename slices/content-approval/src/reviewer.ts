@@ -4,6 +4,7 @@ import type { Llm } from "@ibbun/llm";
 import { z } from "zod";
 import type { ExampleCheck, ExplanationCheck } from "./checks.ts";
 import type { ExampleDraft, ExplanationDraft } from "./drafts.ts";
+import { dialogueValues, type DialogueCheck, type DialogueDraft } from "../rubrics/dialogue/index.ts";
 import type { GrammarFieldsDraft } from "../rubrics/grammar-fields/index.ts";
 import { grammarFieldsValues, type GrammarFieldsCheck } from "../rubrics/grammar-fields/index.ts";
 import { fill, rubricFor, type Rubric } from "./rubrics.ts";
@@ -39,8 +40,15 @@ const readings = (found: ReadingDisagreement[]): string =>
 const answerLines = (draft: ExampleDraft): string =>
   draft.answers.map((x) => `- ${x.kind}: ${x.written}${x.reading ? ` (${x.reading})` : ""}${x.message ? ` — ${x.message}` : ""}`).join("\n") || "none";
 
+type Reviewed = ExampleDraft | ExplanationDraft | GrammarFieldsDraft | DialogueDraft;
+type Checked = ExampleCheck | ExplanationCheck | GrammarFieldsCheck | DialogueCheck;
+
 /** The rubric for the draft and the values its template needs. */
-const promptFor = (draft: ExampleDraft | ExplanationDraft | GrammarFieldsDraft, check: ExampleCheck | ExplanationCheck | GrammarFieldsCheck) => {
+const promptFor = (draft: Reviewed, check: Checked) => {
+  if (draft.kind === "dialogue") {
+    const rubric = rubricFor("dialogue");
+    return { rubric, prompt: fill(rubric.template, dialogueValues(draft, check as DialogueCheck)) };
+  }
   if (draft.kind === "grammar-fields") {
     const rubric = rubricFor("grammar-fields");
     return { rubric, prompt: fill(rubric.template, grammarFieldsValues(draft, check as GrammarFieldsCheck)) };
@@ -85,8 +93,8 @@ export type Review = { judgement: Judgement; verdicts: Verdict[]; model: string;
 export const review = async (
   llm: Llm,
   minConfidence: number,
-  draft: ExampleDraft | ExplanationDraft | GrammarFieldsDraft,
-  check: ExampleCheck | ExplanationCheck | GrammarFieldsCheck,
+  draft: Reviewed,
+  check: Checked,
 ): Promise<Review> => {
   const { rubric, prompt } = promptFor(draft, check);
   const result = await llm.review({

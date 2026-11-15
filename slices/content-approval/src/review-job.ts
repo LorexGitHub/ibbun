@@ -5,6 +5,7 @@ import type { Nlp } from "@ibbun/nlp";
 import { checkExample, checkExplanation, type ExampleCheck, type ExplanationCheck } from "./checks.ts";
 import type { ApprovalConfig } from "./config.ts";
 import { draftsOfRun, type Draft } from "./drafts.ts";
+import { checkDialogue, type DialogueCheck } from "../rubrics/dialogue/index.ts";
 import { checkGrammarFields, type GrammarFieldsCheck } from "../rubrics/grammar-fields/index.ts";
 import { retry } from "./retry.ts";
 import type { Sampling } from "../sampling/sampler.ts";
@@ -23,8 +24,9 @@ const decideUnit = async (a: Authoring, draft: Draft, outcome: DecisionOutcome, 
   for (const { table, id } of records) await a.decide({ recordTable: table, recordId: id, outcome, decider, reason, verdicts });
 };
 
-const automatic = (a: Authoring, d: ReviewDeps, draft: Draft): Promise<ExampleCheck | ExplanationCheck | GrammarFieldsCheck> => {
+const automatic = (a: Authoring, d: ReviewDeps, draft: Draft): Promise<ExampleCheck | ExplanationCheck | GrammarFieldsCheck | DialogueCheck> => {
   if (draft.kind === "example") return checkExample(a, d.nlp, d.config, draft);
+  if (draft.kind === "dialogue") return checkDialogue(a, d.nlp, draft);
   return draft.kind === "grammar-fields" ? checkGrammarFields(a, draft) : checkExplanation(a, draft);
 };
 
