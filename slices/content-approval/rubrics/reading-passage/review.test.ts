@@ -8,6 +8,7 @@ import { createFakeNlp, type Token } from "@ibbun/nlp";
 import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
 import type { NewPracticeText } from "@ibbun/progress";
 import { LearnerId } from "@ibbun/shared";
+import { batchTextDrafts, batchTextValues, type BatchTextDraft } from "./index.ts";
 import { DEFAULT_CONFIG } from "../../src/config.ts";
 import { rubricFor } from "../../src/rubrics.ts";
 import { reviewRun } from "../../src/review-job.ts";
@@ -23,7 +24,7 @@ type Line = { text: string; translationEn: string; speaker?: "男" | "女" };
 const WATER: Line[] = [{ text: "水を飲む。", translationEn: "I drink water." }];
 
 /** A Learner, the Words 水 and 飲む at N5 and 酒 at N1, and one drafted passage of `lines` for a request of `kind`. */
-const world = async (kind: "batch-text" | "practice-text", lines: Line[] = WATER, passage: { form?: "prose" | "dialogue"; questions?: { question: string; choices: string[]; answer: number }[] } = {}) => {
+const world = async (kind: "batch-text" | "practice-text", lines: Line[] = WATER, passage: { form?: "prose" | "dialogue"; questions?: { question: string; choices: string[]; answer: number }[] } = {}, opts: { episode?: 1 | 2; level?: string } = {}) => {
   const graph = emptyGraph();
   const a = createFakeAuthoring(graph);
   const texts = createFakeTexts();
@@ -46,9 +47,14 @@ const world = async (kind: "batch-text" | "practice-text", lines: Line[] = WATER
   const at = "2026-11-15T09:00:00.000Z";
   let reason: string;
   if (kind === "batch-text") {
-    await texts.record({ kind: "batch", learnerId, passageId: randomUUID(), at, level: "N5", episode: 1, studyItemIds: [water], episodeSummary: "ゆきが店に行った。", cast: ["ゆき"] });
-    await texts.record({ kind: "batch", learnerId, passageId, at, level: "N5", episode: 2, studyItemIds: [water], episodeSummary: "ゆきが水を飲んだ。", cast: ["ゆき"], passageType: "memo" });
-    reason = `batch-text ${JSON.stringify({ learnerId, level: "N5", itemIds: [water] })}`;
+    const level = opts.level ?? "N5";
+    if (opts.episode === 1) {
+      await texts.record({ kind: "batch", learnerId, passageId, at, level, episode: 1, studyItemIds: [water], episodeSummary: "ゆきが店に行った。", cast: ["ゆき"] });
+    } else {
+      await texts.record({ kind: "batch", learnerId, passageId: randomUUID(), at, level, episode: 1, studyItemIds: [water], episodeSummary: "ゆきが店に行った。", cast: ["ゆき"] });
+      await texts.record({ kind: "batch", learnerId, passageId, at, level, episode: 2, studyItemIds: [water], episodeSummary: "ゆきが水を飲んだ。", cast: ["ゆき"], passageType: "memo" });
+    }
+    reason = `batch-text ${JSON.stringify({ learnerId, level, itemIds: [water] })}`;
   } else {
     const record: NewPracticeText = { kind: "practice", learnerId, passageId, at, level: "N5", form: passage.form === "dialogue" ? "dialogue" : "passage", passageType: "any", length: "short", topic: "food" };
     const recorded = await texts.record(record);
@@ -191,5 +197,48 @@ describe("reviewing a Practice Text", () => {
     const { llm, generated } = await review(w, verdicts(PRACTICE));
     expect(llm.calls()).toHaveLength(0);
     expect(generated).toEqual([{ requestId: w.request.id, feedback: "questions: Question 2 needs four different choices." }]);
+  });
+});
+
+describe("batch text drafts and values", () => {
+  const draft = (over: Partial<BatchTextDraft> = {}): BatchTextDraft => ({
+    kind: "reading-passage",
+    primary: { table: "readingPassage", id: "p" },
+    records: [],
+    passage: {} as BatchTextDraft["passage"],
+    lines: [],
+    learnerId,
+    level: null,
+    items: [],
+    record: undefined,
+    previous: undefined,
+    ...over,
+  });
+
+  it("names an Unlevelled first episode with no record and no items as all none", () => {
+    expect(batchTextValues(draft(), { failures: [], items: [] })).toEqual({
+      level: "Unlevelled",
+      passageType: "not recorded",
+      episode: "not recorded",
+      episodeSummary: "none: this is the first episode",
+      items: "none",
+      sentences: "",
+    });
+  });
+
+  it("skips a run whose request reason is not a batch context, or whose passage is not a draft", async () => {
+    const w = await world("batch-text");
+    const odd = await w.a.requestGeneration({ targetId: randomUUID(), kind: "batch-text", reason: "practice-text {}" });
+    const oddRun = await w.a.recordGenerationRun({ requestId: odd.id, model: "gemma4:12b", promptTemplateVersion: "t/1", inputs: [], tokens: 1, cost: 0 });
+    expect(await batchTextDrafts(w.a, w.texts, oddRun.id)).toEqual([]);
+    w.graph.readingPassage[0]!.approval = "approved";
+    expect(await batchTextDrafts(w.a, w.texts, w.run.id)).toEqual([]);
+  });
+
+  it("drafts an Unlevelled batch as having no level, and a first episode as having no previous one", async () => {
+    const first = await world("batch-text", WATER, {}, { episode: 1 });
+    expect(await batchTextDrafts(first.a, first.texts, first.run.id)).toEqual([expect.objectContaining({ level: "N5", previous: undefined })]);
+    const unlevelled = await world("batch-text", WATER, {}, { level: "unlevelled" });
+    expect(await batchTextDrafts(unlevelled.a, unlevelled.texts, unlevelled.run.id)).toEqual([expect.objectContaining({ level: null, previous: expect.anything(), record: expect.anything() })]);
   });
 });

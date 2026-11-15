@@ -46,20 +46,29 @@ export const tokenise = async (a: Authoring, nlp: Nlp, lines: readonly PassageLi
   return checked;
 };
 
+const wordItem = async (a: Authoring, id: string): Promise<TextItem | undefined> => {
+  const forms = (await a.rows("wordForm", { wordId: id })).sort((x, y) => x.position - y.position);
+  const readings = (await a.rows("wordReading", { wordId: id })).sort((x, y) => x.position - y.position);
+  const [lemma, ...spellings] = [...new Set([...forms, ...readings].map((r) => r.text))];
+  return lemma ? { type: "word", id, lemma, spellings } : undefined;
+};
+
+const kanjiItem = async (a: Authoring, id: string): Promise<TextItem | undefined> => {
+  const [kanji] = await a.rows("kanji", { studyItemId: id });
+  return kanji && { type: "kanji", id, literal: kanji.literal };
+};
+
+const pointItem = async (a: Authoring, id: string): Promise<TextItem | undefined> => {
+  const [point] = await a.rows("grammarPoint", { studyItemId: id });
+  return point?.matcherRule ? { type: "grammar_point", id, rule: point.matcherRule as MatcherRule } : undefined;
+};
+
 const itemOf = async (a: Authoring, id: string): Promise<TextItem | undefined> => {
   const [item] = await a.rows("studyItem", { id });
-  if (item?.type === "word") {
-    const forms = (await a.rows("wordForm", { wordId: id })).sort((x, y) => x.position - y.position);
-    const readings = (await a.rows("wordReading", { wordId: id })).sort((x, y) => x.position - y.position);
-    const [lemma, ...spellings] = [...new Set([...forms, ...readings].map((r) => r.text))];
-    return lemma ? { type: "word", id, lemma, spellings } : undefined;
-  }
-  if (item?.type === "kanji") {
-    const [kanji] = await a.rows("kanji", { studyItemId: id });
-    return kanji && { type: "kanji", id, literal: kanji.literal };
-  }
-  const [point] = item?.type === "grammar_point" ? await a.rows("grammarPoint", { studyItemId: id }) : [];
-  return point?.matcherRule ? { type: "grammar_point", id, rule: point.matcherRule as MatcherRule } : undefined;
+  if (item?.type === "word") return wordItem(a, id);
+  if (item?.type === "kanji") return kanjiItem(a, id);
+  if (item?.type === "grammar_point") return pointItem(a, id);
+  return undefined;
 };
 
 /** The Study Items as the Learner-aware checks see them. One with nothing to look for (no form, no Matcher Rule) is left out. */
