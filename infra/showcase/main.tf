@@ -25,3 +25,12 @@ variable "region" {
   type    = string
   default = "eu-north-1"
 }
+
+module "database" {
+  source = "../modules/database"
+  name   = "ibbun-showcase"
+}
+
+output "database_url" {
+  value = module.database.url
+}
