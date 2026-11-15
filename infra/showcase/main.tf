@@ -36,6 +36,15 @@ module "storage" {
   name   = "ibbun-showcase"
 }
 
+module "api" {
+  source               = "../modules/api"
+  name                 = "ibbun-showcase"
+  build_dir            = "${path.root}/../../apps/api/dist/lambda"
+  ssm_path             = "/ibbun-showcase/app"
+  database_url         = module.database.url
+  database_connect_arn = module.database.connect_arn
+}
+
 output "database_url" {
   value = module.database.url
 }
