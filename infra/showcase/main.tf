@@ -31,6 +31,11 @@ module "database" {
   name   = "ibbun-showcase"
 }
 
+module "storage" {
+  source = "../modules/storage"
+  name   = "ibbun-showcase"
+}
+
 output "database_url" {
   value = module.database.url
 }

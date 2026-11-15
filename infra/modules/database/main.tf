@@ -45,6 +45,8 @@ resource "aws_rds_cluster_parameter_group" "database" {
   parameter {
     name  = "rds.force_ssl"
     value = "1"
+    # A static parameter: AWS records it as pending-reboot, and `immediate` would show as drift.
+    apply_method = "pending-reboot"
   }
 }
 
