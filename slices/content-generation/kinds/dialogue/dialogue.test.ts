@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createFakeAuthoring } from "@ibbun/content-graph/testing";
 import { ContentGenerate } from "@ibbun/content-graph/jobs";
@@ -10,6 +10,7 @@ import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
 import { z } from "zod";
 import { Dialogue, requestDialogues } from "./index.ts";
+import { VOICES } from "./config.ts";
 
 const answer = {
   lines: [
@@ -113,6 +114,18 @@ describe("dialogue kind", () => {
     expect(voiceOf.size).toBe(2);
     expect(voiceOf.get("男")).not.toBe(voiceOf.get("女"));
     for (const l of voiced) expect(l.voice).toBe(voiceOf.get(l.speaker));
+  });
+
+  it("picks each speaker's voice by the clip id's hash, and pins both questions to the whole opening line", async () => {
+    const t = setup();
+    await t.run(t.grammarId);
+    const { item } = await t.clipOf(t.grammarId);
+    const h = createHash("sha256").update(item.id).digest().readUInt32BE(0);
+    const voiced = await t.lines(item.id);
+    for (const l of voiced) expect(l.voice).toBe(VOICES[l.speaker][h % VOICES[l.speaker].length]);
+    expect(voiced.map((l) => l.sentence.unlevelledWordCount)).toEqual([0, 0, 0, 0]);
+    const examples = await t.auth.rows("example", { studyItemId: item.id });
+    for (const e of examples) expect(e).toMatchObject({ sentenceId: voiced[0]!.sentenceId, spanStart: 0, spanEnd: "あした、なにをしますか。".length });
   });
 
   it("asks for a 男/女 dialogue of the level's length using the Grammar Point, with two different 聴解 task types", async () => {
