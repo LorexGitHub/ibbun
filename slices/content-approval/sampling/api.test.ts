@@ -55,6 +55,7 @@ describe("the spot-check API", () => {
       { kind: "example", paused: false, calibrationLeft: 4, sampled: 0, errorRate: 0 },
       { kind: "japanese-explanation", paused: false },
       { kind: "grammar-fields", paused: false },
+      { kind: "dialogue", paused: false },
       { kind: "listening-clip", paused: false },
     ]);
   });
