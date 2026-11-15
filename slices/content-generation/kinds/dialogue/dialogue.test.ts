@@ -70,7 +70,7 @@ const setup = () => {
         .sort((a, b) => a.position - b.position)
         .map(async (l) => ({ ...l, sentence: (await auth.rows("sentence", { id: l.sentenceId }))[0]! })),
     );
-  return { ...w, auth, jobs, prompts, run, addGrammar, clipOf, lines };
+  return { ...w, auth, jobs, llm, prompts, run, addGrammar, clipOf, lines };
 };
 
 describe("dialogue kind", () => {
@@ -98,7 +98,7 @@ describe("dialogue kind", () => {
     ]);
 
     const [run] = await t.auth.rows("generationRun", { requestId: request.id });
-    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: run!.id, promptTemplateVersion: "dialogue/1" }, licence: "ibbun" });
+    expect(provenance).toMatchObject({ source: { kind: "generated", generationRunId: run!.id, promptTemplateVersion: "dialogue/2" }, licence: "ibbun" });
     expect(provenance.inputs).toContain(t.grammarId);
     const records = [item, ...voiced, ...voiced.map((l) => l.sentence), ...examples];
     expect(new Set(records.map((r) => r.provenanceId))).toEqual(new Set([provenance.id]));
@@ -180,6 +180,12 @@ describe("dialogue kind", () => {
 describe("Dialogue answer schema", () => {
   it("has no tuple keywords, which Ollama and claude --json-schema reject", () => {
     expect(JSON.stringify(z.toJSONSchema(Dialogue))).not.toMatch(/prefixItems|"items":false/);
+  });
+
+  it("tells the generator that options are text, not numbers", async () => {
+    const t = setup();
+    await t.run(t.addGrammar("〜ます", "N5"));
+    expect(t.llm.calls()[0]!.system).toContain("never a number or a letter");
   });
 
   it("takes exactly two questions", () => {

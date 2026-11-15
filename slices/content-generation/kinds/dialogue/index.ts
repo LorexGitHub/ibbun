@@ -9,7 +9,7 @@ import { definePlan, type Kind } from "../kind.ts";
 import { subjectOf, type Subject } from "../example-sentence/subject.ts";
 import { describeTaskType, LINES, taskTypes, VOICES } from "./config.ts";
 
-export const TEMPLATE_VERSION = "dialogue/1";
+export const TEMPLATE_VERSION = "dialogue/2";
 const KIND = "dialogue";
 
 const Speaker = z.enum(["男", "女"]);
@@ -21,7 +21,7 @@ export const Dialogue = z.object({
 });
 type Dialogue = z.output<typeof Dialogue>;
 
-const SYSTEM = `You write short Japanese listening dialogues for JLPT learners, in the style of the JLPT 聴解 scripts: two unnamed speakers, 男 and 女, in natural spoken Japanese. Use only vocabulary and grammar at or below the stated JLPT level, apart from the Grammar Point you are asked to use. Make every line a clear turn by one speaker, and give it an accurate English translation. Write the comprehension questions and options in Japanese text, answerable only from what is said. Answer only in the requested JSON shape.`;
+const SYSTEM = `You write short Japanese listening dialogues for JLPT learners, in the style of the JLPT 聴解 scripts: two unnamed speakers, 男 and 女, in natural spoken Japanese. Use only vocabulary and grammar at or below the stated JLPT level, apart from the Grammar Point you are asked to use. Make every line a clear turn by one speaker, and give it an accurate English translation. Write the comprehension questions and options in Japanese text, answerable only from what is said. The correct option and each of the three distractors is the full Japanese text of an option, never a number or a letter. Answer only in the requested JSON shape.`;
 
 const hashOf = (text: string) => createHash("sha256").update(text).digest().readUInt32BE(0);
 
