@@ -348,3 +348,14 @@
     --rise: 0px;
   }
 }
+
+/* What is asked sits in the middle of the card: the item or its sentence, and the English that goes with it.
+   What is taught after it, and the answer fields, stay set from the left edge. */
+.lesson-card h2,
+.lesson-card > .caps,
+.lesson-translation,
+.question .sentence,
+.question form > p.muted,
+.question .feedback > :first-child {
+  text-align: center;
+}

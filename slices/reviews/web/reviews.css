@@ -117,3 +117,14 @@
   color: var(--color-muted);
   font-variant-numeric: tabular-nums;
 }
+
+/* What is asked sits in the middle of the card: the sentence, the lines that go with it, and the buttons under it.
+   The answer field keeps the card's width. */
+.review-card .sentence,
+.review-card form > p:not(.review-actions),
+.review-card [role="status"] {
+  text-align: center;
+}
+.review-actions {
+  justify-content: center;
+}
