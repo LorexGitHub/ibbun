@@ -1,5 +1,6 @@
 import type { NavEntry } from "@ibbun/slice";
 import { buttonClass, KeyMark, Layout, LevelFilter, onGoTo, SessionCountSlot, useKey, useLevelFilter, useSystemModeSync } from "@ibbun/ui";
+import { isShowcase } from "@ibbun/shared";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
@@ -12,6 +13,7 @@ import { Welcome } from "./Home.tsx";
 import { LevelLinks } from "./LevelLinks.tsx";
 import { dockEntries, kanjiAt, sessionAt, takesLevel, visibleTo, welcomeEntries, type Who } from "./places.ts";
 import type { Shell } from "./slices.ts";
+import { WakingDatabase } from "./WakingDatabase.tsx";
 import { client, useWho } from "./who.ts";
 
 /** Renders every widget a slice registered for `name`. Neither the screen nor the widget's slice knows the other. */
@@ -71,6 +73,8 @@ const LogInFirst = () => {
 
 /** The screen at the address: a slice's route, or Home. */
 const Screens = ({ shell, who, session }: { shell: Shell; who: Who; session: NavEntry | undefined }) => {
+  // The first answer waits for Aurora to resume on the showcase; any address says why.
+  if (who.state === "loading" && isShowcase(import.meta.env.VITE_SHOWCASE)) return <WakingDatabase />;
   if (session && who.state === "out") return <LogInFirst />;
   return (
     <Routes>

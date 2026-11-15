@@ -36,7 +36,7 @@ const TryShowcase = () => {
       <button type="button" className={buttonClass()} disabled={busy} onClick={() => void tryIt()}>
         Try Showcase
       </button>
-      {busy && <p role="status">Waking the database. The first visit takes about 15 seconds.</p>}
+      {busy && <p role="status">Just 10 seconds. The showcase database is loading...</p>}
       <Notice outcome={outcome} />
     </div>
   );
