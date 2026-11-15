@@ -27,8 +27,8 @@
       "n": 2,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 4.29,
-      "durSec": 4.76,
+      "inSec": 4.09,
+      "durSec": 4.74,
       "sourceType": "product",
       "liveState": true,
       "caption": false,
@@ -45,7 +45,7 @@
           "focusY": 52.59
         },
         {
-          "atSec": 4.71,
+          "atSec": 4.69,
           "scale": 1,
           "focusX": 50,
           "focusY": 52.59
@@ -57,8 +57,8 @@
       "n": 3,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 17.56,
-      "durSec": 6.35,
+      "inSec": 15.3,
+      "durSec": 6.34,
       "sourceType": "product",
       "liveState": true,
       "caption": false,
@@ -75,7 +75,7 @@
           "focusY": 49.25
         },
         {
-          "atSec": 6.3,
+          "atSec": 6.29,
           "scale": 1.05,
           "focusX": 50,
           "focusY": 49.25
@@ -87,8 +87,8 @@
       "n": 4,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 27.39,
-      "durSec": 5.21,
+      "inSec": 24.48,
+      "durSec": 5.23,
       "sourceType": "product",
       "liveState": true,
       "caption": false,
@@ -105,7 +105,7 @@
           "focusY": 59.05
         },
         {
-          "atSec": 5.16,
+          "atSec": 5.18,
           "scale": 1,
           "focusX": 50,
           "focusY": 59.05
@@ -117,7 +117,7 @@
       "n": 5,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 37.1,
+      "inSec": 33.67,
       "durSec": 4.92,
       "sourceType": "product",
       "liveState": true,
@@ -147,7 +147,7 @@
       "n": 6,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 47,
+      "inSec": 43.05,
       "durSec": 8.05,
       "sourceType": "product",
       "liveState": true,
