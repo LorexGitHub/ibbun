@@ -81,7 +81,7 @@ Checked on 2026-11-14 with Alchemy 2.0.0-beta.85 and its emulator image `ghcr.io
 
 Not done yet. Each step is checked before the next, and each one that needs the AWS account is yours to run.
 
-1. **Account.** One project in `eu-central-1` with a €20 monthly spend limit, MFA on the root user, and a day-to-day IAM user. Add a Budgets email alert at about €10 in the console as well, because the stack's own alert exists only once the stack is deployed.
+1. **Account.** One project in `eu-central-1` with MFA on the root user, and a day-to-day IAM user. AWS has no hard spend limit, so add a Budgets email alert at about €10 in the console, because the stack's own alert exists only once the stack is deployed.
 2. **Credentials.** `pnpm exec alchemy profile edit --add AWS` and pick console login, SSO or stored keys. In CI, set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_REGION`. Never commit keys.
 3. **Environment.** Export `IBBUN_AUTH_SECRET` (32 bytes or more) and `IBBUN_ALERT_EMAIL`. The showcase stage needs no Anthropic key, mail domain or voice allow list.
 4. **State.** A deploy keeps its state in a DynamoDB table in the account, created on the first run. In CI, create it once with `pnpm exec alchemy state bootstrap --backend aws`.
@@ -91,7 +91,7 @@ Not done yet. Each step is checked before the next, and each one that needs the 
 8. **Fill.** Publish the content ([#284](https://github.com/LorexGitHub/ibbun/issues/284)). The database is empty until then.
 9. **Look at the bill.** Open Cost Explorer after the first day, before the first visitor.
 
-To remove a stage, `pnpm exec alchemy destroy`. The CLI reference decides whether it takes `--stage`, so check it before running it against a stage you want to keep.
+To remove a stage, `pnpm exec alchemy destroy --stage showcase`. Without `--stage` it targets `live_$USER` (or `$ALCHEMY_STAGE`), the same default as `deploy`.
 
 ## Windows notes
 

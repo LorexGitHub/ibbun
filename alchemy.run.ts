@@ -153,7 +153,8 @@ type Database = { url: unknown; env: Record<string, string>; connect: Statement[
 
 // `alchemy dev` runs on the emulator and keeps its state on disk. Any other command is a real deploy, whose
 // state belongs in the AWS account (a DynamoDB table, created on the first deploy), so CI and a laptop agree.
-const state = process.argv.includes("dev") ? Alchemy.localState() : AWS.state();
+// The dev CLI runs this file in a child that never sees its argv, and marks that child with ALCHEMY_DEV.
+const state = process.env.ALCHEMY_DEV === "true" ? Alchemy.localState() : AWS.state();
 
 export default Alchemy.Stack(
   "ibbun",
