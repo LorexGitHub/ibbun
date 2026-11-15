@@ -1,0 +1,224 @@
+{
+  "fps": 30,
+  "creativeDirection": {
+    "style": "studio",
+    "tone": "editorial",
+    "soundDesign": "silent"
+  },
+  "production": {
+    "hardMaxSec": 50,
+    "maxZoomScale": 1.9
+  },
+  "shots": [
+    {
+      "n": 1,
+      "kind": "title",
+      "durSec": 3.4,
+      "eyebrow": "一文ずつ",
+      "title": "Learn Japanese for the JLPT, N5 to N1, one sentence at a time.",
+      "titleLines": [
+        "Learn Japanese for the JLPT,",
+        "N5 to N1, one sentence at a time."
+      ],
+      "emphasis": "N5 to N1,",
+      "transition": "cut"
+    },
+    {
+      "n": 2,
+      "kind": "stat",
+      "durSec": 2.4,
+      "eyebrow": "DAY 1",
+      "title": "先刻承知。",
+      "titleLines": [
+        "先刻承知。"
+      ],
+      "subtitle": "Just shapes on a screen. So you meet them in a sentence.",
+      "transition": "cut"
+    },
+    {
+      "n": 3,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 16.82,
+      "durSec": 6.34,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "demonstrate",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "camera": [
+        {
+          "atSec": 0,
+          "scale": 1.05,
+          "focusX": 50,
+          "focusY": 49.25
+        },
+        {
+          "atSec": 6.29,
+          "scale": 1.05,
+          "focusX": 50,
+          "focusY": 49.25
+        }
+      ],
+      "transition": "cut"
+    },
+    {
+      "n": 4,
+      "kind": "stat",
+      "durSec": 2.4,
+      "eyebrow": "DAY 3",
+      "title": "せんこく · before",
+      "titleLines": [
+        "せんこく · before"
+      ],
+      "subtitle": "You type it from memory, and you get it right.",
+      "transition": "cut"
+    },
+    {
+      "n": 5,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 27.26,
+      "durSec": 5.23,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "demonstrate",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "camera": [
+        {
+          "atSec": 0,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 59.05
+        },
+        {
+          "atSec": 5.18,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 59.05
+        }
+      ],
+      "transition": "cut"
+    },
+    {
+      "n": 6,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 35.98,
+      "durSec": 4.92,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "demonstrate",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "camera": [
+        {
+          "atSec": 0,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 58.73
+        },
+        {
+          "atSec": 4.87,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 58.73
+        }
+      ],
+      "transition": "cut"
+    },
+    {
+      "n": 7,
+      "kind": "stat",
+      "durSec": 2.4,
+      "eyebrow": "DAY 15",
+      "title": "毎日",
+      "titleLines": [
+        "毎日"
+      ],
+      "subtitle": "A few minutes a day. It starts to stick.",
+      "transition": "cut"
+    },
+    {
+      "n": 8,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 4.58,
+      "durSec": 3.72,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "demonstrate",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "camera": [
+        {
+          "atSec": 0,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 52.59
+        },
+        {
+          "atSec": 3.67,
+          "scale": 1,
+          "focusX": 50,
+          "focusY": 52.59
+        }
+      ],
+      "transition": "cut"
+    },
+    {
+      "n": 9,
+      "kind": "clip",
+      "src": "take.mp4",
+      "inSec": 44.88,
+      "durSec": 6.25,
+      "sourceType": "product",
+      "liveState": true,
+      "caption": false,
+      "direction": {
+        "intent": "payoff",
+        "layout": "fullbleed",
+        "energy": 0.2
+      },
+      "transition": "cut"
+    },
+    {
+      "n": 10,
+      "kind": "stat",
+      "durSec": 2.8,
+      "eyebrow": "DAY 15",
+      "title": "先刻承知。",
+      "titleLines": [
+        "先刻承知。"
+      ],
+      "subtitle": "“I've known it all along.” You just read that.",
+      "transition": "cut"
+    },
+    {
+      "n": 11,
+      "kind": "title",
+      "durSec": 4.2,
+      "eyebrow": "一文ずつ",
+      "title": "Learn Japanese for the JLPT, N5 to N1, one sentence at a time.",
+      "titleLines": [
+        "Learn Japanese for the JLPT,",
+        "N5 to N1, one sentence at a time."
+      ],
+      "emphasis": "N5 to N1,",
+      "transition": "cut"
+    }
+  ]
+}

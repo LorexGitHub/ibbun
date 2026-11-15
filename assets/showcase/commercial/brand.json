@@ -1,0 +1,15 @@
+{
+  "name": "ibbun",
+  "font": "\"Shippori Mincho B1\", \"Yu Mincho\", \"Hiragino Mincho ProN\", serif",
+  "theme": {
+    "bg": "#f6f1ea",
+    "ink": "#1f1f24",
+    "accent": "#d9381e",
+    "accentDeep": "#a52a14",
+    "onAccent": "#fdfcfa",
+    "sub": "rgba(31,31,36,0.58)",
+    "grad": "#efe7dc",
+    "line": "rgba(31,31,36,0.12)"
+  },
+  "cta": { "name": "ib", "accent": "bun", "url": "github.com/LorexGitHub/ibbun" }
+}

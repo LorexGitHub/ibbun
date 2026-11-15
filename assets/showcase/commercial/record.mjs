@@ -29,11 +29,14 @@ await warm.request.get(`${API}/api/dashboard/today`, { timeout: 300_000 });
 await warm.close();
 
 const ctx = await browser.newContext({
-  viewport: VIEW,
+  // Recorded at 1080p with the page zoomed 4/3: the 1440-wide layout, drawn at full 1080p sharpness.
+  // Playwright pads, rather than scales, a video larger than the viewport, so deviceScaleFactor won't do.
+  viewport: { width: 1920, height: 1080 },
   colorScheme: "light",
   storageState: state,
-  recordVideo: { dir: raw, size: VIEW },
+  recordVideo: { dir: raw, size: { width: 1920, height: 1080 } },
 });
+await ctx.addInitScript(() => document.addEventListener("DOMContentLoaded", () => (document.documentElement.style.zoom = "1.3333")));
 await ctx.addInitScript(() => localStorage.setItem("ibbun.theme", JSON.stringify({ palette: "shu", mode: "light" })));
 const page = await ctx.newPage();
 const t0 = Date.now();
