@@ -118,7 +118,7 @@ describe("reviewing a Batch Text", () => {
     expect(approvals(w)).toEqual({ passage: "approved", sentences: ["approved"], links: ["approved"] });
     expect(w.graph.sentence.find((s) => s.id === w.sentences[0])!.tokens.map((t) => t.surface)).toEqual(["水", "を", "飲む", "。"]);
     expect(w.graph.generationRequest.find((r) => r.id === w.request.id)!.status).toBe("done");
-    expect((await w.a.decisions(w.passageId))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "reading-passage/v1" } });
+    expect((await w.a.decisions(w.passageId))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "reading-passage/v2" } });
   });
 
   it("rejects the unit when the reviewer fails a criterion", async () => {

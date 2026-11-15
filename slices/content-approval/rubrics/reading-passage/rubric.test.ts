@@ -5,7 +5,7 @@ describe("reading-passage rubric", () => {
   const rubric = rubricFor("reading-passage");
 
   it("judges what the automatic checks cannot (batch-text.md#automatic-checks)", () => {
-    expect(rubric.version).toBe("reading-passage/v1");
+    expect(rubric.version).toBe("reading-passage/v2");
     expect(rubric.criteria).toEqual(["natural", "translations", "passage-type", "consistency", "level"]);
   });
 

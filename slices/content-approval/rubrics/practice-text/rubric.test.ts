@@ -5,7 +5,7 @@ describe("practice-text rubric", () => {
   const rubric = rubricFor("practice-text");
 
   it("judges the text and the Learner's chosen type, topic and questions", () => {
-    expect(rubric.version).toBe("practice-text/v1");
+    expect(rubric.version).toBe("practice-text/v2");
     expect(rubric.criteria).toEqual(["natural", "translation", "level", "type", "topic", "coherent", "questions", "safe"]);
   });
 

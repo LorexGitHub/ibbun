@@ -79,7 +79,7 @@ const linkRow = (w: Awaited<ReturnType<typeof world>>) => w.graph.sentenceDemons
 
 describe("the grammar-fields rubric", () => {
   it("is a versioned template that judges every field, the rule and the proposed links", () => {
-    expect(rubricFor("grammar-fields")).toMatchObject({ version: "grammar-fields/v1", criteria: CRITERIA });
+    expect(rubricFor("grammar-fields")).toMatchObject({ version: "grammar-fields/v2", criteria: CRITERIA });
   });
 
   it("shows the reviewer the fields, the rule and each proposed link with the span it matched", async () => {
@@ -102,7 +102,7 @@ describe("reviewing Grammar Point fields", () => {
     expect(itemRow(w).approval).toBe("approved");
     expect(linkRow(w).approval).toBe("approved");
     expect(w.graph.generationRequest.find((r) => r.id === w.request.id)!.status).toBe("done");
-    expect((await w.a.decisions(w.item))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "grammar-fields/v1" } });
+    expect((await w.a.decisions(w.item))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "grammar-fields/v2" } });
   });
 
   it("rejects a link that uses another meaning of the spelling, and sends the reason back to the generator", async () => {
@@ -161,7 +161,8 @@ describe("what the reviewer is told when a field is empty", () => {
     const [draft] = await grammarFieldsDrafts(w.a, w.run.id);
     const values = grammarFieldsValues(draft!, { failures: [], level: null });
     expect(values).toMatchObject({ level: "Unlevelled", forms: "none", formation: "none", notes: "Said when regretting." });
-    expect(values.links).toBe("- 食べてしまった。 (none) 「食べてしまっ」");
+    expect(values.links).toBe("- 食べてしまった。 (none) 「食べてしまっ」
+  tokens: 食べ/食べる/動詞/- て/て/動詞/- しまっ/しまう/動詞/- た/た/動詞/-");
     w.graph.sentenceDemonstratesGrammar.length = 0;
     const [bare] = await grammarFieldsDrafts(w.a, w.run.id);
     expect(grammarFieldsValues({ ...bare!, point: { ...bare!.point, notes: null } }, { failures: [], level: "N4" })).toMatchObject({ links: "none", notes: "none", level: "N4" });
