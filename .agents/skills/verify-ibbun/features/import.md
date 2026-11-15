@@ -53,6 +53,7 @@ Preconditions: baseline from the README, plus `verify.sh` must also start `pnpm 
 - **Matcher Rule runs**: enqueue `import.matcher-runs` (`psql "$DATABASE_URL"` into `jobs.job`). Expect new rows in `select approval, count(*) from content_graph.sentence_demonstrates_grammar group by 1` as `draft` only, and `select count(*) from content_graph.generation_request where kind='examples' and reason='matcher run'` equal to the approved Grammar Points with a rule and under 5 approved Examples. Enqueue again: counts unchanged. Approve one link, rerun: it stays `approved` and no duplicate span appears.
 
 ## Gotchas
+- **Editorial levels** (`sources/editorial-levels/levels.ts`): `pnpm content:import` writes each entry as an approved `editorial` level candidate (authored Provenance `supervisor: editorial levels v1`) before the levels rebuild. It outranks the List levels, so `select level from content_graph.computed_level` for ありがとう (JMdict 1586820) is N5, not the yomitan N3. Running it again adds nothing.
 
 - ja Wiktionary: kanji spellings that are stubs pointing to a kana page (食べる, 会う) get no gloss yet; only entries on the headword page are imported (research: about two thirds of JLPT Words). Gaps go to the Japanese Explanation generator. Run on the real 2026-11-02 dump (parse only, no Compose stack).
 - The `import` Postgres schema holds the slice's private tables. `import` is not a reserved word, but quote it in ad-hoc SQL if a client complains.
