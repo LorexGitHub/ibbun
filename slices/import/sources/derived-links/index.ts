@@ -13,8 +13,9 @@ const live = { approval: "approved", retired: false } as const;
 const readInputs = async (a: Authoring): Promise<Inputs> => {
   const items = await a.rows("studyItem");
   const idsOf = (type: string, retired: boolean) => new Set(items.filter((i) => i.type === type && i.retired === retired && (retired || i.approval === "approved")).map((i) => i.id));
-  const [kanji, forms, readings, sentences, examples, uses, derived] = await Promise.all([
+  const [kanji, wordRows, forms, readings, sentences, examples, uses, derived] = await Promise.all([
     a.rows("kanji"),
+    a.rows("word"),
     a.rows("wordForm", { retired: false }),
     a.rows("wordReading", { retired: false }),
     a.rows("sentence", live),
@@ -27,6 +28,7 @@ const readInputs = async (a: Authoring): Promise<Inputs> => {
   return {
     words: idsOf("word", false),
     retiredWords: idsOf("word", true),
+    usuallyKana: new Set(wordRows.filter((w) => w.usuallyKana).map((w) => w.studyItemId)),
     kanji: kanji.filter((k) => kanjiIds.has(k.studyItemId)),
     forms,
     readings,

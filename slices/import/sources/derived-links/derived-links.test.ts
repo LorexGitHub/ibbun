@@ -22,10 +22,10 @@ const build = () => {
     graph.kanji.push({ studyItemId: id, literal, meanings: [], onReadings: [], kunReadings: [], grade: null, frequency: null, strokeCount: 1, components: [], strokes: [], knownWrongMeanings: [] });
     return id;
   };
-  const word = (forms: string[], readings: string[], retired = false) => {
+  const word = (forms: string[], readings: string[], retired = false, usuallyKana = false) => {
     const id = randomUUID();
     graph.studyItem.push({ id, type: "word", ...life, retired });
-    graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana: false });
+    graph.word.push({ studyItemId: id, priorityTags: [], usuallyKana });
     forms.forEach((text, position) => graph.wordForm.push({ id: randomUUID(), wordId: id, position, text, ...life }));
     readings.forEach((text, position) => graph.wordReading.push({ id: randomUUID(), wordId: id, position, text, pitchAccent: null, ...life }));
     return id;
@@ -120,6 +120,21 @@ describe("Sudachi Sentence uses Word", () => {
     const s = w.sentence("パン", [{ surface: "パン", lemma: "パン" }]);
     await rebuild();
     expect((await authoring.rows("sentenceUsesWord")).map((l) => [l.sentenceId, l.wordId, l.formId === null, l.readingId !== null])).toEqual([[s, word, true, true]]);
+  });
+
+  it("does not read a kana token as a Word written in kanji: the particle よ in 嘘よ is not 四", async () => {
+    w.word(["四"], ["よ", "よん"]);
+    w.word(["夜"], ["よ", "よる"]);
+    w.sentence("嘘よ。", [{ surface: "嘘", lemma: "嘘" }, { surface: "よ", lemma: "よ" }, { surface: "。", lemma: "。" }]);
+    await rebuild();
+    expect(await authoring.rows("sentenceUsesWord")).toEqual([]);
+  });
+
+  it("matches a Word JMdict marks usually-kana by its reading, despite its kanji form", async () => {
+    const thing = w.word(["物"], ["もの"], false, true);
+    const s = w.sentence("もの", [{ surface: "もの", lemma: "もの" }]);
+    await rebuild();
+    expect((await authoring.rows("sentenceUsesWord")).map((l) => [l.sentenceId, l.wordId, l.readingId !== null])).toEqual([[s, thing, true]]);
   });
 
   it("leaves a Sentence alone when another process, like jpn_indices, already linked it", async () => {

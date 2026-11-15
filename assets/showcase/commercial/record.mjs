@@ -49,12 +49,13 @@ const hold = (ms) => page.waitForTimeout(ms);
 const showsSentence = (q, sentenceText) =>
   sentenceText.includes(q.sentence.before + q.sentence.after) || sentenceText.replace("＿＿＿", q.sentence.target) === q.sentence.before + q.sentence.target + q.sentence.after;
 const answerFor = (prompts, sentenceText) => prompts.find((q) => showsSentence(q, sentenceText)) ?? prompts[0];
-const acceptedValue = ({ written, reading }) => written ?? reading;
-const answerValue = (a) => (a.facet === "meaning" ? a.meanings[0].text : acceptedValue(a.accepted[0]));
+// A reading is typed in kana; a cloze answer as written.
+const fromAccepted = { reading: ({ written, reading }) => reading ?? written, cloze: ({ written, reading }) => written ?? reading };
+const answerValue = (f) => (f.answerData.facet === "meaning" ? f.answerData.meanings[0].text : fromAccepted[f.facet](f.answerData.accepted[0]));
 const fill = async (prompt) => {
   for (const f of prompt.facets) {
     const label = { cloze: "Answer", reading: "Reading in this sentence", meaning: "Meaning of the kanji" }[f.facet];
-    const value = answerValue(f.answerData);
+    const value = answerValue(f);
     const input = page.getByLabel(label, { exact: true });
     await input.click();
     await input.fill(value);
@@ -98,6 +99,14 @@ await page.locator(".quiz .sentence").waitFor();
 await hold(500);
 const prompts = learnBatch.items.map((i) => i.prompt);
 const quizPrompt = answerFor(prompts, await page.locator(".quiz .sentence").innerText());
+// The promo's story follows this item, so its cards always match the footage.
+const said = (facet) => quizPrompt.facets.find((f) => f.facet === facet)?.answerData;
+const { before, target, after } = quizPrompt.sentence;
+marks.story = {
+  sentence: before + target + after,
+  answer: [said("reading")?.accepted[0].reading, said("meaning")?.meanings[0].text, said("cloze")?.accepted[0].written].filter(Boolean).join(" · "),
+  translation: quizPrompt.translationEn,
+};
 await mark("quiz", page.locator(".question"));
 await hold(800);
 await fill(quizPrompt);
