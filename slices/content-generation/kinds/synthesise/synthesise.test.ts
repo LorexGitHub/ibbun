@@ -67,6 +67,11 @@ describe("the approved reading as kana", () => {
     expect(kanaOf(tokens)).toBe("キョウ'、アメ'");
   });
 
+  it("does not break a phrase on a non-pause punctuation mark", () => {
+    const tokens = [token("猫", "ネコ", ["名詞"]), token("。", "", ["補助記号", "句点"]), token("は", "ハ", ["助詞", "係助詞"]), token("魚", "サカナ", ["名詞"])];
+    expect(kanaOf(tokens)).toBe("ネコワ'/サカナ'");
+  });
+
   it("pauses at a space without speaking it", () => {
     const tokens = [token("この", "コノ", ["連体詞"]), token(" ", "キゴウ", ["空白"]), token("公園", "コウエン", ["名詞"])];
     expect(kanaOf(tokens)).toBe("コノ'、コウエン'");
