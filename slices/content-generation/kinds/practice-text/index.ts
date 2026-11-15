@@ -20,10 +20,10 @@ const Passage = z.object({ title: z.string().min(1), sentences: z.array(Line).mi
 
 const Question = z.object({ question: z.string().min(1), choices: z.array(z.string().min(1)).length(4), answer: z.number().int().min(0).max(3) });
 
-const Dialogue = z.object({
+export const Dialogue = z.object({
   title: z.string().min(1),
   lines: z.array(Line.extend({ speaker: z.enum(["男", "女"]) })).min(2),
-  questions: z.tuple([Question, Question]),
+  questions: z.array(Question).length(2),
 });
 
 /** The Practice Text a request is for; its choices are on the record `reading` or `listening` wrote. */
