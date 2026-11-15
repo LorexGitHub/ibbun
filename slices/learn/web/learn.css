@@ -355,7 +355,7 @@
 .lesson-translation,
 .question .sentence,
 .question form > p.muted,
-.question .feedback > :first-child {
+.question .feedback {
   text-align: center;
 }
 
