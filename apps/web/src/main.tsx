@@ -1,3 +1,4 @@
+import "./sign-bodies.ts";
 import "@ibbun/ui/styles.css";
 import "./index.css";
 import "./shell.css";

@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | Front door | CloudFront (`Website.Router`): the web bucket by default, `/api/*` to the API function URL, `/audio/*` to the audio bucket, `/content/*` to the content bucket | yes | yes |
 | Web app | `Website.StaticSite` of `apps/web/dist`, with a single-page fallback | yes | yes |
-| API | Lambda (Node 24, arm64), bundled from `apps/api/src/lambda.ts`, function URL | yes | yes |
+| API | Lambda (Node 24, arm64), bundled from `apps/api/src/lambda.ts`, `AWS_IAM` function URL that only CloudFront can call | yes | yes |
 | Buckets | web, audio, content | yes | yes, plus a private bucket for raw import files |
 | Database | Aurora Serverless v2 for PostgreSQL 17: auto-pause after 5 idle minutes, public, `rds.force_ssl`, IAM authentication, in a VPC of public subnets only | yes | yes |
 | Secrets | SSM parameters: `AUTH_SECRET`, `ANTHROPIC_API_KEY` (full stage only), `APP_URL` | yes | yes |
@@ -64,7 +64,7 @@ Checked on 2026-11-14 with Alchemy 2.0.0-beta.85 and its emulator image `ghcr.io
 **Untested, so a deploy must check each.**
 
 - Everything above, on real AWS. No `alchemy deploy` has run, and a real deploy keeps its state in the AWS account with `AWS.state()`, while `alchemy dev` keeps `localState()`.
-- The router sends the API function URL **unauthenticated** (`authType: NONE`), and CloudFront's origin request policy is the Router's `AllViewerExceptHostHeader`, which does not forward `CloudFront-Viewer-Address`. The API's per-IP rate limits read that header, so without it they have nothing to limit on. Locking the function URL to CloudFront with OAC and forwarding the header needs a `CloudFront.Distribution` of our own in place of `Website.Router`. [PR #272](https://github.com/LorexGitHub/ibbun/pull/272) asks for both.
+- The API's function URL takes only signed requests (`AWS_IAM`). The `/api/*` route signs each request with origin access control for Lambda, set at the edge through `cf.updateRequestOrigin`, and two `Lambda.Permission`s let only the router's distribution invoke the URL. Lambda refuses an unsigned body behind OAC, so the web app sends each same-origin body's SHA-256 in `x-amz-content-sha256` (`apps/web/src/body-hash.ts`). The router's viewer-request function writes the viewer's IP into `x-viewer-ip`, over anything the viewer sent, and the API's per-IP rate limits read it. Under `alchemy dev` that header reached the API and replaced a forged one. The signing, the grants and the body hash are untested on AWS. Locally the function URL stays `NONE` and nothing is signed.
 - `rds.force_ssl` is set through a CloudControl resource (`AWS::RDS::DBClusterParameterGroup`), because Alchemy's `DBClusterParameterGroup` has no `parameters`. It has never run, and neither has the auto-pause setting `SecondsUntilAutoPause`.
 - Nothing runs the migrations on Aurora. They need the master user, whose password RDS keeps in Secrets Manager (`pnpm db:migrate` with that `DATABASE_URL`), before the first request.
 - The worker's ECR image builds for `linux/arm64`. Its SQS trigger sets `MaximumConcurrency` 5 beside reserved concurrency 5 and `ReportBatchItemFailures`.
