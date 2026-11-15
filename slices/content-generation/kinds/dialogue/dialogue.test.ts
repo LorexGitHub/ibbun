@@ -8,7 +8,8 @@ import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
 import type { JlptLevel } from "@ibbun/shared";
 import { contentGeneration } from "../../server/generate.ts";
 import { world } from "../../server/world.ts";
-import { requestDialogues } from "./index.ts";
+import { z } from "zod";
+import { Dialogue, requestDialogues } from "./index.ts";
 
 const answer = {
   lines: [
@@ -173,6 +174,17 @@ describe("dialogue kind", () => {
     }
     expect(t.prompts).toEqual([]);
     expect(await t.auth.rows("studyItem", { type: "listening_clip" })).toEqual([]);
+  });
+});
+
+describe("Dialogue answer schema", () => {
+  it("has no tuple keywords, which Ollama and claude --json-schema reject", () => {
+    expect(JSON.stringify(z.toJSONSchema(Dialogue))).not.toMatch(/prefixItems|"items":false/);
+  });
+
+  it("takes exactly two questions", () => {
+    expect(Dialogue.safeParse(answer).success).toBe(true);
+    expect(Dialogue.safeParse({ ...answer, questions: answer.questions.slice(0, 1) }).success).toBe(false);
   });
 });
 

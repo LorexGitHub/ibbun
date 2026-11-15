@@ -17,7 +17,7 @@ const Question = z.object({ question: z.string().min(1), correct: z.string().min
 
 export const Dialogue = z.object({
   lines: z.array(z.object({ speaker: Speaker, text: z.string().min(1), translationEn: z.string().min(1) })).min(2),
-  questions: z.tuple([Question, Question]),
+  questions: z.array(Question).length(2),
 });
 type Dialogue = z.output<typeof Dialogue>;
 
