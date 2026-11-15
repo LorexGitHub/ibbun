@@ -1,6 +1,6 @@
 // Records the raw footage for the promo: one Playwright video of the logged-in demo Learner, plus
 // marks.json with when each beat happens (seconds into the video) and where its subject sits (CSS px).
-// Run: EMAIL=<from seed-demo.ts> node assets/showcase/demo/record.mjs
+// Run: EMAIL=<from seed-demo.mjs> node assets/showcase/demo/record.mjs
 import { chromium } from "@playwright/test";
 import { mkdirSync, readdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -13,7 +13,7 @@ const WEB = "http://localhost:5173";
 const API = "http://localhost:3000";
 const EMAIL = process.env.EMAIL;
 const PASSWORD = process.env.PASSWORD ?? "ibbun-promo-demo-2026";
-if (!EMAIL) throw new Error("EMAIL is not set (run seed-demo.ts first)");
+if (!EMAIL) throw new Error("EMAIL is not set (run seed-demo.mjs first)");
 const VIEW = { width: 1440, height: 810 };
 
 const browser = await chromium.launch();

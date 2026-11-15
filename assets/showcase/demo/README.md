@@ -7,7 +7,7 @@ framing per screen, no zooms.
 
 | File | What it is |
 | --- | --- |
-| `seed-demo.ts` | A demo Learner with two weeks of history, so Today shows a streak and Reviews due. |
+| `seed-demo.mjs` | A demo Learner with two weeks of history, so Today shows a streak and Reviews due. |
 | `record.mjs` | Plays that Learner through Today, Learn, the quiz, Reviews and the five looks in Playwright, at 1080p. Writes `out/raw/take.webm` and `out/raw/marks.json` (when each screen happens and where its card sits). |
 | `script.mjs` | Turns the marks into `script.json`, the product-demo-director timeline. |
 | `brand.json` | The Ma palette and Mincho type for the title card. |
@@ -19,7 +19,7 @@ engine and Python tools installed (see its SKILL.md).
 
 ```sh
 export DATABASE_URL=postgres://...                   # the database the API uses
-node assets/showcase/demo/seed-demo.ts          # prints the demo email
+node assets/showcase/demo/seed-demo.mjs          # prints the demo email
 EMAIL=<that email> node assets/showcase/demo/record.mjs
 node assets/showcase/demo/script.mjs
 mkdir -p assets/showcase/demo/assets
