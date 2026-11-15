@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createFakeAuthoring, emptyGraph } from "@ibbun/content-graph/testing";
 import type { MatcherRule } from "@ibbun/content-graph/authoring";
-import { textItems } from "./passages.ts";
+import { itemLabel, textItems } from "./passages.ts";
 
 const world = () => {
   const graph = emptyGraph();
@@ -58,5 +58,17 @@ describe("textItems", () => {
   it("skips Study Items it does not know", async () => {
     const w = world();
     expect(await textItems(w.a, [randomUUID()])).toEqual([]);
+  });
+
+  it("names a Word, a Kanji and a Grammar Point for the reviewer", async () => {
+    const w = world();
+    const wordId = w.word(["水"]);
+    const kanjiId = w.kanji("水");
+    const rule: MatcherRule = { pattern: [{ lemma: "飲む" }] };
+    const pointId = w.point(rule);
+    const items = await textItems(w.a, [wordId, kanjiId, pointId]);
+    expect(await itemLabel(w.a, items[0]!)).toBe("Word 水");
+    expect(await itemLabel(w.a, items[1]!)).toBe("Kanji 水");
+    expect(await itemLabel(w.a, items[2]!)).toBe("Grammar Point 〜を飲む");
   });
 });
