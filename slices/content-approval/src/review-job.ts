@@ -2,16 +2,20 @@ import type { Authoring, Decider, DecisionOutcome, GenerationRequest } from "@ib
 import type { Jobs } from "@ibbun/jobs";
 import type { Llm } from "@ibbun/llm";
 import type { Nlp } from "@ibbun/nlp";
+import type { Progress, Texts } from "@ibbun/progress";
 import { checkExample, checkExplanation, type ExampleCheck, type ExplanationCheck } from "./checks.ts";
 import type { ApprovalConfig } from "./config.ts";
 import { draftsOfRun, type Draft } from "./drafts.ts";
 import { checkDialogue, type DialogueCheck } from "../rubrics/dialogue/index.ts";
 import { checkGrammarFields, type GrammarFieldsCheck } from "../rubrics/grammar-fields/index.ts";
+import { checkPracticeText, type PracticeTextCheck } from "../rubrics/practice-text/index.ts";
+import { checkBatchText, type BatchTextCheck } from "../rubrics/reading-passage/index.ts";
 import { retry } from "./retry.ts";
 import type { Sampling } from "../sampling/sampler.ts";
 import { review, type Judgement, type Review } from "./reviewer.ts";
 
-export type ReviewDeps = { authoring: Authoring; nlp: Nlp; llm: Llm; jobs: Jobs; config: ApprovalConfig; sampling: Sampling };
+/** `progress` and `texts` are the Learner's, for the Learner-aware checks of Batch and Practice Texts. */
+export type ReviewDeps = { authoring: Authoring; nlp: Nlp; llm: Llm; jobs: Jobs; config: ApprovalConfig; sampling: Sampling; progress: Progress; texts: Texts };
 
 const CHECKS: Decider = { kind: "derived", process: "content-approval/automatic-checks", version: "1" };
 
@@ -24,9 +28,11 @@ const decideUnit = async (a: Authoring, draft: Draft, outcome: DecisionOutcome, 
   for (const { table, id } of records) await a.decide({ recordTable: table, recordId: id, outcome, decider, reason, verdicts });
 };
 
-const automatic = (a: Authoring, d: ReviewDeps, draft: Draft): Promise<ExampleCheck | ExplanationCheck | GrammarFieldsCheck | DialogueCheck> => {
+const automatic = (a: Authoring, d: ReviewDeps, draft: Draft): Promise<ExampleCheck | ExplanationCheck | GrammarFieldsCheck | DialogueCheck | BatchTextCheck | PracticeTextCheck> => {
   if (draft.kind === "example") return checkExample(a, d.nlp, d.config, draft);
   if (draft.kind === "dialogue") return checkDialogue(a, d.nlp, draft);
+  if (draft.kind === "reading-passage") return checkBatchText(a, d.nlp, d.progress, draft);
+  if (draft.kind === "practice-text") return checkPracticeText(a, d.nlp, d.progress, draft);
   return draft.kind === "grammar-fields" ? checkGrammarFields(a, draft) : checkExplanation(a, draft);
 };
 
@@ -57,9 +63,9 @@ const decideDraft = async (d: ReviewDeps, draft: Draft, requestId: string): Prom
 };
 
 /** The drafts still to decide. Finished and failed requests have none; an open request whose run wrote nothing is a fault. */
-const draftsToReview = async (a: Authoring, request: GenerationRequest, runId: string): Promise<Draft[]> => {
+const draftsToReview = async (a: Authoring, texts: Texts, request: GenerationRequest, runId: string): Promise<Draft[]> => {
   if (request.status === "done" || request.status === "failed") return [];
-  const drafts = await draftsOfRun(a, request.kind, runId);
+  const drafts = await draftsOfRun(a, texts, request.kind, runId);
   if (!drafts.length && request.status === "open") throw new Error(`Generation Run ${runId} wrote no draft to review`);
   return drafts;
 };
@@ -78,7 +84,7 @@ const settle = async (d: ReviewDeps, requestId: string, results: Result[]) => {
 export const reviewRun = async (d: ReviewDeps, { requestId, runId }: { requestId: string; runId: string }) => {
   const [request] = await d.authoring.rows("generationRequest", { id: requestId });
   if (!request) throw new Error(`no Generation Request ${requestId}`);
-  const drafts = await draftsToReview(d.authoring, request, runId);
+  const drafts = await draftsToReview(d.authoring, d.texts, request, runId);
   if (!drafts.length) return;
   await d.authoring.setGenerationStatus(requestId, "in review");
   const results: Result[] = [];

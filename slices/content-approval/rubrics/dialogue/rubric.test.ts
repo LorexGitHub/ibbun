@@ -5,8 +5,12 @@ describe("dialogue rubric", () => {
   const rubric = rubricFor("dialogue");
 
   it("judges register, speaker turns and audio-only questions", () => {
-    expect(rubric.version).toBe("dialogue/v1");
+    expect(rubric.version).toBe("dialogue/v2");
     expect(rubric.criteria).toEqual(["spoken-register", "speaker-turns", "audio-only", "questions", "target-grammar", "length"]);
+  });
+
+  it("lets plain polite speech pass at N5 and N4", () => {
+    expect(rubric.template).toContain("at N5 and N4, clear polite です/ます speech");
   });
 
   it("fixes the two speakers as 男 and 女", () => {

@@ -15,7 +15,7 @@ import {
 import { currentLevel } from "@ibbun/content-graph/levels";
 import type { Authoring, Row } from "@ibbun/content-graph/authoring";
 import type { Nlp, Token as NlpToken } from "@ibbun/nlp";
-import type { JlptLevel } from "@ibbun/shared";
+import { compareLevels, type JlptLevel } from "@ibbun/shared";
 import type { ApprovalConfig } from "./config.ts";
 import type { ExampleDraft, ExplanationDraft } from "./drafts.ts";
 
@@ -44,19 +44,23 @@ const visible = (row: { approval: string; retired: boolean }) => row.approval ==
 export const levelOf = async (a: Authoring, studyItemId: string): Promise<Level> =>
   currentLevel(await a.rows("levelCandidate", { studyItemId }));
 
-/** Links each token to the approved JMdict Word whose written form or reading is its lemma. */
+/** Easiest first; Unlevelled last. */
+const byLevel = (x: { level: Level }, y: { level: Level }) =>
+  x.level === null ? (y.level === null ? 0 : 1) : y.level === null ? -1 : compareLevels(x.level, y.level);
+
+/**
+ * Links each token to the approved JMdict Word whose written form or reading is its lemma. When several
+ * Words share it (いる, 母), the easiest levelled one: the Sentence most likely means the word a learner meets first.
+ */
 const linkTokens = async (a: Authoring, tokens: StoredToken[]): Promise<LinkedToken[]> => {
-  const wordIdFor = async (lemma: string): Promise<string | undefined> => {
+  const wordFor = async (lemma: string): Promise<LinkedToken["word"]> => {
     const forms = (await a.rows("wordForm", { text: lemma })).filter(visible);
     const readings = forms.length ? [] : (await a.rows("wordReading", { text: lemma })).filter(visible);
-    return [...forms, ...readings][0]?.wordId;
+    const ids = [...new Set([...forms, ...readings].map((r) => r.wordId))];
+    const words = await Promise.all(ids.map(async (id) => ({ id, level: await levelOf(a, id) })));
+    return words.sort(byLevel)[0] ?? null;
   };
-  return Promise.all(
-    tokens.map(async (token) => {
-      const wordId = await wordIdFor(token.lemma);
-      return { ...token, word: wordId ? { id: wordId, level: await levelOf(a, wordId) } : null };
-    }),
-  );
+  return Promise.all(tokens.map(async (token) => ({ ...token, word: await wordFor(token.lemma) })));
 };
 
 const linkedGrammar = async (a: Authoring, sentenceId: string) =>
@@ -66,6 +70,14 @@ const linkedGrammar = async (a: Authoring, sentenceId: string) =>
       level: await levelOf(a, grammarPointId),
     })),
   );
+
+/** A Sentence with its stored tokens linked to approved Words and its Grammar Point links, as the checks read it. */
+export const checkedSentence = async (a: Authoring, sentence: Row<"sentence">, tokens: StoredToken[]): Promise<CheckedSentence> => ({
+  text: sentence.text,
+  translationEn: sentence.translationEn,
+  tokens: await linkTokens(a, tokens),
+  grammar: await linkedGrammar(a, sentence.id),
+});
 
 export type ExampleCheck = {
   failures: Failure[];
@@ -99,12 +111,7 @@ const spanReading = (draft: ExampleDraft, sentence: CheckedSentence): ReadingDis
 export const checkExample = async (a: Authoring, nlp: Nlp, config: ApprovalConfig, draft: ExampleDraft): Promise<ExampleCheck> => {
   const tokens = toStoredTokens(await nlp.tokenize(draft.sentence.text));
   const { sentence, example } = draft;
-  const checked: CheckedSentence = {
-    text: sentence.text,
-    translationEn: sentence.translationEn,
-    tokens: await linkTokens(a, tokens),
-    grammar: await linkedGrammar(a, sentence.id),
-  };
+  const checked = await checkedSentence(a, sentence, tokens);
   const own = await levelOf(a, example.studyItemId);
   const level = own === null ? "N1" : own;
   const existing = (await a.rows("sentence")).filter((s) => visible(s) && s.id !== sentence.id).map((s) => s.text);

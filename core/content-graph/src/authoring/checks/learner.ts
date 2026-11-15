@@ -1,9 +1,9 @@
 import { matchRule, type MatcherRule } from "./matcher.ts";
-import { fail, isUncounted, withinLevel, type CheckedSentence, type Failure, type Level } from "./types.ts";
+import { fail, isContent, withinLevel, type CheckedSentence, type Failure, type Level } from "./types.ts";
 
 /** A Study Item a Learner-aware text is asked to use (docs/batch-text.md#automatic-checks). */
 export type TextItem =
-  | { type: "word"; id: string; lemma: string }
+  | { type: "word"; id: string; lemma: string; /** Other written forms and readings that also count, e.g. みず for 水. */ spellings?: readonly string[] }
   | { type: "grammar_point"; id: string; rule: MatcherRule }
   | { type: "kanji"; id: string; literal: string };
 
@@ -24,7 +24,10 @@ const allowedWordTokens = (sentences: readonly CheckedSentence[], batch: readonl
 
 const appears = (item: TextItem, sentences: readonly CheckedSentence[], kanjiHosts: readonly { surface: string }[]): boolean => {
   if (item.type === "kanji") return kanjiHosts.some((token) => token.surface.includes(item.literal));
-  if (item.type === "word") return sentences.some((s) => s.tokens.some((token) => token.lemma === item.lemma));
+  if (item.type === "word") {
+    const spellings = item.spellings === undefined ? [] : item.spellings;
+    return sentences.some((s) => s.tokens.some((token) => token.lemma === item.lemma || spellings.includes(token.lemma)));
+  }
   return sentences.some((s) => matchRule(item.rule, s.tokens).length > 0);
 };
 
@@ -47,11 +50,11 @@ const label = (item: TextItem): string =>
 
 /**
  * Every other Word and Grammar Point is Known, or levelled at or below `cap`
- * (any level when `cap` is null, for an Unlevelled batch). Proper nouns and numbers don't count.
+ * (any level when `cap` is null, for an Unlevelled batch). Only content tokens count: no particles, auxiliaries, symbols, proper nouns or numbers.
  */
 export const checkWithinReach = (sentences: readonly CheckedSentence[], exempt: readonly TextItem[], cap: Level, known: KnownSet): Failure[] => {
   const skip = new Set(exempt.map((item) => item.id));
-  const words = sentences.flatMap((s) => s.tokens.filter((t) => !isUncounted(t)).flatMap((t) => (t.word ? [{ ...t.word, name: t.surface }] : [])));
+  const words = sentences.flatMap((s) => s.tokens.filter(isContent).flatMap((t) => (t.word ? [{ ...t.word, name: t.surface }] : [])));
   const grammar = sentences.flatMap((s) => s.grammar.map((g) => ({ ...g, name: g.id })));
   const outOfReach = [...words, ...grammar].filter((item) => !skip.has(item.id) && !reachable(item.id, item.level, cap, known));
   return [...new Map(outOfReach.map((item) => [item.id, item])).values()].map((item) =>

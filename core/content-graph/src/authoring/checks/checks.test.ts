@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  checkBatchItemsAppear,
   checkBatchText,
   checkExampleSentence,
   checkJapaneseExplanation,
@@ -297,6 +298,12 @@ describe("Batch Text checks", () => {
   const nekoKanji: TextItem = { type: "kanji", id: "k-neko", literal: "猫" };
   const base = { sentences: [sentence(cat())], level: "N5" as Level, batch: [neko, desu, nekoKanji], earlier: [], known: new Set<string>(), length: { min: 1, max: 20 } };
 
+  it("counts a batch Word written in another of its spellings", () => {
+    const kana = sentence(tokens(["ねこ", "ねこ", "名詞", ["w-neko", "N5"]]));
+    expect(checkBatchItemsAppear([kana], [neko], "N5", new Set())).toHaveLength(1);
+    expect(checkBatchItemsAppear([kana], [{ ...neko, spellings: ["ねこ"] }], "N5", new Set())).toEqual([]);
+  });
+
   it("passes when every batch item appears and everything else is within reach", () => {
     expect(checkBatchText(base)).toEqual([]);
   });
@@ -342,6 +349,11 @@ describe("Batch Text checks", () => {
       { check: "out-of-reach", message: "「g-hard」 is N2 and not Known to the Learner. Replace it." },
     ]);
     expect(checkBatchText({ ...base, batch: [neko], sentences: [s], known: new Set(["w-nue", "w-zou", "g-hard", "g-desu"]), length: { min: 0, max: 99 } })).toEqual([]);
+  });
+
+  it("does not count particles, auxiliaries or symbols, even when they link to an Unlevelled JMdict Word", () => {
+    const s = sentence(tokens(["猫", "猫", "名詞", ["w-neko", "N5"]], ["は", "は", "助詞,係助詞", ["w-wa", null]], ["です", "です", "助動詞", ["w-desu", null]], ["。", "。", "補助記号,句点", ["w-maru", null]]));
+    expect(checkBatchText({ ...base, batch: [neko], sentences: [s], length: { min: 0, max: 99 } })).toEqual([]);
   });
 
   it("for an Unlevelled batch allows anything levelled or Known", () => {

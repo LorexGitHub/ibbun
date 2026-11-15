@@ -56,6 +56,8 @@ describe("the spot-check API", () => {
       { kind: "japanese-explanation", paused: false },
       { kind: "grammar-fields", paused: false },
       { kind: "dialogue", paused: false },
+      { kind: "reading-passage", paused: false },
+      { kind: "practice-text", paused: false },
       { kind: "listening-clip", paused: false },
     ]);
   });

@@ -5,7 +5,7 @@ import { ContentGenerate, ContentReview } from "@ibbun/content-graph/jobs";
 import { createFakeJobs, handler } from "@ibbun/jobs";
 import { createFakeLlm, loadLlmConfig, type FakeLlmCall } from "@ibbun/llm";
 import { createFakeNlp, type Token } from "@ibbun/nlp";
-import { createFakeProgress } from "@ibbun/progress/testing";
+import { createFakeProgress, createFakeTexts } from "@ibbun/progress/testing";
 import { DEFAULT_CONFIG } from "../../src/config.ts";
 import { reviewRun } from "../../src/review-job.ts";
 import { DEFAULT_SAMPLING } from "../../sampling/config.ts";
@@ -74,7 +74,7 @@ const review = async (w: World, answer = verdicts()) => {
   const jobs = createFakeJobs();
   const llm = createFakeLlm({ config: loadLlmConfig({}), answer });
   const sampling = createSampling({ store: createMemoryStore(), authoring: w.a, progress: createFakeProgress(), jobs, config: DEFAULT_SAMPLING });
-  const deps = { authoring: w.a, nlp, llm, jobs, config: DEFAULT_CONFIG, sampling };
+  const deps = { authoring: w.a, nlp, llm, jobs, config: DEFAULT_CONFIG, sampling, progress: createFakeProgress(), texts: createFakeTexts() };
   const generated: unknown[] = [];
   await jobs.work([handler(ContentGenerate, async (p) => void generated.push(p)), handler(ContentReview, (p) => reviewRun(deps, p))]);
   await jobs.enqueue(ContentReview, { requestId: w.request.id, runId: w.run.id });
@@ -106,7 +106,7 @@ describe("reviewing a dialogue", () => {
     expect(approvals(w)).toEqual({ clip: "approved", sentences: ["approved", "approved"], questions: ["approved", "approved"], lines: ["draft", "draft"] });
     expect(w.graph.sentence.find((s) => s.id === w.sentences[0])!.tokens.map((t) => t.surface)).toEqual(["いきます", "か", "。"]);
     expect(w.graph.generationRequest.find((r) => r.id === w.request.id)!.status).toBe("done");
-    expect((await w.a.decisions(w.clip))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "dialogue/v1" } });
+    expect((await w.a.decisions(w.clip))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "dialogue/v2" } });
   });
 
   it("rejects the whole unit when the reviewer fails a criterion, and sends the reason back to the generator", async () => {
@@ -127,6 +127,14 @@ describe("reviewing a dialogue", () => {
         feedback: "speaker-turns: Both 男 and 女 must speak.\nquestions: Question 1 needs four different choices.\nquestions: Question 2 needs four different choices.",
       },
     ]);
+  });
+});
+
+describe("the two-readings flag on a dialogue", () => {
+  it("does not escalate: a dialogue has no single target reading, so only low confidence sends it to the supervisor", async () => {
+    const w = await world();
+    await review(w, (call) => ({ ...verdicts()(call), bothReadingsAcceptable: true }));
+    expect(approvals(w).clip).toBe("approved");
   });
 });
 

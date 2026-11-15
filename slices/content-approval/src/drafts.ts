@@ -1,6 +1,9 @@
 import type { Authoring, RecordTable, Row } from "@ibbun/content-graph/authoring";
+import type { Texts } from "@ibbun/progress";
 import { dialogueDrafts, type DialogueDraft } from "../rubrics/dialogue/index.ts";
 import { grammarFieldsDrafts, type GrammarFieldsDraft } from "../rubrics/grammar-fields/index.ts";
+import { practiceTextDrafts, type PracticeTextDraft } from "../rubrics/practice-text/index.ts";
+import { batchTextDrafts, type BatchTextDraft } from "../rubrics/reading-passage/index.ts";
 
 export type Rec = { table: RecordTable; id: string };
 
@@ -23,7 +26,7 @@ export type ExplanationDraft = {
   explanation: Row<"japaneseExplanation">;
 };
 
-export type Draft = ExampleDraft | ExplanationDraft | GrammarFieldsDraft | DialogueDraft;
+export type Draft = ExampleDraft | ExplanationDraft | GrammarFieldsDraft | DialogueDraft | BatchTextDraft | PracticeTextDraft;
 
 /** The rubric kind a Generation Request kind is reviewed under, or undefined when this slice has no rubric for it. */
 export const RUBRIC_KIND: Record<string, Draft["kind"] | undefined> = {
@@ -32,6 +35,8 @@ export const RUBRIC_KIND: Record<string, Draft["kind"] | undefined> = {
   japanese_explanation: "japanese-explanation",
   "grammar-fields": "grammar-fields",
   dialogue: "dialogue",
+  "batch-text": "reading-passage",
+  "practice-text": "practice-text",
 };
 
 const rec = (table: RecordTable, id: string): Rec => ({ table, id });
@@ -60,7 +65,7 @@ export const exampleDraft = async (a: Authoring, example: Row<"example">, answer
 };
 
 /** The drafts a Generation Run wrote for a request of this kind, still awaiting a decision. */
-export const draftsOfRun = async (a: Authoring, requestKind: string, runId: string): Promise<Draft[]> => {
+export const draftsOfRun = async (a: Authoring, texts: Texts, requestKind: string, runId: string): Promise<Draft[]> => {
   const kind = RUBRIC_KIND[requestKind];
   if (!kind) throw new Error(`no rubric for Generation Request kind "${requestKind}"`);
   const ids = await provenanceOfRun(a, runId);
@@ -70,6 +75,8 @@ export const draftsOfRun = async (a: Authoring, requestKind: string, runId: stri
   }
   if (kind === "grammar-fields") return grammarFieldsDrafts(a, runId);
   if (kind === "dialogue") return dialogueDrafts(a, runId);
+  if (kind === "reading-passage") return batchTextDrafts(a, texts, runId);
+  if (kind === "practice-text") return practiceTextDrafts(a, texts, runId);
   const explanations = await inEachProvenance(ids, (provenanceId) => a.rows("japaneseExplanation", { provenanceId, approval: "draft" }));
   return explanations.map((explanation) => {
     const primary = rec("japaneseExplanation", explanation.id);

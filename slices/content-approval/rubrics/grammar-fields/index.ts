@@ -57,8 +57,13 @@ export const checkGrammarFields = async (a: Authoring, { point }: GrammarFieldsD
 
 const orNone = (text: string | null | undefined): string => text || "none";
 
+const tokenLine = (t: Row<"sentence">["tokens"][number]) => `${t.surface}/${t.lemma}/${t.partOfSpeech.join("-")}/${t.conjugationForm ?? "-"}`;
+
+/** Each link with its Sudachi tokens, so the reviewer judges the rule against what the tokenizer really gives. */
 const linkLine = ({ sentence, link }: GrammarFieldsDraft["links"][number]): string =>
-  `- ${sentence.text} (${orNone(sentence.translationEn)}) 「${sentence.text.slice(link.spanStart, link.spanEnd)}」`;
+  `- ${sentence.text} (${orNone(sentence.translationEn)}) 「${sentence.text.slice(link.spanStart, link.spanEnd)}」` +
+  (sentence.tokens.length ? `
+  tokens: ${sentence.tokens.map(tokenLine).join(" ")}` : "");
 
 /** The values the rubric template needs. */
 export const grammarFieldsValues = ({ point, links }: GrammarFieldsDraft, check: GrammarFieldsCheck): Record<string, string> => ({

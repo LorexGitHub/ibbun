@@ -101,6 +101,7 @@ describe("batch-text.generate", () => {
         studyItemIds: [t.wordId, t.grammarId],
         episodeSummary: "ゆきはたべものをかった。",
         cast: ["ゆき", "たろう"],
+        passageType: "memo",
       },
     ]);
     expect(t.jobs.pending()).toEqual(["content.review"]);

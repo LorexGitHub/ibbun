@@ -6,6 +6,8 @@ import type { ExampleCheck, ExplanationCheck } from "./checks.ts";
 import type { ExampleDraft, ExplanationDraft } from "./drafts.ts";
 import { dialogueValues, type DialogueCheck, type DialogueDraft } from "../rubrics/dialogue/index.ts";
 import type { GrammarFieldsDraft } from "../rubrics/grammar-fields/index.ts";
+import { practiceTextValues, type PracticeTextCheck, type PracticeTextDraft } from "../rubrics/practice-text/index.ts";
+import { batchTextValues, type BatchTextCheck, type BatchTextDraft } from "../rubrics/reading-passage/index.ts";
 import { grammarFieldsValues, type GrammarFieldsCheck } from "../rubrics/grammar-fields/index.ts";
 import { fill, rubricFor, type Rubric } from "./rubrics.ts";
 
@@ -40,11 +42,19 @@ const readings = (found: ReadingDisagreement[]): string =>
 const answerLines = (draft: ExampleDraft): string =>
   draft.answers.map((x) => `- ${x.kind}: ${x.written}${x.reading ? ` (${x.reading})` : ""}${x.message ? ` — ${x.message}` : ""}`).join("\n") || "none";
 
-type Reviewed = ExampleDraft | ExplanationDraft | GrammarFieldsDraft | DialogueDraft;
-type Checked = ExampleCheck | ExplanationCheck | GrammarFieldsCheck | DialogueCheck;
+type Reviewed = ExampleDraft | ExplanationDraft | GrammarFieldsDraft | DialogueDraft | BatchTextDraft | PracticeTextDraft;
+type Checked = ExampleCheck | ExplanationCheck | GrammarFieldsCheck | DialogueCheck | BatchTextCheck | PracticeTextCheck;
 
 /** The rubric for the draft and the values its template needs. */
 const promptFor = (draft: Reviewed, check: Checked) => {
+  if (draft.kind === "reading-passage") {
+    const rubric = rubricFor("reading-passage");
+    return { rubric, prompt: fill(rubric.template, batchTextValues(draft, check as BatchTextCheck)) };
+  }
+  if (draft.kind === "practice-text") {
+    const rubric = rubricFor("practice-text");
+    return { rubric, prompt: fill(rubric.template, practiceTextValues(draft)) };
+  }
   if (draft.kind === "dialogue") {
     const rubric = rubricFor("dialogue");
     return { rubric, prompt: fill(rubric.template, dialogueValues(draft, check as DialogueCheck)) };
@@ -87,6 +97,12 @@ const promptFor = (draft: Reviewed, check: Checked) => {
   };
 };
 
+/**
+ * Whole texts have no single target whose reading the Learner is asked for, so "two readings are both
+ * acceptable" never applies to them; the reviewer still sets it, and only low confidence escalates them.
+ */
+const WHOLE_TEXTS = new Set<Reviewed["kind"]>(["dialogue", "reading-passage", "practice-text"]);
+
 export type Review = { judgement: Judgement; verdicts: Verdict[]; model: string; rubric: Rubric };
 
 /** Asks the reviewer model to judge a draft that passed the automatic checks. It sees the draft and its inputs, nothing more. */
@@ -103,5 +119,6 @@ export const review = async (
     output: ReviewerAnswer,
   });
   const verdicts: Verdict[] = result.output.verdicts.map((v) => ({ criterion: v.criterion, pass: v.pass, note: v.note }));
-  return { judgement: judge(rubric.criteria, result.output, minConfidence), verdicts, model: result.model, rubric };
+  const answer = WHOLE_TEXTS.has(draft.kind) ? { ...result.output, bothReadingsAcceptable: false } : result.output;
+  return { judgement: judge(rubric.criteria, answer, minConfidence), verdicts, model: result.model, rubric };
 };
