@@ -13,6 +13,7 @@ import { functionBuild, workerBuild } from "./scripts/infra/bundle.mjs";
 import { eventBridgeCron } from "./scripts/infra/cron.ts";
 import { scheduledJobs } from "./scripts/infra/schedules.mjs";
 import { stageParts, stageSlug } from "./scripts/infra/stage.ts";
+import { VIEWER_IP_HEADER } from "./apps/api/src/cloudfront.ts";
 
 type Statement = AWS.IAM.PolicyStatement;
 
@@ -48,6 +49,14 @@ const localFunctionUrlId = (region: string, functionName: string) => {
   b[8] = (b[8]! & 0x3f) | 0x80;
   return b.toString("hex");
 };
+
+// On AWS CloudFront signs each /api/* request (origin access control for Lambda), and the function URL
+// takes signed requests only, so nothing reaches the API around CloudFront. A request with a body also
+// needs that body's SHA-256 from the browser (apps/web/src/body-hash.ts).
+const API_ORIGIN_ACCESS = { enabled: true, signingBehavior: "always", signingProtocol: "sigv4", originType: "lambda" } as const;
+// The API's rate limits key on the viewer's IP. The router's origin request policy does not forward
+// CloudFront-Viewer-Address, so its viewer-request function writes the IP, over anything the viewer sent.
+const VIEWER_IP = `event.request.headers["${VIEWER_IP_HEADER}"] = { value: event.viewer.ip };`;
 
 // Aurora's settings (ADR 0015). Constants, not code in the stack's functions, so there is nothing for a mutation test to reach.
 const AURORA_CLUSTER = {
@@ -227,7 +236,8 @@ export default Alchemy.Stack(
       memorySize: 512,
       // A request after Aurora paused waits about 15 s for it to resume (ADR 0015).
       timeout: Duration.seconds(30),
-      functionUrl: true,
+      // The emulator's router reaches the function URL unsigned.
+      functionUrl: { authType: local ? "NONE" : "AWS_IAM" },
       logging: { retention: "2 weeks" },
       env: {
         NODE_ENV: "production",
@@ -247,12 +257,19 @@ export default Alchemy.Stack(
       routes: {
         "/api/*": local
           ? { url: "http://localhost:4566", rewrite: { regex: "^/", to: `/lambda-url/${localFunctionUrlId(region, apiName)}/` } }
-          : { url: Output.map(api.functionUrl, (url) => url!) },
+          : { url: Output.map(api.functionUrl, (url) => url!), origin: { originAccessControlConfig: API_ORIGIN_ACCESS } },
         "/audio/*": { bucket: audio },
         "/content/*": { bucket: content },
       },
+      edge: { viewerRequest: { injection: VIEWER_IP } },
       invalidation: { paths: "all" },
     });
+    // Only this distribution may call the function URL. Lambda wants both grants for an AWS_IAM URL.
+    if (!local) {
+      const fromRouter = { functionName: api.functionName as unknown as string, principal: "cloudfront.amazonaws.com", sourceArn: router.distributionArn as unknown as string };
+      yield* AWS.Lambda.Permission("ApiUrlFromRouter", { ...fromRouter, action: "lambda:InvokeFunctionUrl", functionUrlAuthType: "AWS_IAM" });
+      yield* AWS.Lambda.Permission("ApiFromRouter", { ...fromRouter, action: "lambda:InvokeFunction", invokedViaFunctionUrl: true });
+    }
     yield* AWS.Website.StaticSite("WebApp", { path: "./apps/web/dist", spa: true, domain: { router }, forceDestroy: true });
     yield* AWS.SSM.Parameter("AppUrl", { name: `${ssmPath}/APP_URL`, type: "String", value: router.url as unknown as string });
 
