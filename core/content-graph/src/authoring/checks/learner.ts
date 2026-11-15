@@ -24,7 +24,10 @@ const allowedWordTokens = (sentences: readonly CheckedSentence[], batch: readonl
 
 const appears = (item: TextItem, sentences: readonly CheckedSentence[], kanjiHosts: readonly { surface: string }[]): boolean => {
   if (item.type === "kanji") return kanjiHosts.some((token) => token.surface.includes(item.literal));
-  if (item.type === "word") return sentences.some((s) => s.tokens.some((token) => token.lemma === item.lemma || (item.spellings?.includes(token.lemma) ?? false)));
+  if (item.type === "word") {
+    const spellings = item.spellings === undefined ? [] : item.spellings;
+    return sentences.some((s) => s.tokens.some((token) => token.lemma === item.lemma || spellings.includes(token.lemma)));
+  }
   return sentences.some((s) => matchRule(item.rule, s.tokens).length > 0);
 };
 
