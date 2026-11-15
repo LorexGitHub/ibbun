@@ -97,6 +97,12 @@ const promptFor = (draft: Reviewed, check: Checked) => {
   };
 };
 
+/**
+ * Whole texts have no single target whose reading the Learner is asked for, so "two readings are both
+ * acceptable" never applies to them; the reviewer still sets it, and only low confidence escalates them.
+ */
+const WHOLE_TEXTS = new Set<Reviewed["kind"]>(["dialogue", "reading-passage", "practice-text"]);
+
 export type Review = { judgement: Judgement; verdicts: Verdict[]; model: string; rubric: Rubric };
 
 /** Asks the reviewer model to judge a draft that passed the automatic checks. It sees the draft and its inputs, nothing more. */
@@ -113,5 +119,6 @@ export const review = async (
     output: ReviewerAnswer,
   });
   const verdicts: Verdict[] = result.output.verdicts.map((v) => ({ criterion: v.criterion, pass: v.pass, note: v.note }));
-  return { judgement: judge(rubric.criteria, result.output, minConfidence), verdicts, model: result.model, rubric };
+  const answer = WHOLE_TEXTS.has(draft.kind) ? { ...result.output, bothReadingsAcceptable: false } : result.output;
+  return { judgement: judge(rubric.criteria, answer, minConfidence), verdicts, model: result.model, rubric };
 };
