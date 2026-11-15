@@ -1,6 +1,6 @@
 // Records the raw footage for the promo: one Playwright video of the logged-in demo Learner, plus
 // marks.json with when each beat happens (seconds into the video) and where its subject sits (CSS px).
-// Run: EMAIL=<from seed-demo.ts> node assets/showcase/commercial/record.mjs
+// Run: EMAIL=<from seed-demo.ts> node assets/showcase/demo/record.mjs
 import { chromium } from "@playwright/test";
 import { mkdirSync, readdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -102,14 +102,6 @@ await page.locator(".quiz .sentence").waitFor();
 await hold(500);
 const prompts = learnBatch.items.map((i) => i.prompt);
 const quizPrompt = answerFor(prompts, await page.locator(".quiz .sentence").innerText());
-// The promo's story follows this item, so its cards always match the footage.
-const said = (facet) => quizPrompt.facets.find((f) => f.facet === facet)?.answerData;
-const { before, target, after } = quizPrompt.sentence;
-marks.story = {
-  sentence: before + target + after,
-  answer: [said("reading")?.accepted[0].reading, said("meaning")?.meanings[0].text, said("cloze")?.accepted[0].written].filter(Boolean).join(" · "),
-  translation: quizPrompt.translationEn,
-};
 await mark("quiz", page.locator(".question"));
 await hold(800);
 await fill(quizPrompt);

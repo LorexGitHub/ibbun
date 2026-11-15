@@ -1,13 +1,12 @@
-// Writes script.json, the product-demo-director timeline for the README film, from out/raw/marks.json (record.mjs).
+// Writes script.json, the product-demo-director timeline for the README demo, from out/raw/marks.json (record.mjs).
 // Each screen gets one held framing around the card (arrive, then let the viewer look); no push-ins.
-// Run: node assets/showcase/commercial/script.mjs
+// Run: node assets/showcase/demo/script.mjs
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const { marks: m } = JSON.parse(readFileSync(join(here, "out", "raw", "marks.json"), "utf8"));
-const story = m.story;
 const V = { w: 1920, h: 1080 };
 const r = (n) => +n.toFixed(2);
 
@@ -28,20 +27,14 @@ const title = (n, durSec) => ({
   title: "Learn Japanese for the JLPT, N5 to N1, one sentence at a time.",
   titleLines: ["Learn Japanese for the JLPT,", "N5 to N1, one sentence at a time."], emphasis: "N5 to N1,", transition: "cut",
 });
-const beat = (n, eyebrow, line, subtitle, durSec = 2.4) => ({ n, kind: "stat", durSec, eyebrow, title: line, titleLines: [line], subtitle, transition: "cut" });
-
 const shots = [
   title(1, 3.4),
-  beat(2, "DAY 1", story.sentence, "Just shapes on a screen. So you meet them in a sentence."),
+  clip(2, m.today.t - 0.2, m.todayEnd.t, m.today.box),
   clip(3, m.lesson.t - 0.3, m.lessonEnd.t + 0.6, m.lessonTurned.box),
-  beat(4, "DAY 3", story.answer, "You type it from memory, and you get it right."),
-  clip(5, m.quiz.t - 0.2, m.quizEnd.t, m.quizCorrect.box),
-  clip(6, m.review.t - 0.2, m.reviewEnd.t, m.reviewCorrect.box),
-  beat(7, "DAY 15", "毎日", "A few minutes a day. It starts to stick."),
-  clip(8, m.today.t - 0.2, m.todayEnd.t, m.today.box),
-  clip(9, m.looks.t - 0.2, m.looksEnd.t, null, "payoff"),
-  beat(10, "DAY 15", story.sentence, `“${story.translation}” You just read that.`, 2.8),
-  title(11, 4.2),
+  clip(4, m.quiz.t - 0.2, m.quizEnd.t, m.quizCorrect.box),
+  clip(5, m.review.t - 0.2, m.reviewEnd.t, m.reviewCorrect.box),
+  clip(6, m.looks.t - 0.2, m.looksEnd.t, null, "payoff"),
+  title(7, 4.2),
 ];
 const script = {
   fps: 30,

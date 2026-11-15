@@ -1,6 +1,6 @@
 // Seeds the promo's demo Learner with a believable two-week history, so Today shows a streak,
 // Reviews due and Known counts instead of zeros. Safe to run again: it makes a fresh Learner each run.
-// Run: node --env-file-if-exists=.env assets/showcase/commercial/seed-demo.ts  (prints the email)
+// Run: node --env-file-if-exists=.env assets/showcase/demo/seed-demo.ts  (prints the email)
 import { createDb } from "../../../platform/db/src/index.ts";
 import { addLearner } from "../../../core/learner/src/learners.ts";
 import { hashPassword } from "../../../core/learner/src/password.ts";
