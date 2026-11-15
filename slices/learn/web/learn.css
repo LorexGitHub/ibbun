@@ -211,7 +211,7 @@
 }
 .lesson-card .lesson-actions,
 .question .lesson-actions {
-  justify-content: flex-end;
+  justify-content: center;
   padding-top: var(--space-md);
 }
 

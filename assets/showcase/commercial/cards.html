@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Shippori+Mincho+B1:wght@500;700;800&display=swap">
+<style>
+  /* Ma (ADR 0014): Shu palette, Shippori Mincho display, Instrument Sans body. 1920x1080 frames. */
+  :root { --bg: oklch(96.5% 0.012 85); --ink: oklch(22% 0.008 270); --accent: oklch(58% 0.2 32); --on-accent: oklch(99% 0 0); --quiet: oklch(80% 0.01 80); }
+  body { margin: 0; background: transparent; }
+  .card { width: 1920px; height: 1080px; position: relative; overflow: hidden; display: grid; place-items: center; background: var(--bg); color: var(--ink); font-family: "Shippori Mincho B1", serif; }
+  .card + .card { margin-top: 0; }
+  .ghost { position: absolute; right: -60px; bottom: -180px; font-size: 900px; line-height: 1; color: color-mix(in oklab, var(--ink) 6%, transparent); }
+  .seal { width: 112px; height: 112px; border-radius: 22px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: 72px; margin: 0 auto 64px; }
+  .title { text-align: center; max-width: 1400px; }
+  .title h1 { margin: 0; font-weight: 700; font-size: 84px; line-height: 1.25; letter-spacing: -0.01em; text-wrap: balance; }
+  .title h1 em { font-style: normal; color: var(--accent); }
+  .title .jp { margin-top: 48px; font-size: 40px; letter-spacing: 0.4em; color: color-mix(in oklab, var(--ink) 55%, transparent); }
+  .beat { background: var(--accent); color: var(--on-accent); }
+  .beat .ghost { color: color-mix(in oklab, var(--on-accent) 12%, transparent); }
+  .beat .line { text-align: center; }
+  .beat .big { font-size: 200px; font-weight: 800; line-height: 1; }
+  .beat .kicker { font: 600 40px "Instrument Sans", sans-serif; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 36px; opacity: 0.85; }
+  .beat .small { margin-top: 44px; font: 500 52px "Instrument Sans", sans-serif; letter-spacing: 0.01em; }
+  /* Captions laid over footage: transparent frame, a glass pill at the bottom. */
+  .cap { background: transparent; }
+  .cap .pill { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); white-space: nowrap; padding: 22px 44px; border-radius: 999px; background: color-mix(in oklab, var(--ink) 88%, transparent); color: var(--bg); font: 500 44px "Instrument Sans", sans-serif; }
+  .cap .pill b { font-family: "Shippori Mincho B1", serif; color: oklch(75% 0.15 40); font-weight: 700; margin-right: 18px; }
+</style>
+</head>
+<body>
+  <div class="card" id="title">
+    <div class="ghost">文</div>
+    <div class="title">
+      <div class="seal">文</div>
+      <h1>Learn Japanese for the JLPT, <em>N5 to N1</em>, one sentence at a time.</h1>
+      <div class="jp">一文ずつ。</div>
+    </div>
+  </div>
+  <div class="card beat" id="beat-sentence"><div class="ghost">一</div><div class="line"><div class="kicker">Day 1</div><div class="big">嘘よ。</div><div class="small">Just shapes on a screen. So you meet it in a sentence.</div></div></div>
+  <div class="card beat" id="beat-check"><div class="ghost">三</div><div class="line"><div class="kicker">Day 3</div><div class="big">よ · four</div><div class="small">You type it from memory, and you get it right.</div></div></div>
+  <div class="card beat" id="beat-progress"><div class="ghost">十五</div><div class="line"><div class="kicker">Day 15</div><div class="big">毎日</div><div class="small">A few minutes a day. It starts to stick.</div></div></div>
+  <div class="card beat" id="beat-payoff"><div class="ghost">読</div><div class="line"><div class="big">嘘よ。</div><div class="small">"It's a lie." You just read that.</div></div></div>
+  <div class="card cap" id="cap-lesson"><div class="pill"><b>新</b>Meet it in context, with furigana</div></div>
+  <div class="card cap" id="cap-quiz"><div class="pill"><b>試</b>Instant, specific feedback</div></div>
+  <div class="card cap" id="cap-review"><div class="pill"><b>復</b>Reviews, just before you forget</div></div>
+  <div class="card cap" id="cap-today"><div class="pill"><b>今</b>Your streak, your reviews, at a glance</div></div>
+  <div class="card cap" id="cap-looks"><div class="pill"><b>色</b>Five looks, light and dark</div></div>
+</body>
+</html>
