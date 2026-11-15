@@ -58,11 +58,12 @@ const shortestUses = (wordIds: string[], usesOf: Map<string, Use[]>, sentenceByI
  * adds for items still without an Example, so it ends in the same state.
  */
 export const deriveExamples = async ({ authoring }: { authoring: Authoring }): Promise<ExamplesReport> => {
-  const [items, candidates, examples, sentences, forms, readings, contains] = await Promise.all([
+  const [items, candidates, examples, sentences, words, forms, readings, contains] = await Promise.all([
     authoring.rows("studyItem", { approval: "approved", retired: false }),
     authoring.rows("levelCandidate"),
     authoring.rows("example", { retired: false }),
     authoring.rows("sentence", { retired: false }),
+    authoring.rows("word"),
     authoring.rows("wordForm", { retired: false }),
     authoring.rows("wordReading", { retired: false }),
     authoring.rows("wordContainsKanji", { retired: false }),
@@ -73,7 +74,7 @@ export const deriveExamples = async ({ authoring }: { authoring: Authoring }): P
   const sentenceById = new Map(sentences.filter(usable).map((s) => [s.id, s]));
   // Tatoeba Sentences are Drafts, which the derived-links rebuild skips, so match their tokens to Words here.
   const wordIds = new Set(items.filter((i) => i.type === "word").map((i) => i.id));
-  const uses = sentenceUsesWord({ words: wordIds, retiredWords: new Set(), kanji: [], forms, readings, sentences: [...sentenceById.values()], coveredSentences: new Set(), clips: new Set(), examples: [] });
+  const uses = sentenceUsesWord({ words: wordIds, retiredWords: new Set(), usuallyKana: new Set(words.filter((w) => w.usuallyKana).map((w) => w.studyItemId)), kanji: [], forms, readings, sentences: [...sentenceById.values()], coveredSentences: new Set(), clips: new Set(), examples: [] });
   const usesOf = group(uses, (u) => u.wordId);
   const wordsOf = group(contains, (c) => c.kanjiId);
   const wordsOfItem = (item: Row<"studyItem">) => (item.type === "word" ? [item.id] : (wordsOf.get(item.id) ?? []).map((c) => c.wordId));
