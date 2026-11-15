@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="A walk through ibbun: logging in, the Today screen, a Learn batch with its quiz, the Library, the command menu and the five looks in Settings"></a>
+  <a href="assets/demo.mp4"><img src="assets/demo.gif" width="100%" alt="ibbun in 40 seconds: a learner meets 嘘よ。 in a sentence on day 1, types it from memory on day 3, keeps a 15-day streak, and reads it on their own"></a>
 </p>
 
 ibbun teaches Kanji, Words, Grammar Points and Listening through real example sentences, on a spaced-repetition schedule. Reading passages grow longer as you progress and tell a continuing story. The suggested order is only a guide, so you can start any item whenever you like.
