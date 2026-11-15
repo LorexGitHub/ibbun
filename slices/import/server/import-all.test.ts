@@ -8,6 +8,10 @@ import type { Refresh } from "./jobs.ts";
 import { memoryRawFiles } from "./raw-files.ts";
 import { memorySnapshots } from "./snapshots.ts";
 import type { Source } from "./source.ts";
+import { EDITORIAL_LEVELS } from "../sources/editorial-levels/levels.ts";
+
+/** The fake graph has none of the editorial Words, so every one is reported missing. */
+const EDITORIAL_LINE = `editorial levels: 0 added, not in the graph: ${EDITORIAL_LEVELS.map((e) => `${e.word} (JMdict ${e.jmdict})`).join(", ")}`;
 
 const word = { key: "1", forms: ["食べる"], readings: [{ text: "たべる", pitchAccent: null }], senses: [{ partsOfSpeech: ["v1"], glosses: ["to eat"] }], priorityTags: [] };
 const kanji = { key: "食", meanings: ["eat"], onReadings: ["ショク"], kunReadings: ["た.べる"], grade: 2, frequency: 328, strokeCount: 9, components: [], strokes: [] };
@@ -56,6 +60,7 @@ describe("importing everything at once", () => {
       "kanjidic v1: applied, 1 added, 0 changed, 0 retired",
       "grammar seed: seeded",
       "derived links: 1 added, 0 removed",
+      EDITORIAL_LINE,
       "levels: 3 changed, 1 derived",
       "matchers: 0 links proposed, 0 Generation Requests opened",
     ]);
@@ -74,6 +79,7 @@ describe("importing everything at once", () => {
       "kanjidic v1: unchanged, 1 added, 0 changed, 0 retired",
       "grammar seed: already seeded",
       "derived links: 0 added, 0 removed",
+      EDITORIAL_LINE,
       "levels: 0 changed, 0 derived",
       "matchers: 0 links proposed, 0 Generation Requests opened",
     ]);

@@ -1,6 +1,7 @@
 import { FIXTURE_PROVENANCE_ID } from "@ibbun/content-graph/authoring";
 import type { Levels } from "@ibbun/content-graph/levels";
 import { rebuildDerivedLinks } from "../sources/derived-links/index.ts";
+import { applyEditorialLevels } from "../sources/editorial-levels/index.ts";
 import { runGrammarSeed, type GrammarSeedDeps } from "../sources/grammar-seed/index.ts";
 import { runMatchers, type MatcherRunsDeps } from "../sources/matcher-runs/index.ts";
 import type { Refresh } from "./jobs.ts";
@@ -39,6 +40,8 @@ export const importEverything = async ({ imports, refreshes, grammarSeed, matche
   say(`grammar seed: ${(await runGrammarSeed(grammarSeed)) ? "seeded" : "already seeded"}`);
   const links = await rebuildDerivedLinks(imports);
   say(`derived links: ${links.added} added, ${links.removed} removed`);
+  const editorial = await applyEditorialLevels(imports.authoring);
+  say(`editorial levels: ${editorial.added} added${editorial.missing.length ? `, not in the graph: ${editorial.missing.join(", ")}` : ""}`);
   const rebuilt = await levels.rebuild();
   say(`levels: ${rebuilt.changedLevels} changed, ${rebuilt.derivedAdded} derived`);
   const matched = await runMatchers(matcherRuns);
