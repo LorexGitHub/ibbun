@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, renderHook, screen, within } from "@testing-library/react";
 import { onGoTo } from "@ibbun/ui";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Today } from "../contract.ts";
 import slice from "../register.ts";
-import { MasteryByLevel, TodayHero, TodayWidget } from "./today.tsx";
+import { MasteryByLevel, TodayHero, TodayWidget, useRollUp } from "./today.tsx";
 
 // happy-dom claims every CSS feature but can't run NumberFlow's element, so the count would stay at the 0 it rolls up
 // from. These tests run as a Learner who asked for reduced motion: the count is the real number from the start.
@@ -91,7 +91,71 @@ describe("TodayHero", () => {
   });
 });
 
+describe("TodayHero's greeting and actions", () => {
+  const caps = () => document.querySelector(".today .caps")!.textContent;
+  it("says good afternoon from noon and good evening from six", () => {
+    render(<TodayHero today={today} hour={12} />);
+    expect(caps()).toMatch(/^Good afternoon/);
+    cleanup();
+    render(<TodayHero today={today} hour={18} />);
+    expect(caps()).toMatch(/^Good evening/);
+  });
+
+  it("draws both next steps as large buttons", () => {
+    render(<TodayHero today={today} hour={9} />);
+    expect(document.querySelectorAll(".today-actions .btn--big")).toHaveLength(2);
+  });
+});
+
+describe("the count's roll-up", () => {
+  const firstShown = (value: number) => {
+    const shown: number[] = [];
+    renderHook(() => shown.push(useRollUp(value)));
+    return shown;
+  };
+  const motion = (reduced: boolean) =>
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: reduced && query.includes("reduced-motion"), addEventListener() {}, removeEventListener() {} }));
+
+  it("starts at 0 and then shows the count, where the browser can animate it", () => {
+    motion(false);
+    vi.stubGlobal("CSS", { supports: () => true });
+    const shown = firstShown(18);
+    expect(shown[0]).toBe(0);
+    expect(shown.at(-1)).toBe(18);
+  });
+
+  it("shows the count from the start where it can't animate, or the Learner asked for less motion", () => {
+    motion(false);
+    vi.stubGlobal("CSS", {});
+    expect(firstShown(18)[0]).toBe(18);
+    motion(true);
+    vi.stubGlobal("CSS", { supports: () => true });
+    expect(firstShown(18)[0]).toBe(18);
+  });
+});
+
 describe("MasteryByLevel", () => {
+  const fill = () => parseFloat((document.querySelector(".levels-fill") as HTMLElement).style.width);
+
+  it("draws the line along the way up to where the Learner is in the current level", () => {
+    render(<MasteryByLevel levels={today.levels} />, { wrapper: MemoryRouter });
+    expect(fill()).toBeCloseTo(((1 + 0.41) / 4) * 100);
+  });
+
+  it("draws it through a single level, and all the way once every level is settled", () => {
+    render(<MasteryByLevel levels={[{ level: "N5", known: 50, total: 100 }]} />, { wrapper: MemoryRouter });
+    expect(fill()).toBeCloseTo(50);
+    cleanup();
+    render(<MasteryByLevel levels={[{ level: "N5", known: 95, total: 100 }]} />, { wrapper: MemoryRouter });
+    expect(fill()).toBe(100);
+    expect(screen.getByText("Every level is settled.")).toBeTruthy();
+  });
+
+  it("still draws with no levels at all", () => {
+    render(<MasteryByLevel levels={[]} />, { wrapper: MemoryRouter });
+    expect(screen.getByText("Every level is settled.")).toBeTruthy();
+  });
+
   it("shows every JLPT Level with its share known, and where the Learner is now", () => {
     render(<MasteryByLevel levels={today.levels} />, { wrapper: MemoryRouter });
     expect(screen.getByRole("heading", { name: "Your way up to N1" })).toBeTruthy();

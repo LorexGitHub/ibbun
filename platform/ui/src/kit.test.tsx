@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, openGoTo, onGoTo, Pill, pillClass, revealTheme, SessionCount, SessionCountSlot, setTheme, Sheet, ThemePicker, useSystemModeSync } from "./index.ts";
+import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, openGoTo, onGoTo, Pill, pillClass, revealTheme, Loading, SessionCount, SessionCountSlot, setTheme, Sheet, ThemePicker, useSystemModeSync } from "./index.ts";
 
 afterEach(cleanup);
 
@@ -73,6 +73,17 @@ describe("SessionCount", () => {
       </main>,
     );
     expect(screen.getByRole("main").textContent).toBe("1 / 5");
+  });
+});
+
+describe("Loading", () => {
+  it("says it is loading without announcing it, unless the screen asks for that", () => {
+    render(<Loading />);
+    expect(screen.getByText("Loading…")).toBeTruthy();
+    expect(screen.queryByRole("status")).toBeNull();
+    cleanup();
+    render(<Loading status>Loading your day…</Loading>);
+    expect(screen.getByRole("status").textContent).toBe("Loading your day…");
   });
 });
 

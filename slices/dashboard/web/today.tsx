@@ -14,7 +14,7 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 /** "11 kanji, 5 words and 2 grammar points", leaving out the types with none due. */
 const dueBreakdown = ({ kanji, word, grammarPoint }: Today["due"]): string => {
   const parts = [kanji ? `${kanji} kanji` : "", word ? plural(word, "word") : "", grammarPoint ? plural(grammarPoint, "grammar point") : ""].filter(Boolean);
-  return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");
+  return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : parts.join("");
 };
 
 const nextSteps = (dueTotal: number, batchSize: number) => {
@@ -28,7 +28,7 @@ const nextSteps = (dueTotal: number, batchSize: number) => {
 const rolls = () =>
   typeof CSS !== "undefined" && CSS.supports?.("line-height", "mod(1,1)") && !matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const useRollUp = (value: number) => {
+export const useRollUp = (value: number) => {
   const [shown, setShown] = useState(() => (rolls() ? 0 : value));
   useEffect(() => setShown(value), [value]);
   return shown;

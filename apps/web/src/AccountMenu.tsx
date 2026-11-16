@@ -43,7 +43,7 @@ export const AccountMenu = ({ who, nav, onSignOut }: { who: Who; nav: NavEntry[]
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger className="who" aria-label={`Account: ${email}`}>
-        {email[0]?.toUpperCase()}
+        {email.charAt(0).toUpperCase()}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={10} className="menu zoom-in-100 zoom-out-100 w-64">
         <DropdownMenuLabel className="menu-email">{email}</DropdownMenuLabel>

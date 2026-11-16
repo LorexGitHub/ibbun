@@ -49,6 +49,17 @@ describe("the account menu", () => {
     expect(signOut).toHaveBeenCalledOnce();
   });
 
+  it("shows the Learner's initial on its button, and no heading over the account screens", () => {
+    openAccountMenu(as("learner"), nav.slice(0, 3));
+    expect(screen.getByRole("button", { name: /Account/ }).textContent).toBe("L");
+    expect(document.querySelectorAll(".menu-heading")).toHaveLength(0);
+  });
+
+  it("leaves the rest of the page usable while it is open", () => {
+    openAccountMenu(as("learner"), nav.slice(0, 3));
+    expect(document.body.style.pointerEvents).toBe("");
+  });
+
   it("adds the Supervisor screens under their own heading", () => {
     openAccountMenu(as("supervisor"), nav);
     expect(screen.getByText("Supervisor")).toBeTruthy();
@@ -195,5 +206,37 @@ describe("the dock", () => {
     expect(screen.getByRole("link", { name: "Reviews" }).getAttribute("aria-current")).toBe("page");
     expect(screen.getByRole("link", { name: "Reviews" }).textContent).toContain("復");
     expect(screen.getByRole("link", { name: "Library" }).textContent).toContain("L");
+  });
+
+  const glyphOf = (name: string) => screen.getByRole("link", { name }).querySelector('[lang="ja"]')!.textContent;
+  const iconWidth = (name: string) => (screen.getByRole("link", { name }).parentElement!.parentElement as HTMLElement).style.width;
+  const dockAt = (path: string, entries: NavEntry[]) =>
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <AppDock entries={entries} />
+      </MemoryRouter>,
+    );
+  const today: NavEntry = { label: "Today", path: "/", place: "study", blurb: "What's due.", glyph: "今" };
+
+  it("marks only the place the Learner is on: Today is not current on another screen", () => {
+    dockAt("/reviews", [today, ...nav.slice(0, 2)]);
+    expect(screen.getByRole("link", { name: "Today" }).getAttribute("aria-current")).toBeNull();
+    expect(screen.getByRole("link", { name: "Reviews" }).getAttribute("aria-current")).toBe("page");
+  });
+
+  it("draws a place's glyph, or the first letter of its name when it has none", () => {
+    dockAt("/", [today, nav[1]!]);
+    expect(glyphOf("Today")).toBe("今");
+    expect(glyphOf("Library")).toBe("L");
+  });
+
+  it("draws its glyphs smaller on a phone", () => {
+    dockAt("/", [today]);
+    expect(iconWidth("Today")).toBe("44px");
+    cleanup();
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(max-width: 520px)", addEventListener() {}, removeEventListener() {} }));
+    dockAt("/", [today]);
+    expect(iconWidth("Today")).toBe("34px");
+    vi.unstubAllGlobals();
   });
 });

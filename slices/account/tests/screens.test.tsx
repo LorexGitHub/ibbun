@@ -118,6 +118,21 @@ describe("guest login", () => {
     expect((screen.getByRole("button", { name: title }) as HTMLButtonElement).disabled).toBe(true);
   });
 
+  it("locks Try Showcase and says the database is loading while it waits, then frees it again", async () => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    let answer = (_result: Result<null>) => {};
+    const client = fakeClient({ tryAsGuest: vi.fn(() => new Promise<Result<null>>((done) => (answer = done))) });
+    open("/login", client);
+    const tryIt = screen.getByRole("button", { name: "Try Showcase" }) as HTMLButtonElement;
+    expect(screen.queryByText(/showcase database is loading/)).toBeNull();
+    fireEvent.click(tryIt);
+    expect(tryIt.disabled).toBe(true);
+    expect(screen.getByText(/showcase database is loading/)).toBeTruthy();
+    answer(fail(503, "Try again in a moment."));
+    await waitFor(() => expect(tryIt.disabled).toBe(false));
+    expect(screen.queryByText(/showcase database is loading/)).toBeNull();
+  });
+
   it("signs in as a new guest and opens Today", async () => {
     vi.stubEnv("VITE_SHOWCASE", "1");
     const client = fakeClient({ tryAsGuest: vi.fn(async () => ok(null)) });
