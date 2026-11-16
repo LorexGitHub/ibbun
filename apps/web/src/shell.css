@@ -57,6 +57,8 @@
 .waking { max-width: 760px; margin-inline: auto; padding-top: 18vh; text-align: center; }
 .waking h1 { font-size: var(--text-display); }
 .waking .lead { font-size: var(--text-lead); color: var(--color-ink-2); margin-top: var(--space-md); }
+/* Why the wait: a quiet note in the muted ink, under the message itself */
+.waking-note { max-width: 52ch; margin: var(--space-xl) auto 0; color: var(--color-muted); font-size: var(--text-sm); line-height: 1.6; }
 
 /* Logged out: the welcome */
 .welcome { max-width: 760px; margin-inline: auto; padding-top: 8vh; text-align: center; }

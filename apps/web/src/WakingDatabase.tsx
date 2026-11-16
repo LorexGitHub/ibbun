@@ -18,6 +18,10 @@ export const WakingDatabase = () => {
     <div className="waking" role="status">
       <h1>Just 10 seconds.</h1>
       <p className="lead">The showcase database is loading...</p>
+      <p className="waking-note">
+        ibbun is fully serverless on AWS: Lambda answers each request, Aurora Serverless v2 keeps the data and pauses
+        when nobody is studying, and S3 and CloudFront serve the app. This first visit is waking the database up.
+      </p>
     </div>
   );
 };
