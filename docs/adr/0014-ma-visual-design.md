@@ -16,7 +16,7 @@ The app uses **Ma** (間, "the space between"):
 - Shippori Mincho B1 for headings, numbers and all Japanese. Instrument Sans for everything else.
 - Navigation is a dock of glyphs along the bottom (今 復 新 測 詰 聞 読 辞), with the name on hover and focus, plus the ⌘K menu. A session screen (Reviews, Learn, Cram, Placement) hides the dock and offers "Done for now".
 - Buttons are "ink and rule" (amended 2026-11-15): the primary action is a block of solid ink with 6px corners that turns to the accent on hover; every other action is words standing on a hairline that thickens to the accent. No glows, coloured shadows or frosted glass: depth is a hairline. No textures, no torn edges.
-- The logo is 文 in four strokes on an accent seal, like a name stamp. It takes the Learner's look. `assets/icon.svg` and the favicon are the Shu seal.
+- The logo is 文 in four strokes on an accent seal, like a name stamp. It takes the Learner's look. `assets/icon.svg` and the favicon are the seal in the default look (Ai since 2026-11-15).
 
 There are **five looks**, each with a light and a dark mode: Ai 藍 (indigo, the default since 2026-11-15), Shu 朱 (vermilion on washi, the first default), Matcha 抹茶 (green), Sakura 桜 (pink on plum) and Shiro / Kuro 白黒 (pure white and pure black). Settings → Appearance picks the look and Light, Dark or Match my device. The choice is saved per device in `localStorage`.
 
@@ -35,4 +35,4 @@ Each look is six colours (`--p-bg`, `--p-ink`, `--p-accent`, `--p-on-accent`, `-
 - Slice CSS must use the kit's colour tokens, never fixed colours, or it breaks in dark mode and in the other looks. `tokens.test.ts` checks that every look sets all six roles in both modes.
 - The palette variables are prefixed `--p-` because shadcn already uses `--accent`, `--background` and similar names.
 - Hallmark's `sloplint` was tuned for Hum's genre. `design.md` no longer claims a Hallmark theme.
-- 2026-11-15: Ai replaced Shu as the default look, and "ink and rule" buttons replaced the glowing accent pills. The coloured shadow under the primary button, the soft card shadows and the frosted dock read as generated; impeccable's craft floor and huashu-art-motion's restraint were the references. `assets/icon.svg` and the favicon are still the Shu seal.
+- 2026-11-15: Ai replaced Shu as the default look, and "ink and rule" buttons replaced the glowing accent pills. The coloured shadow under the primary button, the soft card shadows and the frosted dock read as generated; impeccable's craft floor and huashu-art-motion's restraint were the references. `assets/icon.svg` and the favicon (`apps/web/public/icon.svg`) are the Ai seal, `#284cac`.
