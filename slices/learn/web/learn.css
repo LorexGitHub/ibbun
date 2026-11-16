@@ -368,9 +368,14 @@
   justify-content: center;
 }
 .lesson-details {
-  grid-template-columns: max-content max-content;
+  /* The values may be long (上 has a dozen kun'yomi): their column stops at 28rem and wraps, so the pair stays centred */
+  grid-template-columns: max-content fit-content(28rem);
   justify-content: center;
   text-align: start;
+}
+.lesson-details dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .lesson-details dt {
   text-align: end;

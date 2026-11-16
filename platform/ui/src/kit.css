@@ -27,7 +27,7 @@ rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
 
 /* Buttons, "ink and rule": the main action is a block of solid ink that turns to the accent under the pointer;
    every other action is words standing on a hairline, which thickens to the accent. No pills, no glow, no lift. */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-xs); min-height: 48px; padding: 0 var(--space-2xs); border: 0; border-radius: 0; background: transparent; box-shadow: inset 0 -1px 0 var(--color-rule); color: var(--color-ink); font: 500 var(--text-md) var(--font-body); cursor: pointer; text-decoration: none;
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-xs); min-height: 48px; padding: 0 var(--space-2xs); border: 0; border-radius: 0; background: transparent; box-shadow: inset 0 -1px 0 var(--color-rule); color: var(--color-ink); font: 500 var(--text-md) var(--font-body); white-space: nowrap; cursor: pointer; text-decoration: none;
   transition: background-color var(--dur-short), color var(--dur-short), box-shadow var(--dur-short) var(--ease-out); }
 .btn:hover { box-shadow: inset 0 -2px 0 var(--color-accent); }
 .btn--primary { padding: 0 var(--space-lg); border-radius: var(--radius-button); background: var(--color-ink); color: var(--color-paper); box-shadow: none; }
