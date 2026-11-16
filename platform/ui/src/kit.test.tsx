@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, openGoTo, onGoTo, Pill, pillClass, SessionCount, SessionCountSlot, setTheme, Sheet, ThemePicker, useSystemModeSync } from "./index.ts";
+import { Attribution, AudioPlayer, Button, buttonClass, Card, Footer, Furigana, Input, KanaInput, Layout, openGoTo, onGoTo, Pill, pillClass, revealTheme, Loading, SessionCount, SessionCountSlot, setTheme, Sheet, ThemePicker, useSystemModeSync } from "./index.ts";
 
 afterEach(cleanup);
 
@@ -76,6 +76,17 @@ describe("SessionCount", () => {
   });
 });
 
+describe("Loading", () => {
+  it("says it is loading without announcing it, unless the screen asks for that", () => {
+    render(<Loading />);
+    expect(screen.getByText("Loading…")).toBeTruthy();
+    expect(screen.queryByRole("status")).toBeNull();
+    cleanup();
+    render(<Loading status>Loading your day…</Loading>);
+    expect(screen.getByRole("status").textContent).toBe("Loading your day…");
+  });
+});
+
 describe("ThemePicker", () => {
   const saved = new Map<string, string>();
   beforeEach(() => {
@@ -84,15 +95,46 @@ describe("ThemePicker", () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
+  describe("where the browser has view transitions", () => {
+    const root = document.documentElement;
+    const transition = vi.fn((update: () => void) => update());
+    beforeEach(() => {
+      transition.mockClear();
+      Object.assign(document, { startViewTransition: transition });
+    });
+    afterEach(() => {
+      delete (document as { startViewTransition?: unknown }).startViewTransition;
+      root.style.removeProperty("--reveal-x");
+      root.style.removeProperty("--reveal-y");
+    });
+
+    it("spreads the new look from the middle of what was chosen, changing it inside the transition", () => {
+      const from = document.createElement("button");
+      from.getBoundingClientRect = () => ({ left: 100, top: 10, width: 40, height: 20 }) as DOMRect;
+      revealTheme({ palette: "sakura" }, from);
+      expect(transition).toHaveBeenCalledTimes(1);
+      expect(root.style.getPropertyValue("--reveal-x")).toBe("120px");
+      expect(root.style.getPropertyValue("--reveal-y")).toBe("20px");
+      expect(root.dataset.palette).toBe("sakura");
+    });
+
+    it("changes at once, with no spread, when nothing was chosen on screen", () => {
+      revealTheme({ palette: "matcha" });
+      expect(transition).not.toHaveBeenCalled();
+      expect(root.style.getPropertyValue("--reveal-x")).toBe("");
+      expect(root.dataset.palette).toBe("matcha");
+    });
+  });
+
   it("puts the chosen look and mode on <html> and saves them on the device", () => {
     render(<ThemePicker />);
-    fireEvent.click(screen.getByRole("radio", { name: /^Ai/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /^Matcha/ }));
     fireEvent.click(screen.getByRole("radio", { name: "Dark" }));
-    expect(document.documentElement.dataset.palette).toBe("ai");
+    expect(document.documentElement.dataset.palette).toBe("matcha");
     expect(document.documentElement.dataset.mode).toBe("dark");
-    expect(JSON.parse(localStorage.getItem("ibbun.theme")!)).toEqual({ palette: "ai", mode: "dark" });
-    expect(screen.getByRole("radio", { name: /^Ai/ }).getAttribute("aria-checked")).toBe("true");
-    expect(screen.getByRole("radio", { name: /^Shu/ }).getAttribute("aria-checked")).toBe("false");
+    expect(JSON.parse(localStorage.getItem("ibbun.theme")!)).toEqual({ palette: "matcha", mode: "dark" });
+    expect(screen.getByRole("radio", { name: /^Matcha/ }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: /^Ai/ }).getAttribute("aria-checked")).toBe("false");
   });
 
   it("draws every swatch in the mode it would show, and checks only the chosen mode", () => {

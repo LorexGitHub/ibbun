@@ -46,9 +46,11 @@ Preconditions:
 - **Logged out.** In a fresh context open `/`. The page shows the sign-up split with a **Sign up** button, **Log in** (`/login`) and "What's inside", and no dock: there is no `navigation` landmark.
 - **On Lambda.** Run `pnpm --filter @ibbun/api build:lambda`, then `docker build -f apps/api/lambda.Dockerfile -t mojibun-api-lambda apps/api`. Start it with `docker run -d --name api-lambda -p 9256:8080 --memory=512m -e NODE_ENV=production -e DATABASE_URL=postgres://ibbun:ibbun@host.docker.internal:5433/ibbun -e APP_URL=http://localhost:5256 -e AUTH_SECRET=<32+ bytes> -e SMTP_URL=smtp://host.docker.internal:1025 mojibun-api-lambda` (use the Postgres port from `.env`), and the function URL with `node apps/api/lambda-url-proxy.mjs 3256 http://localhost:9256/2015-03-31/functions/function/invocations`. `curl -s localhost:3256/api/health` prints `{"ok":true}`. Run `API_PORT=3256 WEB_PORT=5256 pnpm exec playwright test`: Playwright reuses the running API, starts Vite on 5256, and every spec passes, login and Reviews included. `docker logs api-lambda` shows one `REPORT` line per request.
 - **Harness spec.** Run `pnpm exec playwright test --project=anonymous`. `e2e/shell.spec.ts` passes.
+- **Motion.** Open `/` as a Learner and record a video (`recordVideo` in the context). The screen rises into place in about 0.4 s; on a session screen each new card rises in, and a correct answer's **Correct** pill stamps in larger and settles. In Settings → Look, picking Ai spreads the new look as a circle from the Ai button (`document.startViewTransition` exists in Chromium). With `reducedMotion: "reduce"` in the context the same steps only fade, and the look changes with a short crossfade. A slow screen shows nothing for 400 ms, then a hairline with a moving ink stroke over its "Loading…" text.
 
 ## Gotchas
 
+- Motion lives in `platform/ui/src/motion.css` and each slice's own CSS. Judge it from a video, not one screenshot: a screenshot taken during an arrival shows it half faded.
 - `/level/n5` … `/level/n1` show Today until the dashboard slice registers the level page.
 - A level in the address narrows Reviews, Learn, Reading, Listening and Placement, and sets the level of Cram's picker.
 - The shell reads the session again on every navigation, so the top line catches up after the Login screen navigates to `/`.

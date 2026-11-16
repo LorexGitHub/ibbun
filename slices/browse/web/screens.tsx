@@ -1,6 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { Navigate, useParams } from "react-router";
-import { buttonClass, useLevelFilter } from "@ibbun/ui";
+import { buttonClass, Loading, useLevelFilter } from "@ibbun/ui";
 import { ItemResponse, LevelList, type BrowseType, type JlptLevel, type Tile } from "../contract.ts";
 import { BrowseView } from "./BrowseView.tsx";
 import { ItemView } from "./ItemView.tsx";
@@ -28,7 +28,7 @@ const loadFailure = (status: number) => (status === 401 ? "Log in to open the Li
 /** One Study Item, wherever it is shown: its own page, or the sheet over the wall. */
 const Item = ({ id, sheet = false }: { id: string; sheet?: boolean }) => {
   const loaded = useApi(`/api/browse/items/${encodeURIComponent(id)}`, (json) => ItemResponse.parse(json));
-  if (loaded.state === "loading") return <p>Loading…</p>;
+  if (loaded.state === "loading") return <Loading />;
   if (loaded.state === "failed") return <p role="status">{loaded.status === 404 ? "There is no such Study Item." : loadFailure(loaded.status)}</p>;
   if ("redirectTo" in loaded.value) return <Navigate to={`/browse/items/${loaded.value.redirectTo}`} replace />;
   return <ItemView page={loaded.value} sheet={sheet} />;

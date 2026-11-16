@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { buttonClass, pillClass, State, useLevelFilter } from "@ibbun/ui";
+import { buttonClass, Loading, pillClass, State, useLevelFilter } from "@ibbun/ui";
 import { JLPT_LEVELS, type JlptLevel } from "@ibbun/shared";
 import type { ClipView } from "../contract.ts";
 import { listClips, loadClip, RequestFailed } from "./api.ts";
@@ -43,9 +43,9 @@ const Session = ({ level }: { level: JlptLevel }) => {
   }, [id, at]);
 
   if (failed) return <State mark="聞" title="The clips did not load" onRetry={() => setAttempt(attempt + 1)} />;
-  if (clipIds === null) return <p>Loading…</p>;
+  if (clipIds === null) return <Loading />;
   if (clipIds.length === 0) return <NoClips level={level} />;
-  return view ? <ClipCard key={`${at}`} view={view} onNext={() => setAt(at + 1)} /> : <p>Loading…</p>;
+  return view ? <ClipCard key={`${at}`} view={view} onNext={() => setAt(at + 1)} /> : <Loading />;
 };
 
 const LevelPicker = ({ level, onPick }: { level: JlptLevel; onPick: (level: JlptLevel) => void }) => (

@@ -10,22 +10,49 @@ const showcase = () => isShowcase(import.meta.env.VITE_SHOWCASE);
 
 const CHECK_YOUR_EMAIL = "Check your email. If the address can sign up, we sent a link to finish.";
 
+/** What the email fields say on the showcase, where they are shown but locked (ADR 0017). */
+const UNAVAILABLE = "Unavailable in the showcase";
+
+/** A field's lock on the showcase: disabled, saying why. Elsewhere, nothing. */
+const locked = () => (showcase() ? { disabled: true, placeholder: UNAVAILABLE } : {});
+
+/**
+ * The showcase's way in, above Sign up and Log in: a new guest Learner, deleted by the server after a
+ * day, then Today. Elsewhere, nothing.
+ */
+const TryShowcase = () => {
+  const client = useClient();
+  const { outcome, run } = useOutcome();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  if (!showcase()) return null;
+  const tryIt = async () => {
+    setBusy(true);
+    if (await run(client.tryAsGuest(), "Signed in as a guest.")) navigate("/");
+    setBusy(false);
+  };
+  return (
+    <div className="try-showcase">
+      <button type="button" className={buttonClass()} disabled={busy} onClick={() => void tryIt()}>
+        Try Showcase
+      </button>
+      {busy && <p role="status">Just 10 seconds. The showcase database is loading...</p>}
+      <Notice outcome={outcome} />
+    </div>
+  );
+};
+
 export const SignUp = () => {
   const client = useClient();
   const { outcome, run } = useOutcome();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sent, setSent] = useState(false);
-  const navigate = useNavigate();
-  /** The showcase's guest login. Anywhere else the server answers 404 and the notice says so. */
-  const tryIt = async () => {
-    if (await run(client.tryAsGuest(), "Signed in as a guest.")) navigate("/learn");
-  };
   const submit = async () => setSent(await run(client.signUp(email, password), CHECK_YOUR_EMAIL));
   return (
-    <Split title="Sign up">
-      <Form submit="Sign up" onSubmit={submit}>
-        <Field label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+    <Split title="Sign up" above={<TryShowcase />}>
+      <Form submit="Sign up" onSubmit={submit} disabled={showcase()}>
+        <Field label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} {...locked()} />
         <Field
           label="Password"
           type="password"
@@ -35,6 +62,7 @@ export const SignUp = () => {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          {...locked()}
         />
         <p>12 to 128 characters. A password found in a data breach is refused.</p>
         <Notice outcome={outcome} />
@@ -42,11 +70,6 @@ export const SignUp = () => {
       {sent && (
         <button type="button" className={buttonClass()} onClick={() => void run(client.resendVerification(email), CHECK_YOUR_EMAIL)}>
           Send the link again
-        </button>
-      )}
-      {showcase() && (
-        <button type="button" className={buttonClass()} onClick={() => void tryIt()}>
-          Try it
         </button>
       )}
       <p>
@@ -71,11 +94,11 @@ export const Login = () => {
     if (await run(client.signIn(email, password), "Logged in.")) navigate(returnPath(params.get("next")));
   };
   return (
-    <Split title="Log in">
+    <Split title="Log in" above={<TryShowcase />}>
       {params.get("verified") && <p role="status" className="notice">Email verified. You can log in now.</p>}
       {params.get("reset") && <p role="status" className="notice">Password changed. Log in with the new one.</p>}
-      <Form submit="Log in" onSubmit={submit}>
-        <Field label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Form submit="Log in" onSubmit={submit} disabled={showcase()}>
+        <Field label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} {...locked()} />
         <Field
           label="Password"
           type="password"
@@ -83,6 +106,7 @@ export const Login = () => {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          {...locked()}
         />
         <Notice outcome={outcome} />
       </Form>

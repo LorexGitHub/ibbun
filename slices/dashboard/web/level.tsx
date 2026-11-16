@@ -4,6 +4,7 @@ import { LevelPage, type Mastery } from "../contract.ts";
 import { levelDoors, TRACKS } from "./doors.ts";
 import { percentKnown } from "./path.ts";
 import "./level.css";
+import { Loading } from "@ibbun/ui";
 
 /** A Track's count, or, when the level has none of it yet, where to look instead. */
 const TrackCount = ({ mastery, level }: { mastery: Mastery; level: string }) =>
@@ -69,7 +70,7 @@ const LevelLoader = ({ slug }: { slug: string }) => {
   useEffect(() => {
     loadLevel(slug).then(setLoad, () => setLoad({ state: "failed" }));
   }, [slug]);
-  if (load.state === "loading") return <p role="status">Loading {name}…</p>;
+  if (load.state === "loading") return <Loading status>Loading {name}…</Loading>;
   if (load.state === "ready") return <LevelView page={load.page} />;
   return (
     <div className="level-page">

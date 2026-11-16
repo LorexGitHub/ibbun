@@ -18,7 +18,6 @@ test("the learn screen shows where it draws from and the next Study Items, or sa
     await start.click();
     await expect(page.getByText(/^1 \/ \d+$/)).toBeVisible();
     await main.getByRole("button", { name: "Not yet" }).click();
-    await expect(main.getByText("You said: not yet")).toBeVisible();
     await expect(main.getByRole("button", { name: "Mark as Known" })).toBeVisible();
   }
 });

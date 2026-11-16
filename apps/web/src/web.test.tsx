@@ -106,6 +106,8 @@ describe("web shell", () => {
         </StaticRouter>,
       );
     expect(at({ state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } })).toContain("dock-link");
+    // With no screen to measure, the server draws the full-size dock.
+    expect(at({ state: "in", learner: { learnerId: "l", email: "l@x.test", role: "learner" } })).toContain("width:44px");
     expect(at({ state: "out" })).not.toContain("dock-link");
     expect(at({ state: "loading" })).not.toContain("dock-link");
   });

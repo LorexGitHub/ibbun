@@ -9,4 +9,8 @@ data/
 test-results/
 playwright-report/
 playwright/.auth/
-.alchemy/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.build/

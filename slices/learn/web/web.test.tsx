@@ -332,7 +332,7 @@ describe("a lesson", () => {
     expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
     press("I know this");
     expect(screen.getByRole("heading", { name: "水" })).toBeTruthy();
-    expect(screen.getByText("You said: I know this")).toBeTruthy();
+    expect(screen.queryByText(/You said/)).toBeNull();
     expect(screen.getByText("みず").className).toBe("jp lesson-reading");
     expect(screen.getByText("water")).toBeTruthy();
     expect(screen.getByText("のむ水。").className).toBe("jp lesson-explanation");
@@ -356,7 +356,7 @@ describe("a lesson", () => {
     expect(screen.queryByText("I drink water.")).toBeNull();
     expect(screen.queryByText("Strokes")).toBeNull();
     press("Not yet");
-    expect(screen.getByText("You said: not yet")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Mark as Known" })).toBeTruthy();
     expect(container.querySelector("mark rt")!.textContent).toBe("みず");
     expect(screen.getByText("I drink water.").className).toBe("lesson-translation");
     expect(screen.getByText("Strokes")).toBeTruthy();
@@ -838,14 +838,14 @@ describe("Learn by keyboard", () => {
     expect([markOn("Not yet"), markOn("I know this")]).toEqual(["1", "2"]);
 
     key("1");
-    expect(screen.getByText("You said: not yet")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Mark as Known" })).toBeTruthy();
     expect(markOn("Next")).toBe("↵");
     expect(markOn("Mark as Known")).toBeUndefined();
     key("Enter");
     expect(screen.getByText("2 / 2")).toBeTruthy();
 
     key("2");
-    expect(screen.getByText("You said: I know this")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Mark as Known" })).toBeTruthy();
     key("Enter");
     expect(screen.getByRole("heading", { name: "Quiz" })).toBeTruthy();
   });

@@ -1,7 +1,7 @@
 import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { buttonClass, openGoTo } from "@ibbun/ui";
+import { buttonClass, Loading, openGoTo } from "@ibbun/ui";
 import { Today } from "../contract.ts";
 import { levelHref } from "./doors.ts";
 import { levelNote, pathRows } from "./path.ts";
@@ -14,7 +14,7 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 /** "11 kanji, 5 words and 2 grammar points", leaving out the types with none due. */
 const dueBreakdown = ({ kanji, word, grammarPoint }: Today["due"]): string => {
   const parts = [kanji ? `${kanji} kanji` : "", word ? plural(word, "word") : "", grammarPoint ? plural(grammarPoint, "grammar point") : ""].filter(Boolean);
-  return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");
+  return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : parts.join("");
 };
 
 const nextSteps = (dueTotal: number, batchSize: number) => {
@@ -23,8 +23,20 @@ const nextSteps = (dueTotal: number, batchSize: number) => {
   return dueTotal === 0 ? [learn, reviews] : [reviews, learn];
 };
 
+/** The count shown: 0 on the first paint, then the real number, so it rolls up once as the screen arrives. Where
+ * NumberFlow can't animate, or the Learner asked for less motion, it is the real number from the start. */
+const rolls = () =>
+  typeof CSS !== "undefined" && CSS.supports?.("line-height", "mod(1,1)") && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+export const useRollUp = (value: number) => {
+  const [shown, setShown] = useState(() => (rolls() ? 0 : value));
+  useEffect(() => setShown(value), [value]);
+  return shown;
+};
+
 export const TodayHero = ({ today, hour }: { today: Today; hour: number }) => {
   const { due, streakDays, batchSize } = today;
+  const count = useRollUp(due.total);
   // The accent button is the one next step: Reviews while any are due, new items once they're done
   const [primary, secondary] = nextSteps(due.total, batchSize);
   return (
@@ -34,7 +46,7 @@ export const TodayHero = ({ today, hour }: { today: Today; hour: number }) => {
         {streakDays > 0 && ` · ${plural(streakDays, "day")} in a row`}
       </p>
       <h1 id="today-count" className="today-count">
-        <NumberFlow value={due.total} />
+        <NumberFlow value={count} spinTiming={{ duration: 1100, easing: "cubic-bezier(0.16, 1, 0.3, 1)" }} />
         <span className="visually-hidden"> {due.total === 1 ? "review" : "reviews"} due</span>
       </h1>
       <p className="today-line">{due.total === 0 ? "Nothing waits for you today." : due.total === 1 ? "review waits for you." : "reviews wait for you."}</p>
@@ -99,7 +111,7 @@ export const TodayWidget = () => {
   useEffect(() => {
     loadToday().then(setLoad, () => setLoad({ state: "failed", loggedOut: false }));
   }, []);
-  if (load.state === "loading") return <p role="status">Loading your day…</p>;
+  if (load.state === "loading") return <Loading status>Loading your day…</Loading>;
   if (load.state === "failed") return <p role="alert">{load.loggedOut ? "Log in to see your day." : "Your day didn't load. Try again in a moment."}</p>;
   return (
     <>

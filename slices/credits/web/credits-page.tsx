@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, State } from "@ibbun/ui";
+import { Card, Loading, State } from "@ibbun/ui";
 import { CreditsResponse, type CreditEntry } from "../contract.ts";
 import { LEVEL_CREDITS, LEVEL_NOTE, UNIDIC_NOTICE } from "./notices.ts";
 
@@ -49,7 +49,7 @@ export type Loaded = CreditEntry[] | "failed" | null;
 
 /** What the page shows for each stage of loading. */
 export const CreditsState = ({ credits, onRetry }: { credits: Loaded; onRetry: () => void }) => {
-  if (credits === null) return <p>Loading credits…</p>;
+  if (credits === null) return <Loading>Loading credits…</Loading>;
   if (credits === "failed") return <State heading={1} mark="文" title="The credits did not load" onRetry={onRetry} />;
   return <CreditsView credits={credits} />;
 };

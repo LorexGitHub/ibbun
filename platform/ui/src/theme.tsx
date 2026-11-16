@@ -1,9 +1,9 @@
 import { useEffect, useSyncExternalStore } from "react";
 
-/** The five looks in palettes.css (ADR 0014). */
+/** The five looks in palettes.css (ADR 0014). Ai, the first, is the default. */
 export const PALETTES = [
-  { key: "shu", name: "Shu", glyph: "朱", note: "Washi paper, sumi ink, a vermilion seal." },
   { key: "ai", name: "Ai", glyph: "藍", note: "Indigo dye on undyed cotton." },
+  { key: "shu", name: "Shu", glyph: "朱", note: "Washi paper, sumi ink, a vermilion seal." },
   { key: "matcha", name: "Matcha", glyph: "抹茶", note: "Tea-house green, soft and calm." },
   { key: "sakura", name: "Sakura", glyph: "桜", note: "Cherry blossom on plum bark." },
   { key: "shiro-kuro", name: "Shiro / Kuro", glyph: "白黒", note: "Pure white and pure black, no colour at all." },
@@ -21,7 +21,7 @@ export const MODES: { key: ThemeMode; label: string; short: string; glyph: strin
 ];
 
 const KEY = "ibbun.theme";
-const DEFAULT: Theme = { palette: "shu", mode: "system" };
+const DEFAULT: Theme = { palette: "ai", mode: "system" };
 
 /** Reads the saved theme; anything unreadable or unknown falls back to the default. */
 export const parseTheme = (raw: string | null): Theme => {
@@ -67,6 +67,21 @@ export const setTheme = (change: Partial<Theme>) => {
   listeners.forEach((l) => l());
 };
 
+type ViewTransitions = { startViewTransition?: (update: () => void) => unknown };
+
+/**
+ * Changes the theme with the new look spreading from `from` (motion.css, ::view-transition). Where the browser has no
+ * view transitions it simply changes; reduced motion turns the spread into a short fade in CSS.
+ */
+export const revealTheme = (change: Partial<Theme>, from?: Element) => {
+  const doc = document as Document & ViewTransitions;
+  if (!doc.startViewTransition || !from) return setTheme(change);
+  const box = from.getBoundingClientRect();
+  doc.documentElement.style.setProperty("--reveal-x", `${box.left + box.width / 2}px`);
+  doc.documentElement.style.setProperty("--reveal-y", `${box.top + box.height / 2}px`);
+  doc.startViewTransition(() => setTheme(change));
+};
+
 const subscribe = (l: () => void) => {
   listeners.add(l);
   return () => listeners.delete(l);
@@ -106,7 +121,7 @@ export const ThemePicker = () => {
             role="radio"
             aria-checked={theme.palette === p.key}
             className="theme-look"
-            onClick={() => setTheme({ palette: p.key })}
+            onClick={(e) => revealTheme({ palette: p.key }, e.currentTarget)}
           >
             <Swatch palette={p.key} mode={shown} />
             <span className="theme-look-name">
@@ -126,7 +141,7 @@ export const ThemePicker = () => {
             aria-label={m.label}
             title={m.label}
             className="theme-mode"
-            onClick={() => setTheme({ mode: m.key })}
+            onClick={(e) => revealTheme({ mode: m.key }, e.currentTarget)}
           >
             <span className="theme-mode-glyph" lang="ja" aria-hidden="true">{m.glyph}</span>
             <span aria-hidden="true">{m.short}</span>

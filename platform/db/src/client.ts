@@ -32,6 +32,8 @@ const poolMax = (value: string | number) => {
   return n;
 };
 
+// The URL's parts, not the URL itself: pg parses a connectionString over the rest of the config, and
+// a URL without a password parses to `password: ""`, which would replace the token.
 const iamAuth = (connectionString: string, region: string, sign: TokenSigner): pg.PoolConfig => {
   const url = new URL(connectionString);
   const target = {
@@ -40,7 +42,14 @@ const iamAuth = (connectionString: string, region: string, sign: TokenSigner): p
     username: decodeURIComponent(url.username),
     region,
   };
-  return { password: () => sign(target), ssl: { ca: rdsCa(), rejectUnauthorized: true } };
+  return {
+    host: target.hostname,
+    port: target.port,
+    user: target.username,
+    database: decodeURIComponent(url.pathname.slice(1)),
+    password: () => sign(target),
+    ssl: { ca: rdsCa(), rejectUnauthorized: true },
+  };
 };
 
 export const createDb = (connectionString: string, { signer = awsSigner, ...options }: DbOptions = {}): Db => {
@@ -50,10 +59,9 @@ export const createDb = (connectionString: string, { signer = awsSigner, ...opti
   const region = options.iamRegion ?? env.DATABASE_IAM_REGION;
   return drizzle(
     new pg.Pool({
-      connectionString,
       max,
       connectionTimeoutMillis: CONNECT_TIMEOUT_MS,
-      ...(region ? iamAuth(connectionString, region, signer) : {}),
+      ...(region ? iamAuth(connectionString, region, signer) : { connectionString }),
     }),
   );
 };

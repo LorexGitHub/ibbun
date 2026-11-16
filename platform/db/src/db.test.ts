@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { sql } from "drizzle-orm";
+import pg from "pg";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { CONNECT_TIMEOUT_MS, type TokenSigner } from "./client.ts";
 import { collectMigrations, createDb, migrate, parseMigrationFile, transaction, type Db } from "./index.ts";
@@ -194,6 +195,18 @@ describe("createDb", () => {
     const ssl = poolOptions(db).ssl as { ca: string; rejectUnauthorized: boolean };
     expect(ssl.rejectUnauthorized).toBe(true);
     expect(ssl.ca).toContain("BEGIN CERTIFICATE");
+    await db.$client.end();
+  });
+
+  it("with an IAM region, connects with the token even though the URL has no password", async () => {
+    const db = createDb("postgres://ibbun_app@cluster.example.eu-central-1.rds.amazonaws.com:5432/ibbun", {
+      iamRegion: "eu-central-1",
+      signer: async () => "token",
+    });
+    // pg.Client resolves the options the way a pooled connection does, URL included.
+    const client = new pg.Client(db.$client.options) as unknown as { password: () => Promise<string>; user: string; host: string; port: number; database: string };
+    expect(await client.password()).toBe("token");
+    expect([client.user, client.host, client.port, client.database]).toEqual(["ibbun_app", "cluster.example.eu-central-1.rds.amazonaws.com", 5432, "ibbun"]);
     await db.$client.end();
   });
 

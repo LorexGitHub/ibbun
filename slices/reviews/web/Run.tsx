@@ -21,7 +21,7 @@ export const Run = (props: {
   };
   return (
     <>
-      <p>
+      <p className="review-count">
         {at + 1} of {prompts.length}
       </p>
       <ReviewCard key={prompt.exampleId + at} prompt={prompt} preferences={preferences} submit={submit} onDone={done} />

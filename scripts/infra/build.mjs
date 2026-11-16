@@ -1,5 +1,4 @@
-// Builds the web app into apps/web/dist, which alchemy.run.ts uploads. Alchemy bundles the
-// functions itself.
+// Builds the web app into apps/web/dist, which deploy-web.mjs uploads to the web bucket.
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 

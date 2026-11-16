@@ -2,14 +2,18 @@
   "name": "ibbun",
   "font": "\"Shippori Mincho B1\", \"Yu Mincho\", \"Hiragino Mincho ProN\", serif",
   "theme": {
-    "bg": "#f6f1ea",
-    "ink": "#1f1f24",
-    "accent": "#d9381e",
-    "accentDeep": "#a52a14",
-    "onAccent": "#fdfcfa",
-    "sub": "rgba(31,31,36,0.58)",
-    "grad": "#efe7dc",
-    "line": "rgba(31,31,36,0.12)"
+    "bg": "#f1f6fa",
+    "ink": "#13203e",
+    "accent": "#284cac",
+    "accentDeep": "#23418f",
+    "onAccent": "#fdfdfd",
+    "sub": "rgba(19,32,62,0.58)",
+    "grad": "#e5ecf3",
+    "line": "rgba(19,32,62,0.12)"
   },
-  "cta": { "name": "ib", "accent": "bun", "url": "github.com/LorexGitHub/ibbun" }
+  "cta": {
+    "name": "ib",
+    "accent": "bun",
+    "url": "github.com/LorexGitHub/ibbun"
+  }
 }

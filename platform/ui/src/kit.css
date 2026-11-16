@@ -25,18 +25,21 @@ body { margin: 0; font: 400 var(--text-md)/1.55 var(--font-body); -webkit-font-s
 ruby { ruby-position: over; }
 rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
 
-/* Buttons: a pill. Primary is the accent with its own soft shadow; secondary is a hairline outline. */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-xs); border: 1px solid var(--color-rule); border-radius: var(--radius-stock); min-height: 48px; padding: 0 var(--space-lg); font: 500 var(--text-md) var(--font-body); color: var(--color-ink); background: transparent; cursor: pointer; text-decoration: none;
-  transition: translate var(--dur-micro) var(--ease-snap), background-color var(--dur-micro), border-color var(--dur-micro), box-shadow var(--dur-micro); }
-.btn:hover { border-color: var(--color-muted); translate: 0 -1px; }
-.btn:active { translate: 0 1px; }
-.btn--primary { background: var(--color-accent); color: var(--color-accent-ink); border-color: transparent; box-shadow: var(--shadow-accent); }
-.btn--primary:hover { border-color: transparent; translate: 0 -2px; }
-.btn--loud { border-color: var(--color-accent); color: var(--color-accent); }
-.btn--big { min-height: 60px; padding: 0 var(--space-xl); font-size: var(--text-lead); }
-.btn:disabled { cursor: not-allowed; opacity: 0.45; translate: none; }
-.btn[aria-pressed="true"] { background: var(--color-paper-3); }
-.key-mark { min-width: 1.5em; padding: 0 0.35em; border: 1px solid currentColor; border-radius: var(--radius-stock); font: 500 var(--text-xs) var(--font-body); line-height: 1.5; text-align: center; opacity: 0.6; }
+/* Buttons, "ink and rule": the main action is a block of solid ink that turns to the accent under the pointer;
+   every other action is words standing on a hairline, which thickens to the accent. No pills, no glow, no lift. */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-xs); min-height: 48px; padding: 0 var(--space-2xs); border: 0; border-radius: 0; background: transparent; box-shadow: inset 0 -1px 0 var(--color-rule); color: var(--color-ink); font: 500 var(--text-md) var(--font-body); white-space: nowrap; cursor: pointer; text-decoration: none;
+  transition: background-color var(--dur-short), color var(--dur-short), box-shadow var(--dur-short) var(--ease-out); }
+.btn:hover { box-shadow: inset 0 -2px 0 var(--color-accent); }
+.btn--primary { padding: 0 var(--space-lg); border-radius: var(--radius-button); background: var(--color-ink); color: var(--color-paper); box-shadow: none; }
+.btn--primary:hover { background: var(--color-accent); color: var(--color-accent-ink); box-shadow: none; }
+.btn--loud { color: var(--color-accent); box-shadow: inset 0 -1px 0 var(--color-accent); }
+.btn--big { min-height: 60px; font-size: var(--text-lead); }
+.btn--primary.btn--big { padding: 0 var(--space-xl); }
+.btn:disabled { cursor: not-allowed; opacity: 0.45; }
+.btn:disabled:hover { box-shadow: inset 0 -1px 0 var(--color-rule); }
+.btn--primary:disabled:hover { background: var(--color-ink); color: var(--color-paper); box-shadow: none; }
+.btn[aria-pressed="true"] { box-shadow: inset 0 -2px 0 var(--color-ink); font-weight: 600; }
+.key-mark { min-width: 1.5em; padding: 0 0.35em; border: 1px solid currentColor; border-radius: var(--radius-pill); font: 500 var(--text-xs) var(--font-body); line-height: 1.5; text-align: center; opacity: 0.6; }
 @media (hover: none) { .key-mark { display: none; } }
 
 .card { background: var(--color-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card), inset 0 0 0 1px var(--color-rule); }
@@ -62,7 +65,7 @@ rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
 
 .input { min-height: 50px; width: 100%; padding: 0 var(--space-md); border: 1px solid var(--color-rule); border-radius: var(--radius-input); background: var(--color-card); color: var(--color-ink); font-size: var(--text-lead); }
 .input:disabled { cursor: not-allowed; background: var(--color-paper-2); color: var(--color-muted); }
-.input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; border-color: var(--color-focus); }
+.input:focus-visible { outline: none; border-color: var(--color-focus); box-shadow: inset 0 0 0 1px var(--color-focus); }
 
 /* Sheets were torn paper in Hum; in Ma they are a quiet panel */
 .sheet-wrap { position: relative; display: flex; flex-direction: column; }
@@ -98,7 +101,6 @@ rt { font-size: 0.5em; color: var(--color-ink-2); letter-spacing: 0; }
   .app-nav { flex-wrap: wrap; }
   .nav-links { order: 3; flex: none; width: 100%; }
 }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
 
 /* Settings → Appearance */
 .theme-picker { display: grid; gap: var(--space-lg); }

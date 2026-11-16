@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { StudyItemId } from "@ibbun/shared";
-import { State, useLevelFilter } from "@ibbun/ui";
+import { Loading, State, useLevelFilter } from "@ibbun/ui";
 import type { EpisodeLists, TextView } from "../contract.ts";
 import { loadBatchText, loadEpisodes, loadPassage, lookUp } from "./api.ts";
 import { EpisodeList } from "./EpisodeList.tsx";
@@ -31,7 +31,7 @@ export const useLoaded = <T,>(load: () => Promise<T>, key: string): Loaded<T> =>
 /** What was loaded, or that it is loading, or a failed load with Try again. Inline inside a screen that has more to show. */
 export const Shown = <T,>({ loaded, inline = false, children }: { loaded: Loaded<T>; inline?: boolean; children: (value: T) => React.ReactNode }) => {
   if (loaded.state === "ready") return <>{children(loaded.value)}</>;
-  if (loaded.state === "loading") return <p role="status">Loading…</p>;
+  if (loaded.state === "loading") return <Loading status />;
   return <State mark="読" heading={inline ? 3 : 2} inline={inline} title="This did not load" fact="Check your connection, then try again." onRetry={loaded.retry} />;
 };
 

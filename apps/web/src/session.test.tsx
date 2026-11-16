@@ -1,10 +1,11 @@
 // @vitest-environment happy-dom
 import type { Slice } from "@ibbun/slice";
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, useLocation } from "react-router";
+import { MemoryRouter, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { App } from "./App.tsx";
+import { WAKING_DELAY_MS } from "./WakingDatabase.tsx";
 import { buildShell, discoverSlices } from "./slices.ts";
 import { client, useWho } from "./who.ts";
 
@@ -57,6 +58,76 @@ describe("useWho", () => {
     await act(async () => fast.settle({ ok: true, data: null }));
     await act(async () => slow.settle({ ok: true, data: learner }));
     expect(result.current).toEqual({ state: "out" });
+  });
+});
+
+describe("the showcase's database waking up", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+  });
+
+  const openAt = async (address: string) => {
+    const slow = deferred<Awaited<ReturnType<typeof client.session>>>();
+    vi.spyOn(client, "session").mockReturnValue(slow.promise);
+    const shell = await buildShell(discoverSlices(modules));
+    vi.useFakeTimers();
+    render(
+      <MemoryRouter initialEntries={[address]}>
+        <App shell={shell} />
+      </MemoryRouter>,
+    );
+    const wait = (ms: number) => act(async () => void (await vi.advanceTimersByTimeAsync(ms)));
+    return { slow, wait };
+  };
+
+  it("tells the visitor why the first page is slow, once the session check has taken a moment", async () => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    const { slow, wait } = await openAt("/");
+    await wait(WAKING_DELAY_MS - 1);
+    expect(screen.queryByText("Just 10 seconds.")).toBeNull();
+    await wait(1);
+    expect(screen.getByText("Just 10 seconds.")).toBeTruthy();
+    expect(screen.getByText("The showcase database is loading...")).toBeTruthy();
+    await act(async () => slow.settle({ ok: true, data: null }));
+    expect(screen.queryByText("Just 10 seconds.")).toBeNull();
+  });
+
+  it("says it on any address, not only Home", async () => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    const { wait } = await openAt("/sample");
+    await wait(WAKING_DELAY_MS);
+    expect(screen.getByText("Just 10 seconds.")).toBeTruthy();
+  });
+
+  it("says nothing outside the showcase", async () => {
+    const { wait } = await openAt("/");
+    await wait(WAKING_DELAY_MS * 3);
+    expect(screen.queryByText("Just 10 seconds.")).toBeNull();
+  });
+});
+
+describe("logging in from the welcome on Home", () => {
+  it("shows Home's own widgets once the welcome's log in returns to the same path", async () => {
+    let loggedIn = false;
+    vi.spyOn(client, "session").mockImplementation(async () => ({ ok: true, data: loggedIn ? learner : null }));
+    const Door = () => {
+      const navigate = useNavigate();
+      return <button onClick={() => ((loggedIn = true), navigate("/"))}>Come in</button>;
+    };
+    const Today = () => <p>Today</p>;
+    const door: Slice = {
+      name: "door",
+      web: async () => ({ widgets: [{ slot: "welcome", component: Door }, { slot: "home", component: Today }] }),
+    };
+    const shell = await buildShell(discoverSlices({ ...modules, door: { default: door } }));
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App shell={shell} />
+      </MemoryRouter>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Come in" }));
+    expect(await screen.findByText("Today")).toBeTruthy();
   });
 });
 

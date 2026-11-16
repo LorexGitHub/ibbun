@@ -1,19 +1,19 @@
 /* The five looks (ADR 0014). Each sets the same six roles in a light and a dark mode; tokens.css derives every other colour from them.
- * <html data-palette data-mode> picks one; the theme module sets both. With no attributes the page is Shu, light or dark by the system. */
+ * <html data-palette data-mode> picks one; the theme module sets both. With no attributes the page is Ai, light or dark by the system. */
 
-:root, [data-palette="shu"][data-mode="light"] {
+[data-palette="shu"][data-mode="light"] {
   --p-bg: oklch(96.5% 0.012 85); --p-ink: oklch(22% 0.008 270); --p-accent: oklch(58% 0.2 32); --p-on-accent: oklch(99% 0 0); --p-quiet: oklch(80% 0.01 80); --p-glass: oklch(100% 0 0 / 0.7);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-mode]) {
-    --p-bg: oklch(17% 0.008 60); --p-ink: oklch(93% 0.015 85); --p-accent: oklch(65% 0.19 34); --p-on-accent: oklch(15% 0.01 60); --p-quiet: oklch(35% 0.01 60); --p-glass: oklch(25% 0.01 60 / 0.75);
+  --p-bg: oklch(19% 0.04 265); --p-ink: oklch(93% 0.02 250); --p-accent: oklch(72% 0.12 245); --p-on-accent: oklch(18% 0.04 265); --p-quiet: oklch(36% 0.05 265); --p-glass: oklch(27% 0.05 265 / 0.75);
   }
 }
 [data-palette="shu"][data-mode="dark"] {
   --p-bg: oklch(17% 0.008 60); --p-ink: oklch(93% 0.015 85); --p-accent: oklch(65% 0.19 34); --p-on-accent: oklch(15% 0.01 60); --p-quiet: oklch(35% 0.01 60); --p-glass: oklch(25% 0.01 60 / 0.75);
 }
 
-[data-palette="ai"][data-mode="light"] {
+:root, [data-palette="ai"][data-mode="light"] {
   --p-bg: oklch(97% 0.008 250); --p-ink: oklch(25% 0.06 265); --p-accent: oklch(45% 0.16 265); --p-on-accent: oklch(99% 0 0); --p-quiet: oklch(82% 0.02 255); --p-glass: oklch(100% 0 0 / 0.7);
 }
 [data-palette="ai"][data-mode="dark"] {

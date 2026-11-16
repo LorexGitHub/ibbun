@@ -1,0 +1,48 @@
+/* Motion in Ma. Still while the Learner reads; things arrive, they don't perform. One accent per screen at most.
+   Arrivals: expo out from a few pixels below. Exits: shorter, accelerating. A correct answer is the one stamp.
+   Reduced motion keeps the fades and drops every move (--rise: 0, no scale, no draw). */
+
+@keyframes ma-rise { from { opacity: 0; translate: 0 var(--rise); } }
+@keyframes ma-fade { from { opacity: 0; } }
+/* A seal pressed onto the page: in large, a touch past, settled. Used once per answer. */
+@keyframes ma-stamp { 0% { opacity: 0; scale: 1.35; } 55% { opacity: 1; scale: 0.96; } 100% { scale: 1; } }
+/* A line drawn from its left end */
+@keyframes ma-draw { from { scale: 0 1; } }
+/* A short ink stroke crossing a hairline: work is happening, with no claim about how much */
+@keyframes ma-sweep { from { translate: -100% 0; } to { translate: 250% 0; } }
+
+/* A screen arrives: whatever the route renders rises into place. Session cards do the same per item. */
+.app-main > * { animation: ma-rise var(--dur-long) var(--ease-out) both; }
+
+/* Buttons answer the press, not just the hover */
+.btn { transition: scale var(--dur-micro) var(--ease-out), background-color var(--dur-short), color var(--dur-short), box-shadow var(--dur-short) var(--ease-out); }
+.btn:active:not(:disabled) { scale: 0.97; transition-duration: 60ms; }
+
+/* An answer's verdict: what was announced rises in, and a right answer's ink pill is stamped */
+[role="status"] { animation: ma-rise var(--dur-short) var(--ease-out) both; }
+[role="status"] .pill--ink { animation: ma-stamp 420ms var(--ease-out) 80ms both; transform-origin: 50% 60%; }
+
+/* Loading: nothing for the first 400 ms (a fast answer never flashes), then a quiet line and the words */
+.loading { display: grid; justify-items: center; gap: var(--space-md); padding-block: var(--space-3xl); color: var(--color-muted); font-size: var(--text-sm); animation: ma-fade var(--dur-long) var(--ease-out) 400ms both; }
+.loading-line { position: relative; width: 120px; height: 1px; overflow: hidden; background: var(--color-rule); }
+.loading-line::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--color-ink); animation: ma-sweep 1.4s var(--ease-in-out) infinite; }
+
+/* The dock comes up from the bottom edge when the map returns, after a session or a log in */
+.app-dock > * { animation: ma-rise var(--dur-long) var(--ease-out) 120ms both; --rise: 24px; }
+.dock-link.active::after { animation: ma-stamp 360ms var(--ease-out) both; }
+
+/* Changing the look: the new one spreads from where it was chosen, as ink into paper (theme.tsx starts the transition) */
+::view-transition-old(root) { animation: none; }
+::view-transition-new(root) { animation: ma-reveal 620ms var(--ease-in-out) both; }
+@keyframes ma-reveal { from { clip-path: circle(0 at var(--reveal-x, 50%) var(--reveal-y, 50%)); } to { clip-path: circle(150vmax at var(--reveal-x, 50%) var(--reveal-y, 50%)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --rise: 0px; --stagger: 0ms; --dur-focal: 0ms; }
+  .app-dock > * { --rise: 0px; }
+  [role="status"] .pill--ink, .dock-link.active::after { animation-name: ma-fade; }
+  .btn:active:not(:disabled) { scale: 1; }
+  .loading-line::after { animation: none; translate: 75% 0; }
+  ::view-transition-new(root) { animation: ma-fade var(--dur-short) linear both; }
+  /* shadcn's menus zoom and slide in; keep only their fade */
+  [data-slot] { --tw-enter-scale: 1; --tw-exit-scale: 1; --tw-enter-translate-x: 0; --tw-enter-translate-y: 0; --tw-exit-translate-x: 0; --tw-exit-translate-y: 0; }
+}

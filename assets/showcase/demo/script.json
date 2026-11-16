@@ -27,8 +27,8 @@
       "n": 2,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 4.58,
-      "durSec": 3.72,
+      "inSec": 4.03,
+      "durSec": 4.75,
       "sourceType": "product",
       "liveState": true,
       "caption": false,
@@ -45,7 +45,7 @@
           "focusY": 52.59
         },
         {
-          "atSec": 3.67,
+          "atSec": 4.7,
           "scale": 1,
           "focusX": 50,
           "focusY": 52.59
@@ -57,8 +57,8 @@
       "n": 3,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 16.82,
-      "durSec": 6.34,
+      "inSec": 16.23,
+      "durSec": 6.35,
       "sourceType": "product",
       "liveState": true,
       "caption": false,
@@ -70,15 +70,15 @@
       "camera": [
         {
           "atSec": 0,
-          "scale": 1.05,
+          "scale": 1.1,
           "focusX": 50,
-          "focusY": 49.25
+          "focusY": 46.92
         },
         {
-          "atSec": 6.29,
-          "scale": 1.05,
+          "atSec": 6.3,
+          "scale": 1.1,
           "focusX": 50,
-          "focusY": 49.25
+          "focusY": 46.92
         }
       ],
       "transition": "cut"
@@ -87,7 +87,7 @@
       "n": 4,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 27.26,
+      "inSec": 25.44,
       "durSec": 5.23,
       "sourceType": "product",
       "liveState": true,
@@ -117,7 +117,7 @@
       "n": 5,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 35.98,
+      "inSec": 34.66,
       "durSec": 4.92,
       "sourceType": "product",
       "liveState": true,
@@ -147,8 +147,8 @@
       "n": 6,
       "kind": "clip",
       "src": "take.mp4",
-      "inSec": 44.88,
-      "durSec": 6.25,
+      "inSec": 44.06,
+      "durSec": 8.05,
       "sourceType": "product",
       "liveState": true,
       "caption": false,

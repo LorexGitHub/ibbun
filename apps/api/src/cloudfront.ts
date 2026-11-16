@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 
-/** The viewer's IP, set by the router's viewer-request function over anything the viewer sent (alchemy.run.ts). */
+/** The viewer's IP, set by the router's viewer-request function over anything the viewer sent (infra/modules/cdn). */
 export const VIEWER_IP_HEADER = "x-viewer-ip";
 
 /**

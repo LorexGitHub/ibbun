@@ -29,7 +29,7 @@ const title = (n, durSec) => ({
 });
 const shots = [
   title(1, 3.4),
-  clip(2, m.today.t - 0.2, m.todayEnd.t, m.today.box),
+  clip(2, m.today.t + 0.3, m.todayEnd.t, m.today.box), // after the loading line: opens as the count starts to roll
   clip(3, m.lesson.t - 0.3, m.lessonEnd.t + 0.6, m.lessonTurned.box),
   clip(4, m.quiz.t - 0.2, m.quizEnd.t, m.quizCorrect.box),
   clip(5, m.review.t - 0.2, m.reviewEnd.t, m.reviewCorrect.box),

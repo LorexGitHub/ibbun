@@ -92,13 +92,54 @@ describe("sign up", () => {
 
 describe("guest login", () => {
   afterEach(() => vi.unstubAllEnvs());
-  it("offers Try it only in showcase mode", () => {
+  it("offers Try Showcase only in showcase mode", () => {
     open("/signup");
-    expect(screen.queryByRole("button", { name: "Try it" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Try Showcase" })).toBeNull();
     cleanup();
     vi.stubEnv("VITE_SHOWCASE", "1");
     open("/signup");
-    expect(screen.getByRole("button", { name: "Try it" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Try Showcase" })).toBeTruthy();
+  });
+
+  it.each([
+    ["/signup", "Sign up"],
+    ["/login", "Log in"],
+  ])("in showcase mode, %s keeps its form but locks it, with Try Showcase above", (path, title) => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    open(path);
+    const heading = screen.getByRole("heading", { level: 1, name: title });
+    const tryIt = screen.getByRole("button", { name: "Try Showcase" });
+    expect(tryIt.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    for (const label of ["Email", "Password"]) {
+      const input = screen.getByLabelText(label) as HTMLInputElement;
+      expect(input.disabled).toBe(true);
+      expect(input.placeholder).toBe("Unavailable in the showcase");
+    }
+    expect((screen.getByRole("button", { name: title }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("locks Try Showcase and says the database is loading while it waits, then frees it again", async () => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    let answer = (_result: Result<null>) => {};
+    const client = fakeClient({ tryAsGuest: vi.fn(() => new Promise<Result<null>>((done) => (answer = done))) });
+    open("/login", client);
+    const tryIt = screen.getByRole("button", { name: "Try Showcase" }) as HTMLButtonElement;
+    expect(screen.queryByText(/showcase database is loading/)).toBeNull();
+    fireEvent.click(tryIt);
+    expect(tryIt.disabled).toBe(true);
+    expect(screen.getByText(/showcase database is loading/)).toBeTruthy();
+    answer(fail(503, "Try again in a moment."));
+    await waitFor(() => expect(tryIt.disabled).toBe(false));
+    expect(screen.queryByText(/showcase database is loading/)).toBeNull();
+  });
+
+  it("signs in as a new guest and opens Today", async () => {
+    vi.stubEnv("VITE_SHOWCASE", "1");
+    const client = fakeClient({ tryAsGuest: vi.fn(async () => ok(null)) });
+    open("/login", client);
+    fireEvent.click(screen.getByRole("button", { name: "Try Showcase" }));
+    await waitFor(() => expect(screen.getByTestId("where").textContent).toBe("/"));
+    expect(client.tryAsGuest).toHaveBeenCalledOnce();
   });
 });
 
