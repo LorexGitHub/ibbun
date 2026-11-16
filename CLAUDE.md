@@ -1,4 +1,4 @@
-AGENTS.md
+@AGENTS.md
 
 <!-- BEGIN AWS Agent Toolkit rules -->
 # AWS Guidance for the new AWS experience
