@@ -51,10 +51,10 @@ It runs each import in order, then the grammar seed, the derived links, the leve
 To generate a level's content, start the worker and run:
 
 ```sh
-pnpm content:generate --level N5 [--learner <id>] [--clips 10] [--texts 10]
+pnpm content:generate --level N5 [--learner <id>] [--points 20] [--clips 10] [--texts 10]
 ```
 
-It opens every Generation Request the level still lacks and prints how many it opened per kind. The first run opens the Grammar Point fields. Once you have reviewed and approved those points, run it again for their Examples, explanations and dialogues, and, with `--learner`, that Learner's Batch Texts. A rerun never opens a request twice.
+It opens every Generation Request the level still lacks and prints how many it opened per kind. The first run opens the Grammar Point fields. Once you have reviewed and approved those points, run it again for their Examples, explanations and dialogues, and, with `--learner`, that Learner's Batch Texts. A rerun never opens a request twice. For a small set, `--points 20` keeps the Grammar Point stages to the level's first 20 points.
 
 ## Optional settings
 
