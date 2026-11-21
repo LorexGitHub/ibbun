@@ -24,7 +24,8 @@ type Result = Judgement | { outcome: "held" };
 
 /** Records one Approval Decision per record of the unit; an escalation is recorded on the primary record only. */
 const decideUnit = async (a: Authoring, draft: Draft, outcome: DecisionOutcome, decider: Decider, reason?: string, verdicts: Review["verdicts"] = []) => {
-  const records = outcome === "escalated" ? [draft.primary] : draft.records;
+  const levels = outcome === "approved" && draft.kind === "grammar-fields" ? draft.levels : [];
+  const records = outcome === "escalated" ? [draft.primary] : [...levels, ...draft.records];
   for (const { table, id } of records) await a.decide({ recordTable: table, recordId: id, outcome, decider, reason, verdicts });
 };
 

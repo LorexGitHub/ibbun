@@ -136,6 +136,31 @@ describe("reviewing Grammar Point fields", () => {
   });
 });
 
+describe("a seeded Grammar Point whose level is still a draft", () => {
+  const seeded = async () => {
+    const w = await world();
+    const candidate = w.graph.levelCandidate[0]!;
+    candidate.approval = "draft";
+    return { ...w, candidate };
+  };
+
+  it("tells the reviewer the drafted level and approves it with the point", async () => {
+    const w = await seeded();
+    const { llm } = await review(w);
+    expect(llm.calls()[0]!.prompt).toContain("JLPT Level of the target: N4");
+    expect(itemRow(w).approval).toBe("approved");
+    expect(w.candidate.approval).toBe("approved");
+    expect((await w.a.decisions(w.candidate.id))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer" } });
+  });
+
+  it("keeps the level a draft when the fields are rejected, so the redraft keeps its level", async () => {
+    const w = await seeded();
+    await review(w, verdicts(["links"]));
+    expect(itemRow(w).approval).toBe("rejected");
+    expect(w.candidate.approval).toBe("draft");
+  });
+});
+
 describe("grammarFieldsDrafts", () => {
   it("finds nothing once the point is approved, or when the target is not a Grammar Point", async () => {
     const approved = await world();

@@ -122,6 +122,7 @@ These reasons are operational and always go straight to the supervisor: `breaker
 - An **Example and its answer data** are generated (or, for a Tatoeba Example, completed) and reviewed as one unit, approved or rejected together. A later Learner flag that is accepted adds one accepted answer through its own Approval Decision.
 - A **Reading Passage and all its Sentences** are reviewed and approved atomically.
 - A **dialogue, its Sentences and both comprehension questions** are reviewed and approved atomically ([listening.md](listening.md#dialogues)).
+- A **Grammar Point's fields, Matcher Rule and proposed links** are reviewed and approved or rejected together. The reviewer judges the point at its draft level, so an approval also approves the point's draft Level Candidates. A rejection leaves them draft, so the redrafted point keeps its level ([jlpt-levels.md](jlpt-levels.md#level-candidates)).
 
 ## Listening Clips
 
