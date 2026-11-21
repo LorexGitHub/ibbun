@@ -53,5 +53,17 @@ export const createOllamaLlm = ({ config, url = "http://localhost:11434", fetch 
     return { ...spent, output: parsed.data as z.output<S> };
   };
 
-  return { generate: (request) => call("generator", request), review: (request) => call("reviewer", request) };
+  // Ollama answers one request at a time and sends no headers until a request's turn starts, so
+  // concurrent jobs would wait in its queue past fetch's 300 s headers timeout. They wait here instead.
+  let turn: Promise<unknown> = Promise.resolve();
+  const oneAtATime = <T>(run: () => Promise<T>): Promise<T> => {
+    const result = turn.then(run);
+    turn = result.catch(() => undefined);
+    return result;
+  };
+
+  return {
+    generate: (request) => oneAtATime(() => call("generator", request)),
+    review: (request) => oneAtATime(() => call("reviewer", request)),
+  };
 };
