@@ -120,16 +120,27 @@ export const dialogue: Kind = {
   },
 };
 
-/** Opens and starts a dialogue request for every levelled Grammar Point that has never had one. Returns how many. */
-export const requestDialogues = async (auth: Authoring, jobs: Jobs): Promise<number> => {
+/**
+ * Opens and starts a dialogue request for every levelled Grammar Point that has never had one, or only for those at `level`.
+ * `cap` bounds how many dialogue requests those points may have in all, earlier ones included. Returns how many it opened.
+ */
+export const requestDialogues = async (auth: Authoring, jobs: Jobs, { level, cap = Infinity }: { level?: JlptLevel; cap?: number } = {}): Promise<number> => {
   const asked = new Set((await auth.rows("generationRequest", { kind: KIND })).map((r) => r.targetId));
   const points = await auth.rows("studyItem", { type: "grammar_point", approval: "approved", retired: false });
-  let opened = 0;
+  const levelled: string[] = [];
   for (const { id } of points) {
-    if (asked.has(id) || !(await levelOf(auth, id))) continue;
+    const at = await levelOf(auth, id);
+    if (at && (!level || at === level)) levelled.push(id);
+  }
+  let room = cap - levelled.filter((id) => asked.has(id)).length;
+  let opened = 0;
+  for (const id of levelled) {
+    if (room <= 0) break;
+    if (asked.has(id)) continue;
     const request = await auth.requestGeneration({ targetId: id, kind: KIND, reason: "levelled grammar point" });
     await jobs.enqueue(ContentGenerate, { requestId: request.id });
     opened++;
+    room--;
   }
   return opened;
 };
