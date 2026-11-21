@@ -13,7 +13,7 @@
     "content:import": "node --env-file-if-exists=.env slices/import/server/import-cli.ts",
     "content:examples": "node --env-file-if-exists=.env slices/import/server/examples-cli.ts",
     "content:generate": "node --env-file-if-exists=.env slices/content-generation/server/generate-cli.ts",
-    "content:publish":"node --env-file-if-exists=.env slices/import/server/publish-cli.ts",
+    "content:publish": "node --env-file-if-exists=.env slices/import/server/publish-cli.ts",
     "test": "pnpm gen && vitest run",
     "typecheck": "pnpm gen && tsc -p . && tsc -p apps/web",
     "test:packages": "pnpm gen && node scripts/gates/vitest-per-package.ts",
