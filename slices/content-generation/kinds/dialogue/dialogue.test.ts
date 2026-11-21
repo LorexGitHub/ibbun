@@ -28,7 +28,7 @@ const answer = {
 const setup = () => {
   const w = world();
   let t = Date.parse("2026-11-07T09:00:00Z");
-  const clock = { now: () => new Date((t += 1000)), newId: randomUUID };
+  const clock = { now: () => new Date((t += 1000)), newId: randomUUID as () => string };
   const auth = createFakeAuthoring(w.graph, clock);
   const jobs = createFakeJobs();
   const prompts: string[] = [];
@@ -71,7 +71,7 @@ const setup = () => {
         .sort((a, b) => a.position - b.position)
         .map(async (l) => ({ ...l, sentence: (await auth.rows("sentence", { id: l.sentenceId }))[0]! })),
     );
-  return { ...w, auth, jobs, llm, prompts, run, addGrammar, clipOf, lines };
+  return { ...w, clock, auth, jobs, llm, prompts, run, addGrammar, clipOf, lines };
 };
 
 describe("dialogue kind", () => {
@@ -114,6 +114,16 @@ describe("dialogue kind", () => {
     expect(voiceOf.size).toBe(2);
     expect(voiceOf.get("男")).not.toBe(voiceOf.get("女"));
     for (const l of voiced) expect(l.voice).toBe(voiceOf.get(l.speaker));
+  });
+
+  it("hashes a fixed clip id to fixed voices", async () => {
+    const t = setup();
+    const ids = ["00000000-0000-4000-8000-000000000001"];
+    t.clock.newId = () => ids.shift() ?? randomUUID();
+    const request = await t.run(t.grammarId);
+    expect(request.id).toBe("00000000-0000-4000-8000-000000000001");
+    const voiceOf = new Map((await t.lines(request.id)).map((l) => [l.speaker, l.voice]));
+    expect(Object.fromEntries(voiceOf)).toEqual({ 男: "玄野武宏", 女: "四国めたん" });
   });
 
   it("picks each speaker's voice by the clip id's hash, and pins both questions to the whole opening line", async () => {
