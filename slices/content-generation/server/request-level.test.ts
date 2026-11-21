@@ -106,9 +106,10 @@ describe("requestLevel", () => {
     for (const context of [{ learnerId: other, level: "N5" as const }, { learnerId, level: "N4" as const }])
       await t.auth.requestGeneration({ targetId: randomUUID(), kind: "batch-text", reason: reasonOf({ ...context, itemIds: [t.wordId as StudyItemId] }) });
     await t.auth.requestGeneration({ targetId: randomUUID(), kind: "batch-text", reason: "by hand" });
-    await t.auth.requestGeneration({ targetId: randomUUID(), kind: "batch-text", reason: reasonOf({ learnerId, level: "N5", itemIds: [t.wordId as StudyItemId] }) });
+    for (let i = 0; i < 2; i++)
+      await t.auth.requestGeneration({ targetId: randomUUID(), kind: "batch-text", reason: reasonOf({ learnerId, level: "N5", itemIds: [t.wordId as StudyItemId] }) });
 
-    expect((await requestLevel({ auth: t.auth, jobs: t.jobs }, { level: "N5", learnerId, texts: 3 }))["batch-text"]).toBe(2);
+    expect((await requestLevel({ auth: t.auth, jobs: t.jobs }, { level: "N5", learnerId, texts: 4 }))["batch-text"]).toBe(2);
   });
 
   it("opens no Batch Texts without a Learner", async () => {
