@@ -48,6 +48,14 @@ The fixture and the real content can't share a database, because the fixture use
 
 It runs each import in order, then the grammar seed, the derived links, the levels and the matchers, and prints one line per step. The first run downloads a few hundred megabytes into `data/import-raw` and takes a while. Running it again is safe: it skips a dataset whose upstream version hasn't changed, and it resumes a run that stopped half way.
 
+To generate a level's content, start the worker and run:
+
+```sh
+pnpm content:generate --level N5 [--learner <id>] [--clips 10] [--texts 10]
+```
+
+It opens every Generation Request the level still lacks and prints how many it opened per kind. The first run opens the Grammar Point fields. Once you have reviewed and approved those points, run it again for their Examples, explanations and dialogues, and, with `--learner`, that Learner's Batch Texts. A rerun never opens a request twice.
+
 ## Optional settings
 
 | Variable                                    | What it does |
