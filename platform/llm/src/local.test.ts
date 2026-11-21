@@ -62,6 +62,29 @@ describe("Ollama llm, replaying /api/chat answers", () => {
     const llm = createOllamaLlm({ config, fetch: fetch as typeof globalThis.fetch });
     await expect(llm.generate(draftRequest)).rejects.toThrow("ollama answered 404: model not found");
   });
+
+  it("sends one request at a time, so a call waiting its turn never sits in Ollama's queue past fetch's headers timeout", async () => {
+    let inFlight = 0;
+    let most = 0;
+    const fetch = async () => {
+      most = Math.max(most, ++inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      inFlight--;
+      return Response.json({ model: "gemma4:12b", done_reason: "stop", ...says({ sentence: "猫です。" }) });
+    };
+    const llm = createOllamaLlm({ config, fetch: fetch as typeof globalThis.fetch });
+    await Promise.all([llm.generate(draftRequest), llm.generate(draftRequest), llm.generate(draftRequest)]);
+    expect(most).toBe(1);
+  });
+
+  it("keeps going after a failed call", async () => {
+    let calls = 0;
+    const fetch = async () => (++calls === 1 ? new Response("boom", { status: 500 }) : Response.json({ model: "gemma4:12b", done_reason: "stop", ...says({ sentence: "猫です。" }) }));
+    const llm = createOllamaLlm({ config, fetch: fetch as typeof globalThis.fetch });
+    const [first, second] = await Promise.allSettled([llm.generate(draftRequest), llm.generate(draftRequest)]);
+    expect(first.status).toBe("rejected");
+    expect(second).toMatchObject({ status: "fulfilled", value: { output: { sentence: "猫です。" } } });
+  });
 });
 
 /** Answers like `claude -p --output-format json`, and records each run. */
