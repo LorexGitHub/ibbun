@@ -72,6 +72,21 @@ describe("requestLevel", () => {
     expect(counts).toMatchObject({ examples: 3, explanation: 3 });
   });
 
+  it("works on only the first --points Grammar Points at the level by id, the same set at every stage and on every run", async () => {
+    const t = setup();
+    const n5 = [t.grammarId, t.addGrammar("N5", "approved"), t.addGrammar("N5"), t.addGrammar("N5"), t.addGrammar("N5", "approved")];
+    t.addGrammar("N4");
+    const chosen = [...n5].sort().slice(0, 3);
+    const approved = new Set((await t.auth.rows("studyItem", { type: "grammar_point", approval: "approved" })).map((r) => r.id));
+
+    await requestLevel({ auth: t.auth, jobs: t.jobs }, { level: "N5", points: 3 });
+    await requestLevel({ auth: t.auth, jobs: t.jobs }, { level: "N5", points: 3 });
+
+    expect(await t.targets("grammar-fields")).toEqual(chosen.filter((id) => !approved.has(id)));
+    expect(await t.targets("examples")).toEqual(chosen.filter((id) => approved.has(id)));
+    expect(await t.targets("explanation")).toEqual(chosen.filter((id) => approved.has(id)));
+  });
+
   it("opens dialogues for approved levelled Grammar Points at the level, up to the cap, counting earlier ones", async () => {
     const t = setup();
     const points = [t.addGrammar("N5", "approved"), t.addGrammar("N5", "approved"), t.addGrammar("N5", "approved")];
@@ -148,11 +163,11 @@ describe("requestLevel", () => {
 
 describe("optionsOf", () => {
   it("reads the level, the Learner and the counts from the command line", () => {
-    expect(optionsOf({ level: "N4", learner: learnerId, clips: "3", texts: "7" })).toEqual({ level: "N4", learnerId, clips: 3, texts: 7 });
+    expect(optionsOf({ level: "N4", learner: learnerId, points: "20", clips: "3", texts: "7" })).toEqual({ level: "N4", learnerId, points: 20, clips: 3, texts: 7 });
   });
 
   it("leaves out what was not given, and refuses a missing level", () => {
-    expect(optionsOf({ level: "N5" })).toEqual({ level: "N5", learnerId: undefined, clips: undefined, texts: undefined });
+    expect(optionsOf({ level: "N5" })).toEqual({ level: "N5", learnerId: undefined, points: undefined, clips: undefined, texts: undefined });
     expect(() => optionsOf({})).toThrow();
   });
 });

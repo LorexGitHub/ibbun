@@ -1,11 +1,11 @@
-// `pnpm content:generate --level N5 [--learner <id>] [--clips 10] [--texts 10]`. Needs DATABASE_URL and JOBS_QUEUE_URL.
+// `pnpm content:generate --level N5 [--learner <id>] [--points 20] [--clips 10] [--texts 10]`. Needs DATABASE_URL and JOBS_QUEUE_URL.
 import { parseArgs } from "node:util";
 import { createAuthoring } from "@ibbun/content-graph/authoring";
 import { createDb } from "@ibbun/db";
 import { createSqsJobsFromEnv } from "@ibbun/jobs";
 import { optionsOf, requestLevel } from "./request-level.ts";
 
-const { values } = parseArgs({ options: { level: { type: "string" }, learner: { type: "string" }, clips: { type: "string" }, texts: { type: "string" } } });
+const { values } = parseArgs({ options: { level: { type: "string" }, learner: { type: "string" }, points: { type: "string" }, clips: { type: "string" }, texts: { type: "string" } } });
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not set");
