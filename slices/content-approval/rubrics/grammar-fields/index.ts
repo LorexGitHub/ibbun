@@ -10,6 +10,8 @@ export type GrammarFieldsDraft = {
   records: Rec[];
   point: Row<"grammarPoint">;
   links: { sentence: Row<"sentence">; link: Row<"sentenceDemonstratesGrammar"> }[];
+  /** The point's draft level candidates (the seed's level): approved with the point, but left draft when it is rejected, so a redraft keeps its level. */
+  levels: Rec[];
 };
 
 export type GrammarFieldsCheck = { failures: Failure[]; level: Level };
@@ -34,7 +36,8 @@ export const grammarFieldsDrafts = async (a: Authoring, runId: string): Promise<
   const links = await proposedLinks(a, found.item.id);
   const primary: Rec = { table: "studyItem", id: found.item.id };
   const records: Rec[] = [...links.map(({ link }) => ({ table: "sentenceDemonstratesGrammar" as const, id: link.id })), primary];
-  return [{ kind: "grammar-fields", primary, records, point: found.point, links }];
+  const levels = (await a.rows("levelCandidate", { studyItemId: found.item.id, approval: "draft", retired: false })).map(({ id }) => ({ table: "levelCandidate" as const, id }));
+  return [{ kind: "grammar-fields", primary, records, point: found.point, links, levels }];
 };
 
 const missingFields = (point: Row<"grammarPoint">): Failure[] =>
@@ -52,7 +55,8 @@ export const checkGrammarFields = async (a: Authoring, { point }: GrammarFieldsD
   const sentences = (await Promise.all(examples.map((e) => a.rows("sentence", { id: e.sentenceId })))).flat();
   const own = sentences.filter((s) => s.tokens.length > 0);
   const failures = [...missingFields(point), ...(point.matcherRule == null ? [] : checkMatcherRule(point.matcherRule as MatcherRule, own))];
-  return { failures, level: currentLevel(await a.rows("levelCandidate", { studyItemId: point.studyItemId })) };
+  const candidates = (await a.rows("levelCandidate", { studyItemId: point.studyItemId, retired: false })).filter((c) => c.approval !== "rejected");
+  return { failures, level: currentLevel(candidates.map((c) => ({ ...c, approval: "approved" as const }))) };
 };
 
 const orNone = (text: string | null | undefined): string => text || "none";
