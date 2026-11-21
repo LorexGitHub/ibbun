@@ -2,7 +2,7 @@ import type { Authoring } from "@ibbun/content-graph/authoring";
 import { ContentGenerate } from "@ibbun/content-graph/jobs";
 import { currentLevel } from "@ibbun/content-graph/levels";
 import type { Jobs } from "@ibbun/jobs";
-import { StudyItemId, type JlptLevel, type LearnerId } from "@ibbun/shared";
+import { JlptLevel, LearnerId, StudyItemId } from "@ibbun/shared";
 import { requestDialogues } from "../kinds/dialogue/index.ts";
 import { passageIdOf } from "../kinds/reading-passage/index.ts";
 import { contextOf, reasonOf, type BatchContext } from "../kinds/reading-passage/context.ts";
@@ -103,3 +103,13 @@ export const requestLevel = async (deps: Deps, { level, learnerId, clips = 10, t
   counts["batch-text"] = learnerId ? await requestBatchTexts(deps, learnerId, level, texts) : 0;
   return counts;
 };
+
+const count = (value: string | undefined) => (value === undefined ? undefined : Number.parseInt(value, 10));
+
+/** The command line's `--level`, `--learner`, `--clips` and `--texts`, parsed. */
+export const optionsOf = (values: { level?: string; learner?: string; clips?: string; texts?: string }): Options => ({
+  level: JlptLevel.parse(values.level),
+  learnerId: values.learner === undefined ? undefined : LearnerId.parse(values.learner),
+  clips: count(values.clips),
+  texts: count(values.texts),
+});

@@ -2,9 +2,9 @@ import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createFakeAuthoring } from "@ibbun/content-graph/testing";
 import { createFakeJobs } from "@ibbun/jobs";
-import type { JlptLevel, LearnerId } from "@ibbun/shared";
-import { contextOf } from "../kinds/reading-passage/context.ts";
-import { requestLevel } from "./request-level.ts";
+import type { JlptLevel, LearnerId, StudyItemId } from "@ibbun/shared";
+import { contextOf, reasonOf } from "../kinds/reading-passage/context.ts";
+import { optionsOf, requestLevel } from "./request-level.ts";
 import { world } from "./world.ts";
 
 const learnerId = randomUUID() as LearnerId;
@@ -99,6 +99,18 @@ describe("requestLevel", () => {
     expect(batches.flatMap((b) => b.itemIds).sort()).toEqual([t.wordId, ...words].sort());
   });
 
+  it("counts toward the Batch Text cap only the Learner's own requests at the level", async () => {
+    const t = setup();
+    Array.from({ length: 30 }, () => t.addWord("N5"));
+    const other = randomUUID() as LearnerId;
+    for (const context of [{ learnerId: other, level: "N5" as const }, { learnerId, level: "N4" as const }])
+      await t.auth.requestGeneration({ targetId: randomUUID(), kind: "batch-text", reason: reasonOf({ ...context, itemIds: [t.wordId as StudyItemId] }) });
+    await t.auth.requestGeneration({ targetId: randomUUID(), kind: "batch-text", reason: "by hand" });
+    await t.auth.requestGeneration({ targetId: randomUUID(), kind: "batch-text", reason: reasonOf({ learnerId, level: "N5", itemIds: [t.wordId as StudyItemId] }) });
+
+    expect((await requestLevel({ auth: t.auth, jobs: t.jobs }, { level: "N5", learnerId, texts: 3 }))["batch-text"]).toBe(2);
+  });
+
   it("opens no Batch Texts without a Learner", async () => {
     const t = setup();
     expect((await requestLevel({ auth: t.auth, jobs: t.jobs }, { level: "N5" }))["batch-text"]).toBe(0);
@@ -130,5 +142,16 @@ describe("requestLevel", () => {
     const requests = await t.auth.rows("generationRequest");
     expect(requests.filter((r) => r.kind !== "grammar-fields").every((r) => r.targetId === n4)).toBe(true);
     expect(requests.some((r) => r.targetId === t.grammarId || r.targetId === t.wordId)).toBe(false);
+  });
+});
+
+describe("optionsOf", () => {
+  it("reads the level, the Learner and the counts from the command line", () => {
+    expect(optionsOf({ level: "N4", learner: learnerId, clips: "3", texts: "7" })).toEqual({ level: "N4", learnerId, clips: 3, texts: 7 });
+  });
+
+  it("leaves out what was not given, and refuses a missing level", () => {
+    expect(optionsOf({ level: "N5" })).toEqual({ level: "N5", learnerId: undefined, clips: undefined, texts: undefined });
+    expect(() => optionsOf({})).toThrow();
   });
 });
