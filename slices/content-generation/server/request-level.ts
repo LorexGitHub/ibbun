@@ -25,7 +25,7 @@ const pointsAt = async (auth: Authoring, { level, points }: Scope, approval: "dr
   const all: { id: string; approval: string }[] = [];
   for (const state of ["draft", "approved"] as const)
     for (const { id } of await auth.rows("studyItem", { type: "grammar_point", approval: state, ...live })) if ((await levelOf(auth, id)) === level) all.push({ id, approval: state });
-  return all.sort((a, b) => (a.id < b.id ? -1 : 1)).slice(0, points).filter((p) => p.approval === approval).map((p) => p.id);
+  return all.sort((a, b) => a.id.localeCompare(b.id)).slice(0, points).filter((p) => p.approval === approval).map((p) => p.id);
 };
 
 const without = async (ids: string[], has: (id: string) => Promise<boolean>) => {
