@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  /* Poster size matches the reference: 4:5 portrait (960x1200) */
+  .poster {
+    width: 960px;
+    height: 1200px;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-family: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", "MS Mincho", serif;
+  }
+  .poster.red   { background: #d9442b; }
+  .poster.paper { background: #faf6ef; }
+
+  .main {
+    margin-top: 72px;
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+    font-size: 150px;
+    letter-spacing: 60px;
+    color: #fff;
+    line-height: 1;
+  }
+  .paper .main { color: #1a1a1a; }
+
+  .tag {
+    position: absolute;
+    bottom: 88px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 34px;
+    letter-spacing: 0.02em;
+    color: #fff;
+  }
+  .paper .tag { color: #1a1a1a; }
+
+  /* Small hanko-style stamp accent for the paper variant */
+  .stamp {
+    position: absolute;
+    bottom: 170px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 64px;
+    height: 64px;
+    background: #d9442b;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+    writing-mode: vertical-rl;
+    line-height: 1;
+  }
+
+  .row { display: flex; gap: 0; }
+</style>
+</head>
+<body>
+<div class="row">
+
+  <div class="poster red" id="reviews">
+    <div class="main">復習。</div>
+    <div class="tag">Reviews, just before you forget.</div>
+  </div>
+
+  <div class="poster red" id="learn">
+    <div class="main">学ぶ。</div>
+    <div class="tag">Learn something new.</div>
+  </div>
+
+  <div class="poster red" id="reading">
+    <div class="main">読む。</div>
+    <div class="tag">Real sentences, real stories.</div>
+  </div>
+
+  <div class="poster red" id="n1">
+    <div class="main">一歩ずつ。</div>
+    <div class="tag">Step by step, up to N1.</div>
+  </div>
+
+  <div class="poster paper" id="everyday">
+    <div class="stamp">毎日</div>
+    <div class="main">毎日少し。</div>
+    <div class="tag">A little every day.</div>
+  </div>
+
+</div>
+</body>
+</html>
