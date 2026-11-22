@@ -79,7 +79,7 @@ const linkRow = (w: Awaited<ReturnType<typeof world>>) => w.graph.sentenceDemons
 
 describe("the grammar-fields rubric", () => {
   it("is a versioned template that judges every field, the rule and the proposed links", () => {
-    expect(rubricFor("grammar-fields")).toMatchObject({ version: "grammar-fields/v2", criteria: CRITERIA });
+    expect(rubricFor("grammar-fields")).toMatchObject({ version: "grammar-fields/v3", criteria: CRITERIA });
   });
 
   it("shows the reviewer the fields, the rule and each proposed link with the span it matched", async () => {
@@ -93,6 +93,14 @@ describe("the grammar-fields rubric", () => {
     expect(prompt).toContain("- 食べてしまった。 (I ate it all.) 「食べてしまっ」");
     expect(prompt).toContain("JLPT Level of the target: N4");
   });
+
+  it("asks the formation for the title and the main form, and lets a missing less common form pass with a note", async () => {
+    const { llm } = await review(await world());
+    const prompt = llm.calls()[0]!.prompt;
+    expect(prompt).toContain("it builds the title and the main form correctly");
+    expect(prompt).toContain("do not fail the criterion for it");
+    expect(prompt).not.toContain("builds the title and every form");
+  });
 });
 
 describe("reviewing Grammar Point fields", () => {
@@ -102,7 +110,7 @@ describe("reviewing Grammar Point fields", () => {
     expect(itemRow(w).approval).toBe("approved");
     expect(linkRow(w).approval).toBe("approved");
     expect(w.graph.generationRequest.find((r) => r.id === w.request.id)!.status).toBe("done");
-    expect((await w.a.decisions(w.item))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "grammar-fields/v2" } });
+    expect((await w.a.decisions(w.item))[0]).toMatchObject({ outcome: "approved", decider: { kind: "reviewer", rubricVersion: "grammar-fields/v3" } });
   });
 
   it("rejects a link that uses another meaning of the spelling, and sends the reason back to the generator", async () => {
